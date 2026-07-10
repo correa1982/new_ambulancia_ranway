@@ -229,16 +229,7 @@
     {% endif %}
 
     {% if total > 0 %}
-    {# Count by type #}
-    {% set ns = namespace() %}
-    {% for key, cfg in form_types.items() %}
-    {% set count = results | selectattr('tipo_key', 'equalto', key) | list | length %}
-    {% if count > 0 %}
-    <div class="stat-chip" style="border-color:{{ cfg.color }}20;">
-        {{ cfg.icon }} {{ cfg.label }}: <strong>{{ count }}</strong>
-    </div>
-    {% endif %}
-    {% endfor %}
+    {# Conteo por tipo oculto temporalmente a petición del usuario #}
     {% endif %}
 </div>
 
