@@ -100,7 +100,6 @@
     <th>Aseguradora</th>
     <th>Motivo de Consulta</th>
     <th>Profesional</th>
-    <th>Firma</th>
     <th>Fecha</th>
     <th style="text-align:center;">Acciones</th>
 </tr>
@@ -145,13 +144,6 @@
         <span style="display:block; font-size:10px; color:#64748b; margin-top:1px;">
             {{ p.perfil_registrador }}{% if p.registro_medico_registrador %} · Resolución: {{ p.registro_medico_registrador }}{% endif %}
         </span>
-        {% endif %}
-    </td>
-    <td style="text-align: center;">
-        {% if p.firma_registrador %}
-        <img src="{{ p.firma_registrador }}" alt="Firma" style="max-height: 36px; background: white; border: 1px solid #e2e8f0; padding: 2px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
-        {% else %}
-        <span style="color:#cbd5e1; font-style:italic; font-size:11px;">Sin firma</span>
         {% endif %}
     </td>
     <td style="font-size: 11px; color: #64748b; white-space: nowrap;">{{ p.fecha_registro }}</td>
