@@ -2945,7 +2945,16 @@ if (modalAceptar) {
       const acIdInput = document.querySelector('input[name="atencion_colectiva_id"]');
       const acId = acIdInput && acIdInput.value ? acIdInput.value : '';
       const prof = '{{ session.usuario.perfil }}'.replace(/\s+/g, '_');
+      
+      // Limpiar tanto el paso guardado como los datos del formulario (autosave_hc)
       localStorage.removeItem(`autosave_step_${pacienteId}_ac${acId}_${prof}`);
+      localStorage.removeItem(`autosave_hc_${pacienteId}_ac${acId}_${prof}`);
+      
+      // Si el paciente no era 'new', también limpiar por si acaso las llaves de 'new'
+      if (pacienteId !== 'new') {
+          localStorage.removeItem(`autosave_step_new_ac${acId}_${prof}`);
+          localStorage.removeItem(`autosave_hc_new_ac${acId}_${prof}`);
+      }
   });
 
 
