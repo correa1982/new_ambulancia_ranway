@@ -1,0 +1,776 @@
+{% extends "base.html" %}
+{% block title %}{{ titulo }}{% endblock %}
+{% block content %}
+
+<style>
+/* ═══════════════════════════════════════
+   WIZARD STEPPER
+═══════════════════════════════════════ */
+.wizard-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid #dbeafe;
+}
+.wizard-title {
+    margin: 0; padding: 0; border: none;
+    font-size: 20px; color: #1e3a5f;
+}
+.wizard-badge {
+    background: linear-gradient(135deg,#1e6fbf,#185999);
+    color: white; padding: 5px 14px;
+    border-radius: 20px; font-size: 12px; font-weight: 700;
+}
+
+/* Step indicator bar */
+.step-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    margin-bottom: 28px;
+    user-select: none;
+}
+.step-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    position: relative;
+}
+.step-item:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    top: 18px;
+    left: 50%;
+    width: 100px;
+    height: 2px;
+    background: #e2e8f0;
+    z-index: 0;
+    transition: background 0.4s;
+}
+.step-item.done:not(:last-child)::after {
+    background: #10b981;
+}
+.step-circle {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 800;
+    border: 2.5px solid #e2e8f0;
+    background: white;
+    color: #94a3b8;
+    transition: all 0.3s;
+    position: relative; z-index: 1;
+}
+.step-item.active .step-circle {
+    border-color: #1e6fbf;
+    background: linear-gradient(135deg, #1e6fbf, #185999);
+    color: white;
+    box-shadow: 0 0 0 4px rgba(30,111,191,0.15);
+}
+.step-item.done .step-circle {
+    border-color: #10b981;
+    background: #10b981;
+    color: white;
+}
+.step-label {
+    font-size: 11px; font-weight: 600;
+    color: #94a3b8;
+    text-align: center;
+    white-space: nowrap;
+    transition: color 0.3s;
+    padding: 0 12px;
+}
+.step-item.active .step-label { color: #1e6fbf; }
+.step-item.done .step-label { color: #10b981; }
+
+/* Panels */
+.wizard-panel { display: none; animation: fadeSlide 0.3s ease; }
+.wizard-panel.active { display: block; }
+@keyframes fadeSlide {
+    from { opacity: 0; transform: translateX(12px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+
+/* Check table */
+.check-table { width: 100%; border-collapse: collapse; }
+.check-table thead tr th {
+    background: linear-gradient(135deg,#ebf4ff,#dbeafe);
+    font-size:10px; text-transform:uppercase; letter-spacing:0.5px;
+    color:#1e40af; padding:8px 14px; border: 1px solid #e2e8f0;
+}
+.check-table tbody td { padding: 0; border: 1px solid #f1f5f9; }
+.check-row {
+    display: flex; align-items: center;
+    padding: 8px 14px; gap: 12px; transition: background 0.1s;
+}
+.check-row:hover { background: #f0f7ff; }
+.item-name { flex: 1; font-size: 13px; font-weight: 500; color: #374151; }
+.item-num {
+    font-size: 11px; font-weight: 800; color: #94a3b8;
+    min-width: 22px; text-align: right;
+}
+.radio-trio { display: flex; gap: 4px; }
+.radio-trio input[type="radio"] { display: none; }
+.radio-trio label {
+    padding: 4px 11px; border-radius: 5px; font-size: 11px; font-weight: 700;
+    cursor: pointer; border: 1.5px solid; transition: all 0.12s; margin: 0; user-select: none;
+}
+.ri-si label { border-color: #bbf7d0; color: #166534; background: #f0fdf4; }
+.ri-si input:checked + label { background: #10b981; color: white; border-color: #059669; }
+.ri-no label { border-color: #fecaca; color: #991b1b; background: #fef2f2; }
+.ri-no input:checked + label { background: #ef4444; color: white; border-color: #dc2626; }
+.ri-na label { border-color: #e2e8f0; color: #64748b; background: #f8fafc; }
+.ri-na input:checked + label { background: #94a3b8; color: white; border-color: #64748b; }
+
+/* Item error highlight */
+tr.item-error .check-row { background: #fff5f5; }
+tr.item-error .item-name { color: #dc2626; }
+.row-error-badge {
+    font-size: 10px; color: #ef4444; font-weight: 700;
+    display: none; margin-left: 6px;
+}
+tr.item-error .row-error-badge { display: inline; }
+
+/* Select */
+.select-btn {
+    appearance: none; -webkit-appearance: none;
+    background-color: white; color: #333;
+    border: 1px solid #cbd5e1; border-radius: 6px;
+    padding: 12px 36px 12px 16px;
+    font-size: 14px; cursor: pointer;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23333'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e");
+    background-repeat: no-repeat; background-position: right 12px center; background-size: 20px;
+    transition: all 0.2s; width: 100%; box-sizing: border-box;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+.select-btn:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.2); }
+
+/* Nav buttons */
+.wizard-nav {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-top: 24px; padding-top: 16px;
+    border-top: 1px solid #e2e8f0; gap: 12px;
+}
+.wizard-nav-right { display: flex; gap: 10px; }
+.btn-wiz-back {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: #f1f5f9; color: #475569;
+    border: 1px solid #e2e8f0; padding: 10px 20px;
+    border-radius: 8px; font-weight: 600; font-size: 14px;
+    cursor: pointer; font-family: inherit; transition: all 0.15s;
+    text-decoration: none;
+}
+.btn-wiz-back:hover { background: #e2e8f0; }
+.btn-wiz-next {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: linear-gradient(135deg, #1e6fbf, #185999);
+    color: white; border: none; padding: 10px 24px;
+    border-radius: 8px; font-weight: 700; font-size: 14px;
+    cursor: pointer; font-family: inherit; transition: all 0.15s;
+    box-shadow: 0 2px 8px rgba(30,111,191,0.25);
+}
+.btn-wiz-next:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(30,111,191,0.35); }
+.btn-wiz-submit {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: linear-gradient(135deg, #059669, #047857);
+    color: white; border: none; padding: 11px 28px;
+    border-radius: 8px; font-weight: 700; font-size: 14px;
+    cursor: pointer; font-family: inherit; transition: all 0.15s;
+    box-shadow: 0 2px 8px rgba(5,150,105,0.25);
+}
+.btn-wiz-submit:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(5,150,105,0.35); }
+.btn-wiz-submit:disabled {
+    opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none;
+}
+
+/* Progress mini */
+.progress-bar-wrap {
+    background: #e2e8f0; border-radius: 99px;
+    height: 4px; overflow: hidden; margin-bottom: 20px;
+}
+.progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #1e6fbf, #10b981);
+    border-radius: 99px;
+    transition: width 0.4s ease;
+}
+
+/* Summary card on step 3 */
+.summary-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: #eff6ff; border: 1px solid #bfdbfe;
+    color: #1e40af; border-radius: 8px;
+    padding: 6px 14px; font-size: 13px; font-weight: 600;
+    margin-bottom: 16px;
+}
+.summary-pending {
+    background: #fef2f2; border-color: #fecaca; color: #991b1b;
+}
+
+/* Validation error box */
+.val-error-box {
+    display: none;
+    background: #fef2f2; border: 1.5px solid #fecaca;
+    border-radius: 8px; padding: 12px 16px;
+    margin-bottom: 16px; color: #991b1b; font-size: 13px;
+}
+.val-error-box ul { margin: 6px 0 0 16px; padding: 0; }
+.val-error-box li { margin-bottom: 3px; }
+
+/* Pending count badge */
+.pending-badge {
+    display: none;
+    background: #ef4444; color: white;
+    border-radius: 99px; font-size: 10px; font-weight: 800;
+    padding: 1px 7px; margin-left: 6px;
+    vertical-align: middle;
+}
+</style>
+
+<!-- HEADER -->
+<div class="wizard-header">
+    <h1 class="wizard-title">✅ {{ titulo }}</h1>
+    <span class="wizard-badge">{{ subtitulo }}</span>
+</div>
+
+<!-- STEP BAR -->
+<div class="step-bar" id="stepBar">
+    <div class="step-item active" id="si-1">
+        <div class="step-circle">1</div>
+        <div class="step-label">Datos Generales</div>
+    </div>
+    <div class="step-item" id="si-2">
+        <div class="step-circle">2</div>
+        <div class="step-label">Ítems del Equipo</div>
+    </div>
+    <div class="step-item" id="si-3">
+        <div class="step-circle">3</div>
+        <div class="step-label">Finalizar</div>
+    </div>
+</div>
+
+<!-- PROGRESS -->
+<div class="progress-bar-wrap">
+    <div class="progress-bar-fill" id="progressFill" style="width:33%;"></div>
+</div>
+
+<form method="POST" id="wizardForm" novalidate>
+{% if record %}<input type="hidden" name="id" value="{{ record.id }}">{% endif %}
+
+<!-- ══════════════════════════════════
+     PASO 1 — Datos Generales
+══════════════════════════════════ -->
+<div class="wizard-panel active" id="panel-1">
+    <fieldset>
+        <legend>📋 Datos Generales</legend>
+        <div class="row row-3">
+            <div>
+                <label>Fecha <span style="color:#ef4444">*</span></label>
+                <input onclick="this.showPicker()" type="date" name="fecha" id="f_fecha"
+                       max="{{ hoy }}" value="{{ record.fecha if record else hoy }}"
+                       data-step="1" data-label="Fecha">
+            </div>
+            <div>
+                <label>Hora</label>
+                <input onclick="this.showPicker()" type="time" name="hora" id="f_hora" value="{{ record.hora if record else hora_actual }}">
+            </div>
+            <div>
+                <label>Grupo de Equipos <span style="color:#ef4444">*</span></label>
+                <select name="grupo_equipos" id="grupo_equipos"
+                        class="select-btn" data-step="1" data-label="Grupo de Equipos">
+                    <option value="">— Seleccionar Grupo —</option>
+                    {% for cat in checklist_items.keys() %}
+                    <option value="{{ cat }}" {% if record and record.grupo_equipos == cat %}selected{% endif %}>{{ cat }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+    </fieldset>
+
+    <div class="wizard-nav" style="align-items:center; justify-content: flex-end;">
+        <div class="wizard-nav-right" style="align-items:center; display: flex; gap: 8px;">
+            <a href="{{ url_for('dashboard') }}" style="margin:0; box-sizing: border-box; height: 44px; font-family: inherit; background:#6b7280; color:white; text-decoration:none; border:none; padding:0 24px; border-radius:10px; font-weight:600; font-size:14px; display:inline-flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(107,114,128,0.2);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(107,114,128,0.3)'" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 6px -1px rgba(107,114,128,0.2)'">
+                <i class="ph ph-arrow-left" style="font-size:18px;"></i> Volver
+            </a>
+            <a href="{{ url_for('registros_checklist', tipo='equipos') }}" style="margin:0; box-sizing: border-box; height: 44px; font-family: inherit; background: linear-gradient(135deg,#f59e0b,#d97706); color:white; text-decoration:none; border:none; padding:0 24px; border-radius:10px; font-weight:600; font-size:14px; display:inline-flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(245,158,11,0.2);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(245,158,11,0.3)'" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 6px -1px rgba(245,158,11,0.2)'">
+                <i class="ph ph-folder-open" style="font-size:18px;"></i> Ver Registros
+            </a>
+            <button type="button" class="btn-wiz-next" onclick="goNext(1)" style="margin:0; box-sizing: border-box; height: 44px; display:inline-flex; align-items:center; justify-content:center;">
+                Continuar →
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════
+     PASO 2 — Ítems del Equipo
+══════════════════════════════════ -->
+<div class="wizard-panel" id="panel-2">
+
+    <div id="step2-placeholder" style="text-align:center; padding:40px 20px; color:#94a3b8;">
+        <p style="font-size:32px;">☝️</p>
+        <p style="font-size:14px;">Selecciona un <strong>Grupo de Equipos</strong> en el Paso 1 para ver los ítems a diligenciar.</p>
+    </div>
+
+    {% if checklist_items %}
+        {% for cat, items_list in checklist_items.items() %}
+        <div class="equipment-group-section" data-group="{{ cat }}" style="display:none;">
+            <fieldset>
+                <legend>🩺 {{ cat }}</legend>
+                <table class="check-table">
+                <thead><tr>
+                    <th style="width:60%;">Ítem / Parámetro a Diligenciar</th>
+                    <th style="width:40%; text-align:left;">Observaciones</th>
+                </tr></thead>
+                <tbody>
+                {% for item in items_list %}
+                {% set field = item.identificador %}
+                {% set val_exist = datos[field]['valor'] if (datos and field in datos) else '' %}
+                {% set obs_exist = datos[field]['observacion'] if (datos and field in datos) else '' %}
+                <tr id="tr_{{ field }}">
+                    <td style="vertical-align:middle;">
+                        <div class="check-row">
+                            <span class="item-num">{{ loop.index }}</span>
+                            <span class="item-name">{{ item.nombre }}</span>
+                            <span class="row-error-badge">⚠ pendiente</span>
+                            <div class="radio-trio">
+                                <div class="ri-si">
+                                    <input type="radio" name="{{ field }}"
+                                           id="eq_{{ field }}_si" value="SI"
+                                           data-step="2" data-label="{{ item.nombre }}"
+                                           {% if val_exist == 'SI' %}checked{% endif %}>
+                                    <label for="eq_{{ field }}_si">SI</label>
+                                </div>
+                                <div class="ri-no">
+                                    <input type="radio" name="{{ field }}"
+                                           id="eq_{{ field }}_no" value="NO"
+                                           data-step="2" data-label="{{ item.nombre }}"
+                                           {% if val_exist == 'NO' %}checked{% endif %}>
+                                    <label for="eq_{{ field }}_no">NO</label>
+                                </div>
+                                <div class="ri-na">
+                                    <input type="radio" name="{{ field }}"
+                                           id="eq_{{ field }}_na" value="NA"
+                                           data-step="2" data-label="{{ item.nombre }}"
+                                           {% if val_exist == 'NA' %}checked{% endif %}>
+                                    <label for="eq_{{ field }}_na">N/A</label>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                    <td style="vertical-align:middle; padding:6px 14px;">
+                        <div class="obs-item-row" id="obs_row_{{ field }}" style="{% if val_exist == 'NO' %}display:block;{% else %}display:none;{% endif %}">
+                            <input type="text" name="obs_{{ field }}" id="obs_{{ field }}"
+                                   placeholder="Detalle la novedad..."
+                                   style="width:100%; border:1px solid #fecaca; border-radius:5px; padding:6px; font-size:12px; box-sizing:border-box;"
+                                   value="{{ obs_exist }}">
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody></table>
+            </fieldset>
+        </div>
+        {% endfor %}
+    {% else %}
+    <div style="text-align:center; padding:30px; color:#94a3b8; font-size:14px;">
+        <p style="font-size:32px;">📭</p>
+        <p>No hay grupos ni ítems configurados para este preoperacional.</p>
+        <p>El administrador debe configurarlos desde <strong>Gestión de Checklists</strong>.</p>
+    </div>
+    {% endif %}
+
+    <div class="wizard-nav">
+        <button type="button" class="btn-wiz-back" onclick="goBack(2)">← Anterior</button>
+        <button type="button" class="btn-wiz-next" onclick="goNext(2)">
+            Continuar → <span class="pending-badge" id="pending2"></span>
+        </button>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════
+     PASO 3 — Observaciones y Envío
+══════════════════════════════════ -->
+<div class="wizard-panel" id="panel-3">
+
+    <!-- Resumen -->
+    <div id="summary-area" style="margin-bottom:16px;"></div>
+
+    <!-- Caja de errores de validación -->
+    <div class="val-error-box" id="valErrorBox">
+        <strong>⚠ Debes completar los siguientes campos obligatorios antes de guardar:</strong>
+        <ul id="valErrorList"></ul>
+    </div>
+
+    <fieldset>
+        <legend>📝 Observaciones Generales</legend>
+        <textarea name="observaciones" id="f_observaciones"
+                  placeholder="Faltantes, novedades, daños, observaciones generales del preoperacional de equipos..."
+                  style="min-height:100px;">{{ record.observaciones if record else '' }}</textarea>
+    </fieldset>
+
+    <div class="wizard-nav">
+        <button type="button" class="btn-wiz-back" onclick="goBack(3)">← Anterior</button>
+        <div class="wizard-nav-right" style="align-items:center;">
+            <button type="submit" name="accion" value="borrador" style="margin:0; box-sizing: border-box; height: 44px; font-family: inherit; background:linear-gradient(135deg,#1e6fbf,#185999); color:white; border:none; padding:0 24px; border-radius:10px; font-weight:600; font-size:14px; display:inline-flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(30,111,191,0.3);" formnovalidate onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(30,111,191,0.4)'" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 6px -1px rgba(30,111,191,0.3)'">
+                <i class="ph ph-floppy-disk" style="font-size:18px;"></i> Guardar Borrador
+            </button>
+            <button type="submit" name="accion" value="finalizar" id="submitBtn"  onclick="if(validateAll()){ return confirm('¿Está seguro de finalizar este registro? Una vez finalizado no podrá ser editado.'); } else { return false; }" style="margin:0; box-sizing: border-box; height: 44px; font-family: inherit; background:linear-gradient(135deg,#10b981,#059669); color:white; border:none; padding:0 24px; border-radius:10px; font-weight:600; font-size:14px; display:inline-flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(16,185,129,0.2);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(16,185,129,0.3)'" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 6px -1px rgba(16,185,129,0.2)'">
+                <i class="ph ph-check-circle" style="font-size:18px;"></i> Guardar Preoperacional
+            </button>
+        </div>
+    </div>
+</div>
+
+</form>
+
+<script>
+(function() {
+
+/* ────────────────────────────────────────
+   STATE
+──────────────────────────────────────── */
+let currentStep = 1;
+const totalSteps = 3;
+
+/* ────────────────────────────────────────
+   STEP NAVIGATION
+──────────────────────────────────────── */
+function showStep(n) {
+    document.querySelectorAll('.wizard-panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('panel-' + n).classList.add('active');
+
+    // Update step indicator
+    for (let i = 1; i <= totalSteps; i++) {
+        const si = document.getElementById('si-' + i);
+        si.classList.remove('active', 'done');
+        if (i < n) si.classList.add('done');
+        if (i === n) si.classList.add('active');
+    }
+
+    // Update circle icons for done steps
+    for (let i = 1; i <= totalSteps; i++) {
+        const circle = document.querySelector('#si-' + i + ' .step-circle');
+        if (i < n) circle.innerHTML = '✓';
+        else if (i === n) circle.innerHTML = i;
+        else circle.innerHTML = i;
+    }
+
+    // Progress bar
+    const pct = Math.round((n / totalSteps) * 100);
+    document.getElementById('progressFill').style.width = pct + '%';
+
+    currentStep = n;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/* ────────────────────────────────────────
+   STEP 1 VALIDATION (only required fields)
+──────────────────────────────────────── */
+function validateStep1() {
+    let ok = true;
+    const fecha = document.getElementById('f_fecha');
+    const grupo = document.getElementById('grupo_equipos');
+
+    [fecha, grupo].forEach(el => el && el.classList.remove('input-error'));
+
+    if (!fecha || !fecha.value.trim()) {
+        fecha && fecha.classList.add('input-error');
+        ok = false;
+    }
+    if (!grupo || !grupo.value.trim()) {
+        grupo && grupo.classList.add('input-error');
+        ok = false;
+    }
+    if (!ok) {
+        showToast('⚠ Completa la Fecha y el Grupo de Equipos para continuar.', 'error');
+    }
+    return ok;
+}
+
+/* ────────────────────────────────────────
+   GROUP VISIBILITY (step 2)
+──────────────────────────────────────── */
+function applyGroupVisibility() {
+    const grupo = document.getElementById('grupo_equipos');
+    const selectedVal = grupo ? grupo.value : '';
+    const sections = document.querySelectorAll('.equipment-group-section');
+    const placeholder = document.getElementById('step2-placeholder');
+
+    if (!selectedVal) {
+        sections.forEach(s => s.style.display = 'none');
+        if (placeholder) placeholder.style.display = 'block';
+        return;
+    }
+    if (placeholder) placeholder.style.display = 'none';
+
+    sections.forEach(function(section) {
+        const groupName = section.getAttribute('data-group');
+        const inputs = section.querySelectorAll('input[type="radio"], input[type="text"]');
+        if (groupName === selectedVal) {
+            section.style.display = 'block';
+            inputs.forEach(input => input.removeAttribute('disabled'));
+        } else {
+            section.style.display = 'none';
+            inputs.forEach(input => {
+                input.setAttribute('disabled', 'disabled');
+                if (input.type === 'radio') input.checked = false;
+                if (input.type === 'text') input.value = '';
+            });
+        }
+    });
+    checkNo();
+    updatePendingCount();
+}
+
+/* ────────────────────────────────────────
+   OBSERVATION TOGGLE ON "NO"
+──────────────────────────────────────── */
+function checkNo() {
+    document.querySelectorAll('.equipment-group-section input[type="radio"]:not([disabled])').forEach(function(radio) {
+        if (radio.checked) {
+            const fieldName = radio.name;
+            const obsRow = document.getElementById('obs_row_' + fieldName);
+            const obsInput = document.getElementById('obs_' + fieldName);
+            if (obsRow && obsInput) {
+                if (radio.value === 'NO') {
+                    obsRow.style.display = 'block';
+                    obsInput.setAttribute('required', 'required');
+                } else {
+                    obsRow.style.display = 'none';
+                    obsInput.removeAttribute('required');
+                    obsInput.value = '';
+                }
+            }
+        }
+    });
+}
+
+/* ────────────────────────────────────────
+   PENDING COUNT (step 2 badge)
+──────────────────────────────────────── */
+function getVisiblePendingItems() {
+    const pending = [];
+    const activeSection = document.querySelector('.equipment-group-section[style*="display: block"], .equipment-group-section[style*="display:block"]');
+    if (!activeSection) return pending;
+
+    // Find unique radio names in visible section
+    const radioNames = new Set();
+    activeSection.querySelectorAll('input[type="radio"]:not([disabled])').forEach(r => radioNames.add(r.name));
+
+    radioNames.forEach(name => {
+        const checked = activeSection.querySelector(`input[name="${name}"]:checked`);
+        if (!checked) {
+            const label = (activeSection.querySelector(`input[name="${name}"]`) || {})
+                          .getAttribute('data-label') || name;
+            pending.push({ name, label });
+        }
+        // Also check obs required
+        const noChecked = activeSection.querySelector(`input[name="${name}"][value="NO"]:checked`);
+        if (noChecked) {
+            const obsInput = document.getElementById('obs_' + name);
+            if (obsInput && !obsInput.value.trim()) {
+                pending.push({ name: 'obs_' + name, label: 'Observación para: ' + (obsInput.getAttribute('data-label') || name) });
+            }
+        }
+    });
+    return pending;
+}
+
+function updatePendingCount() {
+    const badge = document.getElementById('pending2');
+    if (!badge) return;
+    const count = getVisiblePendingItems().length;
+    if (count > 0) {
+        badge.textContent = count + ' pendiente' + (count > 1 ? 's' : '');
+        badge.style.display = 'inline';
+    } else {
+        badge.style.display = 'none';
+    }
+}
+
+/* ────────────────────────────────────────
+   FULL FINAL VALIDATION (step 3 before submit)
+──────────────────────────────────────── */
+function validateAll() {
+    const errors = [];
+
+    // Step 1 fields
+    const fecha = document.getElementById('f_fecha');
+    const grupo = document.getElementById('grupo_equipos');
+    if (!fecha || !fecha.value.trim()) errors.push('Fecha (Paso 1)');
+    if (!grupo || !grupo.value.trim()) errors.push('Grupo de Equipos (Paso 1)');
+
+    // Step 2: active section radios
+    document.querySelectorAll('.equipment-group-section').forEach(section => {
+        if (section.style.display === 'none') return;
+
+        const radioNames = new Set();
+        section.querySelectorAll('input[type="radio"]:not([disabled])').forEach(r => radioNames.add(r.name));
+
+        radioNames.forEach(name => {
+            const checked = section.querySelector(`input[name="${name}"]:checked`);
+            if (!checked) {
+                const firstRadio = section.querySelector(`input[name="${name}"]`);
+                const label = firstRadio ? firstRadio.getAttribute('data-label') : name;
+                errors.push('Ítem sin respuesta: ' + label);
+                // Highlight row
+                const row = document.getElementById('tr_' + name);
+                if (row) row.classList.add('item-error');
+            } else {
+                const row = document.getElementById('tr_' + name);
+                if (row) row.classList.remove('item-error');
+                // Obs required for NO
+                if (checked.value === 'NO') {
+                    const obsInput = document.getElementById('obs_' + name);
+                    if (obsInput && !obsInput.value.trim()) {
+                        errors.push('Observación requerida para: ' + (checked.getAttribute('data-label') || name));
+                    }
+                }
+            }
+        });
+    });
+
+    if (errors.length > 0) {
+        const box = document.getElementById('valErrorBox');
+        const list = document.getElementById('valErrorList');
+        list.innerHTML = '';
+        errors.forEach(e => {
+            const li = document.createElement('li');
+            li.textContent = e;
+            list.appendChild(li);
+        });
+        box.style.display = 'block';
+        box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        return false; // prevent form submit
+    }
+
+    return true; // allow form submit
+}
+
+/* ────────────────────────────────────────
+   SUMMARY RENDER (step 3)
+──────────────────────────────────────── */
+function renderSummary() {
+    const grupo = document.getElementById('grupo_equipos');
+    const fecha = document.getElementById('f_fecha');
+    const area = document.getElementById('summary-area');
+    if (!area) return;
+
+    const grupoVal = grupo ? grupo.value : '—';
+    const fechaVal = fecha ? fecha.value : '—';
+
+    const pending = getVisiblePendingItems();
+    const pendingHTML = pending.length > 0
+        ? `<div class="summary-chip summary-pending">⚠ ${pending.length} ítem(s) sin responder en Paso 2</div>`
+        : `<div class="summary-chip">✅ Todos los ítems respondidos</div>`;
+
+    area.innerHTML = `
+        <div class="summary-chip">📅 Fecha: <strong>${fechaVal}</strong></div>
+        &nbsp;
+        <div class="summary-chip">🩺 Grupo: <strong>${grupoVal || '—'}</strong></div>
+        <br><br>
+        ${pendingHTML}
+    `;
+}
+
+/* ────────────────────────────────────────
+   NAVIGATION HANDLERS
+──────────────────────────────────────── */
+window.goNext = function(fromStep) {
+    if (fromStep === 1) {
+        if (!validateStep1()) return;
+        applyGroupVisibility();
+        showStep(2);
+    } else if (fromStep === 2) {
+        // Allow continuing even with pending items — just update count
+        updatePendingCount();
+        renderSummary();
+        showStep(3);
+    }
+};
+
+window.goBack = function(fromStep) {
+    if (fromStep === 2) showStep(1);
+    if (fromStep === 3) showStep(2);
+};
+
+/* ────────────────────────────────────────
+   TOAST NOTIFICATION
+──────────────────────────────────────── */
+function showToast(msg, type) {
+    let toast = document.getElementById('wizard-toast');
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'wizard-toast';
+        toast.style.cssText = `
+            position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
+            padding: 10px 22px; border-radius: 10px; font-size: 13px; font-weight: 600;
+            z-index: 9999; box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            transition: opacity 0.3s; pointer-events: none;
+        `;
+        document.body.appendChild(toast);
+    }
+    toast.textContent = msg;
+    toast.style.background = type === 'error' ? '#fee2e2' : '#d1fae5';
+    toast.style.color = type === 'error' ? '#991b1b' : '#065f46';
+    toast.style.border = type === 'error' ? '1px solid #fecaca' : '1px solid #a7f3d0';
+    toast.style.opacity = '1';
+    clearTimeout(toast._timer);
+    toast._timer = setTimeout(() => { toast.style.opacity = '0'; }, 3000);
+}
+
+/* ────────────────────────────────────────
+   INIT
+──────────────────────────────────────── */
+document.addEventListener('DOMContentLoaded', function() {
+    // Input error style
+    const style = document.createElement('style');
+    style.textContent = '.input-error { border-color: #ef4444 !important; box-shadow: 0 0 0 3px rgba(239,68,68,0.15) !important; }';
+    document.head.appendChild(style);
+
+    // Remove input-error on change
+    document.querySelectorAll('input, select').forEach(el => {
+        el.addEventListener('change', () => el.classList.remove('input-error'));
+        el.addEventListener('input', () => el.classList.remove('input-error'));
+    });
+
+    // Radio change → checkNo + updatePendingCount
+    document.querySelectorAll('input[type="radio"]').forEach(r => {
+        r.addEventListener('change', function() {
+            checkNo();
+            updatePendingCount();
+            // Clear item-error on this row
+            const row = document.getElementById('tr_' + r.name);
+            if (row) row.classList.remove('item-error');
+        });
+    });
+
+    // Obs input → re-validate on type
+    document.querySelectorAll('.obs-item-row input[type="text"]').forEach(inp => {
+        inp.addEventListener('input', updatePendingCount);
+    });
+
+    // Clear validation error box when user interacts
+    document.getElementById('wizardForm').addEventListener('change', function() {
+        const box = document.getElementById('valErrorBox');
+        if (box) box.style.display = 'none';
+    });
+
+    showStep(1);
+
+    // If a group was pre-selected (editing draft), apply visibility
+    const grupo = document.getElementById('grupo_equipos');
+    if (grupo && grupo.value) {
+        applyGroupVisibility();
+    }
+});
+
+})();
+</script>
+
+{% endblock %}

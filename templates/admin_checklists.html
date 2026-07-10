@@ -1,0 +1,1155 @@
+{% extends "base.html" %}
+{% block title %}Gestión de Ítems – Administración{% endblock %}
+{% block content %}
+
+<style>
+.tabs {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 12px;
+    margin-bottom: 28px;
+}
+.tab-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 16px 12px;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    text-decoration: none;
+    color: var(--text-muted);
+    text-align: center;
+    min-height: 100px;
+    transition: all 0.2s ease-in-out;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+}
+.tab-btn .tab-icon-wrapper {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: var(--primary-light);
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    margin-bottom: 8px;
+    transition: all 0.2s ease-in-out;
+}
+.tab-btn .tab-label {
+    font-weight: 600;
+    line-height: 1.3;
+    white-space: normal;
+}
+.tab-btn:hover:not(.active) {
+    transform: translateY(-2px);
+    border-color: var(--primary);
+    color: var(--primary);
+    background: var(--surface);
+    box-shadow: 0 6px 16px rgba(30,111,191,0.08);
+}
+.tab-btn:hover:not(.active) .tab-icon-wrapper {
+    background: var(--primary);
+    color: var(--surface);
+    transform: scale(1.05);
+}
+.tab-btn.active {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    border-color: transparent;
+    color: var(--surface);
+    box-shadow: 0 8px 20px rgba(30,111,191,0.22), 0 2px 4px rgba(30,111,191,0.08);
+}
+.tab-btn.active .tab-icon-wrapper {
+    background: rgba(255, 255, 255, 0.22);
+    color: var(--surface);
+}
+
+.items-table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+.items-table th {
+    background: linear-gradient(135deg, #ebf4ff, #dbeafe); font-size: 10px;
+    text-transform: uppercase; letter-spacing: 0.5px; color: #1e40af;
+    padding: 4px 6px; border: 1px solid #e2e8f0; text-align: center;
+    white-space: nowrap;
+}
+.items-table td { padding: 4px 6px; border: 1px solid #f1f5f9; font-size: 11.5px; vertical-align: middle; text-align: center; white-space: nowrap; }
+.table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; margin-bottom: 24px; }
+.table-responsive .items-table { margin-bottom: 0; min-width: 800px; }
+.items-table tr:hover td { background: #fafcff; }
+
+.cat-badge {
+    display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 11px;
+    font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px;
+}
+.cat-equipos { background: #dbeafe; color: #1e40af; }
+.cat-medicamentos { background: #fce7f3; color: #9d174d; }
+.cat-bioseguridad { background: #d1fae5; color: #065f46; }
+.cat-botiquin { background: #fef3c7; color: #92400e; }
+
+.status-active { color: #10b981; font-weight: 700; }
+.status-inactive { color: #ef4444; font-weight: 700; }
+
+.action-btn {
+    display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px;
+    border-radius: 6px; font-size: 11px; font-weight: 600; text-decoration: none;
+    border: 1px solid; transition: all 0.12s; cursor: pointer;
+}
+.btn-toggle { border-color: #fcd34d; color: #92400e; background: #fffbeb; }
+.btn-toggle:hover { background: #fef3c7; }
+.btn-delete { border-color: #fecaca; color: #991b1b; background: #fef2f2; }
+.btn-delete:hover { background: #fee2e2; }
+
+.add-form {
+    background: #f8fafc; border: 1.5px dashed #cbd5e1; border-radius: 10px;
+    padding: 18px 22px; margin-bottom: 24px;
+}
+.add-form h3 { font-size: 14px; color: #1e3a5f; margin-bottom: 12px; }
+.add-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; }
+.add-row .field { flex: 1; min-width: 180px; }
+.add-row .field label { font-size: 12px; font-weight: 600; color: #475569; display: block; margin-bottom: 4px; }
+.add-row .field input, .add-row .field select {
+    width: 100%; padding: 8px 12px; border: 1.5px solid #cbd5e1; border-radius: 7px;
+    font-size: 13px; font-family: inherit; background: white;
+}
+.add-row .field input:focus, .add-row .field select:focus {
+    outline: none; border-color: #1e6fbf; box-shadow: 0 0 0 3px rgba(30,111,191,0.1);
+}
+.btn-add {
+    display: inline-flex; align-items: center; gap: 6px; padding: 9px 18px;
+    background: linear-gradient(135deg, #10b981, #059669); color: white;
+    border: none; border-radius: 7px; font-size: 13px; font-weight: 700;
+    cursor: pointer; font-family: inherit; transition: transform 0.1s;
+}
+.btn-add:hover { transform: translateY(-1px); }
+
+.header-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; flex-wrap: wrap; gap: 12px; }
+
+@media (max-width: 700px) {
+    .add-row { flex-direction: column; }
+    .add-row .field { min-width: 100%; }
+    .tabs { grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; }
+}
+
+.vehiculo-form-grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 16px;
+}
+.vehiculo-form-grid .field-tipo-vehiculo { grid-column: span 4; }
+.vehiculo-form-grid .field-tipo-ambulancia { display: none; }
+.vehiculo-form-grid .field-movil { display: none; }
+.vehiculo-form-grid .field-placa { grid-column: span 4; }
+.vehiculo-form-grid .field-marca { grid-column: span 4; }
+.vehiculo-form-grid .field-serie { grid-column: span 6; }
+.vehiculo-form-grid .field-modelo { grid-column: span 6; }
+.vehiculo-form-grid .field-soat { grid-column: span 6; }
+.vehiculo-form-grid .field-rtm { grid-column: span 6; }
+.vehiculo-form-grid .field-btn { grid-column: span 12; display: flex; align-items: flex-end; justify-content: flex-end; }
+
+/* mode ambulancia layout spans */
+.vehiculo-form-grid.mode-ambulancia .field-tipo-vehiculo { grid-column: span 4; }
+.vehiculo-form-grid.mode-ambulancia .field-tipo-ambulancia { grid-column: span 4; display: block; }
+.vehiculo-form-grid.mode-ambulancia .field-movil { grid-column: span 4; display: block; }
+.vehiculo-form-grid.mode-ambulancia .field-placa { grid-column: span 3; }
+.vehiculo-form-grid.mode-ambulancia .field-marca { grid-column: span 3; }
+.vehiculo-form-grid.mode-ambulancia .field-serie { grid-column: span 3; }
+.vehiculo-form-grid.mode-ambulancia .field-modelo { grid-column: span 3; }
+.vehiculo-form-grid.mode-ambulancia .field-soat { grid-column: span 6; }
+.vehiculo-form-grid.mode-ambulancia .field-rtm { grid-column: span 6; }
+.vehiculo-form-grid.mode-ambulancia .field-btn { grid-column: span 12; display: flex; align-items: flex-end; justify-content: flex-end; }
+
+@media (max-width: 768px) {
+    .vehiculo-form-grid, .vehiculo-form-grid.mode-ambulancia {
+        grid-template-columns: 1fr;
+    }
+    .vehiculo-form-grid .field, 
+    .vehiculo-form-grid.mode-ambulancia .field,
+    .vehiculo-form-grid .field-btn,
+    .vehiculo-form-grid.mode-ambulancia .field-btn {
+        grid-column: span 1 !important;
+    }
+}
+</style>
+
+<div class="header-row">
+    <h1 style="margin: 0; padding: 0; border: none; font-size: 20px; display: flex; align-items: center; gap: 8px;">
+        <i class="ph ph-gear-six"></i> Gestión de Ítems
+    </h1>
+    <a href="{{ url_for('dashboard') }}" class="action-btn" style="border-color: #e2e8f0; color: #475569; background: white; font-size: 13px; padding: 8px 16px;">
+        <i class="ph ph-arrow-left"></i> Volver al Dashboard
+    </a>
+</div>
+
+<div class="tabs">
+    <a href="{{ url_for('admin_checklists', tipo='vehiculos') }}" class="tab-btn {{ 'active' if tipo == 'vehiculos' }}">
+        <div class="tab-icon-wrapper"><i class="ph ph-ambulance"></i></div>
+        <span class="tab-label">Vehículos</span>
+    </a>
+    <a href="{{ url_for('admin_checklists', tipo='preoperacional') }}" class="tab-btn {{ 'active' if tipo == 'preoperacional' }}">
+        <div class="tab-icon-wrapper"><i class="ph ph-car"></i></div>
+        <span class="tab-label">Preoperacional</span>
+    </a>
+    <a href="{{ url_for('admin_checklists', tipo='tam') }}" class="tab-btn {{ 'active' if tipo == 'tam' }}">
+        <div class="tab-icon-wrapper"><i class="ph ph-first-aid-kit"></i></div>
+        <span class="tab-label">Check List TAM</span>
+    </a>
+    <a href="{{ url_for('admin_checklists', tipo='tab') }}" class="tab-btn {{ 'active' if tipo == 'tab' }}">
+        <div class="tab-icon-wrapper"><i class="ph ph-stethoscope"></i></div>
+        <span class="tab-label">Check List TAB</span>
+    </a>
+    <a href="{{ url_for('admin_checklists', tipo='avanzada') }}" class="tab-btn {{ 'active' if tipo == 'avanzada' }}">
+        <div class="tab-icon-wrapper"><i class="ph ph-shield-plus"></i></div>
+        <span class="tab-label">Check List Avanzada</span>
+    </a>
+    <a href="{{ url_for('admin_checklists', tipo='pasb') }}" class="tab-btn {{ 'active' if tipo == 'pasb' }}">
+        <div class="tab-icon-wrapper"><i class="ph ph-toolbox"></i></div>
+        <span class="tab-label">Check List PASB</span>
+    </a>
+    <a href="{{ url_for('admin_checklists', tipo='pasm') }}" class="tab-btn {{ 'active' if tipo == 'pasm' }}">
+        <div class="tab-icon-wrapper"><i class="ph ph-backpack"></i></div>
+        <span class="tab-label">Check List PASM</span>
+    </a>
+    <a href="{{ url_for('admin_checklists', tipo='equipos') }}" class="tab-btn {{ 'active' if tipo == 'equipos' }}">
+        <div class="tab-icon-wrapper"><i class="ph ph-heartbeat"></i></div>
+        <span class="tab-label">Preoperacional Equipos</span>
+    </a>
+    <a href="{{ url_for('admin_checklists', tipo='calif_atencion') }}" class="tab-btn {{ 'active' if tipo == 'calif_atencion' }}">
+        <div class="tab-icon-wrapper"><i class="ph ph-star-half"></i></div>
+        <span class="tab-label">Calif Atención</span>
+    </a>
+    <a href="{{ url_for('admin_checklists', tipo='segur_paciente') }}" class="tab-btn {{ 'active' if tipo == 'segur_paciente' }}">
+        <div class="tab-icon-wrapper"><i class="ph ph-shield-check"></i></div>
+        <span class="tab-label">Segur Paciente</span>
+    </a>
+    <a href="{{ url_for('admin_checklists', tipo='aseguradoras') }}" class="tab-btn {{ 'active' if tipo == 'aseguradoras' }}">
+        <div class="tab-icon-wrapper"><i class="ph ph-buildings"></i></div>
+        <span class="tab-label">Aseguradoras</span>
+    </a>
+    <a href="{{ url_for('admin_checklists', tipo='aseguradoras_soat') }}" class="tab-btn {{ 'active' if tipo == 'aseguradoras_soat' }}">
+        <div class="tab-icon-wrapper"><i class="ph ph-shield-plus"></i></div>
+        <span class="tab-label">SOAT</span>
+    </a>
+    <a href="{{ url_for('admin_checklists', tipo='archivador') }}" class="tab-btn {{ 'active' if tipo == 'archivador' }}">
+        <div class="tab-icon-wrapper"><i class="ph ph-archive"></i></div>
+        <span class="tab-label">Archivador</span>
+    </a>
+</div>
+
+{% if tipo == 'vehiculos' %}
+<!-- ══════════ GESTIÓN DE VEHÍCULOS ══════════ -->
+<div class="add-form" style="margin-bottom: 24px; border-color: #fcd34d; background: #fffbeb;">
+    <h3 style="color: #92400e; display: flex; align-items: center; gap: 6px;"><i class="ph ph-ambulance"></i> Registrar Nuevo Vehículo</h3>
+    <form method="POST" action="{{ url_for('admin_vehiculo_agregar') }}" id="form-add-vehiculo">
+        <div class="vehiculo-form-grid mode-other" id="vehiculo-form-grid">
+            <div class="field field-tipo-vehiculo">
+                <label style="color: #92400e;">Tipo de Vehículo</label>
+                <select name="tipo" id="select-tipo-vehiculo" required>
+                    <option value="">— Seleccionar —</option>
+                    <option value="Ambulancia">🚑 Ambulancia</option>
+                    <option value="Unidad de Rescate">🚒 Unidad de Rescate</option>
+                    <option value="Unidad Logística">🚚 Unidad Logística</option>
+                    <option value="Moto APH">🏍️ Moto APH</option>
+                </select>
+            </div>
+            <div class="field field-tipo-ambulancia" id="field-tipo-ambulancia" style="display: none;">
+                <label style="color: #92400e;">Tipo (Ambulancia)</label>
+                <select name="tipo_ambulancia" id="select-tipo-ambulancia">
+                    <option value="">— Seleccionar —</option>
+                    <option value="TAB">TAB</option>
+                    <option value="TAM">TAM</option>
+                </select>
+            </div>
+            <div class="field field-movil" id="field-movil" style="display: none;">
+                <label style="color: #92400e;">Movil</label>
+                <select name="movil" id="select-movil">
+                    <option value="">— Seleccionar —</option>
+                    <option value="MOVIL 1">MOVIL 1</option>
+                    <option value="MOVIL 2">MOVIL 2</option>
+                    <option value="MOVIL 3">MOVIL 3</option>
+                    <option value="MOVIL 4">MOVIL 4</option>
+                    <option value="MOVIL 5">MOVIL 5</option>
+                    <option value="MOVIL 6">MOVIL 6</option>
+                </select>
+            </div>
+            <div class="field field-placa">
+                <label style="color: #92400e;">Placa</label>
+                <input type="text" name="placa" id="input-placa-vehiculo" required placeholder="Ej. ABC-123" style="text-transform: uppercase;">
+            </div>
+            <div class="field field-marca">
+                <label style="color: #92400e;">Marca</label>
+                <input type="text" name="marca" required placeholder="Ej. Chevrolet">
+            </div>
+            <div class="field field-serie">
+                <label style="color: #92400e;">Serie</label>
+                <input type="text" name="serie" required placeholder="Ej. N-Series">
+            </div>
+            <div class="field field-modelo">
+                <label style="color: #92400e;">Modelo</label>
+                <input type="text" name="modelo" required placeholder="Ej. 2024">
+            </div>
+            <div class="field field-soat">
+                <label style="color: #92400e;">Vigencia SOAT</label>
+                <input onclick="this.showPicker()" type="date" name="soat_vigencia">
+            </div>
+            <div class="field field-rtm">
+                <label style="color: #92400e;">Vigencia RTM</label>
+                <input onclick="this.showPicker()" type="date" name="rtm_vigencia">
+            </div>
+            <div class="field-btn">
+                <button type="submit" class="btn-add" style="background: linear-gradient(135deg, #f59e0b, #d97706); box-shadow: 0 4px 10px rgba(245,158,11,0.25); height: 38px; width: 100%; display: flex; justify-content: center; align-items: center;"><i class="ph ph-plus"></i> Registrar</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<h2 style="font-size: 14px; text-transform: uppercase; letter-spacing: 0.6px; color: #64748b; margin: 20px 0 10px; display: flex; align-items: center; gap: 8px;">
+    <i class="ph ph-car"></i> Vehículos Registrados
+    <span style="font-size: 11px; background: #f1f5f9; padding: 2px 8px; border-radius: 10px; color: #94a3b8;">{{ vehiculos|length }}</span>
+</h2>
+
+{% if vehiculos|length > 0 %}
+<div class="table-responsive">
+<table class="items-table">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Tipo de Vehículo</th>
+            <th>Tipo / Móvil</th>
+            <th>Placa</th>
+            <th>Marca</th>
+            <th>Serie</th>
+            <th>Modelo</th>
+            <th>Vigencia SOAT</th>
+            <th>Vigencia RTM</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for v in vehiculos %}
+        <tr style="{{ 'opacity: 0.5;' if not v.activo }}">
+            <td style="color: #94a3b8; font-weight: 600;">{{ loop.index }}</td>
+            <td style="font-weight: 600; color: #1e3a5f;">
+                {% if v.tipo == 'Ambulancia' %}🚑
+                {% elif v.tipo == 'Unidad de Rescate' %}🚒
+                {% elif v.tipo == 'Unidad Logística' %}🚚
+                {% elif v.tipo == 'Moto APH' %}🏍️
+                {% else %}🚗{% endif %}
+                {{ v.tipo }}
+            </td>
+            <td style="font-weight: 600;">
+                {% if v.tipo == 'Ambulancia' %}
+                    <span class="badge-tipo-amb" style="background: #e0f2fe; color: #0369a1; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 700;">{{ v.tipo_ambulancia or '—' }}</span>
+                    {% if v.movil %}
+                        <div style="font-size: 11px; color: #475569; margin-top: 4px; font-weight: bold;">{{ v.movil }}</div>
+                    {% endif %}
+                {% else %}
+                    <span style="color: #cbd5e1;">—</span>
+                {% endif %}
+            </td>
+            <td style="font-weight: bold; font-family: monospace; font-size: 15px; color: #0f172a;">{{ v.placa }}</td>
+            <td>{{ v.marca or '—' }}</td>
+            <td>{{ v.serie or '—' }}</td>
+            <td>{{ v.modelo or '—' }}</td>
+            
+            <!-- SOAT Column -->
+            <td>
+                {% if v.soat_texto != '—' %}
+                    <div>{{ v.soat_texto }}</div>
+                    {% if v.soat_alerta %}
+                        <span class="badge-alerta-doc" style="background: #fff3cd; color: #856404; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 700; display: inline-block; margin-top: 4px;">⚠️ Vence en {{ v.soat_dias }} {{ 'día' if v.soat_dias == 1 else 'días' }}</span>
+                    {% elif v.soat_dias is not none and v.soat_dias <= 0 %}
+                        <span class="badge-alerta-vencido" style="background: #f8d7da; color: #721c24; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 700; display: inline-block; margin-top: 4px;">❌ Vencido</span>
+                    {% endif %}
+                {% else %}
+                    <span style="color: #cbd5e1;">—</span>
+                {% endif %}
+            </td>
+            
+            <!-- RTM Column -->
+            <td>
+                {% if v.rtm_texto != '—' %}
+                    <div>{{ v.rtm_texto }}</div>
+                    {% if v.rtm_alerta %}
+                        <span class="badge-alerta-doc" style="background: #fff3cd; color: #856404; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 700; display: inline-block; margin-top: 4px;">⚠️ Vence en {{ v.rtm_dias }} {{ 'día' if v.rtm_dias == 1 else 'días' }}</span>
+                    {% elif v.rtm_dias is not none and v.rtm_dias <= 0 %}
+                        <span class="badge-alerta-vencido" style="background: #f8d7da; color: #721c24; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 700; display: inline-block; margin-top: 4px;">❌ Vencido</span>
+                    {% endif %}
+                {% else %}
+                    <span style="color: #cbd5e1;">—</span>
+                {% endif %}
+            </td>
+
+            <td>
+                {% if v.activo %}
+                <span class="status-active">✓ Activo</span>
+                {% else %}
+                <span class="status-inactive">✗ Inactivo</span>
+                {% endif %}
+            </td>
+            <td style="text-align: center;">
+                <div style="display: flex; gap: 4px; justify-content: center; align-items: center; flex-wrap: wrap;">
+                    <button type="button" class="action-btn" style="border-color: #bfdbfe; color: #1e3a5f; background: #eff6ff; padding: 4px 6px;" 
+                            onclick="openEditModal('{{ v.id }}', '{{ v.tipo }}', '{{ v.tipo_ambulancia or '' }}', '{{ v.placa }}', '{{ v.marca or '' }}', '{{ v.serie or '' }}', '{{ v.modelo or '' }}', '{{ v.soat_vigencia or '' }}', '{{ v.rtm_vigencia or '' }}', '{{ v.movil or '' }}')">
+                        📝 Editar
+                    </button>
+                    <a href="{{ url_for('admin_vehiculo_toggle', vehiculo_id=v.id) }}" class="action-btn btn-toggle" style="padding: 4px 6px;">
+                        {{ '⏸ Desac.' if v.activo else '▶ Act.' }}
+                    </a>
+                    <a href="{{ url_for('admin_vehiculo_eliminar', vehiculo_id=v.id) }}" class="action-btn btn-delete" style="padding: 4px 6px;"
+                       onclick="return confirm('¿Está seguro de eliminar el vehículo {{ v.placa }}?');">
+                        🗑 Eliminar
+                    </a>
+                </div>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+</div>
+{% else %}
+<div style="text-align:center; padding: 40px; color: #94a3b8; font-size: 15px;">
+    <p style="font-size: 40px; margin-bottom: 10px;">🚗</p>
+    <p>No hay vehículos registrados en el sistema.</p>
+    <p>Use el formulario de arriba para agregar el primero.</p>
+</div>
+{% endif %}
+
+{% elif tipo == 'aseguradoras' %}
+<!-- ══════════ GESTIÓN DE ASEGURADORAS ══════════ -->
+<div class="add-form" style="margin-bottom: 24px; border-color: #fcd34d; background: #fffbeb;">
+    <h3 style="color: #92400e;">🗂️ Registrar Nueva Aseguradora (EPS)</h3>
+    <form method="POST" action="{{ url_for('admin_aseguradora_agregar') }}" id="form-add-aseguradora">
+        <div class="add-row">
+            <div class="field">
+                <label style="color: #92400e;">Nombre de la Aseguradora</label>
+                <input type="text" id="nombre_aseguradora" name="nombre" required placeholder="Ej. EPS Sanitas, Coosalud">
+            </div>
+            <div>
+                <button type="submit" class="btn-add" style="background: linear-gradient(135deg, #f59e0b, #d97706); box-shadow: 0 4px 10px rgba(245,158,11,0.25);">➕ Agregar Aseguradora</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<h2 style="font-size: 14px; text-transform: uppercase; letter-spacing: 0.6px; color: #64748b; margin: 20px 0 10px; display: flex; align-items: center; gap: 8px;">
+    🗂️ Aseguradoras Registradas
+    <span style="font-size: 11px; background: #f1f5f9; padding: 2px 8px; border-radius: 10px; color: #94a3b8;">{{ aseguradoras_todas|length }}</span>
+</h2>
+
+{% if aseguradoras_todas|length > 0 %}
+<div class="table-responsive">
+<table class="items-table">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Nombre de la Aseguradora</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for a in aseguradoras_todas %}
+        <tr style="{{ 'opacity: 0.5;' if a.activo != 1 }}">
+            <td style="color: #94a3b8; font-weight: 600;">{{ loop.index }}</td>
+            <td style="font-weight: 600; color: #1e3a5f;">{{ a.nombre }}</td>
+            <td style="text-align: center;">
+                {% if a.activo == 1 %}
+                <span class="status-active">✓ Activa</span>
+                {% else %}
+                <span class="status-inactive">✗ Inactiva</span>
+                {% endif %}
+            </td>
+            <td style="text-align: center;">
+                <div style="display: flex; gap: 6px; justify-content: center; align-items: center;">
+                    <a href="{{ url_for('admin_aseguradora_toggle', aseg_id=a.id) }}" class="action-btn btn-toggle">
+                        {{ '⏸ Desactivar' if a.activo == 1 else '▶ Activar' }}
+                    </a>
+                    <a href="{{ url_for('admin_aseguradora_eliminar', aseg_id=a.id) }}" class="action-btn btn-delete"
+                       onclick="return confirm('¿Está seguro de que desea eliminar permanentemente la aseguradora «{{ a.nombre }}»?')">
+                        🗑 Eliminar
+                    </a>
+                </div>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+</div>
+{% else %}
+<div style="text-align:center; padding: 40px; color: #94a3b8; font-size: 15px;">
+    <p style="font-size: 40px; margin-bottom: 10px;">🗂️</p>
+    <p>No hay aseguradoras registradas.</p>
+</div>
+{% endif %}
+
+{% elif tipo == 'aseguradoras_soat' %}
+<!-- ══════════ GESTIÓN DE ASEGURADORAS SOAT ══════════ -->
+<div class="add-form" style="margin-bottom: 24px; border-color: #fcd34d; background: #fffbeb;">
+    <h3 style="color: #92400e;">🚗 Registrar Nueva Aseguradora SOAT</h3>
+    <form method="POST" action="{{ url_for('admin_aseguradora_soat_agregar') }}" id="form-add-soat">
+        <div class="add-row">
+            <div class="field">
+                <label style="color: #92400e;">Nombre de la Aseguradora SOAT</label>
+                <input type="text" id="nombre_soat" name="nombre" required placeholder="Ej. AXA Colpatria, Seguros Bolívar">
+            </div>
+            <div>
+                <button type="submit" class="btn-add" style="background: linear-gradient(135deg, #f59e0b, #d97706); box-shadow: 0 4px 10px rgba(245,158,11,0.25);">➕ Agregar SOAT</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<h2 style="font-size: 14px; text-transform: uppercase; letter-spacing: 0.6px; color: #64748b; margin: 20px 0 10px; display: flex; align-items: center; gap: 8px;">
+    🚗 Aseguradoras SOAT Registradas
+    <span style="font-size: 11px; background: #f1f5f9; padding: 2px 8px; border-radius: 10px; color: #94a3b8;">{{ aseguradoras_soat_todas|length }}</span>
+</h2>
+
+{% if aseguradoras_soat_todas|length > 0 %}
+<div class="table-responsive">
+<table class="items-table">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Nombre de la Aseguradora SOAT</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for a in aseguradoras_soat_todas %}
+        <tr style="{{ 'opacity: 0.5;' if a.activo != 1 }}">
+            <td style="color: #94a3b8; font-weight: 600;">{{ loop.index }}</td>
+            <td style="font-weight: 600; color: #1e3a5f;">{{ a.nombre }}</td>
+            <td style="text-align: center;">
+                {% if a.activo == 1 %}
+                <span class="status-active">✓ Activa</span>
+                {% else %}
+                <span class="status-inactive">✗ Inactiva</span>
+                {% endif %}
+            </td>
+            <td style="text-align: center;">
+                <div style="display: flex; gap: 6px; justify-content: center; align-items: center;">
+                    <a href="{{ url_for('admin_aseguradora_soat_toggle', aseg_id=a.id) }}" class="action-btn btn-toggle">
+                        {{ '⏸ Desactivar' if a.activo == 1 else '▶ Activar' }}
+                    </a>
+                    <a href="{{ url_for('admin_aseguradora_soat_eliminar', aseg_id=a.id) }}" class="action-btn btn-delete"
+                       onclick="return confirm('¿Está seguro de que desea eliminar permanentemente la aseguradora SOAT «{{ a.nombre }}»?')">
+                        🗑 Eliminar
+                    </a>
+                </div>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+</div>
+{% else %}
+<div style="text-align:center; padding: 40px; color: #94a3b8; font-size: 15px;">
+    <p style="font-size: 40px; margin-bottom: 10px;">🚗</p>
+    <p>No hay aseguradoras SOAT registradas.</p>
+    <p>Use el formulario de arriba para agregar la primera.</p>
+</div>
+{% endif %}
+
+{% elif tipo == 'archivador' %}
+<!-- ══════════ GESTIÓN DE ÍTEMS DEL ARCHIVADOR ══════════ -->
+<!-- Formulario y Tabla de Categorías -->
+<div class="add-form" style="margin-bottom: 24px; border-color: #fcd34d; background: #fffbeb;">
+    <h3 style="color: #92400e;">📁 Gestión de Categorías</h3>
+    <form method="POST" action="{{ url_for('archivador_categoria_agregar') }}" style="margin-bottom: 16px;">
+        <div class="add-row">
+            <div class="field">
+                <label>Nueva Categoría</label>
+                <input type="text" name="nombre" required placeholder="Ej. Financiero">
+            </div>
+            <div>
+                <button type="submit" class="btn-add" style="background: #f59e0b; color: white;">➕ Añadir Categoría</button>
+            </div>
+        </div>
+    </form>
+    <div class="table-responsive" style="margin-bottom: 0;">
+        <table class="items-table" style="margin-bottom: 0;">
+            <thead><tr>
+                <th>#</th>
+                <th>Nombre de la Categoría</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr></thead>
+            <tbody>
+                {% for cat in archivador_categorias %}
+                <tr style="{{ 'opacity: 0.6;' if cat.activo != 1 }}">
+                    <td style="color: #94a3b8; font-weight: 600;">{{ cat.id }}</td>
+                    <td style="font-weight: 600;">{{ cat.nombre }}</td>
+                    <td style="text-align: center;">
+                        {% if cat.activo == 1 %}<span class="status-active">✓ Activo</span>{% else %}<span class="status-inactive">✗ Inactivo</span>{% endif %}
+                    </td>
+                    <td style="text-align: center;">
+                        <div style="display:flex; gap:6px; justify-content:center; align-items: center;">
+                            <form method="POST" action="{{ url_for('archivador_categoria_toggle', id=cat.id) }}" style="margin:0; display:inline;">
+                                <button type="submit" class="action-btn btn-toggle">{{ '⏸ Desactivar' if cat.activo == 1 else '▶ Activar' }}</button>
+                            </form>
+                            <form method="POST" action="{{ url_for('archivador_categoria_eliminar', id=cat.id) }}" style="margin:0; display:inline;" onsubmit="return confirm('¿Estás seguro de eliminar la categoría «{{ cat.nombre }}»?');">
+                                <button type="submit" class="action-btn btn-delete">🗑 Eliminar</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="4" class="text-center text-muted py-4">No hay categorías registradas.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Formulario para agregar ítem -->
+<div class="add-form">
+    <h3>➕ Agregar nuevo formulario</h3>
+    <form method="POST" action="{{ url_for('archivador_formulario_agregar') }}" id="form-add-archivador-item">
+        <div class="add-row">
+            <div class="field">
+                <label>Categoría</label>
+                <select name="categoria_id" required>
+                    <option value="">— Seleccionar —</option>
+                    {% for cat in archivador_categorias %}
+                        {% if cat.activo %}
+                            <option value="{{ cat.id }}">{{ cat.nombre }}</option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="field" style="flex: 2;">
+                <label>Nombre del formulario</label>
+                <input type="text" name="nombre" required placeholder="Ej. Consentimiento Informado">
+            </div>
+            <div>
+                <button type="submit" class="btn-add">➕ Agregar</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Tabla de ítems agrupados por categoría -->
+{% set categorias_orden = [] %}
+{% set items_por_cat = archivador_formularios_por_cat %}
+{% for cat in items_por_cat.keys() %}
+    {% if categorias_orden.append(cat) %}{% endif %}
+{% endfor %}
+
+{% if items_por_cat.keys()|length == 0 %}
+<div style="text-align:center; padding: 40px; color: #94a3b8; font-size: 15px;">
+    <p style="font-size: 40px; margin-bottom: 10px;">📭</p>
+    <p>No hay formularios registrados para el archivador.</p>
+    <p>Use el formulario de arriba para agregar el primero.</p>
+</div>
+{% else %}
+{% for cat in categorias_orden %}
+<h2 style="font-size: 14px; text-transform: uppercase; letter-spacing: 0.6px; color: #64748b; margin: 20px 0 10px; display: flex; align-items: center; gap: 8px;">
+    📂 {{ cat }}
+    <span style="font-size: 11px; background: #f1f5f9; padding: 2px 8px; border-radius: 10px; color: #94a3b8;">{{ items_por_cat[cat]|length }}</span>
+</h2>
+<div class="table-responsive">
+<table class="items-table">
+<thead><tr>
+    <th>#</th>
+    <th>Nombre del Formulario</th>
+    <th>Estado</th>
+    <th>Acciones</th>
+</tr></thead>
+<tbody>
+{% for f in items_por_cat[cat] %}
+<tr style="{{ 'opacity: 0.5;' if not f.activo }}">
+    <td style="color: #94a3b8; font-weight: 600;">{{ f.id }}</td>
+    <td style="font-weight: 600;">
+        <form method="POST" action="{{ url_for('archivador_formulario_editar', id=f.id) }}" style="display:flex; gap:6px;">
+            <input type="text" name="nombre" value="{{ f.nombre }}" style="padding:4px 8px; border:1px solid #cbd5e1; border-radius:4px; font-size:12px; width:100%;" required>
+            <input type="hidden" name="categoria_id" value="{{ f.categoria_id or '' }}">
+            <button type="submit" style="background:#1e6fbf; color:white; border:none; border-radius:4px; padding:4px 8px; font-size:11px; cursor:pointer;">Guardar</button>
+        </form>
+    </td>
+    <td>
+        {% if f.activo %}<span class="status-active">✓ Activo</span>{% else %}<span class="status-inactive">✗ Inactivo</span>{% endif %}
+    </td>
+    <td style="text-align: center;">
+        <div style="display:flex; gap:6px; justify-content:center; align-items: center;">
+            <form method="POST" action="{{ url_for('archivador_formulario_toggle', id=f.id) }}" style="margin:0; display:inline;">
+                <button type="submit" class="action-btn btn-toggle">{{ '⏸ Desactivar' if f.activo else '▶ Activar' }}</button>
+            </form>
+            <form method="POST" action="{{ url_for('archivador_formulario_eliminar', id=f.id) }}" style="margin:0; display:inline;" onsubmit="return confirm('¿Eliminar permanentemente «{{ f.nombre }}»?');">
+                <button type="submit" class="action-btn btn-delete">🗑 Eliminar</button>
+            </form>
+        </div>
+    </td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+{% endfor %}
+{% endif %}
+
+{% else %}
+<!-- ══════════ GESTIÓN DE ÍTEMS DE CHECKLISTS ══════════ -->
+<!-- Formulario y Tabla de Categorías -->
+<div class="add-form" style="margin-bottom: 24px; border-color: #fcd34d; background: #fffbeb;">
+    <h3 style="color: #92400e;">📁 Gestión de Categorías para {{ tipo|upper }}</h3>
+    
+    <form method="POST" action="{{ url_for('admin_categoria_agregar') }}" style="margin-bottom: 16px;" id="form-add-categoria">
+        <input type="hidden" name="tipo_checklist" value="{{ tipo }}">
+        <div class="add-row">
+            <div class="field">
+                <label>Nueva Categoría</label>
+                <input type="text" name="nombre" id="input-nombre-categoria" required placeholder="Ej. Revisión Mecánica">
+            </div>
+            <div>
+                <button type="submit" class="btn-add" style="background: #f59e0b; color: white;">➕ Añadir Categoría</button>
+            </div>
+        </div>
+    </form>
+    
+    {% if categorias %}
+    <div class="table-responsive" style="margin-bottom: 0;">
+    <table class="items-table" style="margin-bottom: 0;">
+        <thead><tr>
+            <th>Nombre de la Categoría</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+        </tr></thead>
+        <tbody>
+        {% for cat in categorias %}
+        <tr style="{{ 'opacity: 0.6;' if not cat.activo }}">
+            <td style="font-weight: 600;">
+                <form method="POST" action="{{ url_for('admin_categoria_editar', cat_id=cat.id) }}" style="display:flex; gap:6px;">
+                    <input type="text" name="nuevo_nombre" value="{{ cat.nombre }}" style="padding:4px 8px; border:1px solid #cbd5e1; border-radius:4px; font-size:12px; width:100%;" required>
+                    <button type="submit" style="background:#1e6fbf; color:white; border:none; border-radius:4px; padding:4px 8px; font-size:11px; cursor:pointer;">Guardar</button>
+                </form>
+            </td>
+            <td>
+                {% if cat.activo %}
+                <span class="status-active">✓ Activo</span>
+                {% else %}
+                <span class="status-inactive">✗ Inactivo</span>
+                {% endif %}
+            </td>
+            <td style="text-align: center;">
+                <a href="{{ url_for('admin_categoria_toggle', cat_id=cat.id) }}" class="action-btn btn-toggle">
+                    {{ '⏸ Desactivar' if cat.activo else '▶ Activar' }}
+                </a>
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    </div>
+    {% else %}
+    <div style="font-size:13px; color:#92400e;">No hay categorías creadas. Cree una arriba para poder agregar ítems.</div>
+    {% endif %}
+</div>
+
+<!-- Formulario para agregar -->
+<div class="add-form">
+    <h3>➕ Agregar nuevo ítem al checklist {{ tipo|upper }}</h3>
+    <form method="POST" action="{{ url_for('admin_checklist_agregar') }}" id="form-add-item">
+        <input type="hidden" name="tipo_checklist" value="{{ tipo }}">
+        <div class="add-row">
+            <div class="field">
+                <label>Categoría</label>
+                <select name="categoria" id="select-categoria" required>
+                    <option value="">— Seleccionar —</option>
+                    {% for cat in categorias %}
+                        {% if cat.activo %}
+                            <option value="{{ cat.nombre }}">{{ cat.nombre }}</option>
+                        {% endif %}
+                    {% endfor %}
+                    {% if categorias|length == 0 %}
+                        <option value="" disabled>Primero agregue una categoría</option>
+                    {% endif %}
+                </select>
+            </div>
+            <div class="field" style="flex: 2;">
+                <label>Nombre del ítem</label>
+                <input type="text" name="nombre" id="input-nombre-item" required placeholder="Ej. Adrenalina / Epinefrina">
+            </div>
+            {% if tipo in ('tam', 'tab', 'pasm', 'pasb', 'avanzada') %}
+            <div class="field" style="flex: 1; min-width: 100px;">
+                <label>Cantidad</label>
+                <input type="number" name="cantidad" id="input-cantidad-item" required min="0" value="1" placeholder="Ej. 5">
+            </div>
+            {% endif %}
+            <div>
+                <button type="submit" class="btn-add">✅ Agregar</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Tabla de ítems -->
+{% set categorias_orden = [] %}
+{% set items_por_cat = {} %}
+{% for item in items %}
+    {% set cat = item.categoria %}
+    {% if cat not in items_por_cat %}
+        {% if categorias_orden.append(cat) %}{% endif %}
+        {% if items_por_cat.update({cat: []}) %}{% endif %}
+    {% endif %}
+    {% if items_por_cat[cat].append(item) %}{% endif %}
+{% endfor %}
+
+{% if items|length == 0 %}
+<div style="text-align:center; padding: 40px; color: #94a3b8; font-size: 15px;">
+    <p style="font-size: 40px; margin-bottom: 10px;">📭</p>
+    <p>No hay ítems configurados para el checklist <strong>{{ tipo|upper }}</strong>.</p>
+    <p>Use el formulario de arriba para agregar el primero.</p>
+</div>
+{% else %}
+
+{% for cat in categorias_orden %}
+<h2 style="font-size: 14px; text-transform: uppercase; letter-spacing: 0.6px; color: #64748b; margin: 20px 0 10px; display: flex; align-items: center; gap: 8px;">
+    {% if cat == 'equipos' %}🏥{% elif cat == 'medicamentos' %}💊{% elif cat == 'botiquin' %}💊{% elif cat == 'bioseguridad' %}🦺{% elif cat == 'insumos' %}🩹{% elif cat == 'dispositivos_medicos' %}🩺{% elif cat == 'infraestructura' %}🏕️{% elif cat == 'logistica' %}📡{% else %}📦{% endif %}
+    {{ cat.replace('_', ' ')|capitalize }}
+    <span style="font-size: 11px; background: #f1f5f9; padding: 2px 8px; border-radius: 10px; color: #94a3b8;">{{ items_por_cat[cat]|length }}</span>
+</h2>
+<div class="table-responsive">
+<table class="items-table">
+<thead><tr>
+    <th>#</th>
+    <th>Nombre del Ítem</th>
+    {% if tipo in ('tam', 'tab', 'pasm', 'pasb', 'avanzada') %}
+    <th>Cantidad</th>
+    {% endif %}
+    <th>Identificador</th>
+    <th>Estado</th>
+    <th>Acciones</th>
+</tr></thead>
+<tbody>
+{% for item in items_por_cat[cat] %}
+<tr style="{{ 'opacity: 0.5;' if not item.activo }}">
+    <td style="color: #94a3b8; font-weight: 600;">{{ loop.index }}</td>
+    <td style="font-weight: 600;">{{ item.nombre }}</td>
+    {% if tipo in ('tam', 'tab', 'pasm', 'pasb', 'avanzada') %}
+    <td style="font-weight: 600;">{{ item.cantidad if item.cantidad is not none else '—' }}</td>
+    {% endif %}
+    <td><code style="font-size: 11px; background: #f1f5f9; padding: 2px 6px; border-radius: 4px; color: #64748b;">{{ item.identificador }}</code></td>
+    <td>
+        {% if item.activo %}
+        <span class="status-active">✓ Activo</span>
+        {% else %}
+        <span class="status-inactive">✗ Inactivo</span>
+        {% endif %}
+    </td>
+    <td style="text-align: center;">
+        <a href="{{ url_for('admin_checklist_toggle', item_id=item.id) }}" class="action-btn btn-toggle">
+            {{ '⏸ Desactivar' if item.activo else '▶ Activar' }}
+        </a>
+        <a href="{{ url_for('admin_checklist_eliminar', item_id=item.id) }}" class="action-btn btn-delete"
+           onclick="return confirm('¿Eliminar permanentemente «{{ item.nombre }}»?')">
+            🗑 Eliminar
+        </a>
+    </td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+{% endfor %}
+
+{% endif %}
+
+{% endif %}{# end tipo == vehiculos else #}
+
+<script>
+    document.addEventListener("DOMContentLoaded", function(event) { 
+        var scrollpos = sessionStorage.getItem('admin_checklists_scrollpos');
+        if (scrollpos) {
+            window.scrollTo(0, parseInt(scrollpos));
+            sessionStorage.removeItem('admin_checklists_scrollpos');
+        }
+        
+        // Restore category and focus input if we just added an item
+        var selectCategoria = document.getElementById('select-categoria');
+        var inputNombreItem = document.getElementById('input-nombre-item');
+        var savedCategory = sessionStorage.getItem('admin_checklists_last_category');
+        var shouldFocus = sessionStorage.getItem('admin_checklists_focus_input');
+        
+        if (selectCategoria && savedCategory) {
+            selectCategoria.value = savedCategory;
+        }
+        if (inputNombreItem && shouldFocus === '1') {
+            inputNombreItem.focus();
+            sessionStorage.removeItem('admin_checklists_focus_input');
+        }
+        
+        // Form submit listener to save the state for items
+        var formAddItem = document.getElementById('form-add-item');
+        if (formAddItem && selectCategoria) {
+            formAddItem.addEventListener('submit', function() {
+                sessionStorage.setItem('admin_checklists_last_category', selectCategoria.value);
+                sessionStorage.setItem('admin_checklists_focus_input', '1');
+            });
+        }
+        
+        // Category focus logic
+        var formAddCategoria = document.getElementById('form-add-categoria');
+        var inputNombreCategoria = document.getElementById('input-nombre-categoria');
+        var shouldFocusCategoria = sessionStorage.getItem('admin_checklists_focus_categoria');
+        
+        if (inputNombreCategoria && shouldFocusCategoria === '1') {
+            inputNombreCategoria.focus();
+            sessionStorage.removeItem('admin_checklists_focus_categoria');
+        }
+        
+        if (formAddCategoria) {
+            formAddCategoria.addEventListener('submit', function() {
+                sessionStorage.setItem('admin_checklists_focus_categoria', '1');
+            });
+        }
+        
+        // Vehiculos logic
+        var formAddVehiculo = document.getElementById('form-add-vehiculo');
+        var selectTipoVehiculo = document.getElementById('select-tipo-vehiculo');
+        var inputPlacaVehiculo = document.getElementById('input-placa-vehiculo');
+        var savedTipoVehiculo = sessionStorage.getItem('admin_checklists_last_tipo_vehiculo');
+        var shouldFocusVehiculo = sessionStorage.getItem('admin_checklists_focus_vehiculo');
+        
+        var fieldTipoAmbulancia = document.getElementById('field-tipo-ambulancia');
+        var selectTipoAmbulancia = document.getElementById('select-tipo-ambulancia');
+        var fieldMovil = document.getElementById('field-movil');
+        var selectMovil = document.getElementById('select-movil');
+        var formGridVehiculo = document.getElementById('vehiculo-form-grid');
+        
+        function toggleAmbulanciaFields() {
+            if (selectTipoVehiculo && selectTipoVehiculo.value === 'Ambulancia') {
+                if (formGridVehiculo) {
+                    formGridVehiculo.classList.remove('mode-other');
+                    formGridVehiculo.classList.add('mode-ambulancia');
+                }
+                if (fieldTipoAmbulancia) fieldTipoAmbulancia.style.display = 'block';
+                if (selectTipoAmbulancia) selectTipoAmbulancia.required = true;
+                if (fieldMovil) fieldMovil.style.display = 'block';
+                if (selectMovil) selectMovil.required = true;
+            } else {
+                if (formGridVehiculo) {
+                    formGridVehiculo.classList.remove('mode-ambulancia');
+                    formGridVehiculo.classList.add('mode-other');
+                }
+                if (fieldTipoAmbulancia) fieldTipoAmbulancia.style.display = 'none';
+                if (selectTipoAmbulancia) {
+                    selectTipoAmbulancia.required = false;
+                    selectTipoAmbulancia.value = '';
+                }
+                if (fieldMovil) fieldMovil.style.display = 'none';
+                if (selectMovil) {
+                    selectMovil.required = false;
+                    selectMovil.value = '';
+                }
+            }
+        }
+        
+        if (selectTipoVehiculo) {
+            selectTipoVehiculo.addEventListener('change', toggleAmbulanciaFields);
+        }
+        
+        if (selectTipoVehiculo && savedTipoVehiculo) {
+            selectTipoVehiculo.value = savedTipoVehiculo;
+        }
+        
+        // Initial run to toggle correct fields on load
+        toggleAmbulanciaFields();
+        
+        if (inputPlacaVehiculo && shouldFocusVehiculo === '1') {
+            inputPlacaVehiculo.focus();
+            sessionStorage.removeItem('admin_checklists_focus_vehiculo');
+        }
+        
+        if (formAddVehiculo && selectTipoVehiculo) {
+            formAddVehiculo.addEventListener('submit', function() {
+                sessionStorage.setItem('admin_checklists_last_tipo_vehiculo', selectTipoVehiculo.value);
+                sessionStorage.setItem('admin_checklists_focus_vehiculo', '1');
+            });
+        }
+        
+        // Aseguradoras logic
+        var formAddAseguradora = document.getElementById('form-add-aseguradora');
+        var inputNombreAseguradora = document.getElementById('nombre_aseguradora');
+        var shouldFocusAseguradora = sessionStorage.getItem('admin_checklists_focus_aseguradora');
+        
+        if (inputNombreAseguradora && shouldFocusAseguradora === '1') {
+            inputNombreAseguradora.focus();
+            sessionStorage.removeItem('admin_checklists_focus_aseguradora');
+        }
+        
+        if (formAddAseguradora) {
+            formAddAseguradora.addEventListener('submit', function() {
+                sessionStorage.setItem('admin_checklists_focus_aseguradora', '1');
+            });
+        }
+    });
+
+    window.addEventListener("beforeunload", function(e) {
+        sessionStorage.setItem('admin_checklists_scrollpos', window.scrollY);
+    });
+
+    // --- Modal Edit Vehiculo JS ---
+    function openEditModal(id, tipo, tipoAmbulancia, placa, marca, serie, modelo, soat, rtm, movil) {
+        const modal = document.getElementById('modal-editar-vehiculo');
+        const form = document.getElementById('form-editar-vehiculo');
+        form.action = `/admin/vehiculos/editar/${id}`;
+        
+        document.getElementById('edit-select-tipo-vehiculo').value = tipo;
+        document.getElementById('edit-select-tipo-ambulancia').value = tipoAmbulancia || '';
+        document.getElementById('edit-select-movil').value = movil || '';
+        document.getElementById('edit-input-placa').value = placa;
+        document.getElementById('edit-input-marca').value = marca;
+        document.getElementById('edit-input-serie').value = serie;
+        document.getElementById('edit-input-modelo').value = modelo;
+        
+        const cleanDate = (d) => d ? d.split(' ')[0] : '';
+        document.getElementById('edit-input-soat').value = cleanDate(soat);
+        document.getElementById('edit-input-rtm').value = cleanDate(rtm);
+        
+        const editFieldTipoAmbulancia = document.getElementById('edit-field-tipo-ambulancia');
+        const editSelectTipoAmbulancia = document.getElementById('edit-select-tipo-ambulancia');
+        const editFieldMovil = document.getElementById('edit-field-movil');
+        const editSelectMovil = document.getElementById('edit-select-movil');
+        if (tipo === 'Ambulancia') {
+            editFieldTipoAmbulancia.style.display = 'block';
+            editSelectTipoAmbulancia.required = true;
+            editFieldMovil.style.display = 'block';
+            editSelectMovil.required = true;
+        } else {
+            editFieldTipoAmbulancia.style.display = 'none';
+            editSelectTipoAmbulancia.required = false;
+            editSelectTipoAmbulancia.value = '';
+            editFieldMovil.style.display = 'none';
+            editSelectMovil.required = false;
+            editSelectMovil.value = '';
+        }
+        
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeEditModal() {
+        const modal = document.getElementById('modal-editar-vehiculo');
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+    }
+
+    // Modal click out to close
+    const modalEditarVehiculo = document.getElementById('modal-editar-vehiculo');
+    if (modalEditarVehiculo) {
+        modalEditarVehiculo.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeEditModal();
+            }
+        });
+    }
+
+    const editSelectTipoVehiculo = document.getElementById('edit-select-tipo-vehiculo');
+    if (editSelectTipoVehiculo) {
+        editSelectTipoVehiculo.addEventListener('change', function() {
+            const editFieldTipoAmbulancia = document.getElementById('edit-field-tipo-ambulancia');
+            const editSelectTipoAmbulancia = document.getElementById('edit-select-tipo-ambulancia');
+            const editFieldMovil = document.getElementById('edit-field-movil');
+            const editSelectMovil = document.getElementById('edit-select-movil');
+            if (this.value === 'Ambulancia') {
+                editFieldTipoAmbulancia.style.display = 'block';
+                editSelectTipoAmbulancia.required = true;
+                editFieldMovil.style.display = 'block';
+                editSelectMovil.required = true;
+            } else {
+                editFieldTipoAmbulancia.style.display = 'none';
+                editSelectTipoAmbulancia.required = false;
+                editSelectTipoAmbulancia.value = '';
+                editFieldMovil.style.display = 'none';
+                editSelectMovil.required = false;
+                editSelectMovil.value = '';
+            }
+        });
+    }
+</script>
+
+<!-- Modal de Edición de Vehículo -->
+<div id="modal-editar-vehiculo" class="modal-overlay" style="display: none; position: fixed; inset: 0; z-index: 9999; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); align-items: center; justify-content: center; padding: 20px;">
+    <div class="modal-content" style="background: white; border-radius: 16px; max-width: 600px; width: 100%; box-shadow: 0 25px 60px rgba(0,0,0,0.3); overflow: hidden; display: flex; flex-direction: column;">
+        <div style="padding: 20px 24px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; background: #fffbeb;">
+            <h3 style="margin: 0; color: #92400e; font-size: 16px; display: flex; align-items: center; gap: 8px;">🚑 Editar Vehículo</h3>
+            <button type="button" onclick="closeEditModal()" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #64748b;">&times;</button>
+        </div>
+        <form id="form-editar-vehiculo" method="POST" action="">
+            <div style="padding: 24px; display: flex; flex-direction: column; gap: 16px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div>
+                        <label style="font-size: 12px; font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">Tipo de Vehículo</label>
+                        <select name="tipo" id="edit-select-tipo-vehiculo" required style="width: 100%; padding: 8px 12px; border: 1.5px solid #cbd5e1; border-radius: 7px; font-size: 13px; font-family: inherit;">
+                            <option value="Ambulancia">🚑 Ambulancia</option>
+                            <option value="Unidad de Rescate">🚒 Unidad de Rescate</option>
+                            <option value="Unidad Logística">🚚 Unidad Logística</option>
+                            <option value="Moto APH">🏍️ Moto APH</option>
+                        </select>
+                    </div>
+                    <div id="edit-field-tipo-ambulancia" style="display: none;">
+                        <label style="font-size: 12px; font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">Tipo (Ambulancia)</label>
+                        <select name="tipo_ambulancia" id="edit-select-tipo-ambulancia" style="width: 100%; padding: 8px 12px; border: 1.5px solid #cbd5e1; border-radius: 7px; font-size: 13px; font-family: inherit;">
+                            <option value="">— Seleccionar —</option>
+                            <option value="TAB">TAB</option>
+                            <option value="TAM">TAM</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="edit-field-movil" style="display: none;">
+                    <label style="font-size: 12px; font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">Movil</label>
+                    <select name="movil" id="edit-select-movil" style="width: 100%; padding: 8px 12px; border: 1.5px solid #cbd5e1; border-radius: 7px; font-size: 13px; font-family: inherit;">
+                        <option value="">— Seleccionar —</option>
+                        <option value="MOVIL 1">MOVIL 1</option>
+                        <option value="MOVIL 2">MOVIL 2</option>
+                        <option value="MOVIL 3">MOVIL 3</option>
+                        <option value="MOVIL 4">MOVIL 4</option>
+                        <option value="MOVIL 5">MOVIL 5</option>
+                        <option value="MOVIL 6">MOVIL 6</option>
+                    </select>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div>
+                        <label style="font-size: 12px; font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">Placa</label>
+                        <input type="text" name="placa" id="edit-input-placa" required style="width: 100%; padding: 8px 12px; border: 1.5px solid #cbd5e1; border-radius: 7px; font-size: 13px; text-transform: uppercase;">
+                    </div>
+                    <div>
+                        <label style="font-size: 12px; font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">Marca</label>
+                        <input type="text" name="marca" id="edit-input-marca" required style="width: 100%; padding: 8px 12px; border: 1.5px solid #cbd5e1; border-radius: 7px; font-size: 13px;">
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div>
+                        <label style="font-size: 12px; font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">Serie</label>
+                        <input type="text" name="serie" id="edit-input-serie" required style="width: 100%; padding: 8px 12px; border: 1.5px solid #cbd5e1; border-radius: 7px; font-size: 13px;">
+                    </div>
+                    <div>
+                        <label style="font-size: 12px; font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">Modelo</label>
+                        <input type="text" name="modelo" id="edit-input-modelo" required style="width: 100%; padding: 8px 12px; border: 1.5px solid #cbd5e1; border-radius: 7px; font-size: 13px;">
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div>
+                        <label style="font-size: 12px; font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">Vigencia SOAT</label>
+                        <input onclick="this.showPicker()" type="date" name="soat_vigencia" id="edit-input-soat" style="width: 100%; padding: 8px 12px; border: 1.5px solid #cbd5e1; border-radius: 7px; font-size: 13px; font-family: inherit;">
+                    </div>
+                    <div>
+                        <label style="font-size: 12px; font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">Vigencia RTM</label>
+                        <input onclick="this.showPicker()" type="date" name="rtm_vigencia" id="edit-input-rtm" style="width: 100%; padding: 8px 12px; border: 1.5px solid #cbd5e1; border-radius: 7px; font-size: 13px; font-family: inherit;">
+                    </div>
+                </div>
+            </div>
+            <div style="padding: 16px 24px; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; gap: 10px; background: #f8fafc;">
+                <button type="button" onclick="closeEditModal()" style="padding: 8px 16px; border: 1.5px solid #cbd5e1; border-radius: 6px; font-size: 13px; font-weight: 600; color: #475569; background: white; cursor: pointer; font-family: inherit;">Cancelar</button>
+                <button type="submit" style="padding: 8px 16px; border: none; border-radius: 6px; font-size: 13px; font-weight: 700; color: white; background: linear-gradient(135deg, #f59e0b, #d97706); cursor: pointer; font-family: inherit;">Guardar Cambios</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+{% block title %}Estadísticas Globales{% endblock %}
+{% block content %}
+<div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; border-bottom:2px solid #dbeafe; padding-bottom:14px; flex-wrap: wrap; gap: 10px;">
+    <div style="display:flex; align-items:center; gap:15px;">
+        <a href="javascript:history.back()" style="display:inline-flex; align-items:center; gap:5px; background:#f1f5f9; color:#475569; border:1px solid #e2e8f0; padding:6px 12px; border-radius:6px; text-decoration:none; font-weight:600; font-size:13px;">
+            ← Volver
+        </a>
+        <h1 style="margin:0; padding:0; border:none; font-size:24px;">📊 Estadísticas Globales</h1>
+    </div>
+    
+    <form method="GET" action="{{ url_for('estadisticas') }}" style="display:flex; gap:10px; align-items:center; background:#f8fafc; padding:10px 15px; border-radius:8px; border:1px solid #e2e8f0;">
+        <div style="display:flex; align-items:center; gap:5px;">
+            <label for="fecha_inicio" style="font-size:13px; font-weight:600; color:#475569;">Desde:</label>
+            <input onclick="this.showPicker()" type="date" id="fecha_inicio" name="fecha_inicio" value="{{ stats.filtros.fecha_inicio }}" style="padding:6px; border:1px solid #cbd5e1; border-radius:4px; font-size:13px;">
+        </div>
+        <div style="display:flex; align-items:center; gap:5px;">
+            <label for="fecha_fin" style="font-size:13px; font-weight:600; color:#475569;">Hasta:</label>
+            <input onclick="this.showPicker()" type="date" id="fecha_fin" name="fecha_fin" value="{{ stats.filtros.fecha_fin }}" style="padding:6px; border:1px solid #cbd5e1; border-radius:4px; font-size:13px;">
+        </div>
+        <button type="submit" style="background:#3b82f6; color:white; border:none; padding:6px 12px; border-radius:4px; font-weight:600; font-size:13px; cursor:pointer; transition: background 0.2s;" onmouseover="this.style.background='#2563eb'" onmouseout="this.style.background='#3b82f6'">
+            Filtrar
+        </button>
+        {% if stats.filtros.fecha_inicio or stats.filtros.fecha_fin %}
+        <a href="{{ url_for('estadisticas') }}" style="background:#ef4444; color:white; text-decoration:none; padding:6px 12px; border-radius:4px; font-weight:600; font-size:13px; transition: background 0.2s;" onmouseover="this.style.background='#dc2626'" onmouseout="this.style.background='#ef4444'">
+            Limpiar
+        </a>
+        {% endif %}
+    </form>
+</div>
+
+<!-- Tarjetas de KPIs -->
+<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:16px; margin-bottom:30px;">
+    <div style="background:linear-gradient(135deg, #1e3a8a, #3b82f6); color:white; padding:20px; border-radius:12px; box-shadow:0 4px 6px rgba(0,0,0,0.1);">
+        <div style="font-size:14px; opacity:0.9; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Pacientes</div>
+        <div style="font-size:36px; font-weight:800; margin-top:5px;">{{ stats.kpis.pacientes }}</div>
+    </div>
+    <div style="background:linear-gradient(135deg, #065f46, #10b981); color:white; padding:20px; border-radius:12px; box-shadow:0 4px 6px rgba(0,0,0,0.1);">
+        <div style="font-size:14px; opacity:0.9; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Eventos</div>
+        <div style="font-size:36px; font-weight:800; margin-top:5px;">{{ stats.kpis.eventos }}</div>
+    </div>
+    <div style="background:linear-gradient(135deg, #92400e, #f59e0b); color:white; padding:20px; border-radius:12px; box-shadow:0 4px 6px rgba(0,0,0,0.1);">
+        <div style="font-size:14px; opacity:0.9; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Atención Colectiva</div>
+        <div style="font-size:36px; font-weight:800; margin-top:5px;">{{ stats.kpis.colectiva }}</div>
+    </div>
+    <div style="background:linear-gradient(135deg, #4c1d95, #8b5cf6); color:white; padding:20px; border-radius:12px; box-shadow:0 4px 6px rgba(0,0,0,0.1);">
+        <div style="font-size:14px; opacity:0.9; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Preoperacionales</div>
+        <div style="font-size:36px; font-weight:800; margin-top:5px;">{{ stats.kpis.preoperacional }}</div>
+    </div>
+    <div style="background:linear-gradient(135deg, #0f172a, #3b82f6); color:white; padding:20px; border-radius:12px; box-shadow:0 4px 6px rgba(0,0,0,0.1);">
+        <div style="font-size:14px; opacity:0.9; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Calificaciones (Atención)</div>
+        <div style="font-size:36px; font-weight:800; margin-top:5px;">{{ stats.kpis.calificaciones }}</div>
+    </div>
+    <div style="background:linear-gradient(135deg, #0f5132, #10b981); color:white; padding:20px; border-radius:12px; box-shadow:0 4px 6px rgba(0,0,0,0.1);">
+        <div style="font-size:14px; opacity:0.9; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Reportes de Seguridad</div>
+        <div style="font-size:36px; font-weight:800; margin-top:5px;">{{ stats.kpis.reportes_seguridad }}</div>
+    </div>
+</div>
+
+<!-- Gráficos de Chart.js -->
+<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(400px, 1fr)); gap:24px; margin-bottom:30px;">
+    
+    <!-- Volumen últimos 7 días (Líneas) -->
+    <div style="background:white; border:1px solid #e2e8f0; border-radius:12px; padding:20px; box-shadow:0 2px 4px rgba(0,0,0,0.05);">
+        <h3 style="margin-top:0; color:#334155; font-size:16px;">Tendencia de Pacientes (Últimos 7 días)</h3>
+        <div style="position:relative; height:250px; width:100%;">
+            <canvas id="chartVolumen"></canvas>
+        </div>
+    </div>
+
+    <!-- Pacientes por EPS (Dona) -->
+    <div style="background:white; border:1px solid #e2e8f0; border-radius:12px; padding:20px; box-shadow:0 2px 4px rgba(0,0,0,0.05);">
+        <h3 style="margin-top:0; color:#334155; font-size:16px;">Pacientes por Aseguradora (EPS)</h3>
+        <div style="position:relative; height:250px; width:100%; display:flex; justify-content:center;">
+            <canvas id="chartEps"></canvas>
+        </div>
+    </div>
+
+    <!-- Pacientes por Sexo Biológico (Pastel) -->
+    <div style="background:white; border:1px solid #e2e8f0; border-radius:12px; padding:20px; box-shadow:0 2px 4px rgba(0,0,0,0.05);">
+        <h3 style="margin-top:0; color:#334155; font-size:16px;">Distribución por Sexo Biológico</h3>
+        <div style="position:relative; height:250px; width:100%; display:flex; justify-content:center;">
+            <canvas id="chartSexo"></canvas>
+        </div>
+    </div>
+
+</div>
+
+<!-- Cargar Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const statsData = {{ stats|tojson|safe }};
+    
+    // Paleta de colores atractiva
+    const bgColors = [
+        'rgba(59, 130, 246, 0.7)', // Blue
+        'rgba(16, 185, 129, 0.7)', // Emerald
+        'rgba(245, 158, 11, 0.7)', // Amber
+        'rgba(239, 68, 68, 0.7)',  // Red
+        'rgba(139, 92, 246, 0.7)', // Violet
+        'rgba(236, 72, 153, 0.7)', // Pink
+        'rgba(20, 184, 166, 0.7)', // Teal
+        'rgba(249, 115, 22, 0.7)', // Orange
+    ];
+    const borderColors = bgColors.map(c => c.replace('0.7', '1'));
+
+    // 1. Gráfico de Volumen (Línea)
+    new Chart(document.getElementById('chartVolumen'), {
+        type: 'line',
+        data: {
+            labels: statsData.volumen.labels,
+            datasets: [{
+                label: 'Pacientes Registrados',
+                data: statsData.volumen.values,
+                borderColor: '#2563eb',
+                backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.3,
+                pointBackgroundColor: '#1d4ed8',
+                pointRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, ticks: { precision: 0 } }
+            }
+        }
+    });
+
+    // 2. Gráfico EPS (Dona)
+    new Chart(document.getElementById('chartEps'), {
+        type: 'doughnut',
+        data: {
+            labels: statsData.eps.labels,
+            datasets: [{
+                data: statsData.eps.values,
+                backgroundColor: bgColors,
+                borderColor: '#ffffff',
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'right', labels: { boxWidth: 12, font: {size: 11} } }
+            }
+        }
+    });
+
+    // 3. Gráfico Sexo (Pastel)
+    new Chart(document.getElementById('chartSexo'), {
+        type: 'pie',
+        data: {
+            labels: statsData.sexo.labels,
+            datasets: [{
+                data: statsData.sexo.values,
+                backgroundColor: ['rgba(236, 72, 153, 0.7)', 'rgba(59, 130, 246, 0.7)', 'rgba(156, 163, 175, 0.7)'],
+                borderColor: '#ffffff',
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom' }
+            }
+        }
+    });
+</script>
+{% endblock %}

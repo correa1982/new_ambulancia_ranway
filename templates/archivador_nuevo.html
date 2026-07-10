@@ -1,0 +1,631 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+  .split-layout {
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+  }
+  .preview-panel {
+    flex: 1;
+    min-width: 0;
+    position: sticky;
+    top: 82px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 20px;
+    min-height: 400px;
+    display: flex;
+    flex-direction: column;
+  }
+  .preview-panel .placeholder {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #94a3b8;
+    text-align: center;
+    gap: 12px;
+  }
+  .preview-panel .placeholder span {
+    font-size: 64px;
+    opacity: 0.4;
+  }
+  .preview-panel .placeholder p {
+    font-size: 14px;
+    font-weight: 500;
+    margin: 0;
+  }
+  .preview-content {
+    display: none;
+    flex-direction: column;
+    gap: 12px;
+    flex: 1;
+  }
+  .preview-content.show {
+    display: flex;
+  }
+  .preview-content img {
+    max-width: 100%;
+    max-height: 70vh;
+    object-fit: contain;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    background: white;
+  }
+  .preview-content embed, .preview-content iframe {
+    width: 100%;
+    height: 70vh;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+  }
+  .preview-content .preview-info {
+    font-size: 13px;
+    color: #475569;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .preview-content .preview-info .name {
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+    min-width: 0;
+  }
+  .preview-content .preview-info .size {
+    color: #64748b;
+    flex-shrink: 0;
+  }
+
+  .form-panel {
+    width: 480px;
+    flex-shrink: 0;
+  }
+
+  .file-list {
+    margin-top: 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .file-list-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border-bottom: 1px solid #f1f5f9;
+    cursor: pointer;
+    transition: background 0.12s;
+  }
+  .file-list-item:last-child {
+    border-bottom: none;
+  }
+  .file-list-item:hover {
+    background: #f1f5f9;
+  }
+  .file-list-item.active {
+    background: #eff6ff;
+  }
+  .file-list-item .thumb {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+    background: #f1f5f9;
+  }
+  .file-list-item .info {
+    flex: 1;
+    min-width: 0;
+  }
+  .file-list-item .info .name {
+    font-size: 13px;
+    font-weight: 600;
+    color: #0f172a;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .file-list-item .info .size {
+    font-size: 11px;
+    color: #94a3b8;
+  }
+  .file-list-item .remove {
+    background: none;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    font-size: 16px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    transition: all 0.12s;
+    flex-shrink: 0;
+  }
+  .file-list-item .remove:hover {
+    color: #ef4444;
+    background: #fef2f2;
+  }
+
+  .drop-zone {
+    border: 2px dashed #cbd5e1;
+    border-radius: 12px;
+    padding: 32px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.25s;
+    background: #fafcff;
+  }
+  .drop-zone:hover, .drop-zone.dragover {
+    border-color: #1e6fbf;
+    background: #eff6ff;
+  }
+  .drop-zone.has-files {
+    border-color: #10b981;
+    background: #f0fdf4;
+    padding: 16px 20px;
+  }
+  .drop-zone-icon {
+    font-size: 40px;
+    color: #94a3b8;
+    margin-bottom: 8px;
+    transition: color 0.25s;
+  }
+  .drop-zone.has-files .drop-zone-icon {
+    color: #10b981;
+  }
+  .drop-zone-text {
+    font-size: 14px;
+    color: #64748b;
+    font-weight: 500;
+  }
+  .drop-zone-text strong {
+    color: #1e6fbf;
+  }
+  .drop-zone-hint {
+    font-size: 12px;
+    color: #94a3b8;
+    margin-top: 4px;
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  .form-grid .full-width {
+    grid-column: 1 / -1;
+  }
+
+  @media (max-width: 1100px) {
+    .split-layout {
+      flex-direction: column-reverse;
+    }
+    .form-panel {
+      width: 100%;
+    }
+    .preview-panel {
+      position: static;
+      min-height: 250px;
+    }
+    .preview-panel .placeholder span {
+      font-size: 40px;
+    }
+  }
+  @media (max-width: 700px) {
+    .form-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+  fieldset {
+    min-width: 0;
+  }
+</style>
+
+<div style="margin-bottom: 20px;">
+  <a href="{{ url_for('archivador_list') }}" style="display: inline-flex; align-items: center; gap: 6px; background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; text-decoration: none; margin-bottom: 12px; transition: all 0.2s;" onmouseover="this.style.background='#e2e8f0'; this.style.color='#1e3a8a'" onmouseout="this.style.background='#f1f5f9'; this.style.color='#475569'">
+    ← Volver a Archivador de Documentos
+  </a>
+  <h2 style="color: #1e3a8a; font-weight: 800; font-size: 22px; margin: 0; letter-spacing: -0.5px; display: flex; align-items: center; gap: 10px;">
+    <span style="font-size: 24px; line-height: 1; color: #1e6fbf;">
+      {% if archivo %}✏️{% else %}☁{% endif %}
+    </span>
+    {% if archivo %}Editar Documento{% else %}Subir Nuevo Documento{% endif %}
+  </h2>
+</div>
+
+<div class="split-layout">
+  <!-- Preview Panel (Left) -->
+  <div class="preview-panel" id="preview-panel">
+    <div class="placeholder" id="preview-placeholder">
+      <span>📄</span>
+      <p>Selecciona un archivo para previsualizarlo</p>
+    </div>
+    <div class="preview-content" id="preview-content">
+      <img id="preview-img" style="display:none;" alt="Vista previa">
+      <embed id="preview-embed" style="display:none;" type="application/pdf">
+      <iframe id="preview-iframe" style="display:none;"></iframe>
+      <div class="preview-info">
+        <span class="name" id="preview-name"></span>
+        <span class="size" id="preview-size"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Form Panel (Right) -->
+  <div class="form-panel">
+    <form action="{% if archivo %}{{ url_for('archivador_editar', id=archivo.id) }}{% else %}{{ url_for('archivador_nuevo') }}{% endif %}" method="POST" enctype="multipart/form-data" id="archivador-form">
+      <fieldset>
+        <legend>Información del Documento</legend>
+        <div class="form-grid">
+          <div class="full-width">
+            <label for="categoria">Categoría</label>
+            <select id="categoria" name="categoria" onchange="filtrarFormularios()">
+              <option value="">-- Sin categoría --</option>
+              {% for cat in categorias %}
+                <option value="{{ cat }}" {% if archivo and archivo.categoria == cat %}selected{% endif %}>{{ cat }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="full-width">
+            <label for="nombre_formulario_select">Nombre o Tipo del Formulario</label>
+            <select id="nombre_formulario_select" name="nombre_formulario_select" onchange="toggleOtro()" {% if not archivo %}required{% endif %}>
+              <option value="" disabled selected>-- Primero selecciona una categoría --</option>
+              {% for frm in formularios_con_categoria %}
+                <option value="{{ frm.nombre }}" data-categoria="{{ frm.categoria_nombre or '' }}" {% if archivo and archivo.nombre_formulario == frm.nombre %}selected{% endif %}>{{ frm.nombre }}</option>
+              {% endfor %}
+              <option value="Otro" data-categoria="" {% if archivo and archivo.nombre_formulario not in nombres_formulario %}selected{% endif %}>Otro (Escribir nombre)</option>
+            </select>
+          </div>
+          <div id="otro_nombre_div" style="display: {% if archivo and archivo.nombre_formulario not in nombres_formulario %}block{% else %}none{% endif %};" class="full-width">
+            <label for="nombre_formulario_otro">Escribe el nombre del formulario</label>
+            <input type="text" id="nombre_formulario_otro" name="nombre_formulario_otro" placeholder="Ej: Consentimiento Informado" value="{% if archivo and archivo.nombre_formulario not in nombres_formulario %}{{ archivo.nombre_formulario }}{% endif %}">
+          </div>
+
+          <div class="date-field" onclick="document.getElementById('fecha_documento').showPicker ? document.getElementById('fecha_documento').showPicker() : document.getElementById('fecha_documento').click();" style="cursor:pointer;">
+            <label for="fecha_documento">Fecha del Documento</label>
+            <input type="date" id="fecha_documento" name="fecha_documento" value="{% if archivo and archivo.fecha_documento %}{{ archivo.fecha_documento }}{% endif %}">
+          </div>
+
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Archivos</legend>
+        <div class="drop-zone" id="drop-zone" onclick="document.getElementById('archivo').click()">
+          <div class="drop-zone-icon" id="drop-icon">📄</div>
+          <div class="drop-zone-text">
+            <strong>Haz clic</strong> o arrastra archivos aquí
+          </div>
+          <div class="drop-zone-hint">PDF, PNG, JPG, JPEG, DOC, DOCX, XLS, XLSX — Máx. 20 MB c/u</div>
+        </div>
+        <input type="file" id="archivo" name="archivo" {% if not archivo %}required{% endif %} multiple style="display: none;" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx,.xls,.xlsx">
+
+        <div class="file-list" id="file-list" style="display:none;"></div>
+
+        {% if archivo and archivo.archivo_url %}
+        <div style="margin-top: 12px; padding: 12px 16px; background: #f0fdf4; border-radius: 8px; border: 1px solid #bbf7d0; display: flex; align-items: center; gap: 12px;">
+          <span style="font-size: 24px;">📎</span>
+          <div style="flex: 1;">
+            <div style="font-weight: 600; font-size: 13px; color: #065f46;">Archivo actual:</div>
+            <div style="font-size: 12px; color: #047857;">{{ archivo.archivo_nombre }}</div>
+          </div>
+          <a href="{{ archivo.archivo_url }}" target="_blank" style="background: #10b981; color: white; padding: 6px 14px; border-radius: 8px; text-decoration: none; font-size: 12px; font-weight: 600;">Ver</a>
+        </div>
+        <p style="font-size: 12px; color: #64748b; margin-top: 8px;">Selecciona archivos nuevos solo si deseas reemplazar el actual.</p>
+        {% endif %}
+      </fieldset>
+
+      <div class="submit-row">
+        <a href="{{ url_for('archivador_list') }}" style="background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; padding: 11px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+          Cancelar
+        </a>
+        <button type="submit" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 11px 24px; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(16,185,129,0.3); transition: all 0.2s;" onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 6px 18px rgba(16,185,129,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(16,185,129,0.3)'">
+          {% if archivo %}✏️ Actualizar{% else %}☁ Subir{% endif %}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function filtrarFormularios() {
+  var cat = document.getElementById("categoria").value;
+  var select = document.getElementById("nombre_formulario_select");
+  var optAnterior = select.value;
+  select.innerHTML = "";
+  var emptyOpt = document.createElement("option");
+  emptyOpt.value = "";
+  emptyOpt.disabled = true;
+  emptyOpt.selected = true;
+  emptyOpt.textContent = cat ? "-- Selecciona un formulario --" : "-- Primero selecciona una categoría --";
+  select.appendChild(emptyOpt);
+  {% for frm in formularios_con_categoria %}
+    if (cat === "" || cat === "{{ (frm.categoria_nombre or '')|safe }}") {
+      var opt = document.createElement("option");
+      opt.value = "{{ frm.nombre|safe }}";
+      opt.textContent = "{{ frm.nombre|safe }}";
+      opt.setAttribute("data-categoria", "{{ (frm.categoria_nombre or '')|safe }}");
+      if (optAnterior === "{{ frm.nombre|safe }}") opt.selected = true;
+      select.appendChild(opt);
+    }
+  {% endfor %}
+  var otroOpt = document.createElement("option");
+  otroOpt.value = "Otro";
+  otroOpt.textContent = "Otro (Escribir nombre)";
+  if (optAnterior === "Otro") otroOpt.selected = true;
+  select.appendChild(otroOpt);
+  toggleOtro();
+}
+
+function toggleOtro() {
+  var select = document.getElementById("nombre_formulario_select");
+  var div = document.getElementById("otro_nombre_div");
+  var input = document.getElementById("nombre_formulario_otro");
+  if (select.value === "Otro") {
+    div.style.display = "block";
+    input.required = true;
+  } else {
+    div.style.display = "none";
+    input.required = false;
+  }
+}
+
+// ── Multi-file management ──
+var allFiles = [];
+var selectedIdx = -1;
+
+var dropZone = document.getElementById("drop-zone");
+var fileInput = document.getElementById("archivo");
+var fileList = document.getElementById("file-list");
+var dropIcon = document.getElementById("drop-icon");
+
+var previewPlaceholder = document.getElementById("preview-placeholder");
+var previewContent = document.getElementById("preview-content");
+var previewImg = document.getElementById("preview-img");
+var previewEmbed = document.getElementById("preview-embed");
+var previewIframe = document.getElementById("preview-iframe");
+var previewName = document.getElementById("preview-name");
+var previewSize = document.getElementById("preview-size");
+
+// Drag & Drop
+["dragenter", "dragover", "dragleave", "drop"].forEach(function(ev) {
+  dropZone.addEventListener(ev, function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+  });
+});
+["dragenter", "dragover"].forEach(function(ev) {
+  dropZone.addEventListener(ev, function() { dropZone.classList.add("dragover"); });
+});
+["dragleave", "drop"].forEach(function(ev) {
+  dropZone.addEventListener(ev, function() { dropZone.classList.remove("dragover"); });
+});
+
+// Drop: use DataTransfer to keep files in the input
+dropZone.addEventListener("drop", function(e) {
+  var files = Array.from(e.dataTransfer.files);
+  allFiles = allFiles.concat(files);
+  syncInputFiles();
+  refreshUI();
+});
+
+// File dialog: files are naturally in the input
+fileInput.addEventListener("change", function() {
+  allFiles = allFiles.concat(Array.from(this.files));
+  syncInputFiles();
+  refreshUI();
+  // Don't clear this.value - files stay in input for native submission
+});
+
+function syncInputFiles() {
+  var ndt = new DataTransfer();
+  for (var i = 0; i < allFiles.length; i++) {
+    ndt.items.add(allFiles[i]);
+  }
+  fileInput.files = ndt.files;
+}
+
+function refreshUI() {
+  fileInput.required = allFiles.length === 0;
+  renderFileList();
+  if (allFiles.length) {
+    dropZone.classList.add("has-files");
+    dropIcon.textContent = "📎";
+    if (selectedIdx === -1 || selectedIdx >= allFiles.length) selectedIdx = 0;
+    selectFile(selectedIdx);
+  } else {
+    dropZone.classList.remove("has-files");
+    dropIcon.textContent = "📄";
+    selectedIdx = -1;
+    clearPreview();
+  }
+  updateSubmitButton();
+}
+
+function renderFileList() {
+  if (!allFiles.length) { fileList.style.display = "none"; return; }
+  fileList.style.display = "block";
+  var html = "";
+  for (var i = 0; i < allFiles.length; i++) {
+    var f = allFiles[i];
+    var active = i === selectedIdx ? " active" : "";
+    html += '<div class="file-list-item' + active + '" onclick="selectFile(' + i + ')">';
+    html += '  <div class="thumb">' + getFileIcon(f.name) + '</div>';
+    html += '  <div class="info"><div class="name">' + escapeHtml(f.name) + '</div><div class="size">' + formatSize(f.size) + '</div></div>';
+    html += '  <button type="button" class="remove" onclick="event.stopPropagation(); removeFile(' + i + ')">✕</button>';
+    html += '</div>';
+  }
+  fileList.innerHTML = html;
+  // Re-select the active item
+  var items = fileList.querySelectorAll(".file-list-item");
+  if (items[selectedIdx]) items[selectedIdx].classList.add("active");
+}
+
+function selectFile(idx) {
+  selectedIdx = idx;
+  var file = allFiles[idx];
+  if (!file) return;
+  var items = fileList.querySelectorAll(".file-list-item");
+  items.forEach(function(el, i) { el.classList.toggle("active", i === idx); });
+  showPreview(file);
+}
+
+function removeFile(idx) {
+  allFiles.splice(idx, 1);
+  if (!allFiles.length) {
+    fileInput.value = "";
+    fileInput.required = true;
+    refreshUI();
+    return;
+  }
+  syncInputFiles();
+  refreshUI();
+}
+
+function updateSubmitButton() {
+  var btn = document.querySelector("#archivador-form button[type=submit]");
+  if (btn && allFiles.length) {
+    btn.innerHTML = "☁ Subir (" + allFiles.length + " archivo" + (allFiles.length > 1 ? "s" : "") + ")";
+  }
+}
+
+// ── Preview ──
+function showPreview(file) {
+  previewPlaceholder.style.display = "none";
+  previewContent.classList.add("show");
+  previewName.textContent = file.name;
+  previewSize.textContent = formatSize(file.size);
+
+  // Hide all preview elements
+  previewImg.style.display = "none";
+  previewEmbed.style.display = "none";
+  previewIframe.style.display = "none";
+  previewEmbed.src = "";
+  previewIframe.src = "";
+
+  if (file.type.startsWith("image/")) {
+    previewImg.style.display = "block";
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      previewImg.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  } else if (file.type === "application/pdf") {
+    previewEmbed.style.display = "block";
+    var url = URL.createObjectURL(file);
+    previewEmbed.src = url;
+  } else {
+    // Show icon for non-previewable files
+    previewImg.style.display = "block";
+    previewImg.style.objectFit = "contain";
+    previewImg.style.padding = "40px";
+    previewImg.style.background = "#f8fafc";
+    var icons = {pdf: "📕", doc: "📘", docx: "📘", xls: "📗", xlsx: "📗", ppt: "📙", pptx: "📙"};
+    var ext = file.name.split('.').pop().toLowerCase();
+    // Draw a canvas-based preview or just show a big emoji
+    var canvas = document.createElement("canvas");
+    canvas.width = 200;
+    canvas.height = 200;
+    var ctx = canvas.getContext("2d");
+    ctx.fillStyle = "#f8fafc";
+    ctx.fillRect(0, 0, 200, 200);
+    ctx.font = "80px serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillStyle = "#cbd5e1";
+    ctx.fillText(icons[ext] || "📄", 100, 100);
+    previewImg.src = canvas.toDataURL();
+  }
+}
+
+function clearPreview() {
+  previewPlaceholder.style.display = "flex";
+  previewContent.classList.remove("show");
+  previewImg.src = "";
+  previewEmbed.src = "";
+  previewIframe.src = "";
+}
+
+function getFileIcon(name) {
+  var ext = name.split('.').pop().toLowerCase();
+  var icons = {pdf: "📕", doc: "📘", docx: "📘", xls: "📗", xlsx: "📗", ppt: "📙", pptx: "📙", png: "🖼", jpg: "🖼", jpeg: "🖼", gif: "🖼"};
+  return icons[ext] || "📄";
+}
+
+function formatSize(bytes) {
+  if (bytes < 1024) return bytes + " B";
+  if (bytes < 1048576) return (bytes / 1024).toFixed(1) + " KB";
+  return (bytes / 1048576).toFixed(1) + " MB";
+}
+
+function escapeHtml(str) {
+  var div = document.createElement("div");
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+document.getElementById("archivador-form").addEventListener("submit", function(e) {
+  {% if archivo and archivo.archivo_url %}
+  if (!allFiles.length) {
+    document.getElementById("archivo").required = false;
+    return;
+  }
+  {% endif %}
+  if (!allFiles.length) return;
+
+  e.preventDefault();
+  var form = this;
+  var formData = new FormData();
+  formData.append("nombre_formulario_select", document.getElementById("nombre_formulario_select").value);
+  var otroInput = document.getElementById("nombre_formulario_otro");
+  if (otroInput.value) formData.append("nombre_formulario_otro", otroInput.value);
+  formData.append("categoria", document.getElementById("categoria").value);
+  formData.append("fecha_documento", document.getElementById("fecha_documento").value);
+
+  for (var i = 0; i < allFiles.length; i++) {
+    formData.append("archivo", allFiles[i]);
+  }
+
+  var btn = form.querySelector("button[type=submit]");
+  btn.disabled = true;
+  btn.innerHTML = "⏳ Subiendo...";
+
+  fetch(form.action, {
+    method: "POST",
+    body: formData,
+    headers: {"X-Requested-With": "XMLHttpRequest"}
+  }).then(function(resp) {
+    return resp.json();
+  }).then(function(data) {
+    if (data.success) {
+      window.location.href = data.redirect;
+    } else {
+      btn.disabled = false;
+      btn.innerHTML = "☁ Subir (" + allFiles.length + ")";
+      alert(data.message || "Error al subir los archivos.");
+    }
+  }).catch(function() {
+    btn.disabled = false;
+    btn.innerHTML = "☁ Subir (" + allFiles.length + ")";
+    alert("Error de conexión. Intenta de nuevo.");
+  });
+});
+
+// On page load, filter form names if editing
+document.addEventListener("DOMContentLoaded", function() {
+  var cat = document.getElementById("categoria");
+  if (cat && cat.value) {
+    filtrarFormularios();
+  }
+});
+</script>
+{% endblock %}

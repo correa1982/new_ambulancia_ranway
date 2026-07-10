@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+{% block title %}Configuración Institucional{% endblock %}
+{% block content %}
+<h1>⚙️ Configuración Institucional</h1>
+<p>Administre los datos y el logotipo de la institución que aparecerán en los reportes.</p>
+
+<fieldset style="margin-bottom: 25px; border: 1px solid #cbd5e0; border-radius: 8px;">
+    <legend style="color: #2b6cb0; font-weight: bold;">Configuración de la Institución (Logo y Datos)</legend>
+    <form method="POST" action="{{ url_for('configurar_institucion') }}" id="institution-form" enctype="multipart/form-data">
+
+        <div class="row">
+            <div>
+                <label>Nombre de la Institución</label>
+                <input type="text" name="nombre_institucion" value="{{ institucion.nombre_institucion }}" required placeholder="Ej. Servicio de Ambulancias S.A.">
+            </div>
+            <div>
+                <label>Subtítulo de Institución (PDF y Login)</label>
+                <input type="text" name="subtitulo_institucion" value="{{ institucion.subtitulo_institucion }}" required placeholder="Ej. RED DE ATENCIÓN PREHOSPITALARIA">
+            </div>
+        </div>
+        <div class="row">
+            <div>
+                <label>NIT</label>
+                <input type="text" name="nit" value="{{ institucion.nit }}" required placeholder="Ej. NIT: 900.123.456-7">
+            </div>
+        </div>
+        <div>
+            <label>Códigos de Habilitación</label>
+            <p style="margin: 4px 0 8px; color: #64748b; font-size: 13px;">Agregue uno o varios códigos y escriba la descripción del servicio habilitado.</p>
+            <div id="habilitaciones-list">
+                {% set entries = institucion.habilitaciones if institucion.habilitaciones is defined else [] %}
+                {% if entries|length == 0 %}
+                    {% set entries = [{'codigo': '', 'descripcion': ''}] %}
+                {% endif %}
+                {% for entry in entries %}
+                <div class="habilitacion-item" style="display: grid; grid-template-columns: 1fr 1.2fr auto; gap: 10px; align-items: center; margin-bottom: 8px;">
+                    <input type="text" name="habilitacion_codigo[]" value="{{ entry.codigo }}" placeholder="Ej. 050010987">
+                    <input type="text" name="habilitacion_descripcion[]" value="{{ entry.descripcion }}" placeholder="Ej. Servicio de Ambulancia Básica">
+                    <button type="button" class="remove-habilitacion btn" style="margin-top: 0; padding: 10px 16px; background: #ffffff; color: #ef4444; border: 1px solid #fecaca; border-radius: 10px; font-weight: 600; font-size: 13px; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 4px rgba(239, 68, 68, 0.05);" onmouseover="this.style.background='#fef2f2'; this.style.borderColor='#fca5a5'; this.style.color='#dc2626'; this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 8px rgba(239, 68, 68, 0.15)';" onmouseout="this.style.background='#ffffff'; this.style.borderColor='#fecaca'; this.style.color='#ef4444'; this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 4px rgba(239, 68, 68, 0.05)';"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg> Eliminar</button>
+                </div>
+                {% endfor %}
+            </div>
+            <button type="button" id="add-habilitacion" class="btn" style="margin-top: 6px; padding: 10px 20px; background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; border-radius: 10px; font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 4px rgba(22, 163, 74, 0.05);" onmouseover="this.style.background='#dcfce7'; this.style.borderColor='#86efac'; this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 8px rgba(22, 163, 74, 0.15)';" onmouseout="this.style.background='#f0fdf4'; this.style.borderColor='#bbf7d0'; this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 4px rgba(22, 163, 74, 0.05)';"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Agregar Código Adicional</button>
+        </div>
+        <div>
+            <label>Logotipo Institucional</label>
+            <div style="display: flex; gap: 10px; align-items: center; margin-top: 5px;">
+                <label for="logo-file" class="btn" style="margin-top: 0; padding: 10px 20px; background: #ffffff; color: #3b82f6; border: 2px dashed #bfdbfe; border-radius: 10px; font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 2px 4px rgba(59, 130, 246, 0.05);" onmouseover="this.style.background='#eff6ff'; this.style.borderColor='#60a5fa'; this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 8px rgba(59, 130, 246, 0.15)';" onmouseout="this.style.background='#ffffff'; this.style.borderColor='#bfdbfe'; this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 4px rgba(59, 130, 246, 0.05)';"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Subir Logo Institucional</label>
+                <input type="file" id="logo-file" name="logo_file" accept="image/*" style="display: none;">
+                <div id="logo-preview-container">
+                    {% if institucion.logo %}
+                    <img id="logo-preview" src="{{ institucion.logo }}" alt="Logo" style="max-height: 45px; border: 1px solid #cbd5e0; border-radius: 4px; padding: 2px; background: white;">
+                    {% else %}
+                    <span id="logo-preview-text" style="color: #a0aec0; font-size: 13px; font-style: italic;">Sin logo cargado</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div style="margin-top: 15px;">
+            <label>Marca de Agua para Firmas</label>
+            <p style="margin: 4px 0 8px; color: #64748b; font-size: 13px;">Esta imagen se superpondrá a las firmas de los usuarios en los documentos para mayor seguridad.</p>
+            <div style="display: flex; gap: 10px; align-items: center; margin-top: 5px;">
+                <label for="marca-agua-file" class="btn" style="margin-top: 0; padding: 10px 20px; background: #ffffff; color: #8b5cf6; border: 2px dashed #ddd6fe; border-radius: 10px; font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 2px 4px rgba(139, 92, 246, 0.05);" onmouseover="this.style.background='#f5f3ff'; this.style.borderColor='#a78bfa'; this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 8px rgba(139, 92, 246, 0.15)';" onmouseout="this.style.background='#ffffff'; this.style.borderColor='#ddd6fe'; this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 4px rgba(139, 92, 246, 0.05)';"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Subir Marca de Agua</label>
+                <input type="file" id="marca-agua-file" name="marca_agua_file" accept="image/*" style="display: none;">
+                <div id="marca-agua-preview-container">
+                    {% if institucion.marca_agua %}
+                    <img id="marca-agua-preview" src="{{ institucion.marca_agua }}" alt="Marca de Agua" style="max-height: 45px; border: 1px solid #cbd5e0; border-radius: 4px; padding: 2px; background: white;">
+                    {% else %}
+                    <span id="marca-agua-preview-text" style="color: #a0aec0; font-size: 13px; font-style: italic;">Sin marca de agua cargada</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div style="display: flex; gap: 10px; margin-top: 15px;">
+            <a href="{{ url_for('dashboard') }}" style="margin:0; box-sizing: border-box; height: 44px; font-family: inherit; background:#6b7280; color:white; text-decoration:none; border:none; padding:0 24px; border-radius:10px; font-weight:600; font-size:14px; display:inline-flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(107,114,128,0.2);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(107,114,128,0.3)'" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 6px -1px rgba(107,114,128,0.2)'">
+                <i class="ph ph-arrow-left" style="font-size:18px;"></i> Volver
+            </a>
+            <button type="submit" style="margin:0; box-sizing: border-box; height: 44px; font-family: inherit; background: linear-gradient(135deg, #10b981, #059669); color:white; border:none; padding:0 24px; border-radius:10px; font-weight:600; font-size:14px; display:inline-flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.2);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(16, 185, 129, 0.3)'" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 6px -1px rgba(16, 185, 129, 0.2)'">
+                <i class="ph ph-floppy-disk" style="font-size:18px;"></i> Guardar Cambios
+            </button>
+        </div>
+    </form>
+</fieldset>
+
+<script>
+// --- Logo Upload Logic ---
+const logoFileInput = document.getElementById('logo-file');
+const logoPreviewContainer = document.getElementById('logo-preview-container');
+
+if (logoFileInput) {
+    logoFileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                logoPreviewContainer.innerHTML = `<img id="logo-preview" src="${event.target.result}" alt="Logo" style="max-height: 45px; border: 1px solid #cbd5e0; border-radius: 4px; padding: 2px; background: white;">`;
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+}
+
+const marcaAguaFileInput = document.getElementById('marca-agua-file');
+const marcaAguaPreviewContainer = document.getElementById('marca-agua-preview-container');
+
+if (marcaAguaFileInput) {
+    marcaAguaFileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                marcaAguaPreviewContainer.innerHTML = `<img id="marca-agua-preview" src="${event.target.result}" alt="Marca de Agua" style="max-height: 45px; border: 1px solid #cbd5e0; border-radius: 4px; padding: 2px; background: white;">`;
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+}
+
+const habilitacionesList = document.getElementById('habilitaciones-list');
+const addHabilitacionButton = document.getElementById('add-habilitacion');
+
+if (habilitacionesList && addHabilitacionButton) {
+    addHabilitacionButton.addEventListener('click', () => {
+        const row = document.createElement('div');
+        row.className = 'habilitacion-item';
+        row.style.cssText = 'display: grid; grid-template-columns: 1fr 1.2fr auto; gap: 10px; align-items: center; margin-bottom: 8px;';
+        row.innerHTML = `
+            <input type="text" name="habilitacion_codigo[]" placeholder="Ej. 050010987">
+            <input type="text" name="habilitacion_descripcion[]" placeholder="Ej. Servicio de Ambulancia Básica">
+            <button type="button" class="remove-habilitacion btn" style="margin-top: 0; padding: 10px 16px; background: #ffffff; color: #ef4444; border: 1px solid #fecaca; border-radius: 10px; font-weight: 600; font-size: 13px; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 4px rgba(239, 68, 68, 0.05);" onmouseover="this.style.background='#fef2f2'; this.style.borderColor='#fca5a5'; this.style.color='#dc2626'; this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 8px rgba(239, 68, 68, 0.15)';" onmouseout="this.style.background='#ffffff'; this.style.borderColor='#fecaca'; this.style.color='#ef4444'; this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 4px rgba(239, 68, 68, 0.05)';"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg> Eliminar</button>
+        `;
+        habilitacionesList.appendChild(row);
+    });
+
+    habilitacionesList.addEventListener('click', (event) => {
+        if (event.target.classList.contains('remove-habilitacion')) {
+            const item = event.target.closest('.habilitacion-item');
+            if (item) {
+                item.remove();
+            }
+        }
+    });
+}
+</script>
+{% endblock %}

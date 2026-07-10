@@ -1,0 +1,521 @@
+{% extends "base.html" %}
+{% block title %}Preoperacional Conductores{% endblock %}
+{% block content %}
+<h1>🚗 Preoperacional Conductores</h1>
+
+<style>
+.check-table { width: 100%; border-collapse: collapse; }
+.check-table th { background: linear-gradient(135deg,#ebf4ff,#dbeafe); font-size:11px; text-transform:uppercase; letter-spacing:0.4px; color:#1e40af; padding:8px 12px; }
+.check-table td { padding: 0; border: 1px solid #e2e8f0; }
+.check-row { display: flex; align-items: center; padding: 9px 14px; gap: 10px; transition: background 0.1s; }
+.check-row:hover { background: #f0f7ff; }
+.check-row .item-name { flex: 1; font-size: 13px; font-weight: 500; color: #374151; }
+.radio-trio { display: flex; gap: 4px; }
+.radio-trio label {
+    padding: 4px 11px; border-radius: 5px; font-size: 12px; font-weight: 700;
+    cursor: pointer; border: 1.5px solid; transition: all 0.12s; margin: 0;
+    user-select: none;
+}
+.radio-trio input[type="radio"] { display: none; }
+/* SI */
+.ri-si label { border-color: #bbf7d0; color: #166534; background: #f0fdf4; }
+.ri-si input:checked + label { background: #10b981; color: white; border-color: #059669; }
+/* NO */
+.ri-no label { border-color: #fecaca; color: #991b1b; background: #fef2f2; }
+.ri-no input:checked + label { background: #ef4444; color: white; border-color: #dc2626; }
+/* NA */
+.ri-na label { border-color: #e2e8f0; color: #64748b; background: #f8fafc; }
+.ri-na input:checked + label { background: #94a3b8; color: white; border-color: #64748b; }
+
+@media (max-width: 650px) {
+    .check-table thead { display: none; }
+    .check-table, .check-table tbody, .check-table tr, .check-table td { display: block; width: 100%; }
+    .check-table tr { border: 1px solid #e2e8f0; margin-bottom: 8px; border-radius: 8px; overflow: hidden; background: #fff; }
+    .check-table td { border: none !important; }
+    .check-row { flex-direction: column; align-items: stretch; padding: 12px; }
+    .check-row .item-name { margin-bottom: 8px; font-weight: 600; text-align: center; }
+    .radio-trio { justify-content: space-between; }
+    .radio-trio > div { flex: 1; text-align: center; }
+    .radio-trio label { display: block; padding: 8px 0; font-size: 13px; }
+    .obs-item-row { padding-top: 0 !important; }
+}
+</style>
+
+<form method="POST" enctype="multipart/form-data">
+{% if record %}
+<input type="hidden" name="id" value="{{ record.id }}">
+{% endif %}
+<fieldset>
+<legend>🚌 Datos del Vehículo y Conductor</legend>
+<div class="row row-3">
+    <div>
+        <label>Fecha <span style="color:#ef4444">*</span></label>
+        <input onclick="this.showPicker()" type="date" name="fecha" max="{{ hoy }}" required value="{{ record.fecha if record else hoy }}">
+    </div>
+    <div>
+        <label>Hora</label>
+        <input onclick="this.showPicker()" type="time" name="hora" value="{{ record.hora if record else hora_actual }}">
+    </div>
+    <div>
+        <label>Placa del Vehículo</label>
+        <select name="placa_vehiculo" id="select-placa-vehiculo" required>
+            <option value="">— Seleccionar —</option>
+            {% for v in vehiculos %}
+            <option value="{{ v.placa }}" 
+                    data-tipo="{{ v.tipo }}" 
+                    data-tipo-ambulancia="{{ v.tipo_ambulancia or '—' }}" 
+                    data-movil="{{ v.movil or '—' }}" 
+                    data-marca="{{ v.marca or '—' }}" 
+                    data-serie="{{ v.serie or '—' }}" 
+                    data-modelo="{{ v.modelo or '—' }}" 
+                    data-soat="{{ v.soat_vigencia or '—' }}" 
+                    data-rtm="{{ v.rtm_vigencia or '—' }}"
+                    {% if record and record.placa_vehiculo == v.placa %}selected{% endif %}>
+                {{ v.placa }}
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+</div>
+
+<!-- Fila de Detalles del Vehículo 1 -->
+<div class="row row-4" id="row-vehiculo-detalles-1" style="margin-top: 15px;">
+    <div>
+        <label>Tipo de Vehículo</label>
+        <input type="text" id="info-tipo-vehiculo" readonly style="background: #f1f5f9; color: #475569; cursor: not-allowed;" value="{{ record.tipo_vehiculo or '' }}">
+    </div>
+    <div>
+        <label>Tipo (Ambulancia)</label>
+        <input type="text" id="info-tipo-ambulancia" readonly style="background: #f1f5f9; color: #475569; cursor: not-allowed;" value="{{ record.tipo_ambulancia or '' }}">
+    </div>
+    <div>
+        <label>Movil</label>
+        <input type="text" id="info-movil" readonly style="background: #f1f5f9; color: #475569; cursor: not-allowed;" value="{{ record.movil or '' }}">
+    </div>
+    <div>
+        <label>Marca</label>
+        <input type="text" id="info-marca" readonly style="background: #f1f5f9; color: #475569; cursor: not-allowed;" value="{{ record.marca or '' }}">
+    </div>
+</div>
+
+<!-- Fila de Detalles del Vehículo 2 -->
+<div class="row row-4" id="row-vehiculo-detalles-2" style="margin-top: 15px;">
+    <div>
+        <label>Serie</label>
+        <input type="text" id="info-serie" readonly style="background: #f1f5f9; color: #475569; cursor: not-allowed;" value="{{ record.serie or '' }}">
+    </div>
+    <div>
+        <label>Modelo</label>
+        <input type="text" id="info-modelo" readonly style="background: #f1f5f9; color: #475569; cursor: not-allowed;" value="{{ record.modelo or '' }}">
+    </div>
+    <div>
+        <label>Vigencia SOAT</label>
+        <input type="text" id="info-soat" readonly style="background: #f1f5f9; color: #475569; cursor: not-allowed;" value="{{ record.soat_vigencia or '' }}">
+    </div>
+    <div>
+        <label>Vigencia RTM</label>
+        <input type="text" id="info-rtm" readonly style="background: #f1f5f9; color: #475569; cursor: not-allowed;" value="{{ record.rtm_vigencia or '' }}">
+    </div>
+</div>
+
+<!-- Fila de Detalles del Vehículo 3 (Kilometraje, Cambio de Aceite y Conductor) -->
+<div class="row row-3" id="row-vehiculo-detalles-3" style="margin-top: 15px; margin-bottom: 15px;">
+    <div>
+        <label>Kilometraje Actual</label>
+        <input type="text" name="kilometraje" placeholder="Ej. 45230" inputmode="numeric" pattern="[0-9]*" value="{{ record.kilometraje if record else '' }}">
+    </div>
+    <div>
+        <label>Próximo Cambio de Aceite (KM)</label>
+        <input type="text" name="proximo_aceite" placeholder="Ej. 50230" inputmode="numeric" pattern="[0-9]*" value="{{ record.proximo_aceite if record else '' }}">
+    </div>
+    <div>
+        <label>Nombre del Conductor <span style="color:#ef4444">*</span></label>
+        <select name="nombre_conductor" required>
+            <option value="">— Seleccione un conductor —</option>
+            {% for u in usuarios %}
+            <option value="{{ u.nombre }}" {% if record and record.nombre_conductor == u.nombre %}selected{% endif %}>{{ u.nombre }}</option>
+            {% endfor %}
+        </select>
+    </div>
+</div>
+</fieldset>
+
+{% for cat, items in items_por_cat.items() %}
+<fieldset>
+<legend>{% if cat == 'Mecánica' %}🔧{% elif cat == 'Médica' %}🏥{% else %}📦{% endif %} {{ cat }}</legend>
+<table class="check-table">
+<thead><tr>
+    <th style="width:60%;">Ítem</th>
+    <th style="width:40%; text-align:left;">Observaciones</th>
+</tr></thead>
+<tbody>
+{% for item in items %}
+{% set field = item.identificador %}
+{% set label = item.nombre %}
+{% set val_exist = datos[field]['valor'] if (datos and field in datos) else '' %}
+{% set obs_exist = datos[field]['observacion'] if (datos and field in datos) else '' %}
+<tr>
+    <td style="vertical-align: middle;">
+        <div class="check-row">
+            <span class="item-name">{{ label }}</span>
+            <div class="radio-trio">
+                <div class="ri-si">
+                    <input type="radio" name="{{ field }}" id="{{ field }}_si" value="SI" {% if val_exist == 'SI' %}checked{% endif %}>
+                    <label for="{{ field }}_si">SI</label>
+                </div>
+                <div class="ri-no">
+                    <input type="radio" name="{{ field }}" id="{{ field }}_no" value="NO" {% if val_exist == 'NO' %}checked{% endif %}>
+                    <label for="{{ field }}_no">NO</label>
+                </div>
+                <div class="ri-na">
+                    <input type="radio" name="{{ field }}" id="{{ field }}_na" value="NA" {% if val_exist == 'NA' %}checked{% endif %}>
+                    <label for="{{ field }}_na">N/A</label>
+                </div>
+            </div>
+        </div>
+    </td>
+    <td style="vertical-align: middle; padding: 6px 14px;">
+        <div class="obs-item-row" id="obs_row_{{ field }}" style="{% if val_exist == 'NO' %}display:block;{% else %}display:none;{% endif %}">
+            <input type="text" name="obs_{{ field }}" id="obs_{{ field }}" class="form-control" placeholder="Observación obligatoria..." style="width: 100%; border: 1px solid #fecaca; border-radius: 5px; padding: 6px; font-size: 12px; box-sizing: border-box;" value="{{ obs_exist }}" {% if val_exist == 'NO' %}required{% endif %}>
+        </div>
+    </td>
+</tr>
+{% endfor %}
+</tbody></table>
+</fieldset>
+{% endfor %}
+
+<fieldset id="fieldset-obs">
+<legend>📝 Observaciones Generales</legend>
+<div id="obs-warning" style="display:none; background:#fef2f2; border:1.5px solid #fecaca; border-radius:8px; padding:10px 14px; margin-bottom:10px; font-size:13px; color:#991b1b;">
+    ⚠️ <strong>Hay <span id="no-count">0</span> ítem(s) marcados como NO.</strong> Debe detallar la novedad en los campos correspondientes que aparecieron arriba.
+</div>
+<textarea name="observaciones" id="observaciones" placeholder="Novedades encontradas, daños, faltantes, observaciones importantes del turno...">{{ record.observaciones if record else '' }}</textarea>
+</fieldset>
+
+<fieldset>
+<legend>📷 Evidencia Fotográfica</legend>
+<div style="margin-top: 10px; text-align: center; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+    <button type="button" onclick="abrirCamara()" style="flex: 1; min-width: 140px; padding:12px; background:#10b981; border:none; border-radius:8px; color:white; font-weight:bold; cursor:pointer;">
+        📸 Tomar Foto
+    </button>
+    <button type="button" onclick="abrirGaleria()" style="flex: 1; min-width: 140px; padding:12px; background:#3b82f6; border:none; border-radius:8px; color:white; font-weight:bold; cursor:pointer;">
+        📁 Subir Galería
+    </button>
+</div>
+<input type="file" id="evidencia_hidden" accept="image/*" multiple style="display: none;" onchange="procesarArchivos(this)">
+<input type="file" name="evidencia" id="evidencia" accept="image/*" multiple style="display: none;">
+
+{% if record and record.evidencia_list %}
+<div style="margin-top: 10px; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">
+    {% for ev in record.evidencia_list %}
+    <div style="position: relative;">
+        <img src="{{ url_for('static', filename='uploads/evidencias/' + ev) }}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px; border: 2px solid #cbd5e1;">
+    </div>
+    {% endfor %}
+</div>
+<input type="hidden" name="existing_evidencia" value="{{ record.evidencia }}">
+{% endif %}
+
+<div id="file-name-display" style="margin-top: 10px; text-align: center; font-size: 13px; color: #166534; font-weight: 700; white-space: pre-wrap;"></div>
+<div id="preview-container" style="margin-top: 15px; display: flex; flex-wrap: wrap; gap: 15px; justify-content: center;"></div>
+
+<script>
+let archivosEvidencia = new DataTransfer();
+
+function procesarArchivos(input) {
+    if (!input.files || input.files.length === 0) return;
+    for (let i = 0; i < input.files.length; i++) {
+        archivosEvidencia.items.add(input.files[i]);
+    }
+    input.value = ''; // limpiar para permitir subir el mismo si es necesario
+    actualizarInputRealYVistas();
+}
+
+function actualizarInputRealYVistas() {
+    document.getElementById('evidencia').files = archivosEvidencia.files;
+    renderPreviews();
+}
+
+function renderPreviews() {
+    const container = document.getElementById('preview-container');
+    container.innerHTML = '';
+    const files = archivosEvidencia.files;
+    
+    if (files.length > 0) {
+        document.getElementById('file-name-display').textContent = `✅ ${files.length} foto(s) lista(s) para enviar`;
+    } else {
+        document.getElementById('file-name-display').textContent = '';
+    }
+
+    for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const wrapper = document.createElement('div');
+        wrapper.style.position = 'relative';
+        wrapper.style.display = 'inline-block';
+        
+        const img = document.createElement('img');
+        img.style.width = '80px';
+        img.style.height = '80px';
+        img.style.objectFit = 'cover';
+        img.style.borderRadius = '8px';
+        img.style.border = '2px solid #cbd5e1';
+        img.style.boxShadow = '0 2px 5px rgba(0,0,0,0.1)';
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+        
+        const removeBtn = document.createElement('button');
+        removeBtn.innerHTML = '✕';
+        removeBtn.type = 'button';
+        removeBtn.style.position = 'absolute';
+        removeBtn.style.top = '-8px';
+        removeBtn.style.right = '-8px';
+        removeBtn.style.background = '#ef4444';
+        removeBtn.style.border = 'none';
+        removeBtn.style.borderRadius = '50%';
+        removeBtn.style.width = '24px';
+        removeBtn.style.height = '24px';
+        removeBtn.style.color = 'white';
+        removeBtn.style.cursor = 'pointer';
+        removeBtn.style.fontSize = '12px';
+        removeBtn.style.fontWeight = 'bold';
+        removeBtn.style.display = 'flex';
+        removeBtn.style.alignItems = 'center';
+        removeBtn.style.justifyContent = 'center';
+        removeBtn.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2)';
+        
+        removeBtn.onclick = function() {
+            removerArchivo(i);
+        };
+        
+        wrapper.appendChild(img);
+        wrapper.appendChild(removeBtn);
+        container.appendChild(wrapper);
+    }
+}
+
+function removerArchivo(index) {
+    const newDt = new DataTransfer();
+    const files = archivosEvidencia.files;
+    for (let i = 0; i < files.length; i++) {
+        if (i !== index) {
+            newDt.items.add(files[i]);
+        }
+    }
+    archivosEvidencia = newDt;
+    actualizarInputRealYVistas();
+}
+
+function abrirCamara() {
+    const input = document.getElementById('evidencia_hidden');
+    input.setAttribute('capture', 'environment');
+    input.click();
+}
+
+function abrirGaleria() {
+    const input = document.getElementById('evidencia_hidden');
+    input.removeAttribute('capture');
+    input.click();
+}
+</script>
+</fieldset>
+
+<div class="submit-row" style="display:flex; flex-wrap:wrap; gap:12px; justify-content: flex-end; margin-top:20px; align-items:center;">
+    <a href="{{ url_for('dashboard') }}" style="margin:0; box-sizing: border-box; height: 44px; font-family: inherit; background:#6b7280; color:white; text-decoration:none; border:none; padding:0 24px; border-radius:10px; font-weight:600; font-size:14px; display:inline-flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(107,114,128,0.2);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(107,114,128,0.3)'" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 6px -1px rgba(107,114,128,0.2)'">
+        <i class="ph ph-arrow-left" style="font-size:18px;"></i> Volver
+    </a>
+    <a href="{{ url_for('registros_preoperacional') }}" style="margin:0; box-sizing: border-box; height: 44px; font-family: inherit; background: linear-gradient(135deg,#f59e0b,#d97706); color:white; text-decoration:none; border:none; padding:0 24px; border-radius:10px; font-weight:600; font-size:14px; display:inline-flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(245,158,11,0.2);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(245,158,11,0.3)'" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 6px -1px rgba(245,158,11,0.2)'">
+        <i class="ph ph-folder-open" style="font-size:18px;"></i> Ver Registros
+    </a>
+    <button type="submit" name="accion" value="borrador" style="margin:0; box-sizing: border-box; height: 44px; font-family: inherit; background:linear-gradient(135deg,#1e6fbf,#185999); color:white; border:none; padding:0 24px; border-radius:10px; font-weight:600; font-size:14px; display:inline-flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(30,111,191,0.3);" formnovalidate onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(30,111,191,0.4)'" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 6px -1px rgba(30,111,191,0.3)'">
+        <i class="ph ph-floppy-disk" style="font-size:18px;"></i> Guardar Borrador
+    </button>
+    <button type="submit" name="accion" value="finalizar" style="margin:0; box-sizing: border-box; height: 44px; font-family: inherit; background:linear-gradient(135deg,#10b981,#059669); color:white; border:none; padding:0 24px; border-radius:10px; font-weight:600; font-size:14px; display:inline-flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(16,185,129,0.2);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(16,185,129,0.3)'" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 6px -1px rgba(16,185,129,0.2)'" onclick="return confirm('¿Está seguro de finalizar este registro? Una vez finalizado no podrá ser editado.');">
+        <i class="ph ph-check-circle" style="font-size:18px;"></i> Finalizar Preoperacional
+    </button>
+</div>
+</form>
+
+<script>
+(function() {
+    const obsTextarea = document.getElementById('observaciones');
+    const obsBadge = document.getElementById('obs-badge');
+    const obsWarning = document.getElementById('obs-warning');
+    const noCountSpan = document.getElementById('no-count');
+    const fieldsetObs = document.getElementById('fieldset-obs');
+
+    function checkForNo() {
+        // Toggle specific observation inputs
+        document.querySelectorAll('input[type="radio"]').forEach(function(radio) {
+            if(radio.checked) {
+                const fieldName = radio.name;
+                const obsRow = document.getElementById('obs_row_' + fieldName);
+                const obsInput = document.getElementById('obs_' + fieldName);
+                if(obsRow && obsInput) {
+                    if (radio.value === 'NO') {
+                        obsRow.style.display = 'block';
+                        obsInput.required = true;
+                    } else {
+                        obsRow.style.display = 'none';
+                        obsInput.required = false;
+                        obsInput.value = ''; // clear hidden value
+                    }
+                }
+            }
+        });
+
+        // General warning box
+        const noChecked = document.querySelectorAll('input[type="radio"][value="NO"]:checked');
+        const count = noChecked.length;
+        if (count > 0) {
+            if(obsBadge) obsBadge.style.display = 'none'; // no longer requiring general
+            obsWarning.style.display = 'block';
+            noCountSpan.textContent = count;
+            obsTextarea.required = false; 
+            fieldsetObs.style.borderColor = '#fecaca';
+            fieldsetObs.style.background = '#fffbfb';
+        } else {
+            if(obsBadge) obsBadge.style.display = 'none';
+            obsWarning.style.display = 'none';
+            obsTextarea.required = false;
+            fieldsetObs.style.borderColor = '';
+            fieldsetObs.style.background = '';
+        }
+    }
+
+    // Listen to all radio buttons in the form
+    document.querySelectorAll('input[type="radio"]').forEach(function(radio) {
+        radio.addEventListener('change', checkForNo);
+    });
+
+    // Auto-populate vehicle details
+    const selectPlaca = document.getElementById('select-placa-vehiculo');
+    
+    function updateVehicleDetails(e) {
+        const isManualChange = e && e.type === 'change';
+        if (!selectPlaca) return;
+        const selectedOpt = selectPlaca.options[selectPlaca.selectedIndex];
+        if (selectedOpt && selectedOpt.value !== "") {
+            document.getElementById('info-tipo-vehiculo').value = selectedOpt.getAttribute('data-tipo') || '';
+            document.getElementById('info-tipo-ambulancia').value = selectedOpt.getAttribute('data-tipo-ambulancia') || '';
+            document.getElementById('info-movil').value = selectedOpt.getAttribute('data-movil') || '';
+            document.getElementById('info-marca').value = selectedOpt.getAttribute('data-marca') || '';
+            document.getElementById('info-serie').value = selectedOpt.getAttribute('data-serie') || '';
+            document.getElementById('info-modelo').value = selectedOpt.getAttribute('data-modelo') || '';
+            
+            const formatShowDate = (d) => {
+                if (!d || d === '—' || d === 'None') return '—';
+                const parts = d.split('-');
+                if (parts.length === 3) {
+                    return `${parts[2]}/${parts[1]}/${parts[0]}`; // YYYY-MM-DD to DD/MM/YYYY
+                }
+                return d;
+            };
+            document.getElementById('info-soat').value = formatShowDate(selectedOpt.getAttribute('data-soat'));
+            document.getElementById('info-rtm').value = formatShowDate(selectedOpt.getAttribute('data-rtm'));
+            
+            // VALIDACIÓN INMEDIATA
+            let soat = selectedOpt.getAttribute('data-soat');
+            let rtm = selectedOpt.getAttribute('data-rtm');
+            if (soat && soat !== "None" && soat !== "—") soat = soat.split(' ')[0];
+            if (rtm && rtm !== "None" && rtm !== "—") rtm = rtm.split(' ')[0];
+            
+            const tzoffset = (new Date()).getTimezoneOffset() * 60000;
+            const localISOTime = (new Date(Date.now() - tzoffset)).toISOString().split('T')[0];
+            
+            let vencido = false;
+            let mensajeHtml = "";
+            let proximoVencerHtml = "";
+            
+            const daysBetween = (d1, d2) => {
+                const date1 = new Date(d1);
+                const date2 = new Date(d2);
+                const diffTime = date1.getTime() - date2.getTime();
+                return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            };
+            
+            if (!soat || soat === "None" || soat === "—" || soat <= localISOTime) {
+                vencido = true;
+                mensajeHtml += "<li>El <strong>SOAT</strong> se encuentra vencido, vence hoy, o no está registrado.</li>";
+            } else {
+                const daysLeft = daysBetween(soat, localISOTime);
+                if (daysLeft <= 30) {
+                    proximoVencerHtml += `<li>El <strong>SOAT</strong> está próximo a vencer (en ${daysLeft} día${daysLeft===1?'':'s'}).</li>`;
+                }
+            }
+            
+            if (!rtm || rtm === "None" || rtm === "—" || rtm <= localISOTime) {
+                vencido = true;
+                mensajeHtml += "<li>La <strong>Revisión Técnico Mecánica (RTM)</strong> se encuentra vencida, vence hoy, o no está registrada.</li>";
+            } else {
+                const daysLeft = daysBetween(rtm, localISOTime);
+                if (daysLeft <= 30) {
+                    proximoVencerHtml += `<li>La <strong>Revisión Técnico Mecánica (RTM)</strong> está próxima a vencer (en ${daysLeft} día${daysLeft===1?'':'s'}).</li>`;
+                }
+            }
+            
+            const btnBorrador = document.querySelector('button[name="accion"][value="borrador"]');
+            const btnFinalizar = document.querySelector('button[name="accion"][value="finalizar"]');
+            
+            if (vencido) {
+                if (btnBorrador) { btnBorrador.disabled = true; btnBorrador.style.opacity = '0.5'; btnBorrador.style.cursor = 'not-allowed'; }
+                if (btnFinalizar) { btnFinalizar.disabled = true; btnFinalizar.style.opacity = '0.5'; btnFinalizar.style.cursor = 'not-allowed'; }
+                
+                let extraHtml = proximoVencerHtml ? `<br><ul style="text-align:left; font-size:15px; color:#b45309; line-height:1.6;">${proximoVencerHtml}</ul>` : "";
+                
+                if (isManualChange) {
+                    Swal.fire({
+                        title: '¡Documentos Vencidos!',
+                        html: `<ul style="text-align:left; font-size:15px; color:#334155; line-height:1.6; margin-top:15px;">${mensajeHtml}</ul>${extraHtml}<p style="margin-top:15px; font-weight:bold; color:#ef4444;">No podrá guardar borrador ni finalizar el registro con este vehículo.</p>`,
+                        icon: 'error',
+                        confirmButtonColor: '#ef4444',
+                        confirmButtonText: 'Entendido'
+                    });
+                }
+            } else {
+                if (btnBorrador) { btnBorrador.disabled = false; btnBorrador.style.opacity = '1'; btnBorrador.style.cursor = 'pointer'; }
+                if (btnFinalizar) { btnFinalizar.disabled = false; btnFinalizar.style.opacity = '1'; btnFinalizar.style.cursor = 'pointer'; }
+                
+                if (proximoVencerHtml && isManualChange) {
+                    Swal.fire({
+                        title: '¡Documentos Próximos a Vencer!',
+                        html: `<ul style="text-align:left; font-size:15px; color:#334155; line-height:1.6; margin-top:15px;">${proximoVencerHtml}</ul><p style="margin-top:15px; font-weight:bold; color:#475569;">Puede continuar con el registro, pero recuerde renovarlos pronto.</p>`,
+                        icon: 'warning',
+                        confirmButtonColor: '#f59e0b',
+                        confirmButtonText: 'Entendido'
+                    });
+                }
+            }
+        } else {
+            document.getElementById('info-tipo-vehiculo').value = '';
+            document.getElementById('info-tipo-ambulancia').value = '';
+            document.getElementById('info-movil').value = '';
+            document.getElementById('info-marca').value = '';
+            document.getElementById('info-serie').value = '';
+            document.getElementById('info-modelo').value = '';
+            document.getElementById('info-soat').value = '';
+            document.getElementById('info-rtm').value = '';
+            
+            const btnBorrador = document.querySelector('button[name="accion"][value="borrador"]');
+            const btnFinalizar = document.querySelector('button[name="accion"][value="finalizar"]');
+            if (btnBorrador) { btnBorrador.disabled = false; btnBorrador.style.opacity = '1'; btnBorrador.style.cursor = 'pointer'; }
+            if (btnFinalizar) { btnFinalizar.disabled = false; btnFinalizar.style.opacity = '1'; btnFinalizar.style.cursor = 'pointer'; }
+        }
+    }
+    
+    if (selectPlaca) {
+        selectPlaca.addEventListener('change', updateVehicleDetails);
+        // Run initially to load existing details (e.g. drafts)
+        updateVehicleDetails();
+    }
+
+    // Initial check
+    checkForNo();
+})();
+</script>
+{% endblock %}
+

@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Seleccionar Perfil – HC Prehospitalario</title>
+<link rel="icon" type="image/png" href="{{ url_for('static', filename='icon-192.png') }}">
+<meta name="description" content="Seleccione el perfil con el que desea iniciar sesión.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+        font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+        background: #0f172a;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        padding: 40px 16px;
+        position: relative;
+    }
+
+    /* Animated background */
+    .bg-gradient {
+        position: fixed; inset: 0; z-index: 0;
+        background: radial-gradient(ellipse 80% 60% at 20% 30%, rgba(30,111,191,0.35) 0%, transparent 60%),
+                    radial-gradient(ellipse 70% 50% at 80% 70%, rgba(14,165,233,0.2) 0%, transparent 55%),
+                    linear-gradient(160deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+    }
+    .bg-circles {
+        position: fixed; inset: 0; z-index: 0; overflow: hidden;
+    }
+    .circle {
+        position: absolute; border-radius: 50%;
+        background: rgba(30,111,191,0.06); border: 1px solid rgba(30,111,191,0.1);
+        animation: float 8s ease-in-out infinite;
+    }
+    .circle:nth-child(1) { width: 400px; height: 400px; top: -100px; right: -100px; animation-delay: 0s; }
+    .circle:nth-child(2) { width: 250px; height: 250px; bottom: -50px; left: -50px; animation-delay: 2s; }
+    .circle:nth-child(3) { width: 150px; height: 150px; bottom: 20%; right: 15%; animation-delay: 4s; }
+    @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-20px); }
+    }
+
+    /* Card */
+    .profile-card {
+        margin: auto;
+        position: relative; z-index: 1;
+        width: 460px; max-width: calc(100vw - 32px);
+        background: rgba(255,255,255,0.04);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 20px;
+        padding: 44px 40px;
+        box-shadow: 0 25px 50px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05) inset;
+        animation: slideUp 0.5s ease-out;
+    }
+    @keyframes slideUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Header */
+    .profile-icon {
+        width: 64px; height: 64px; margin: 0 auto 20px;
+        background: linear-gradient(135deg, #1e6fbf, #0ea5e9);
+        border-radius: 18px; display: flex; align-items: center;
+        justify-content: center; font-size: 28px;
+        box-shadow: 0 8px 20px rgba(30,111,191,0.4);
+    }
+    .profile-title {
+        text-align: center; color: white; font-size: 22px;
+        font-weight: 800; letter-spacing: -0.4px; margin-bottom: 4px;
+    }
+    .profile-subtitle {
+        text-align: center; color: rgba(255,255,255,0.45);
+        font-size: 13px; margin-bottom: 10px; font-weight: 400;
+    }
+    .profile-user-name {
+        text-align: center; color: rgba(255,255,255,0.7);
+        font-size: 15px; margin-bottom: 28px; font-weight: 600;
+    }
+    .profile-user-name span {
+        color: #38bdf8;
+    }
+
+    /* Flash messages */
+    .flash-msg {
+        background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.3);
+        border-radius: 8px; padding: 11px 14px; margin-bottom: 20px;
+        color: #fca5a5; font-size: 13px; display: flex; align-items: flex-start; gap: 8px;
+    }
+    .flash-msg.success { background: rgba(16,185,129,0.15); border-color: rgba(16,185,129,0.3); color: #6ee7b7; }
+
+    /* Profile buttons */
+    .profiles-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    .profile-btn {
+        width: 100%;
+        background: rgba(255,255,255,0.06);
+        border: 1.5px solid rgba(255,255,255,0.12);
+        border-radius: 12px;
+        padding: 16px 20px;
+        color: white;
+        font-size: 15px;
+        font-weight: 600;
+        font-family: inherit;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        transition: all 0.2s ease;
+    }
+    .profile-btn:hover {
+        background: rgba(30,111,191,0.2);
+        border-color: rgba(30,111,191,0.5);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(30,111,191,0.25);
+    }
+    .profile-btn:active {
+        transform: translateY(0);
+    }
+    .profile-btn-icon {
+        width: 44px; height: 44px; min-width: 44px;
+        border-radius: 12px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 22px;
+    }
+    .profile-btn-text {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .profile-btn-label {
+        font-size: 15px;
+        font-weight: 700;
+    }
+    .profile-btn-desc {
+        font-size: 11px;
+        color: rgba(255,255,255,0.4);
+        font-weight: 400;
+        margin-top: 2px;
+    }
+
+    /* Profile-specific colors */
+    .profile-medico .profile-btn-icon { background: linear-gradient(135deg, #059669, #10b981); }
+    .profile-enfermero .profile-btn-icon { background: linear-gradient(135deg, #7c3aed, #a78bfa); }
+    .profile-aph .profile-btn-icon { background: linear-gradient(135deg, #dc2626, #f87171); }
+    .profile-socorrista .profile-btn-icon { background: linear-gradient(135deg, #d97706, #fbbf24); }
+    .profile-conductor .profile-btn-icon { background: linear-gradient(135deg, #2563eb, #60a5fa); }
+    .profile-administrador .profile-btn-icon { background: linear-gradient(135deg, #475569, #94a3b8); }
+    .profile-default .profile-btn-icon { background: linear-gradient(135deg, #1e6fbf, #0ea5e9); }
+
+    /* Back link */
+    .back-link {
+        text-align: center; margin-top: 24px;
+    }
+    .back-link a {
+        color: rgba(255,255,255,0.35);
+        font-size: 13px; text-decoration: none;
+        transition: color 0.2s;
+    }
+    .back-link a:hover {
+        color: rgba(255,255,255,0.7);
+    }
+
+    .divider { height: 1px; background: rgba(255,255,255,0.08); margin: 20px 0; }
+</style>
+</head>
+<body>
+<div class="bg-gradient"></div>
+<div class="bg-circles">
+    <div class="circle"></div>
+    <div class="circle"></div>
+    <div class="circle"></div>
+</div>
+
+<div class="profile-card">
+    <div class="profile-icon">👤</div>
+    <h1 class="profile-title">Seleccionar Perfil</h1>
+    <p class="profile-subtitle">Tiene múltiples perfiles asignados. Seleccione con cuál desea iniciar sesión.</p>
+    <p class="profile-user-name">Bienvenido, <span>{{ nombre }}</span></p>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+    <div class="flash-msg {{ category }}">⚠ {{ message }}</div>
+    {% endfor %}
+    {% endwith %}
+
+    <div class="profiles-grid">
+        {% for p in perfiles %}
+        <form method="POST" style="margin: 0;">
+            <input type="hidden" name="perfil" value="{{ p }}">
+            {% set perfil_lower = p|lower|replace(' ', '') %}
+            {% set icon_map = {
+                'médico': '🩺',
+                'enfermero': '💉',
+                'aph': '🚑',
+                'socorrista': '⛑️',
+                'conductor': '🚗',
+                'administrador': '⚙️'
+            } %}
+            {% set desc_map = {
+                'médico': 'Registro de historias clínicas médicas',
+                'enfermero': 'Atención y registros de enfermería',
+                'aph': 'Atención prehospitalaria en campo',
+                'socorrista': 'Atención básica y primeros auxilios',
+                'conductor': 'Operación vehicular y preoperacionales',
+                'administrador': 'Gestión completa del sistema'
+            } %}
+            {% set css_class_map = {
+                'médico': 'profile-medico',
+                'enfermero': 'profile-enfermero',
+                'aph': 'profile-aph',
+                'socorrista': 'profile-socorrista',
+                'conductor': 'profile-conductor',
+                'administrador': 'profile-administrador'
+            } %}
+            {% set icon = icon_map.get(p|lower, '👤') %}
+            {% set desc = desc_map.get(p|lower, 'Acceso al sistema') %}
+            {% set css_class = css_class_map.get(p|lower, 'profile-default') %}
+            <button type="submit" class="profile-btn {{ css_class }}" id="profile-btn-{{ loop.index }}">
+                <div class="profile-btn-icon">{{ icon }}</div>
+                <div class="profile-btn-text">
+                    <span class="profile-btn-label">{{ p }}</span>
+                </div>
+            </button>
+        </form>
+        {% endfor %}
+    </div>
+
+    <div class="divider"></div>
+    <div class="back-link">
+        <a href="{{ url_for('logout') }}">← Volver al inicio de sesión</a>
+    </div>
+</div>
+
+</body>
+</html>

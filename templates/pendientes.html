@@ -1,0 +1,309 @@
+{% extends "base.html" %}
+{% block title %}Formularios Pendientes{% endblock %}
+{% block content %}
+
+<style>
+.pend-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 24px; padding-bottom: 16px;
+    border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; gap: 12px;
+}
+.pend-title { margin: 0; padding: 0; border: none; font-size: 22px; color: #1e3a5f; }
+.pend-badge {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white; padding: 5px 16px;
+    border-radius: 20px; font-size: 12px; font-weight: 700;
+}
+
+/* Category Grid */
+.pend-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+    margin-bottom: 24px;
+}
+
+.pend-section-card {
+    background: white;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+}
+
+.pend-section-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #1e3a5f;
+    margin-top: 0;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid #f1f5f9;
+    padding-bottom: 8px;
+}
+
+.pend-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.pend-item {
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 14px 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    transition: all 0.2s ease;
+}
+
+.pend-item:hover {
+    transform: translateX(4px);
+    border-color: #93c5fd;
+    background: #f0f7ff;
+}
+
+.pend-item-details {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+}
+
+.pend-item-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #334155;
+}
+
+.pend-item-meta {
+    font-size: 12px;
+    color: #64748b;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.pend-btn-edit {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 700;
+    box-shadow: 0 2px 4px rgba(217,119,6,0.2);
+    transition: all 0.15s;
+    white-space: nowrap;
+}
+
+.pend-btn-edit:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(217,119,6,0.3);
+}
+
+.pend-empty {
+    text-align: center;
+    padding: 24px 12px;
+    color: #94a3b8;
+    background: #f8fafc;
+    border: 1.5px dashed #cbd5e1;
+    border-radius: 8px;
+    font-size: 13px;
+}
+</style>
+
+<!-- HEADER -->
+<div class="pend-header">
+    <div style="display:flex; align-items:center; gap:14px;">
+        <a href="{{ url_for('dashboard') }}"
+           style="display:inline-flex; align-items:center; gap:6px; background:#f8fafc;
+                  color:#475569; border:1px solid #cbd5e1; padding:7px 14px;
+                  border-radius:8px; text-decoration:none; font-weight:600; font-size:13px;
+                  transition:all 0.15s;"
+           onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#f8fafc'">
+            ← Dashboard
+        </a>
+        <h1 class="pend-title">⚠️ Formularios Pendientes de Finalizar</h1>
+    </div>
+    <div style="display:flex; align-items:center; gap:14px;">
+        <a href="{{ url_for('registros') }}" style="display:inline-flex; align-items:center; gap:6px; background:#f8fafc; color:#334155; border:1px solid #cbd5e1; padding:7px 14px; border-radius:8px; text-decoration:none; font-weight:600; font-size:13px; transition:all 0.15s;" onmouseover="this.style.background='#f1f5f9'; this.style.borderColor='#94a3b8'" onmouseout="this.style.background='#f8fafc'; this.style.borderColor='#cbd5e1'">
+            👁️ Ver los registros creados
+        </a>
+        {% set total_p = hcs|length + acs|length %}
+        <span class="pend-badge">{{ total_p }} Pendiente(s)</span>
+    </div>
+</div>
+
+<div class="pend-grid">
+    <!-- HISTORIAS CLINICAS INDIVIDUALES -->
+    <div class="pend-section-card">
+        <h3 class="pend-section-title">🚑 Historia Clínica Individual ({{ hcs|length }})</h3>
+        <div class="pend-list">
+            {% if hcs %}
+                {% for p in hcs %}
+                <div class="pend-item">
+                    <div class="pend-item-details">
+                        <div class="pend-item-title">
+                            {{ p.primer_nombre or '' }} {{ p.primer_apellido or '' }} 
+                            {% if p.identificacion_paciente %}(ID: {{ p.identificacion_paciente }}){% endif %}
+                        </div>
+                        <div class="pend-item-meta">
+                            <span>📅 Creado: {{ p.fecha_registro or '—' }}</span>
+                            {% if p.triage_clasificacion %}
+                            <span style="background: #fee2e2; color: #ef4444; font-weight: 700; padding: 1px 6px; border-radius: 4px; font-size: 11px;">
+                                {{ p.triage_clasificacion }}
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <a href="{{ p.edit_url }}" class="pend-btn-edit">✏️ Completar HC</a>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="pend-empty">
+                    🎉 No tiene Historias Clínicas Individuales pendientes.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- ATENCION COLECTIVA -->
+    <div class="pend-section-card">
+        <h3 class="pend-section-title">👥 Atención Colectiva / MCI ({{ acs|length }})</h3>
+        <div class="pend-list">
+            {% if acs %}
+                {% for ac in acs %}
+                <div class="pend-item">
+                    <div class="pend-item-details">
+                        <div class="pend-item-title">
+                            {{ ac.lugar or 'Sin Ubicación' }} — {{ ac.tipo_incidente or 'Incidente' }}
+                        </div>
+                        <div class="pend-item-meta">
+                            <span>📅 Inicio: {{ ac.fecha_inicio }} {{ ac.hora_inicio }}</span>
+                            <span>👥 Pacientes: <strong>{{ ac.num_pacientes }}</strong></span>
+                        </div>
+                    </div>
+                    <a href="{{ ac.edit_url }}" class="pend-btn-edit" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8); box-shadow: 0 2px 4px rgba(59,130,246,0.2);">
+                        ➕ Gestionar Evento
+                    </a>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="pend-empty">
+                    🎉 No tiene eventos de Atención Colectiva pendientes.
+                </div>
+            {% endif %}
+        </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+    if (!window.PWA) return;
+    try {
+        const pendientes = await PWA.obtenerPendientes();
+        if (pendientes.length === 0) return;
+
+        // Separar entre HC individual (sin acId) y pacientes de MCI (con acId)
+        const hcOffline = pendientes.filter(r => {
+            const acId = r.datos.atencion_colectiva_id;
+            return !acId || acId === 'None' || acId === 'null' || acId === 'undefined' || acId === '';
+        });
+        const mciOffline = pendientes.filter(r => {
+            const acId = r.datos.atencion_colectiva_id;
+            return acId && acId !== 'None' && acId !== 'null' && acId !== 'undefined' && acId !== '';
+        });
+
+        if (hcOffline.length > 0) {
+            const hcContainer = document.querySelector('.pend-section-card:nth-of-type(1) .pend-list');
+            if (hcContainer) {
+                const emptyMsg = hcContainer.querySelector('.pend-empty');
+                if (emptyMsg) emptyMsg.style.display = 'none';
+
+                hcOffline.forEach(r => {
+                    const nombre = `${r.datos.primer_nombre || ''} ${r.datos.primer_apellido || ''}`.trim() || 'Paciente sin nombre';
+                    const iden = r.datos.identificacion_paciente ? `(ID: ${r.datos.identificacion_paciente})` : '';
+                    
+                    const el = document.createElement('div');
+                    el.className = 'pend-item offline-item';
+                    el.style.borderColor = '#f59e0b';
+                    el.style.background = '#fffbeb';
+                    el.innerHTML = `
+                        <div class="pend-item-details">
+                            <div class="pend-item-title" style="color: #b45309;">
+                                📡 [OFFLINE] ${nombre} ${iden}
+                            </div>
+                            <div class="pend-item-meta">
+                                <span>📅 Guardado: ${new Date(r.fecha_creacion).toLocaleString()}</span>
+                            </div>
+                        </div>
+                        <a href="/formulario?offline_id=${r.id}" class="pend-btn-edit" style="background: linear-gradient(135deg, #f59e0b, #d97706);">✏️ Editar Offline</a>
+                    `;
+                    hcContainer.appendChild(el);
+                });
+            }
+        }
+
+        let mciGroupsCount = 0;
+        if (mciOffline.length > 0) {
+            // Group by AC ID
+            const mciGroups = {};
+            mciOffline.forEach(r => {
+                const acId = r.datos.atencion_colectiva_id;
+                if (!mciGroups[acId]) mciGroups[acId] = 0;
+                mciGroups[acId]++;
+            });
+
+            mciGroupsCount = Object.keys(mciGroups).length;
+
+            const acContainer = document.querySelector('.pend-section-card:nth-of-type(2) .pend-list');
+            if (acContainer) {
+                const emptyMsg = acContainer.querySelector('.pend-empty');
+                if (emptyMsg) emptyMsg.style.display = 'none';
+
+                for (const acId in mciGroups) {
+                    const count = mciGroups[acId];
+                    const el = document.createElement('div');
+                    el.className = 'pend-item offline-item';
+                    el.style.borderColor = '#3b82f6';
+                    el.style.background = '#eff6ff';
+                    el.innerHTML = `
+                        <div class="pend-item-details">
+                            <div class="pend-item-title" style="color: #1d4ed8;">
+                                📡 [OFFLINE] Pacientes pendientes en Atención Colectiva #${acId}
+                            </div>
+                            <div class="pend-item-meta">
+                                <span>👥 Pacientes sin sincronizar: <strong>${count}</strong></span>
+                            </div>
+                        </div>
+                        <a href="/formulario_mci?atencion_colectiva_id=${acId}" class="pend-btn-edit" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);">➕ Gestionar Evento</a>
+                    `;
+                    acContainer.appendChild(el);
+                }
+            }
+        }
+        
+        // Actualizar el contador total del título
+        const badge = document.querySelector('.pend-badge');
+        if (badge) {
+            const currentTotalMatch = badge.textContent.match(/(\d+)/);
+            let currentTotal = currentTotalMatch ? parseInt(currentTotalMatch[1]) : 0;
+            currentTotal += hcOffline.length + mciGroupsCount;
+            badge.textContent = `${currentTotal} Pendiente(s)`;
+        }
+
+    } catch (e) {
+        console.error("Error cargando offline en pendientes:", e);
+    }
+});
+</script>
+
+{% endblock %}

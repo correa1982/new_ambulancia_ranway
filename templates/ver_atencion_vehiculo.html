@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Atención Vehículo #{{ item.id }} – {{ cfg.get('nombre_institucion','Institución') }}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Inter', 'Segoe UI', Arial, sans-serif; background: #f1f5f9; color: #0f172a; font-size: 14px; }
+
+/* ── Toolbar ── */
+.toolbar {
+    background: linear-gradient(135deg, #1a56a0, #1e3a5f);
+    color: white; padding: 10px 22px;
+    display: flex; gap: 10px; align-items: center;
+    position: sticky; top: 0; z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+.toolbar-btn {
+    -webkit-appearance: none;
+    appearance: none;
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25);
+    color: white; padding: 0 16px; border-radius: 7px;
+    font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit;
+    text-decoration: none; transition: background 0.15s; line-height: 1;
+    height: 38px; min-height: 38px; max-height: 38px; box-sizing: border-box;
+    white-space: nowrap; overflow: hidden; margin: 0; flex-shrink: 0;
+}
+.toolbar-btn:hover { background: rgba(255,255,255,0.25); }
+.toolbar-btn.primary { background: linear-gradient(135deg,#10b981,#059669); border-color:transparent; }
+.toolbar-title { font-weight: 700; font-size: 14px; margin-right: auto; }
+
+/* ── Document wrapper ── */
+.doc-wrap { max-width: 800px; margin: 24px auto; padding: 0 16px 40px; }
+
+/* ── The printable document ── */
+#atencion-doc {
+    background: white; border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    padding: 36px 44px; border: 1px solid #e2e8f0;
+}
+
+/* Header */
+.doc-header { display: flex; align-items: center; justify-content: space-between; border-bottom: 3px solid #1e6fbf; padding-bottom: 18px; margin-bottom: 24px; }
+.doc-logo img { max-height: 120px; max-width: 250px; object-fit: contain; }
+tr { page-break-inside: avoid; break-inside: avoid; }
+.doc-section-title, .cat-title { page-break-after: avoid; break-after: avoid; page-break-inside: avoid; break-inside: avoid; }
+.doc-logo-placeholder { width: 100px; height: 60px; background: #f1f5f9; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #94a3b8; font-size: 11px; }
+.doc-inst { text-align: right; }
+.doc-inst .inst-name { font-size: 15px; font-weight: 800; color: #1e3a5f; }
+.doc-inst .inst-sub { font-size: 11px; color: #64748b; margin-top: 2px; }
+
+/* Title band */
+.doc-title-band {
+    background: linear-gradient(135deg, #1e6fbf, #1e3a5f);
+    color: white; border-radius: 8px; padding: 14px 20px; margin-bottom: 22px;
+    display: flex; align-items: center; justify-content: space-between;
+}
+.doc-title-band .dt-main { font-size: 17px; font-weight: 800; letter-spacing: -0.3px; }
+.doc-title-band .dt-num { font-size: 13px; font-weight: 600; opacity: 0.8; }
+
+/* Sections */
+.doc-section { margin-bottom: 20px; }
+.doc-section-title {
+    font-size: 10px; font-weight: 800; text-transform: uppercase;
+    letter-spacing: 0.6px; color: #1e6fbf; border-bottom: 1.5px solid #dbeafe;
+    padding-bottom: 5px; margin-bottom: 12px;
+}
+
+/* Formal table styling */
+.formal-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+    border: 1.5px solid #cbd5e1;
+}
+.formal-table td {
+    padding: 10px 14px;
+    border: 1px solid #cbd5e1;
+    font-size: 12px;
+    color: #334155;
+    vertical-align: middle;
+}
+.formal-table .lbl {
+    font-weight: 700;
+    background-color: #f8fafc;
+    color: #1e293b;
+    text-transform: uppercase;
+    font-size: 10px;
+    letter-spacing: 0.5px;
+    width: 25%;
+}
+.formal-table .val {
+    width: 25%;
+    font-weight: 600;
+    color: #0f172a;
+}
+@media print {
+    .formal-table { border: 1.5px solid #000; }
+    .formal-table td { border: 1px solid #000; color: #000; }
+    .formal-table .lbl { background-color: #f1f5f9; color: #000; }
+    .formal-table .val { color: #000; }
+}
+
+/* Signatures */
+.sig-grid { display: grid; grid-template-columns: 1fr; gap: 20px; margin-top: 20px; max-width: 400px; }
+.sig-box { border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; }
+.sig-box-title { background: #f1f5f9; padding: 7px 12px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #475569; border-bottom: 1px solid #e2e8f0; }
+.sig-box-body { padding: 10px 12px; min-height: 80px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.sig-box-body img { max-height: 80px; max-width: 100%; }
+.sig-name { font-size: 11px; color: #64748b; font-weight: 600; margin-top: 6px; text-align: center; }
+.sig-empty { color: #cbd5e1; font-size: 11px; font-style: italic; }
+
+/* Footer */
+.doc-footer { margin-top: 30px; padding-top: 14px; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; font-size: 10px; color: #94a3b8; }
+
+@media (max-width: 600px) {
+    .doc-wrap { padding: 0 4px 20px; }
+    #atencion-doc { padding: 16px 12px; border-radius: 6px; }
+    .formal-table td { padding: 6px 8px; font-size: 11px; }
+    .doc-header { flex-direction: column; text-align: center; gap: 10px; }
+    .doc-inst { text-align: center; }
+}
+
+@media print {
+    body { background: white !important; color: black !important; }
+    .toolbar { display: none !important; }
+    .toolbar-exclude { display: none !important; }
+    .doc-wrap { margin: 0; padding: 0; max-width: 100%; overflow: visible; }
+    #atencion-doc { box-shadow: none !important; border: none !important; padding: 0 !important; min-width: auto !important; }
+}
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+    <a href="{{ url_for('registros_atencion_vehiculo') }}" class="toolbar-btn">← Volver</a>
+    <div class="toolbar-title">Atención Vehículo de Intervención #{{ item.id }}</div>
+    <button type="button" class="toolbar-btn primary" id="btn-pdf" onclick="descargarPDF()">📄 Descargar PDF</button>
+</div>
+
+<div class="doc-wrap">
+    {% if item.finalizado == 0 %}
+    <div style="background-color: #fffbeb; border: 1.5px solid #fde68a; border-radius: 8px; padding: 16px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; gap: 16px; font-family: sans-serif; box-shadow: 0 2px 4px rgba(0,0,0,0.05);" class="toolbar-exclude">
+        <div>
+            <strong style="color: #b45309; font-size: 15px; display: block; margin-bottom: 4px;">⚠️ BORRADOR - REGISTRO NO FINALIZADO</strong>
+            <span style="color: #78350f; font-size: 13px;">Este registro aún no ha sido finalizado. Para habilitar la firma institucional y bloquear ediciones, por favor continúe el diligenciamiento y finalice el registro.</span>
+        </div>
+        <a href="{{ url_for('editar_atencion_vehiculo', id=item.id) }}" style="background-color: #d97706; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; transition: background 0.2s;" onmouseover="this.style.backgroundColor='#b45309'" onmouseout="this.style.backgroundColor='#d97706'">
+            ✏️ Continuar Diligenciando
+        </a>
+    </div>
+    {% endif %}
+
+<div id="atencion-doc">
+
+    <!-- ── Header ── -->
+    <div class="doc-header">
+        <div class="doc-logo">
+            {% if cfg.get('logo') %}
+            <img src="{{ cfg.get('logo') }}" alt="Logo">
+            {% else %}
+            <div class="doc-logo-placeholder">Sin Logo</div>
+            {% endif %}
+        </div>
+        <div class="doc-inst">
+            <div class="inst-name">{{ cfg.get('nombre_institucion','Servicio de Emergencia') }}</div>
+            <div class="inst-sub">{{ cfg.get('subtitulo_institucion','RED DE ATENCIÓN PREHOSPITALARIA') }}</div>
+            <div class="inst-sub">{{ cfg.get('nit','') }}</div>
+        </div>
+    </div>
+
+    <!-- ── Title band ── -->
+    <div class="doc-title-band">
+        <div class="dt-main">ATENCIÓN VEHÍCULO DE INTERVENCIÓN</div>
+        <div class="dt-num">Consecutivo #{{ item.consecutivo }}</div>
+    </div>
+
+    <!-- ── Datos de Ubicación ── -->
+    <div class="doc-section">
+        <div class="doc-section-title">📍 Ubicación e Identificación</div>
+        <table class="formal-table">
+            <tbody>
+                <tr>
+                    <td class="lbl">País</td>
+                    <td class="val">{{ item.pais or '—' }}</td>
+                    <td class="lbl">Departamento</td>
+                    <td class="val">{{ item.departamento or '—' }}</td>
+                </tr>
+                <tr>
+                    <td class="lbl">Municipio</td>
+                    <td class="val">{{ item.municipio or '—' }}</td>
+                    <td class="lbl">Barrio</td>
+                    <td class="val">{{ item.barrio or '—' }}</td>
+                </tr>
+                <tr>
+                    <td class="lbl">Dirección</td>
+                    <td class="val" colspan="3">{{ item.direccion or '—' }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ── Fechas y Tiempos ── -->
+    <div class="doc-section">
+        <div class="doc-section-title">🕐 Fechas y Horas del Servicio</div>
+        <table class="formal-table">
+            <tbody>
+                <tr>
+                    <td class="lbl">Despacho</td>
+                    <td class="val">{{ item.fecha_hora_despacho|replace('T',' ') or '—' }}</td>
+                    <td class="lbl">Salida</td>
+                    <td class="val">{{ item.fecha_hora_salida|replace('T',' ') or '—' }}</td>
+                </tr>
+                <tr>
+                    <td class="lbl">Llegada</td>
+                    <td class="val">{{ item.fecha_hora_llegada|replace('T',' ') or '—' }}</td>
+                    <td class="lbl">Finalización</td>
+                    <td class="val">{{ item.fecha_hora_finalizacion|replace('T',' ') or '—' }}</td>
+                </tr>
+                <tr>
+                    <td class="lbl">Comandante de Incidente</td>
+                    <td class="val" colspan="3">{{ item.comandante_incidente or '—' }}</td>
+                </tr>
+                <tr>
+                    <td class="lbl" style="background-color: #f8fafc; color: #1e3a5f;">Reacción (Despacho → Salida)</td>
+                    <td class="val">{{ item.fecha_hora_despacho|calcular_diferencia_tiempo(item.fecha_hora_salida) }}</td>
+                    <td class="lbl" style="background-color: #f8fafc; color: #1e3a5f;">Tránsito (Salida → Llegada)</td>
+                    <td class="val">{{ item.fecha_hora_salida|calcular_diferencia_tiempo(item.fecha_hora_llegada) }}</td>
+                </tr>
+                <tr>
+                    <td class="lbl" style="background-color: #f8fafc; color: #1e3a5f;">Respuesta (Despacho → Llegada)</td>
+                    <td class="val" style="color: #1e6fbf; font-weight: 700;">{{ item.fecha_hora_despacho|calcular_diferencia_tiempo(item.fecha_hora_llegada) }}</td>
+                    <td class="lbl" style="background-color: #f8fafc; color: #1e3a5f;">Atención (Llegada → Finalización)</td>
+                    <td class="val">{{ item.fecha_hora_llegada|calcular_diferencia_tiempo(item.fecha_hora_finalizacion) }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ── Tripulación y Clasificación ── -->
+    <div class="doc-section">
+        <div class="doc-section-title">🚒 Personal y Clasificación</div>
+        <table class="formal-table">
+            <tbody>
+                <tr>
+                    <td class="lbl">Integrantes de la Tripulación</td>
+                    <td class="val" colspan="3">{{ item.integrantes_tripulacion or '—' }}</td>
+                </tr>
+                <tr>
+                    <td class="lbl">Tipo Servicio</td>
+                    <td class="val" style="color: #1e6fbf;">{{ item.tipo or '—' }}</td>
+                    <td class="lbl">Subtipo</td>
+                    <td class="val" style="color: #1e6fbf;">{{ item.subtipo or '—' }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ── Descripción ── -->
+    <div class="doc-section">
+        <div class="doc-section-title">📝 Descripción y Observaciones del Evento</div>
+        <table class="formal-table">
+            <tbody>
+                <tr>
+                    <td class="val" style="padding: 15px; font-weight: 400; font-size: 12.5px; line-height: 1.6; white-space: pre-wrap; color: #334155;">{{ item.descripcion }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ── Equipos Utilizados ── -->
+    {% if item.equipos_json %}
+    {% set equipos_list = item.equipos_json|from_json %}
+    {% if equipos_list and equipos_list|length > 0 %}
+    <div class="doc-section">
+        <div class="doc-section-title">🩺 Equipos Utilizados y Observaciones</div>
+        <table class="formal-table">
+            <tbody>
+                {% for eq in equipos_list %}
+                <tr>
+                    <td class="lbl" style="width: 30%;">{{ eq.grupo }}</td>
+                    <td class="val" style="font-weight: 400; font-size: 12px; color: #334155; white-space: pre-wrap; width: 70%;">{{ eq.observaciones or 'Sin observaciones registradas' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+    {% endif %}
+
+    <!-- ── Firmas y Registro ── -->
+    <div class="doc-section" style="page-break-inside: avoid;">
+        <div class="doc-section-title">✍️ Firmas de Responsabilidad</div>
+        <div class="sig-grid">
+            <div class="sig-box">
+                <div class="sig-box-title">Registrado Por</div>
+                <div class="sig-box-body">
+                    {% if item.finalizado == 0 %}
+                    <span class="sig-empty" style="color: #d97706; font-weight: 700;">⏳ Borrador - Firma bloqueada</span>
+                    {% elif item.firma_registrador %}
+                    <div class="signature-container">
+                        <img src="{{ item.firma_registrador }}" alt="Firma Registrador" crossorigin="anonymous">
+                    </div>
+                    {% else %}
+                    <span class="sig-empty">Sin firma digital registrada</span>
+                    {% endif %}
+                    <div class="sig-name">
+                        {{ item.registrado_por }}
+                        {% if item.perfil_registrador %}<br><span style="font-weight:400; color:#94a3b8;">{{ item.perfil_registrador }}</span>{% endif %}
+                        {% if item.registro_medico_registrador %}<br><span style="font-size:10px; color:#94a3b8;">Registro / Tarjeta: {{ item.registro_medico_registrador }}</span>{% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Pie de página ── -->
+    <div class="doc-footer">
+        <span>{{ cfg.get('nombre_institucion','') }} · {{ cfg.get('nit','') }}</span>
+        <span>Impreso por: {{ session.usuario.nombre }} - <span class="print-datetime"></span></span>
+    </div>
+
+</div><!-- #atencion-doc -->
+</div>
+
+<script>
+function descargarPDF() {
+    const now = new Date();
+    const formattedDate = now.getFullYear() + '-' + 
+                          String(now.getMonth() + 1).padStart(2, '0') + '-' + 
+                          String(now.getDate()).padStart(2, '0') + ' ' + 
+                          String(now.getHours()).padStart(2, '0') + ':' + 
+                          String(now.getMinutes()).padStart(2, '0') + ':' + 
+                          String(now.getSeconds()).padStart(2, '0');
+    document.querySelectorAll('.print-datetime').forEach(el => el.textContent = formattedDate);
+
+    const btn = document.getElementById('btn-pdf');
+    btn.textContent = '⏳ Generando...';
+    btn.disabled = true;
+    const opt = {
+        margin: [10, 10, 10, 10],
+        filename: "Atencion_Vehiculo_{{ item.consecutivo }}_{{ cfg.get('nombre_institucion','APH')|replace(' ','_') }}.pdf",
+        image: { type: 'jpeg', quality: 0.95 },
+        html2canvas: { scale: 2, useCORS: true, allowTaint: true, logging: false },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak: { mode: ['css', 'legacy'] }
+    };
+    
+    const doc = document.getElementById('atencion-doc');
+    
+    const tempContainer = document.createElement('div');
+    tempContainer.style.position = 'absolute';
+    tempContainer.style.left = '-9999px';
+    tempContainer.style.top = window.scrollY + 'px';
+    tempContainer.style.width = '800px';
+    tempContainer.style.background = 'white';
+    
+    const clone = doc.cloneNode(true);
+    const wrappers = clone.querySelectorAll('.table-wrap, .table-responsive');
+    wrappers.forEach(w => w.style.overflowX = 'visible');
+    
+    tempContainer.appendChild(clone);
+    document.body.appendChild(tempContainer);
+
+    html2pdf().set(opt).from(clone).save()
+        .then(() => { 
+            document.body.removeChild(tempContainer);
+            btn.textContent = '📄 Descargar PDF'; btn.disabled = false; 
+        });
+}
+</script>
+</body>
+</html>

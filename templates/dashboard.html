@@ -1,0 +1,406 @@
+{% extends "base.html" %}
+{% block title %}Panel Principal - HC Prehospitalario{% endblock %}
+{% block content %}
+
+<style>
+.dashboard-header {
+    text-align: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #e2e8f0;
+}
+.dashboard-header h1 {
+    font-size: 20px;
+    color: #1e3a5f;
+    margin-bottom: 8px;
+    border: none;
+    justify-content: center;
+}
+.dashboard-header p {
+    color: #64748b;
+    font-size: 14px;
+}
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.dash-card {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 10px;
+    text-align: center;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+}
+
+.dash-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 15px -3px rgba(30,111,191,0.15);
+    border-color: #bfdbfe;
+}
+
+.dash-card.primary {
+    background: linear-gradient(135deg, #f8fafc, #eff6ff);
+    border: 1.5px solid #bfdbfe;
+}
+
+.dash-card.primary:hover {
+    background: linear-gradient(135deg, #eff6ff, #dbeafe);
+    border-color: #93c5fd;
+}
+
+.card-icon {
+    font-size: 22px;
+    background: #f1f5f9;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 4px;
+}
+
+.dash-card.primary .card-icon {
+    background: #dbeafe;
+}
+
+.card-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #1e3a5f;
+}
+
+.card-desc {
+    font-size: 11px;
+    color: #64748b;
+    line-height: 1.3;
+}
+
+.section-title {
+    font-size: 14px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #94a3b8;
+    margin: 15px 0 10px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #e2e8f0;
+}
+</style>
+
+{% set is_login = session.pop('mostrar_bienvenida', False) %}
+{% if is_login %}
+<div class="dashboard-header" id="welcome-container" style="transition: all 0.5s ease; overflow: hidden;">
+    <h1>👋 Bienvenido(a), {{ session.usuario.nombre }} (Perfil: {{ session.usuario.perfil }})</h1>
+</div>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    setTimeout(function() {
+        var welcomeContainer = document.getElementById('welcome-container');
+        if (welcomeContainer) {
+            welcomeContainer.style.opacity = '0';
+            welcomeContainer.style.height = '0';
+            welcomeContainer.style.margin = '0';
+            welcomeContainer.style.padding = '0';
+            welcomeContainer.style.border = 'none';
+            setTimeout(function() { welcomeContainer.style.display = 'none'; }, 500);
+        }
+    }, 5000);
+});
+</script>
+{% endif %}
+
+{% if is_login and total_pending and total_pending > 0 %}
+<div id="pending-alert-hc" style="background: #fffdf5; border: 1.5px solid #fde68a; border-radius: 12px; padding: 16px 20px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; gap: 16px; box-shadow: 0 4px 6px -1px rgba(245,158,11,0.05); transition: all 0.5s ease; overflow: hidden;">
+    <div style="display: flex; align-items: center; gap: 14px;">
+        <span style="font-size: 28px;">⚠️</span>
+        <div>
+            <h4 style="margin: 0; color: #b45309; font-size: 15px; font-weight: 700;">Formularios Pendientes de Finalizar</h4>
+            <p style="margin: 4px 0 0; color: #b45309; font-size: 13px;">Tiene <strong>{{ total_pending }}</strong> registro(s) guardado(s) como borrador o pendiente(s) de revisión en el sistema.</p>
+        </div>
+    </div>
+    <a href="{{ url_for('ver_pendientes') }}" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; text-decoration: none; padding: 8px 16px; border-radius: 8px; font-size: 12px; font-weight: 700; box-shadow: 0 2px 4px rgba(217,119,6,0.2); white-space: nowrap; transition: all 0.2s;" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='none'">
+        Ver Pendientes
+    </a>
+</div>
+{% endif %}
+
+{% if session.usuario.rol == 'admin' and vehiculo_alerts %}
+<div id="vehiculo-alerts" style="background: #fff5f5; border: 1.5px solid #fca5a5; border-radius: 12px; padding: 16px 20px; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(239,68,68,0.05); transition: all 0.5s ease;">
+    <div style="display: flex; align-items: flex-start; gap: 14px;">
+        <span style="font-size: 28px; line-height: 1;">📅</span>
+        <div style="flex: 1;">
+            <h4 style="margin: 0; color: #991b1b; font-size: 15px; font-weight: 700;">Alertas de Vencimiento de Vehículos</h4>
+            <ul style="margin: 8px 0 0; padding-left: 20px; color: #7f1d1d; font-size: 13px; line-height: 1.6;">
+                {% for alert in vehiculo_alerts %}
+                <li>
+                    El documento <strong>{{ alert.tipo }}</strong> del vehículo con placa <strong>{{ alert.placa }}</strong> está próximo a vencer en <strong>{{ alert.dias }} {{ 'día' if alert.dias == 1 else 'días' }}</strong> (Fecha de vencimiento: {{ alert.fecha }}).
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% set has_clinica = session.usuario.rol == 'admin' or 'eventos' in session.usuario.get('formularios_acceso', []) or 'atencion_colectiva' in session.usuario.get('formularios_acceso', []) or 'calif_atencion' in session.usuario.get('formularios_acceso', []) or 'segur_paciente' in session.usuario.get('formularios_acceso', []) or 'hc' in session.usuario.get('formularios_acceso', []) or 'atencion_vehiculo' in session.usuario.get('formularios_acceso', []) %}
+{% if has_clinica %}
+<div class="section-title">Atención Clínica</div>
+<div class="dashboard-grid">
+    {% if session.usuario.rol == 'admin' or 'eventos' in session.usuario.get('formularios_acceso', []) %}
+    <a href="{{ url_for('form_eventos') }}" class="dash-card primary">
+        <div class="card-icon" style="background: #fef3c7;"><i class="ph ph-calendar-warning" style="color: #d97706;"></i></div>
+        <div class="card-title">Formulario de Eventos</div>
+        <div class="card-desc">Registrar un nuevo evento o emergencia en el sistema.</div>
+    </a>
+    {% endif %}
+
+    {% if session.usuario.rol == 'admin' or 'atencion_colectiva' in session.usuario.get('formularios_acceso', []) %}
+    <a href="{{ url_for('form_atencion_colectiva') }}" class="dash-card primary">
+        <div class="card-icon" style="background: #dbeafe;"><i class="ph ph-users-three" style="color: #2563eb;"></i></div>
+        <div class="card-title">Atención Colectiva / MCI</div>
+        <div class="card-desc">Gestión de Incidentes con Múltiples Víctimas y registros masivos.</div>
+    </a>
+    {% endif %}
+
+    {% if session.usuario.rol == 'admin' or 'calif_atencion' in session.usuario.get('formularios_acceso', []) %}
+    <a href="{{ url_for('form_checklist', tipo='calif_atencion') }}" class="dash-card primary">
+        <div class="card-icon" style="background: #fef9c3;"><i class="ph ph-star-half" style="color: #ca8a04;"></i></div>
+        <div class="card-title">Calif. Atención</div>
+        <div class="card-desc">Formulario para calificar la atención recibida (usuario o admin).</div>
+    </a>
+    {% endif %}
+    
+    {% if session.usuario.rol == 'admin' or 'segur_paciente' in session.usuario.get('formularios_acceso', []) %}
+    <a href="{{ url_for('form_checklist', tipo='segur_paciente') }}" class="dash-card primary">
+        <div class="card-icon" style="background: #d1fae5;"><i class="ph ph-shield-check" style="color: #059669;"></i></div>
+        <div class="card-title">Segur. Paciente</div>
+        <div class="card-desc">Reporte de Seguridad del Paciente.</div>
+    </a>
+    {% endif %}
+
+    {% if session.usuario.rol == 'admin' or 'hc' in session.usuario.get('formularios_acceso', []) %}
+    <a href="{{ url_for('formulario') }}" class="dash-card primary">
+        <div class="card-icon" style="background: #e0f2fe;"><i class="ph ph-ambulance" style="color: #0284c7;"></i></div>
+        <div class="card-title">Historia Clínica Individual</div>
+        <div class="card-desc">Diligenciar HC prehospitalaria para un solo paciente.</div>
+    </a>
+    {% endif %}
+
+    {% if session.usuario.rol == 'admin' or 'atencion_vehiculo' in session.usuario.get('formularios_acceso', []) %}
+    <a href="{{ url_for('form_atencion_vehiculo') }}" class="dash-card primary">
+        <div class="card-icon" style="background: #f3e8ff;"><i class="ph ph-truck" style="color: #7c3aed;"></i></div>
+        <div class="card-title">Atención Vehículo de Intervención</div>
+        <div class="card-desc">Formulario de registro para vehículo de intervención.</div>
+    </a>
+    {% endif %}
+
+    <a href="{{ url_for('ver_pendientes') }}" class="dash-card primary" style="border-color: {% if total_pending and total_pending > 0 %}#fde68a{% else %}#bfdbfe{% endif %}; background: {% if total_pending and total_pending > 0 %}linear-gradient(135deg, #fffbeb, #fef3c7){% else %}linear-gradient(135deg, #f8fafc, #eff6ff){% endif %};">
+        <div class="card-icon" style="background: {% if total_pending and total_pending > 0 %}#fef3c7{% else %}#dbeafe{% endif %}; position: relative; margin-bottom: 4px;">
+            <i class="ph ph-warning-circle"></i>
+            {% if total_pending and total_pending > 0 %}
+            <span style="position: absolute; top: -6px; right: -6px; background: #ef4444; color: white; font-size: 10px; font-weight: 800; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; margin: 0;">
+                {{ total_pending }}
+            </span>
+            {% endif %}
+        </div>
+        <div class="card-title" style="color: {% if total_pending and total_pending > 0 %}#b45309{% else %}#1e3a5f{% endif %};">Pendientes</div>
+        <div class="card-desc" style="color: {% if total_pending and total_pending > 0 %}#92400e{% else %}#64748b{% endif %};">
+            {% if total_pending and total_pending > 0 %}
+            Tiene {{ total_pending }} formulario(s) pendiente(s) por finalizar.
+            {% else %}
+            No tiene formularios pendientes.
+            {% endif %}
+        </div>
+    </a>
+</div>
+{% endif %}
+
+{% set has_checklists = session.usuario.rol == 'admin' or 'preoperacional' in session.usuario.get('formularios_acceso', []) or 'tam' in session.usuario.get('formularios_acceso', []) or 'tab' in session.usuario.get('formularios_acceso', []) or 'avanzada' in session.usuario.get('formularios_acceso', []) or 'pasb' in session.usuario.get('formularios_acceso', []) or 'pasm' in session.usuario.get('formularios_acceso', []) or 'equipos' in session.usuario.get('formularios_acceso', []) %}
+{% if has_checklists %}
+
+{% if is_login and checklist_total_pending and checklist_total_pending > 0 %}
+<div id="pending-alert-checklists" style="background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 12px; padding: 16px 20px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; gap: 16px; box-shadow: 0 4px 6px -1px rgba(16,185,129,0.05); transition: all 0.5s ease; overflow: hidden;">
+    <div style="display: flex; align-items: center; gap: 14px;">
+        <span style="font-size: 28px;">📋</span>
+        <div>
+            <h4 style="margin: 0; color: #065f46; font-size: 15px; font-weight: 700;">Checklists Pendientes de Finalizar</h4>
+            <p style="margin: 4px 0 0; color: #065f46; font-size: 13px;">Tiene <strong>{{ checklist_total_pending }}</strong> lista(s) de verificación guardada(s) como borrador en el sistema.</p>
+        </div>
+    </div>
+    <a href="{{ url_for('ver_pendientes_checklists') }}" style="background: linear-gradient(135deg, #10b981, #059669); color: white; text-decoration: none; padding: 8px 16px; border-radius: 8px; font-size: 12px; font-weight: 700; box-shadow: 0 2px 4px rgba(16,185,129,0.2); white-space: nowrap;" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='none'">
+        Ver Pendientes
+    </a>
+</div>
+{% endif %}
+
+<div class="section-title">Listas de Verificación (Checklists)</div>
+<div class="dashboard-grid">
+    {% if session.usuario.rol == 'admin' or 'preoperacional' in session.usuario.get('formularios_acceso', []) %}
+    <a href="{{ url_for('form_preoperacional') }}" class="dash-card">
+        <div class="card-icon" style="background: #d1fae5;"><i class="ph ph-car" style="color: #059669;"></i></div>
+        <div class="card-title">Preoperacional Conductores</div>
+        <div class="card-desc">Inspección de vehículos y ambulancias.</div>
+    </a>
+    {% endif %}
+
+    {% if session.usuario.rol == 'admin' or 'tam' in session.usuario.get('formularios_acceso', []) %}
+    <a href="{{ url_for('form_checklist', tipo='tam') }}" class="dash-card">
+        <div class="card-icon" style="background: #fee2e2;"><i class="ph ph-first-aid-kit" style="color: #dc2626;"></i></div>
+        <div class="card-title">Check List TAM</div>
+        <div class="card-desc">Transporte Asistencial Medicalizado.</div>
+    </a>
+    {% endif %}
+
+    {% if session.usuario.rol == 'admin' or 'tab' in session.usuario.get('formularios_acceso', []) %}
+    <a href="{{ url_for('form_checklist', tipo='tab') }}" class="dash-card">
+        <div class="card-icon" style="background: #dbeafe;"><i class="ph ph-stethoscope" style="color: #2563eb;"></i></div>
+        <div class="card-title">Check List TAB</div>
+        <div class="card-desc">Transporte Asistencial Básico.</div>
+    </a>
+    {% endif %}
+
+    {% if session.usuario.rol == 'admin' or 'avanzada' in session.usuario.get('formularios_acceso', []) %}
+    <a href="{{ url_for('form_checklist', tipo='avanzada') }}" class="dash-card">
+        <div class="card-icon" style="background: #e0f2fe;"><i class="ph ph-shield-plus" style="color: #0284c7;"></i></div>
+        <div class="card-title">Check List Avanzada</div>
+        <div class="card-desc">Check List Avanzada.</div>
+    </a>
+    {% endif %}
+
+    {% if session.usuario.rol == 'admin' or 'pasb' in session.usuario.get('formularios_acceso', []) %}
+    <a href="{{ url_for('form_checklist', tipo='pasb') }}" class="dash-card">
+        <div class="card-icon" style="background: #f3e8ff;"><i class="ph ph-toolbox" style="color: #9333ea;"></i></div>
+        <div class="card-title">Check List PASB</div>
+        <div class="card-desc">Primer Respondiente Básico.</div>
+    </a>
+    {% endif %}
+
+    {% if session.usuario.rol == 'admin' or 'pasm' in session.usuario.get('formularios_acceso', []) %}
+    <a href="{{ url_for('form_checklist', tipo='pasm') }}" class="dash-card">
+        <div class="card-icon" style="background: #fef9c3;"><i class="ph ph-backpack" style="color: #ca8a04;"></i></div>
+        <div class="card-title">Check List PASM</div>
+        <div class="card-desc">Primer Respondiente Medicalizado.</div>
+    </a>
+    {% endif %}
+
+    {% if session.usuario.rol == 'admin' or 'equipos' in session.usuario.get('formularios_acceso', []) %}
+    <a href="{{ url_for('form_checklist', tipo='equipos') }}" class="dash-card">
+        <div class="card-icon" style="background: #ffedd5;"><i class="ph ph-heartbeat" style="color: #ea580c;"></i></div>
+        <div class="card-title">Preoperacional Equipos</div>
+        <div class="card-desc">Preoperacional equipos de rescate.</div>
+    </a>
+    {% endif %}
+
+    <a href="{{ url_for('ver_pendientes_checklists') }}" class="dash-card" style="border-color: {% if checklist_total_pending and checklist_total_pending > 0 %}#86efac{% else %}#bfdbfe{% endif %}; background: {% if checklist_total_pending and checklist_total_pending > 0 %}linear-gradient(135deg, #f0fdf4, #dcfce7){% else %}linear-gradient(135deg, #f8fafc, #eff6ff){% endif %};">
+        <div class="card-icon" style="background: {% if checklist_total_pending and checklist_total_pending > 0 %}#dcfce7{% else %}#dbeafe{% endif %}; position: relative; margin-bottom: 4px;">
+            <i class="ph ph-clipboard-text" style="color: {% if checklist_total_pending and checklist_total_pending > 0 %}#059669{% else %}#2563eb{% endif %};"></i>
+            {% if checklist_total_pending and checklist_total_pending > 0 %}
+            <span style="position: absolute; top: -6px; right: -6px; background: #ef4444; color: white; font-size: 10px; font-weight: 800; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; margin: 0;">
+                {{ checklist_total_pending }}
+            </span>
+            {% endif %}
+        </div>
+        <div class="card-title" style="color: {% if checklist_total_pending and checklist_total_pending > 0 %}#065f46{% else %}#1e3a5f{% endif %};">Pendientes Checklists</div>
+        <div class="card-desc" style="color: {% if checklist_total_pending and checklist_total_pending > 0 %}#047857{% else %}#64748b{% endif %};">
+            {% if checklist_total_pending and checklist_total_pending > 0 %}
+            Tiene {{ checklist_total_pending }} checklist(s) pendiente(s) por finalizar.
+            {% else %}
+            No tiene checklists pendientes.
+            {% endif %}
+        </div>
+    </a>
+</div>
+{% endif %}
+
+{% if session.usuario.rol == 'admin' or 'registros' in session.usuario.get('formularios_acceso', []) %}
+<div class="section-title">Administración y Consultas</div>
+<div class="dashboard-grid">
+    <a href="{{ url_for('registros_global') }}" class="dash-card" style="border-color: #e2e8f0;">
+        <div class="card-icon" style="background: #fef3c7;"><i class="ph ph-folder-open" style="color: #d97706;"></i></div>
+        <div class="card-title">Explorador de Registros</div>
+        <div class="card-desc">Consultar todos los informes: HC, eventos, checklists y preoperacionales. Filtra por tipo y rango de fechas.</div>
+    </a>
+    
+    <a href="{{ url_for('archivador_list') }}" class="dash-card" style="border-color: #e2e8f0;">
+        <div class="card-icon" style="background: #e0e7ff;"><i class="ph ph-archive" style="color: #4338ca;"></i></div>
+        <div class="card-title">Archivador de Documentos</div>
+        <div class="card-desc">Subir y consultar documentos escaneados o digitales anexos al sistema.</div>
+    </a>
+    <a href="{{ url_for('estadisticas') }}" class="dash-card" style="border-color: #e2e8f0; background: linear-gradient(135deg, #f8fafc, #f1f5f9);">
+        <div class="card-icon" style="background: #dbeafe;"><i class="ph ph-chart-line-up" style="color: #2563eb;"></i></div>
+        <div class="card-title">Estadísticas Globales</div>
+        <div class="card-desc">Métricas y gráficas consolidadas de pacientes, eventos y operatividad.</div>
+    </a>
+
+    {% if session.usuario.rol == 'admin' %}
+    <a href="{{ url_for('admin_mapa') }}" class="dash-card" style="border-color: #e2e8f0;">
+        <div class="card-icon" style="background: #dcfce7;"><i class="ph ph-map-pin" style="color: #16a34a;"></i></div>
+        <div class="card-title">Mapa de Unidades</div>
+        <div class="card-desc">Monitorear ubicación GPS en tiempo real del personal médico.</div>
+    </a>
+    <a href="{{ url_for('configuracion') }}" class="dash-card" style="border-color: #e2e8f0;">
+        <div class="card-icon" style="background: #fef3c7;"><i class="ph ph-buildings" style="color: #d97706;"></i></div>
+        <div class="card-title">Configuración Institucional</div>
+        <div class="card-desc">Configurar nombre, NIT y logotipo de la empresa.</div>
+    </a>
+    <a href="{{ url_for('usuarios') }}" class="dash-card" style="border-color: #e2e8f0;">
+        <div class="card-icon" style="background: #dbeafe;"><i class="ph ph-users" style="color: #1d4ed8;"></i></div>
+        <div class="card-title">Gestión de Usuarios</div>
+        <div class="card-desc">Crear y administrar el personal médico y contraseñas.</div>
+    </a>
+    <a href="{{ url_for('admin_checklists') }}" class="dash-card" style="border-color: #e2e8f0;">
+        <div class="card-icon" style="background: #fae8ff;"><i class="ph ph-list-dashes" style="color: #c026d3;"></i></div>
+        <div class="card-title">Gestión de Ítems</div>
+        <div class="card-desc">Parametrizar medicamentos e insumos de todas las unidades.</div>
+    </a>
+    {% endif %}
+</div>
+{% endif %}
+
+{% set has_registros = session.usuario.rol == 'admin' or 'registros' in session.usuario.get('formularios_acceso', []) %}
+{% if not has_clinica and not has_checklists and not has_registros %}
+<div style="text-align: center; padding: 60px 20px; background: white; border-radius: 12px; border: 1px dashed #cbd5e1; margin-top: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);">
+    <div style="font-size: 48px; margin-bottom: 16px; opacity: 0.5;">🚫</div>
+    <h2 style="margin: 0; color: #1e3a5f; font-size: 18px; margin-bottom: 8px;">Sin Accesos Asignados</h2>
+    <p style="color: #64748b; font-size: 14px; max-width: 450px; margin: 0 auto; line-height: 1.5;">Su cuenta actualmente no tiene habilitado el acceso a ningún formulario o módulo. Por favor, comuníquese con el administrador del sistema para que configure los permisos de su perfil.</p>
+{% endif %}
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // Esconder alertas de pendientes después de 10 segundos
+    setTimeout(function() {
+        var alerts = [document.getElementById('pending-alert-hc'), document.getElementById('pending-alert-checklists')];
+        alerts.forEach(function(alertDiv) {
+            if (alertDiv) {
+                alertDiv.style.opacity = '0';
+                alertDiv.style.height = '0';
+                alertDiv.style.margin = '0';
+                alertDiv.style.padding = '0';
+                alertDiv.style.border = 'none';
+                setTimeout(function() { alertDiv.style.display = 'none'; }, 500);
+            }
+        });
+    }, 10000);
+});
+</script>
+{% endblock %}

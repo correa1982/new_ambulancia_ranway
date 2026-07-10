@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% block title %}Checklists Pendientes{% endblock %}
+{% block content %}
+
+<style>
+.pend-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 24px; padding-bottom: 16px;
+    border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; gap: 12px;
+}
+.pend-badge-green {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white; padding: 5px 16px;
+    border-radius: 20px; font-size: 12px; font-weight: 700;
+}
+.pend-section-card {
+    background: white; border: 1.5px solid #e2e8f0;
+    border-radius: 12px; padding: 20px;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+    margin-bottom: 20px;
+}
+.pend-section-title {
+    font-size: 15px; font-weight: 700; color: #1e3a5f;
+    margin: 0 0 16px; display: flex; align-items: center; gap: 8px;
+    border-bottom: 1px solid #f1f5f9; padding-bottom: 8px;
+}
+.pend-list { display: flex; flex-direction: column; gap: 12px; }
+.pend-item {
+    background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px;
+    padding: 14px 18px; display: flex; justify-content: space-between;
+    align-items: center; gap: 16px; transition: all 0.2s ease;
+}
+.pend-item:hover { transform: translateX(4px); border-color: #6ee7b7; background: #f0fdf4; }
+.pend-item-details { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+.pend-item-title { font-size: 14px; font-weight: 700; color: #334155; }
+.pend-item-meta { font-size: 12px; color: #64748b; display: flex; gap: 12px; flex-wrap: wrap; }
+.pend-btn-edit {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white; padding: 8px 16px; border-radius: 8px;
+    text-decoration: none; font-size: 12px; font-weight: 700;
+    box-shadow: 0 2px 4px rgba(16,185,129,0.2); transition: all 0.15s; white-space: nowrap;
+}
+.pend-btn-edit:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba(16,185,129,0.3); }
+.pend-empty {
+    text-align: center; padding: 24px 12px; color: #94a3b8;
+    background: #f8fafc; border: 1.5px dashed #cbd5e1;
+    border-radius: 8px; font-size: 13px;
+}
+</style>
+
+<!-- HEADER -->
+<div class="pend-header">
+    <div style="display:flex; align-items:center; gap:14px;">
+        <a href="{{ url_for('dashboard') }}"
+           style="display:inline-flex; align-items:center; gap:6px; background:#f8fafc;
+                  color:#475569; border:1px solid #cbd5e1; padding:7px 14px;
+                  border-radius:8px; text-decoration:none; font-weight:600; font-size:13px;"
+           onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#f8fafc'">
+            ← Dashboard
+        </a>
+        <h1 style="margin:0; padding:0; border:none; font-size:22px; color:#1e3a5f;">
+            📋 Checklists Pendientes de Finalizar
+        </h1>
+    </div>
+    {% set total_cl = namespace(n=0) %}
+    {% for g in cl_groups %}{% set total_cl.n = total_cl.n + g.registros|length %}{% endfor %}
+    <span class="pend-badge-green">{{ total_cl.n }} Pendiente(s)</span>
+</div>
+
+{% if is_admin %}
+<div style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:10px; padding:12px 16px; margin-bottom:20px; font-size:13px; color:#1e40af; display:flex; align-items:center; gap:8px;">
+    🔐 <strong>Vista Admin:</strong> Mostrando todos los borradores de checklists de todos los usuarios.
+</div>
+{% endif %}
+
+{% if cl_groups %}
+    {% for group in cl_groups %}
+    <div class="pend-section-card">
+        <h3 class="pend-section-title">
+            {{ group.icon }} {{ group.label }}
+            <span style="background:#dcfce7; color:#065f46; padding:1px 8px; border-radius:20px; font-size:11px; font-weight:700;">
+                {{ group.registros|length }}
+            </span>
+        </h3>
+        <div class="pend-list">
+            {% for item in group.registros %}
+            <div class="pend-item">
+                <div class="pend-item-details">
+                    <div class="pend-item-title">
+                        {{ group.icon }} {{ item.summary_val }}
+                    </div>
+                    <div class="pend-item-meta">
+                        <span>📅 Creado: {{ item.fecha_registro or '—' }}</span>
+                        {% if item.registrado_por %}
+                        <span>👤 {{ item.registrado_por }}</span>
+                        {% endif %}
+                        {% if item.get('turno') %}
+                        <span>🔄 Turno: {{ item.turno }}</span>
+                        {% endif %}
+                        {% if item.get('estado_operativo') %}
+                        <span>📊 Estado: {{ item.estado_operativo }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <a href="{{ item.edit_url }}" class="pend-btn-edit">✏️ Completar</a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+{% else %}
+<div style="text-align:center; padding:60px 20px;">
+    <div style="font-size:56px; margin-bottom:16px;">🎉</div>
+    <h3 style="color:#065f46; font-size:18px; font-weight:700; margin-bottom:8px;">¡Todo al día!</h3>
+    <p style="color:#64748b; font-size:14px;">No hay checklists pendientes de finalizar.</p>
+    <a href="{{ url_for('dashboard') }}"
+       style="display:inline-flex; margin-top:16px; align-items:center; gap:6px;
+              background:linear-gradient(135deg,#10b981,#059669); color:white;
+              padding:10px 22px; border-radius:8px; text-decoration:none; font-weight:700; font-size:14px;">
+        ← Volver al Dashboard
+    </a>
+</div>
+{% endif %}
+
+{% endblock %}

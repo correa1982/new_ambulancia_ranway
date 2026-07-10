@@ -1,0 +1,2044 @@
+{
+  "Hoja1": [
+    {
+      "Nombre de la Ocupación": "Oficiales de las Fuerzas Militares"
+    },
+    {
+      "Nombre de la Ocupación": "Suboficiales de las Fuerzas Militares"
+    },
+    {
+      "Nombre de la Ocupación": "Otros miembros de las Fuerzas Militares"
+    },
+    {
+      "Nombre de la Ocupación": "Directores formuladores y ejecutores de políticas y normas / Directoras formuladoras y ejecutoras de políticas y normas"
+    },
+    {
+      "Nombre de la Ocupación": "Directores del gobierno / Directoras del gobierno"
+    },
+    {
+      "Nombre de la Ocupación": "Jefes de comunidades étnicas / Jefas de comunidades étnicas"
+    },
+    {
+      "Nombre de la Ocupación": "Dirigentes de organizaciones con un interés específico (partidos políticos, sindicatos y organizaciones sociales)"
+    },
+    {
+      "Nombre de la Ocupación": "Directores y gerentes generales / Directoras y gerentas generales"
+    },
+    {
+      "Nombre de la Ocupación": "Directores y gerentes financieros / Directoras y gerentas financieras"
+    },
+    {
+      "Nombre de la Ocupación": "Directores y gerentes de seguros, bienes raíces y corretaje financiero / Directoras y gerentas de seguros, bienes raíces y corretaje financiero"
+    },
+    {
+      "Nombre de la Ocupación": "Directores y gerentes de banca, crédito e inversiones / Directoras y gerentas de banca, crédito e inversiones"
+    },
+    {
+      "Nombre de la Ocupación": "Directores y gerentes de gestión de talento humano / Directoras y gerentas de gestión de talento humano"
+    },
+    {
+      "Nombre de la Ocupación": "Directores y gerentes de políticas y planeación / Directoras y gerentas de políticas y planeación"
+    },
+    {
+      "Nombre de la Ocupación": "Directores y gerentes de limpieza y mantenimiento / Directoras y gerentas de limpieza y mantenimiento"
+    },
+    {
+      "Nombre de la Ocupación": "Directores y gerentes de administración y servicios no clasificados en otras ocupaciones / Directoras y gerentas de administración y servicios no clasificados en otras ocupaciones"
+    },
+    {
+      "Nombre de la Ocupación": "Directores y gerentes de ventas y mercadeo / Directoras y gerentas de ventas y mercadeo"
+    },
+    {
+      "Nombre de la Ocupación": "Directores y gerentes de comercio exterior / Directoras y gerentas de comercio exterior"
+    },
+    {
+      "Nombre de la Ocupación": "Directores y gerentes de publicidad y relaciones públicas / Directoras y gerentas de publicidad y relaciones públicas"
+    },
+    {
+      "Nombre de la Ocupación": "Directores y gerentes de ingeniería, investigación y desarrollo / Directoras y gerentas de ingeniería, investigación y desarrollo"
+    },
+    {
+      "Nombre de la Ocupación": "Directores y gerentes de producción agropecuaria y silvicultura / Directoras y gerentas de producción agropecuaria y silvicultura"
+    },
+    {
+      "Nombre de la Ocupación": "Directores y gerentes de producción acuícola, piscícola y de pesca / Directoras y gerentas de producción acuícola, piscícola y de pesca"
+    },
+    {
+      "Nombre de la Ocupación": "Directores y gerentes de industrias manufactureras / Directoras y gerentas de industrias manufactureras"
+    },
+    {
+      "Nombre de la Ocupación": "Directores y gerentes de producción primaria (excepto agricultura) / Directoras y gerentas de producción primaria (excepto agricultura)"
+    },
+    {
+      "Nombre de la Ocupación": "Directores y gerentes de empresas de construcción / Directoras y gerentas de empresas de construcción"
+    },
+    {
+      "Nombre de la Ocupación": "Directores y gerentes de compras y adquisiciones / Directoras y gerentas de compras y adquisiciones"
+    },
+    {
+      "Nombre de la Ocupación": "Directores y gerentes de servicios de correo y mensajería / Directoras y gerentas de servicios de correo y mensajería"
+    },
+    {
+      "Nombre de la Ocupación": "Directores y gerentes de transporte, distribución y logística / Directoras y gerentas de transporte, distribución y logística"
+    },
+    {
+      "Nombre de la Ocupación": "Directores y gerentes de cadena de suministro / Directoras y gerentas de cadena de suministro"
+    },
+    {
+      "Nombre de la Ocupación": "Directores y gerentes de telecomunicaciones / Directoras y gerentas de telecomunicaciones"
+    },
+    {
+      "Nombre de la Ocupación": "Directores y gerentes de sistemas de información y procesamiento de datos / Directoras y gerentas de sistemas de información y procesamiento de datos"
+    },
+    {
+      "Nombre de la Ocupación": "Directores y gerentes de comunicaciones y audiovisuales / Directoras y gerentas de comunicaciones y audiovisuales"
+    },
+    {
+      "Nombre de la Ocupación": "Directores y gerentes de servicios de cuidados infantiles / Directoras y gerentas de servicios de cuidados infantiles"
+    },
+    {
+      "Nombre de la Ocupación": "Directores y gerentes de servicios de salud / Directoras y gerentas de servicios de salud"
+    },
+    {
+      "Nombre de la Ocupación": "Directores y gerentes de servicios de atención a personas mayores / Directoras y gerentas de servicios de atención a personas mayores"
+    },
+    {
+      "Nombre de la Ocupación": "Directores y gerentes de servicios de bienestar social, comunitario y correccional / Directoras y gerentas de servicios de bienestar social, comunitario y correccional"
+    },
+    {
+      "Nombre de la Ocupación": "Directores y gerentes de programas de política educativa / Directoras y gerentas de programas de política educativa"
+    },
+    {
+      "Nombre de la Ocupación": "Directores y administradores de instituciones de educación y formación / Directoras y administradoras de instituciones de educación y formación"
+    },
+    {
+      "Nombre de la Ocupación": "Directores y gerentes de sucursales de bancos, de servicios financieros y de seguros / Directoras y gerentas de sucursales de bancos, de servicios financieros y de seguros"
+    },
+    {
+      "Nombre de la Ocupación": "Directores y gerentes de archivo, biblioteca, museo y galería de arte / Directoras y gerentas de archivo, biblioteca, museo y galería de arte"
+    },
+    {
+      "Nombre de la Ocupación": "Directores y gerentes de servicios y procesos de negocio / Directoras y gerentes de servicios y procesos de negocio"
+    },
+    {
+      "Nombre de la Ocupación": "Directores y gerentes de servicios profesionales no clasificados en otras ocupaciones / Directoras y gerentes de servicios profesionales no clasificados en otras ocupaciones"
+    },
+    {
+      "Nombre de la Ocupación": "Directores y gerentes de servicios hoteleros y hospedaje / Directoras y gerentes de servicios hoteleros y hospedaje"
+    },
+    {
+      "Nombre de la Ocupación": "Gerentes y administradores de servicios de alimentos y restaurantes / Gerentas y administradoras de servicios de alimentos y restaurantes"
+    },
+    {
+      "Nombre de la Ocupación": "Gerentes de comercios al por mayor y al por menor / Gerentas de comercios al por mayor y al por menor"
+    },
+    {
+      "Nombre de la Ocupación": "Directores y gerentes de empresas de música, artes escénicas y cultura / Directoras y gerentes de empresas de música, artes escénicas y cultura"
+    },
+    {
+      "Nombre de la Ocupación": "Directores y gerentes de recreación, actividad física y deportes / Directoras y gerentes de recreación, actividad física y deportes"
+    },
+    {
+      "Nombre de la Ocupación": "Gerentes y administradores de propiedad horizontal / Gerentas y administradoras de propiedad horizontal"
+    },
+    {
+      "Nombre de la Ocupación": "Otros gerentes y administradores de servicios no clasificados en otras ocupaciones / Otras gerentas y administradoras de servicios no clasificados en otras ocupaciones"
+    },
+    {
+      "Nombre de la Ocupación": "Físicos y astrónomos / Físicas y astrónomas"
+    },
+    {
+      "Nombre de la Ocupación": "Meteorólogos / Meteorólogas"
+    },
+    {
+      "Nombre de la Ocupación": "Químicos / Químicas"
+    },
+    {
+      "Nombre de la Ocupación": "Geólogos, geofísicos y geoquímicos / Geólogas, geofísicas y geoquímicas"
+    },
+    {
+      "Nombre de la Ocupación": "Gemólogos / Gemólogas"
+    },
+    {
+      "Nombre de la Ocupación": "Oceanógrafos / Oceanógrafas"
+    },
+    {
+      "Nombre de la Ocupación": "Matemáticos, actuarios y estadísticos / Matemáticas, actuarias y estadísticas"
+    },
+    {
+      "Nombre de la Ocupación": "Biólogos, botánicos, zoólogos y afines / Biólogas, botánicas, zoólogas y afines"
+    },
+    {
+      "Nombre de la Ocupación": "Agrónomos, agroecólogos, agrícolas, pecuarios y zootecnistas / Agrónomas, agroecólogas, agrícolas, pecuarias y zootecnistas"
+    },
+    {
+      "Nombre de la Ocupación": "Silvicultores y forestales / Silvicultoras y forestales"
+    },
+    {
+      "Nombre de la Ocupación": "Extensionistas agropecuarios y forestales de bosques naturales"
+    },
+    {
+      "Nombre de la Ocupación": "Profesionales ambientales y ecologistas"
+    },
+    {
+      "Nombre de la Ocupación": "Profesionales en gestión de riesgo de desastres"
+    },
+    {
+      "Nombre de la Ocupación": "Ingenieros industriales y de producción / Ingenieras industriales y de producción"
+    },
+    {
+      "Nombre de la Ocupación": "Ingenieros civiles / Ingenieras civiles"
+    },
+    {
+      "Nombre de la Ocupación": "Ingenieros medioambientales / Ingenieras medioambientales"
+    },
+    {
+      "Nombre de la Ocupación": "Ingenieros mecánicos / Ingenieras mecánicas"
+    },
+    {
+      "Nombre de la Ocupación": "Ingenieros navales / Ingenieras navales"
+    },
+    {
+      "Nombre de la Ocupación": "Ingenieros aeronáuticos / Ingenieras aeronáuticas"
+    },
+    {
+      "Nombre de la Ocupación": "Ingenieros químicos / Ingenieras químicas"
+    },
+    {
+      "Nombre de la Ocupación": "Ingenieros de minas / Ingenieras de minas"
+    },
+    {
+      "Nombre de la Ocupación": "Ingenieros metalúrgicos / Ingenieras metalúrgicas"
+    },
+    {
+      "Nombre de la Ocupación": "Ingenieros de petróleo y gas / Ingenieras de petróleo y gas"
+    },
+    {
+      "Nombre de la Ocupación": "Ingenieros de materiales / Ingenieras de materiales"
+    },
+    {
+      "Nombre de la Ocupación": "Ingenieros biomédicos y biológicos / Ingenieras biomédicas y biológicas"
+    },
+    {
+      "Nombre de la Ocupación": "Ingenieros no clasificados en otras ocupaciones / Ingenieras no clasificadas en otras ocupaciones"
+    },
+    {
+      "Nombre de la Ocupación": "Ingenieros electricistas / Ingenieras electricistas"
+    },
+    {
+      "Nombre de la Ocupación": "Ingenieros electrónicos / Ingenieras electrónicas"
+    },
+    {
+      "Nombre de la Ocupación": "Ingenieros de automatización e instrumentación / Ingenieras de automatización e instrumentación"
+    },
+    {
+      "Nombre de la Ocupación": "Ingenieros de telecomunicaciones / Ingenieras de telecomunicaciones"
+    },
+    {
+      "Nombre de la Ocupación": "Ingenieros y productores de audio y sonido / Ingenieras y productoras de audio y sonido"
+    },
+    {
+      "Nombre de la Ocupación": "Arquitectos / Arquitectas"
+    },
+    {
+      "Nombre de la Ocupación": "Arquitectos paisajistas / Arquitectas paisajistas"
+    },
+    {
+      "Nombre de la Ocupación": "Diseñadores industriales y de productos / Diseñadoras industriales y de productos"
+    },
+    {
+      "Nombre de la Ocupación": "Diseñadores de vestuario y moda / Diseñadoras de vestuario y moda"
+    },
+    {
+      "Nombre de la Ocupación": "Diseñadores de espacios / Diseñadoras de espacios"
+    },
+    {
+      "Nombre de la Ocupación": "Diseñadores de servicios / Diseñadoras de servicios"
+    },
+    {
+      "Nombre de la Ocupación": "Diseñadores de iluminación / Diseñadoras de iluminación"
+    },
+    {
+      "Nombre de la Ocupación": "Planificadores urbanos, regionales y de tránsito / Planificadoras urbanas, regionales y de tránsito"
+    },
+    {
+      "Nombre de la Ocupación": "Cartógrafos e ingenieros topográficos y catastrales / Cartógrafas e ingenieras topográficas y catastrales"
+    },
+    {
+      "Nombre de la Ocupación": "Diseñadores gráficos / Diseñadoras gráficas"
+    },
+    {
+      "Nombre de la Ocupación": "Diseñadores de imágenes computarizadas e interacción digital / Diseñadoras de imágenes computarizadas e interacción digital"
+    },
+    {
+      "Nombre de la Ocupación": "Médicos generales / Médicas generales"
+    },
+    {
+      "Nombre de la Ocupación": "Médicos especialistas / Médicas especialistas"
+    },
+    {
+      "Nombre de la Ocupación": "Profesionales de enfermería"
+    },
+    {
+      "Nombre de la Ocupación": "Profesionales de medicina tradicional y alternativa"
+    },
+    {
+      "Nombre de la Ocupación": "Paramédicos / Paramédicas"
+    },
+    {
+      "Nombre de la Ocupación": "Instrumentadores quirúrgicos / Instrumentadoras quirúrgicas"
+    },
+    {
+      "Nombre de la Ocupación": "Veterinarios / Veterinarias"
+    },
+    {
+      "Nombre de la Ocupación": "Odontólogos generales / Odontólogas generales"
+    },
+    {
+      "Nombre de la Ocupación": "Odontólogos especialistas / Odontólogas especialistas"
+    },
+    {
+      "Nombre de la Ocupación": "Farmacéuticos y químicos farmacéuticos / Farmacéuticas y químicas farmacéuticas"
+    },
+    {
+      "Nombre de la Ocupación": "Profesionales de la salud y la higiene laboral y ambiental"
+    },
+    {
+      "Nombre de la Ocupación": "Fisioterapeutas"
+    },
+    {
+      "Nombre de la Ocupación": "Nutricionistas dietistas"
+    },
+    {
+      "Nombre de la Ocupación": "Fonoaudiólogos y terapeutas del lenguaje / Fonoaudiólogas y terapeutas del lenguaje"
+    },
+    {
+      "Nombre de la Ocupación": "Optómetras"
+    },
+    {
+      "Nombre de la Ocupación": "Terapeutas ocupacionales"
+    },
+    {
+      "Nombre de la Ocupación": "Profesionales en terapia respiratoria"
+    },
+    {
+      "Nombre de la Ocupación": "Otros profesionales de terapia / Otras profesionales de terapia"
+    },
+    {
+      "Nombre de la Ocupación": "Profesionales de la salud no clasificados en otras ocupaciones"
+    },
+    {
+      "Nombre de la Ocupación": "Profesores de instituciones de educación superior / Profesoras de instituciones de educación superior"
+    },
+    {
+      "Nombre de la Ocupación": "Profesores de formación profesional / Profesoras de formación profesional"
+    },
+    {
+      "Nombre de la Ocupación": "Profesores de educación secundaria / Profesoras de educación secundaria"
+    },
+    {
+      "Nombre de la Ocupación": "Profesores de educación básica primaria / Profesoras de educación básica primaria"
+    },
+    {
+      "Nombre de la Ocupación": "Profesores de primera infancia y preescolar / Profesoras de primera infancia y preescolar"
+    },
+    {
+      "Nombre de la Ocupación": "Especialistas en métodos y procesos pedagógicos"
+    },
+    {
+      "Nombre de la Ocupación": "Profesores e instructores de educación especial e inclusiva / Profesoras e instructoras de educación especial e inclusiva"
+    },
+    {
+      "Nombre de la Ocupación": "Pedagogos reeducadores / Pedagogas reeducadoras"
+    },
+    {
+      "Nombre de la Ocupación": "Otros profesores de idiomas / Otras profesoras de idiomas"
+    },
+    {
+      "Nombre de la Ocupación": "Otros profesores de música / Otras profesoras de música"
+    },
+    {
+      "Nombre de la Ocupación": "Otros profesores de artes / Otras profesoras de artes"
+    },
+    {
+      "Nombre de la Ocupación": "Instructores de tecnología de la información / Instructoras de tecnología de la información"
+    },
+    {
+      "Nombre de la Ocupación": "Orientadores educativos / Orientadoras educativas"
+    },
+    {
+      "Nombre de la Ocupación": "Otros profesionales de la educación no clasificados en otras ocupaciones / Otras profesionales de la educación no clasificados en otras ocupaciones"
+    },
+    {
+      "Nombre de la Ocupación": "Contadores / Contadoras"
+    },
+    {
+      "Nombre de la Ocupación": "Auditores financieros y contables / Auditoras financieras y contables"
+    },
+    {
+      "Nombre de la Ocupación": "Asesores financieros y de inversiones / Asesoras financieras y de inversiones"
+    },
+    {
+      "Nombre de la Ocupación": "Analistas financieros / Analistas financieras"
+    },
+    {
+      "Nombre de la Ocupación": "Profesionales y analistas de gestión y organización"
+    },
+    {
+      "Nombre de la Ocupación": "Profesionales en políticas sociales y de administración"
+    },
+    {
+      "Nombre de la Ocupación": "Profesionales de talento humano"
+    },
+    {
+      "Nombre de la Ocupación": "Consejeros de servicios de empleo / Consejeras de servicios de empleo"
+    },
+    {
+      "Nombre de la Ocupación": "Profesionales de formación y desarrollo de personal"
+    },
+    {
+      "Nombre de la Ocupación": "Evaluadores de competencias laborales / Evaluadoras de competencias laborales"
+    },
+    {
+      "Nombre de la Ocupación": "Profesionales en mercadeo y publicidad"
+    },
+    {
+      "Nombre de la Ocupación": "Administradores de comunidades virtuales / Administradoras de comunidades virtuales"
+    },
+    {
+      "Nombre de la Ocupación": "Profesionales en negocios internacionales"
+    },
+    {
+      "Nombre de la Ocupación": "Profesionales de relaciones públicas y comunicaciones"
+    },
+    {
+      "Nombre de la Ocupación": "Profesionales de ventas técnicas y médicas (excluyendo las TIC)"
+    },
+    {
+      "Nombre de la Ocupación": "Profesionales de ventas de tecnología de la información y las comunicaciones"
+    },
+    {
+      "Nombre de la Ocupación": "Analistas de sistemas"
+    },
+    {
+      "Nombre de la Ocupación": "Desarrolladores de software / Desarrolladoras de software"
+    },
+    {
+      "Nombre de la Ocupación": "Desarrolladores Web y multimedia / Desarrolladoras Web y multimedia"
+    },
+    {
+      "Nombre de la Ocupación": "Programadores de aplicaciones / Programadoras de aplicaciones"
+    },
+    {
+      "Nombre de la Ocupación": "Desarrolladores y analistas de software y multimedia no clasificados en otras ocupaciones / Desarrolladoras y analistas de software y multimedia no clasificadas en otras ocupaciones"
+    },
+    {
+      "Nombre de la Ocupación": "Diseñadores y administradores de bases de datos / Diseñadoras y administradoras de bases de datos"
+    },
+    {
+      "Nombre de la Ocupación": "Administradores de sistemas / Administradoras de sistemas"
+    },
+    {
+      "Nombre de la Ocupación": "Profesionales en redes de computadores"
+    },
+    {
+      "Nombre de la Ocupación": "Profesionales en bases de datos y en redes de computadores no clasificados en otras ocupaciones"
+    },
+    {
+      "Nombre de la Ocupación": "Abogados / Abogadas"
+    },
+    {
+      "Nombre de la Ocupación": "Jueces / Juezas"
+    },
+    {
+      "Nombre de la Ocupación": "Profesionales en ciencias forenses"
+    },
+    {
+      "Nombre de la Ocupación": "Profesionales en derecho no clasificados en otras ocupaciones"
+    },
+    {
+      "Nombre de la Ocupación": "Archivistas"
+    },
+    {
+      "Nombre de la Ocupación": "Curadores de artes visuales y plásticas y de patrimonio cultural / Curadoras de artes visuales y plásticas y de patrimonio cultural"
+    },
+    {
+      "Nombre de la Ocupación": "Curadores y supervisores musicales / Curadoras y supervisoras musicales"
+    },
+    {
+      "Nombre de la Ocupación": "Museólogos y museógrafos / Museólogas y museógrafas"
+    },
+    {
+      "Nombre de la Ocupación": "Restauradores y conservadores de patrimonio cultural mueble / Restauradoras y conservadoras de patrimonio cultural mueble"
+    },
+    {
+      "Nombre de la Ocupación": "Restauradores y conservadores de patrimonio cultural construido / Restauradoras y conservadoras de patrimonio cultural construido"
+    },
+    {
+      "Nombre de la Ocupación": "Otros archivistas, curadores de arte y restauradores no clasificados en otras ocupaciones / Otras archivistas, curadoras de arte y restauradoras no clasificadas en otras ocupaciones"
+    },
+    {
+      "Nombre de la Ocupación": "Bibliotecólogos, documentalistas y afines / Bibliotecólogas, documentalistas y afines"
+    },
+    {
+      "Nombre de la Ocupación": "Economistas"
+    },
+    {
+      "Nombre de la Ocupación": "Sociólogos, antropólogos y afines / Sociólogas, antropólogas y afines"
+    },
+    {
+      "Nombre de la Ocupación": "Filósofos, historiadores y especialistas en ciencias políticas / Filósofas, historiadoras y especialistas en ciencias políticas"
+    },
+    {
+      "Nombre de la Ocupación": "Psicólogos / Psicólogas"
+    },
+    {
+      "Nombre de la Ocupación": "Profesionales del trabajo social y consejeros"
+    },
+    {
+      "Nombre de la Ocupación": "Gestores de recursos y donaciones / Gestoras de recursos y donaciones"
+    },
+    {
+      "Nombre de la Ocupación": "Profesionales religiosos y ministros de culto / Profesionales religiosas y ministras de culto"
+    },
+    {
+      "Nombre de la Ocupación": "Autores y otros escritores / Autoras y otras escritoras"
+    },
+    {
+      "Nombre de la Ocupación": "Periodistas"
+    },
+    {
+      "Nombre de la Ocupación": "Editores y redactores / Editoras y redactoras"
+    },
+    {
+      "Nombre de la Ocupación": "Traductores, intérpretes y lingüistas / Traductoras, intérpretes y lingüistas"
+    },
+    {
+      "Nombre de la Ocupación": "Traductores e intérpretes de lenguas nativas / Traductoras e intérpretes de lenguas nativas"
+    },
+    {
+      "Nombre de la Ocupación": "Intérpretes de lengua de señas"
+    },
+    {
+      "Nombre de la Ocupación": "Guías-intérpretes"
+    },
+    {
+      "Nombre de la Ocupación": "Artistas plásticos y visuales / Artistas plásticas y visuales"
+    },
+    {
+      "Nombre de la Ocupación": "Ilustradores artísticos / Ilustradoras artísticas"
+    },
+    {
+      "Nombre de la Ocupación": "Intérpretes musicales"
+    },
+    {
+      "Nombre de la Ocupación": "Directores e investigadores musicales / Directoras e investigadoras musicales"
+    },
+    {
+      "Nombre de la Ocupación": "Autores y compositores musicales / Autoras y compositoras musicales"
+    },
+    {
+      "Nombre de la Ocupación": "Ejecutantes musicales"
+    },
+    {
+      "Nombre de la Ocupación": "Compositores coreográficos e intérpretes de danza / Compositoras coreográficas e intérpretes de danza"
+    },
+    {
+      "Nombre de la Ocupación": "Bailarines y otros ejecutantes de la danza / Bailarinas y otras ejecutantes de la danza"
+    },
+    {
+      "Nombre de la Ocupación": "Productores, directores y editores de cine, teatro y afines / Productoras, directoras y editoras de cine, teatro y afines"
+    },
+    {
+      "Nombre de la Ocupación": "Productores de campo para las artes escénicas y audiovisuales / Productoras de campo para las artes escénicas y audiovisuales"
+    },
+    {
+      "Nombre de la Ocupación": "Realizadores y coordinadores de las artes escénicas, audiovisuales y afines / Realizadoras y coordinadoras de las artes escénicas, audiovisuales y afines"
+    },
+    {
+      "Nombre de la Ocupación": "Actores / Actrices"
+    },
+    {
+      "Nombre de la Ocupación": "Otros actores no clasificados en otras ocupaciones / Otras actrices no clasificadas en otras ocupaciones"
+    },
+    {
+      "Nombre de la Ocupación": "Locutores y presentadores de radio, televisión y otros medios de comunicación / Locutoras y presentadoras de radio, televisión y otros medios de comunicación"
+    },
+    {
+      "Nombre de la Ocupación": "Artistas creativos y ejecutantes de técnicas circenses / Artistas creativas y ejecutantes de técnicas circenses"
+    },
+    {
+      "Nombre de la Ocupación": "Artistas creativos e interpretativos no clasificados en otras ocupaciones / Artistas creativas e interpretativas no clasificadas en otras ocupaciones"
+    },
+    {
+      "Nombre de la Ocupación": "Técnicos en física y química / Técnicas en física y química"
+    },
+    {
+      "Nombre de la Ocupación": "Técnicos en geología / Técnicas en geología"
+    },
+    {
+      "Nombre de la Ocupación": "Técnicos en meteorología / Técnicas en meteorología"
+    },
+    {
+      "Nombre de la Ocupación": "Técnicos en metrología / Técnicas en metrología"
+    },
+    {
+      "Nombre de la Ocupación": "Auxiliares de laboratorio"
+    },
+    {
+      "Nombre de la Ocupación": "Técnicos en construcción y arquitectura / Técnicas en construcción y arquitectura"
+    },
+    {
+      "Nombre de la Ocupación": "Técnicos en topografía / Técnicas en topografía"
+    },
+    {
+      "Nombre de la Ocupación": "Técnicos en cartografía / Técnicas en cartografía"
+    },
+    {
+      "Nombre de la Ocupación": "Técnicos en electricidad / Técnicas en electricidad"
+    },
+    {
+      "Nombre de la Ocupación": "Técnicos en electrónica / Técnicas en electrónica"
+    },
+    {
+      "Nombre de la Ocupación": "Técnicos en automatización e instrumentación / Técnicas en automatización e instrumentación"
+    },
+    {
+      "Nombre de la Ocupación": "Técnicos en ingeniería mecánica / Técnicas en ingeniería mecánica"
+    },
+    {
+      "Nombre de la Ocupación": "Técnicos en química industrial / Técnicas en química industrial"
+    },
+    {
+      "Nombre de la Ocupación": "Técnicos de minas y metalurgia / Técnicas de minas y metalurgia"
+    },
+    {
+      "Nombre de la Ocupación": "Operarios de exploración geofísica y geológica / Operarias de exploración geofísica y geológica"
+    },
+    {
+      "Nombre de la Ocupación": "Delineantes y dibujantes técnicos / Delineantes y dibujantes técnicas"
+    },
+    {
+      "Nombre de la Ocupación": "Auxiliares de producción gráfica"
+    },
+    {
+      "Nombre de la Ocupación": "Graficadores de imágenes computarizadas / Graficadoras de imágenes computarizadas"
+    },
+    {
+      "Nombre de la Ocupación": "Técnicos en fabricación industrial / Técnicas en fabricación industrial"
+    },
+    {
+      "Nombre de la Ocupación": "Técnicos en ciencias físicas y en ingeniería no clasificados en otras ocupaciones / Técnicas en ciencias físicas y en ingeniería no clasificados en otras ocupaciones"
+    },
+    {
+      "Nombre de la Ocupación": "Supervisores de minería y canteras / Supervisoras de minería y canteras"
+    },
+    {
+      "Nombre de la Ocupación": "Supervisores de perforación y servicio a pozos de petróleo y gas / Supervisoras de perforación y servicio a pozos de petróleo y gas"
+    },
+    {
+      "Nombre de la Ocupación": "Supervisores y analistas de producción de hidrocarburos / Supervisoras y analistas de producción de hidrocarburos"
+    },
+    {
+      "Nombre de la Ocupación": "Supervisores de procesamiento de alimentos y bebidas / Supervisoras de procesamiento de alimentos y bebidas"
+    },
+    {
+      "Nombre de la Ocupación": "Supervisores de fabricación y procesamiento de productos de plástico y caucho / Supervisoras de fabricación y procesamiento de productos de plástico y caucho"
+    },
+    {
+      "Nombre de la Ocupación": "Supervisores de procesamiento de la madera y producción de pulpa y papel / Supervisoras de procesamiento de la madera y producción de pulpa y papel"
+    },
+    {
+      "Nombre de la Ocupación": "Supervisores de ensamble de vehículos de motor / Supervisoras de ensamble de vehículos de motor"
+    },
+    {
+      "Nombre de la Ocupación": "Supervisores de impresión y ocupaciones relacionadas / Supervisoras de impresión y ocupaciones relacionadas"
+    },
+    {
+      "Nombre de la Ocupación": "Supervisores de fabricación y tratamiento de productos mecánicos, metálicos y minerales / Supervisoras de fabricación y tratamiento de productos mecánicos, metálicos y minerales"
+    },
+    {
+      "Nombre de la Ocupación": "Supervisores de fabricación y procesamiento de productos textiles, cuero y piel / Supervisoras de fabricación y procesamiento de productos textiles, cuero y piel"
+    },
+    {
+      "Nombre de la Ocupación": "Supervisores de fabricación de productos eléctricos y electrónicos / Supervisoras de fabricación de productos eléctricos y electrónicos"
+    },
+    {
+      "Nombre de la Ocupación": "Supervisores de industrias manufactureras no clasificadas en otras ocupaciones / Supervisoras de industrias manufactureras no clasificadas en otras ocupaciones"
+    },
+    {
+      "Nombre de la Ocupación": "Supervisores de la construcción, maestros generales de obra, instalación y reparación / Supervisoras de la construcción, maestros generales de obra, instalación y reparación"
+    },
+    {
+      "Nombre de la Ocupación": "Inspectores de sistemas e instalaciones de gas / Inspectoras de sistemas e instalaciones de gas"
+    },
+    {
+      "Nombre de la Ocupación": "Operadores de plantas de generación y distribución de energía / Operadoras de plantas de generación y distribución de energía"
+    },
+    {
+      "Nombre de la Ocupación": "Operadores de plantas de tratamiento de agua / Operadoras de plantas de tratamiento de agua"
+    },
+    {
+      "Nombre de la Ocupación": "Operadores de incineradores, de hornos crematorios y de rellenos sanitarios / Operadoras de incineradores, de hornos crematorios y de rellenos sanitarios"
+    },
+    {
+      "Nombre de la Ocupación": "Controladores de instalaciones de procesamiento de productos químicos / Controladoras de instalaciones de procesamiento de productos químicos"
+    },
+    {
+      "Nombre de la Ocupación": "Operadores de instalaciones de refinación de petróleo y gas natural / Operadoras de instalaciones de refinación de petróleo y gas natural"
+    },
+    {
+      "Nombre de la Ocupación": "Inspectores de oleoductos y gasoductos / Inspectoras de oleoductos y gasoductos"
+    },
+    {
+      "Nombre de la Ocupación": "Controladores de procesos de producción y tratamiento de metales / Controladoras de procesos de producción y tratamiento de metales"
+    },
+    {
+      "Nombre de la Ocupación": "Técnicos en control de procesos no clasificados en otras ocupaciones / Técnicas en control de procesos no clasificados en otras ocupaciones"
+    },
+    {
+      "Nombre de la Ocupación": "Técnicos en ciencias biológicas (excluyendo la medicina) / Técnicas en ciencias biológicas (excluyendo la medicina)"
+    },
+    {
+      "Nombre de la Ocupación": "Técnicos agropecuarios / Técnicas agropecuarias"
+    },
+    {
+      "Nombre de la Ocupación": "Inspectores de productos agrícola, pecuarios y de pesca / Inspectoras de productos agrícola, pecuarios y de pesca"
+    },
+    {
+      "Nombre de la Ocupación": "Inspectores de riego agrícola / Inspectoras de riego agrícola"
+    },
+    {
+      "Nombre de la Ocupación": "Supervisores de producción agrícola / Supervisoras de producción agrícola"
+    },
+    {
+      "Nombre de la Ocupación": "Supervisores de producción pecuaria / Supervisoras de producción pecuaria"
+    },
+    {
+      "Nombre de la Ocupación": "Promotores de servicios agrícolas y relacionados / Promotoras de servicios agrícolas y relacionados"
+    },
+    {
+      "Nombre de la Ocupación": "Técnicos forestales y de recursos naturales / Técnicas forestales y de recursos naturales"
+    },
+    {
+      "Nombre de la Ocupación": "Supervisores de explotación forestal y silvicultura / Supervisoras de explotación forestal y silvicultura"
+    },
+    {
+      "Nombre de la Ocupación": "Oficiales maquinistas en navegación"
+    },
+    {
+      "Nombre de la Ocupación": "Capitanes y oficiales de cubierta"
+    },
+    {
+      "Nombre de la Ocupación": "Pilotos, ingenieros e instructores de vuelo"
+    },
+    {
+      "Nombre de la Ocupación": "Controladores de tráfico aéreo, marítimo y ferroviario / Controladoras de tráfico aéreo, marítimo y ferroviario"
+    },
+    {
+      "Nombre de la Ocupación": "Técnicos en seguridad aeronáutica e instrumentos de aeronavegación / Técnicas en seguridad aeronáutica e instrumentos de aeronavegación"
+    },
+    {
+      "Nombre de la Ocupación": "Técnicos y tecnólogos en imágenes diagnósticas / Técnicas y tecnólogas en imágenes diagnósticas"
+    },
+    {
+      "Nombre de la Ocupación": "Técnicos y tecnólogos en radioterapia / Técnicas y tecnólogas en radioterapia"
+    },
+    {
+      "Nombre de la Ocupación": "Técnicos y tecnólogos en medicina nuclear / Técnicas y tecnólogas en medicina nuclear"
+    },
+    {
+      "Nombre de la Ocupación": "Otros técnicos en aparatos de diagnóstico y tratamiento médico no clasificados en otras ocupaciones / Otras técnicas en aparatos de diagnóstico y tratamiento médico no clasificados en otras ocupaciones"
+    },
+    {
+      "Nombre de la Ocupación": "Técnicos de laboratorios médicos / Técnicas de laboratorios médicos"
+    },
+    {
+      "Nombre de la Ocupación": "Técnicos y asistentes farmacéuticos / Técnicas y asistentes farmacéuticas"
+    },
+    {
+      "Nombre de la Ocupación": "Técnicos en mecánica dental / Técnicas en mecánica dental"
+    },
+    {
+      "Nombre de la Ocupación": "Técnicos de órtesis y prótesis médicas / Técnicas de órtesis y prótesis médicas"
+    },
+    {
+      "Nombre de la Ocupación": "Técnicos y profesionales del nivel medio en partería tradicional / Técnicas y profesionales del nivel medio en partería tradicional"
+    },
+    {
+      "Nombre de la Ocupación": "Técnicos y profesionales del nivel medio en medicina alternativa / Técnicas y profesionales del nivel medio en medicina alternativa"
+    },
+    {
+      "Nombre de la Ocupación": "Practicantes de medicina tradicional ancestral / Practicantas de medicina tradicional ancestral"
+    },
+    {
+      "Nombre de la Ocupación": "Técnicos y asistentes veterinarios / Técnicas y asistentes veterinarias"
+    },
+    {
+      "Nombre de la Ocupación": "Técnicos en documentación sanitaria / Técnicas en documentación sanitaria"
+    },
+    {
+      "Nombre de la Ocupación": "Trabajadores comunitarios de la salud / Trabajadoras comunitarias de la salud"
+    },
+    {
+      "Nombre de la Ocupación": "Técnicos en óptica / Técnicas en óptica"
+    },
+    {
+      "Nombre de la Ocupación": "Técnicos y asistentes terapeutas / Técnicas y asistentes terapeutas"
+    },
+    {
+      "Nombre de la Ocupación": "Asistentes médicos / Asistentas médicas"
+    },
+    {
+      "Nombre de la Ocupación": "Inspectores de sanidad, seguridad y salud en el trabajo / Inspectoras de sanidad, seguridad y salud en el trabajo"
+    },
+    {
+      "Nombre de la Ocupación": "Coordinadores de sistemas integrados de gestión / Coordinadoras de sistemas integrados de gestión"
+    },
+    {
+      "Nombre de la Ocupación": "Técnicos en prevención, gestión y control ambiental / Técnicas en prevención, gestión y control ambiental"
+    },
+    {
+      "Nombre de la Ocupación": "Asistentes en saneamiento ambiental / Asistentas en saneamiento ambiental"
+    },
+    {
+      "Nombre de la Ocupación": "Técnicos en atención prehospitalaria / Técnicas en atención prehospitalaria"
+    },
+    {
+      "Nombre de la Ocupación": "Otros técnicos y profesionales del nivel medio de la salud no clasificados en otras ocupaciones / Otras técnicas y profesionales del nivel medio de la salud no clasificadas en otras ocupaciones"
+    },
+    {
+      "Nombre de la Ocupación": "Agentes de bolsa, cambio y otros servicios financieros"
+    },
+    {
+      "Nombre de la Ocupación": "Analistas y asistentes financieros en préstamos y créditos / Analistas y asistentes financieras en préstamos y créditos"
+    },
+    {
+      "Nombre de la Ocupación": "Asistentes contables / Asistentas contables"
+    },
+    {
+      "Nombre de la Ocupación": "Asistentes financieros / Asistentas financieras"
+    },
+    {
+      "Nombre de la Ocupación": "Asistentes de tesorería / Asistentas de tesorería"
+    },
+    {
+      "Nombre de la Ocupación": "Técnicos de contabilidad y afines / Técnicas de contabilidad y afines"
+    },
+    {
+      "Nombre de la Ocupación": "Técnicos y profesionales del nivel medio de servicios estadísticos, matemáticos y afines / Técnicas y profesionales del nivel medio de servicios estadísticos, matemáticos y afines"
+    },
+    {
+      "Nombre de la Ocupación": "Tasadores, avaluadores y liquidadores de seguros / Tasadoras, avaluadoras y liquidadoras de seguros"
+    },
+    {
+      "Nombre de la Ocupación": "Agentes y corredores de seguros / Agentes y corredoras de seguros"
+    },
+    {
+      "Nombre de la Ocupación": "Representantes comerciales"
+    },
+    {
+      "Nombre de la Ocupación": "Agentes de compras"
+    },
+    {
+      "Nombre de la Ocupación": "Agentes de operaciones comerciales y consignatarios"
+    },
+    {
+      "Nombre de la Ocupación": "Asistentes de comercio exterior / Asistentas de comercio exterior"
+    },
+    {
+      "Nombre de la Ocupación": "Gestores y agentes de servicios de aduana / Gestoras y agentes de servicios de aduana"
+    },
+    {
+      "Nombre de la Ocupación": "Coordinadores y productores de conferencias, eventos y espectáculos / Coordinadoras y productoras de conferencias, eventos y espectáculos"
+    },
+    {
+      "Nombre de la Ocupación": "Agentes de empleo y contratistas de mano de obra"
+    },
+    {
+      "Nombre de la Ocupación": "Agentes inmobiliarios / Agentes inmobiliarias"
+    },
+    {
+      "Nombre de la Ocupación": "Agentes y promotores culturales, artísticos y deportivos / Agentes y promotoras culturales, artísticas y deportivas"
+    },
+    {
+      "Nombre de la Ocupación": "Asistentes de mercadeo, publicidad y comunicaciones / Asistentas de mercadeo, publicidad y comunicaciones"
+    },
+    {
+      "Nombre de la Ocupación": "Auxiliares de promoción artística"
+    },
+    {
+      "Nombre de la Ocupación": "Agentes de servicios comerciales no clasificados en otras ocupaciones"
+    },
+    {
+      "Nombre de la Ocupación": "Supervisores administrativos / Supervisoras administrativas"
+    },
+    {
+      "Nombre de la Ocupación": "Supervisores de entidades financieras / Supervisoras de entidades financieras"
+    },
+    {
+      "Nombre de la Ocupación": "Supervisores y coordinadores de procesos de negocio, empleados de información y servicio al cliente / Supervisoras y coordinadoras de procesos de negocio, empleadas de información y servicio al cliente"
+    },
+    {
+      "Nombre de la Ocupación": "Supervisores de personal de correo y mensajería / Supervisoras de personal de correo y mensajería"
+    },
+    {
+      "Nombre de la Ocupación": "Supervisores de almacenamiento, inventario y distribución / Supervisoras de almacenamiento, inventario y distribución"
+    },
+    {
+      "Nombre de la Ocupación": "Supervisores de operación de transporte ferroviario / Supervisoras de operación de transporte ferroviario"
+    },
+    {
+      "Nombre de la Ocupación": "Supervisores de operación de transporte terrestre (no ferroviario) / Supervisoras de operación de transporte terrestre (no ferroviario)"
+    },
+    {
+      "Nombre de la Ocupación": "Secretarios jurídicos / Secretarias jurídicas"
+    },
+    {
+      "Nombre de la Ocupación": "Asistentes administrativos / Asistentas administrativas"
+    },
+    {
+      "Nombre de la Ocupación": "Asistentes de talento humano / Asistentas de talento humano"
+    },
+    {
+      "Nombre de la Ocupación": "Técnicos en archivística / Técnicas en archivística"
+    },
+    {
+      "Nombre de la Ocupación": "Secretarios médicos / Secretarias médicas"
+    },
+    {
+      "Nombre de la Ocupación": "Inspectores de aduana, fronteras y migración / Inspectoras de aduana, fronteras y migración"
+    },
+    {
+      "Nombre de la Ocupación": "Agentes de administración tributaria"
+    },
+    {
+      "Nombre de la Ocupación": "Funcionarios e inspectores de servicios de seguridad social / Funcionarias e inspectoras de servicios de seguridad social"
+    },
+    {
+      "Nombre de la Ocupación": "Funcionarios e inspectores gubernamentales de expedición de licencias / Funcionarias e inspectoras gubernamentales de expedición de licencias"
+    },
+    {
+      "Nombre de la Ocupación": "Inspectores y detectives de policía / Inspectoras y detectives de policía"
+    },
+    {
+      "Nombre de la Ocupación": "Técnicos investigadores criminalísticos y judiciales / Técnicas investigadoras criminalísticas y judiciales"
+    },
+    {
+      "Nombre de la Ocupación": "Investigadores criminalísticos y judiciales / Investigadoras criminalísticas y judiciales"
+    },
+    {
+      "Nombre de la Ocupación": "Agentes de gobierno y profesionales del nivel medio para la aplicación de regulaciones no clasificados en otras ocupaciones"
+    },
+    {
+      "Nombre de la Ocupación": "Asistentes de juzgados, tribunales y afines / Asistentas de juzgados, tribunales y afines"
+    },
+    {
+      "Nombre de la Ocupación": "Auxiliares de tribunales"
+    },
+    {
+      "Nombre de la Ocupación": "Asistentes legales y afines / Asistentas legales y afines"
+    },
+    {
+      "Nombre de la Ocupación": "Técnicos y profesionales del nivel medio del derecho, de servicios legales y afines, no clasificados en otras ocupaciones / Técnicas y profesionales del nivel medio del derecho, de servicios legales y afines, no clasificadas en otras ocupaciones"
+    },
+    {
+      "Nombre de la Ocupación": "Trabajadores y asistentes sociales y comunitarios / Trabajadoras y asistentes sociales y comunitarias"
+    },
+    {
+      "Nombre de la Ocupación": "Auxiliares laicos de las religiones / Auxiliares laicas de las religiones"
+    },
+    {
+      "Nombre de la Ocupación": "Atletas y deportistas"
+    },
+    {
+      "Nombre de la Ocupación": "Entrenadores y preparadores físicos / Entrenadoras y preparadoras físicas"
+    },
+    {
+      "Nombre de la Ocupación": "Árbitros / Árbitras"
+    },
+    {
+      "Nombre de la Ocupación": "Instructores de educación física y recreación / Instructoras de educación física y recreación"
+    },
+    {
+      "Nombre de la Ocupación": "Recreadores / Recreadoras"
+    },
+    {
+      "Nombre de la Ocupación": "Fotógrafos / Fotógrafas"
+    },
+    {
+      "Nombre de la Ocupación": "Decoradores de interiores / Decoradoras de interiores"
+    },
+    {
+      "Nombre de la Ocupación": "Ocupaciones técnicas relacionadas con museos y galerías"
+    },
+    {
+      "Nombre de la Ocupación": "Técnicos en biblioteca / Técnicas en biblioteca"
+    },
+    {
+      "Nombre de la Ocupación": "Técnicos en promoción y animación a la lectura y la escritura / Técnicas en promoción y animación a la lectura y la escritura"
+    },
+    {
+      "Nombre de la Ocupación": "Chefs"
+    },
+    {
+      "Nombre de la Ocupación": "Otros técnicos de actividades artísticas / Otras técnicas de actividades artísticas"
+    },
+    {
+      "Nombre de la Ocupación": "Artistas corporales"
+    },
+    {
+      "Nombre de la Ocupación": "Auxiliares de producción de eventos y espectáculos"
+    },
+    {
+      "Nombre de la Ocupación": "Asistentes de dirección y producción en las artes escénicas y audiovisuales / Asistentas de dirección y producción en las artes escénicas y audiovisuales"
+    },
+    {
+      "Nombre de la Ocupación": "Técnicos y profesionales de nivel medio en producción de arte para actividades audiovisuales y escénicas / Técnicas y profesionales de nivel medio en producción de arte para actividades audiovisuales y escénicas"
+    },
+    {
+      "Nombre de la Ocupación": "Técnicos en operaciones de tecnología de la información y las comunicaciones / Técnicas en operaciones de tecnología de la información y las comunicaciones"
+    },
+    {
+      "Nombre de la Ocupación": "Técnicos en asistencia y soporte de tecnologías de la información / Técnicas en asistencia y soporte de tecnologías de la información"
+    },
+    {
+      "Nombre de la Ocupación": "Representantes de servicios especializados BPO (business process outsourcing)"
+    },
+    {
+      "Nombre de la Ocupación": "Técnicos en redes y tecnologías de la información / Técnicas en redes y tecnologías de la información"
+    },
+    {
+      "Nombre de la Ocupación": "Técnicos de la web / Técnicas de la web"
+    },
+    {
+      "Nombre de la Ocupación": "Operadores de cámara de cine y televisión / Operadoras de cámara de cine y televisión"
+    },
+    {
+      "Nombre de la Ocupación": "Técnicos en transmisión audiovisual / Técnicas en transmisión audiovisual"
+    },
+    {
+      "Nombre de la Ocupación": "Asistentes en cine, televisión y artes escénicas / Asistentas en cine, televisión y artes escénicas"
+    },
+    {
+      "Nombre de la Ocupación": "Técnicos de producción de audio y sonido / Técnicas de producción de audio y sonido"
+    },
+    {
+      "Nombre de la Ocupación": "Asistentes de producción de audio y sonido / Asistentas de producción de audio y sonido"
+    },
+    {
+      "Nombre de la Ocupación": "Técnicos en telecomunicaciones / Técnicas en telecomunicaciones"
+    },
+    {
+      "Nombre de la Ocupación": "Supervisores de telecomunicaciones / Supervisoras de telecomunicaciones"
+    },
+    {
+      "Nombre de la Ocupación": "Operadores de radio / Operadoras de radio"
+    },
+    {
+      "Nombre de la Ocupación": "Oficinistas generales"
+    },
+    {
+      "Nombre de la Ocupación": "Auxiliares de aduana"
+    },
+    {
+      "Nombre de la Ocupación": "Secretarios generales / Secretarias generales"
+    },
+    {
+      "Nombre de la Ocupación": "Operadores de máquinas de procesamiento de texto y mecanógrafos / Operadoras de máquinas de procesamiento de texto y mecanógrafos"
+    },
+    {
+      "Nombre de la Ocupación": "Grabadores de datos / Grabadoras de datos"
+    },
+    {
+      "Nombre de la Ocupación": "Digitadores / Digitadoras"
+    },
+    {
+      "Nombre de la Ocupación": "Cajeros de bancos y afines / Cajeras de bancos y afines"
+    },
+    {
+      "Nombre de la Ocupación": "Receptores de apuestas y afines / Receptoras de apuestas y afines"
+    },
+    {
+      "Nombre de la Ocupación": "Prestamistas"
+    },
+    {
+      "Nombre de la Ocupación": "Cobradores, auxiliares de cartera y afines / Cobradoras, auxiliares de cartera y afines"
+    },
+    {
+      "Nombre de la Ocupación": "Empleados de ventas y servicios de viajes / Empleadas de ventas y servicios de viajes"
+    },
+    {
+      "Nombre de la Ocupación": "Empleados de centros de llamadas / Empleadas de centros de llamadas"
+    },
+    {
+      "Nombre de la Ocupación": "Telefonistas"
+    },
+    {
+      "Nombre de la Ocupación": "Recepcionistas de hoteles"
+    },
+    {
+      "Nombre de la Ocupación": "Auxiliares de información y servicio al cliente"
+    },
+    {
+      "Nombre de la Ocupación": "Informadores turísticos / Informadoras turísticas"
+    },
+    {
+      "Nombre de la Ocupación": "Recepcionistas generales"
+    },
+    {
+      "Nombre de la Ocupación": "Entrevistadores de encuestas y de investigaciones de mercados / Entrevistadoras de encuestas y de investigaciones de mercados"
+    },
+    {
+      "Nombre de la Ocupación": "Auxiliares administrativos en salud / Auxiliares administrativas en salud"
+    },
+    {
+      "Nombre de la Ocupación": "Otros empleados de servicios de información al cliente no clasificados en otras ocupaciones / Otras empleadas de servicios de información al cliente no clasificados en otras ocupaciones"
+    },
+    {
+      "Nombre de la Ocupación": "Auxiliares de contabilidad, costos y tesorería"
+    },
+    {
+      "Nombre de la Ocupación": "Auxiliares de servicios estadísticos y financieros"
+    },
+    {
+      "Nombre de la Ocupación": "Auxiliares de avalúos"
+    },
+    {
+      "Nombre de la Ocupación": "Auxiliares de nómina y prestaciones"
+    },
+    {
+      "Nombre de la Ocupación": "Auxiliares de almacén y pesaje"
+    },
+    {
+      "Nombre de la Ocupación": "Auxiliares de compras e inventarios"
+    },
+    {
+      "Nombre de la Ocupación": "Empleados de servicios de apoyo a la producción / Empleadas de servicios de apoyo a la producción"
+    },
+    {
+      "Nombre de la Ocupación": "Empleados y operarios de servicios de transporte / Empleadas y operarias de servicios de transporte"
+    },
+    {
+      "Nombre de la Ocupación": "Inspectores y controladores de transporte / Inspectoras y controladoras de transporte"
+    },
+    {
+      "Nombre de la Ocupación": "Empleados auxiliares de bibliotecas / Empleadas auxiliares de bibliotecas"
+    },
+    {
+      "Nombre de la Ocupación": "Empleados de servicios de correos / Empleadas de servicios de correos"
+    },
+    {
+      "Nombre de la Ocupación": "Codificadores de datos, correctores de pruebas de imprenta y afines / Codificadoras de datos, correctores de pruebas de imprenta y afines"
+    },
+    {
+      "Nombre de la Ocupación": "Escribientes públicos y afines / Escribientes públicas y afines"
+    },
+    {
+      "Nombre de la Ocupación": "Empleados auxiliares de archivos / Empleadas auxiliares de archivos"
+    },
+    {
+      "Nombre de la Ocupación": "Auxiliares de talento humano"
+    },
+    {
+      "Nombre de la Ocupación": "Auxiliares de seguridad en el trabajo"
+    },
+    {
+      "Nombre de la Ocupación": "Auxiliares de publicación y afines"
+    },
+    {
+      "Nombre de la Ocupación": "Otro personal de apoyo administrativo no clasificados en otras ocupaciones / Otra personal de apoyo administrativo no clasificados en otras ocupaciones"
+    },
+    {
+      "Nombre de la Ocupación": "Personal de servicio a pasajeros"
+    },
+    {
+      "Nombre de la Ocupación": "Revisores y cobradores de los transportes públicos / Revisoras y cobradoras de los transportes públicos"
+    },
+    {
+      "Nombre de la Ocupación": "Guías de turismo"
+    },
+    {
+      "Nombre de la Ocupación": "Anfitriones turísticos locales / Anfitrionas turísticas locales"
+    },
+    {
+      "Nombre de la Ocupación": "Cocineros / Cocineras"
+    },
+    {
+      "Nombre de la Ocupación": "Sabedores de la cocina tradicional / Sabedoras de la cocina tradicional"
+    },
+    {
+      "Nombre de la Ocupación": "Meseros y capitanes de servicio a la mesa / Meseras y capitanes de servicio a la mesa"
+    },
+    {
+      "Nombre de la Ocupación": "Bartenders"
+    },
+    {
+      "Nombre de la Ocupación": "Baristas"
+    },
+    {
+      "Nombre de la Ocupación": "Peluqueros / Peluqueras"
+    },
+    {
+      "Nombre de la Ocupación": "Manicuristas y pedicuristas"
+    },
+    {
+      "Nombre de la Ocupación": "Cosmetólogos esteticistas / Cosmetólogas esteticistas"
+    },
+    {
+      "Nombre de la Ocupación": "Maquilladores / Maquilladoras"
+    },
+    {
+      "Nombre de la Ocupación": "Asesores de imagen / Asesoras de imagen"
+    },
+    {
+      "Nombre de la Ocupación": "Otras ocupaciones elementales de los servicios no clasificados en otras ocupaciones / Otras ocupaciones elementales de los servicios no clasificadas en otras ocupaciones"
+    },
+    {
+      "Nombre de la Ocupación": "Supervisores de mantenimiento y limpieza en oficinas, hoteles y otros establecimientos / Supervisoras de mantenimiento y limpieza en oficinas, hoteles y otros establecimientos"
+    },
+    {
+      "Nombre de la Ocupación": "Ecónomos y mayordomos domésticos / Ecónomas y mayordomas domésticas"
+    },
+    {
+      "Nombre de la Ocupación": "Conserjes y afines"
+    },
+    {
+      "Nombre de la Ocupación": "Astrólogos, adivinos y afines / Astrólogas, adivinas y afines"
+    },
+    {
+      "Nombre de la Ocupación": "Acompañantes"
+    },
+    {
+      "Nombre de la Ocupación": "Tanatopractores / Tanatopractoras"
+    },
+    {
+      "Nombre de la Ocupación": "Coordinadores de servicios funerarios / Coordinadoras de servicios funerarios"
+    },
+    {
+      "Nombre de la Ocupación": "Personal de servicios funerarios"
+    },
+    {
+      "Nombre de la Ocupación": "Cuidadores de animales / Cuidadoras de animales"
+    },
+    {
+      "Nombre de la Ocupación": "Instructores de conducción / Instructoras de conducción"
+    },
+    {
+      "Nombre de la Ocupación": "Otros trabajadores de servicios personales no clasificados en otras ocupaciones / Otras trabajadoras de servicios personales no clasificados en otras ocupaciones"
+    },
+    {
+      "Nombre de la Ocupación": "Vendedores en quioscos y puestos de mercado / Vendedoras en quioscos y puestos de mercado"
+    },
+    {
+      "Nombre de la Ocupación": "Vendedores ambulantes de alimentos preparados para consumo inmediato / Vendedoras ambulantes de alimentos preparados para consumo inmediato"
+    },
+    {
+      "Nombre de la Ocupación": "Comerciantes de tiendas"
+    },
+    {
+      "Nombre de la Ocupación": "Supervisores de tiendas y almacenes / Supervisoras de tiendas y almacenes"
+    },
+    {
+      "Nombre de la Ocupación": "Vendedores y auxiliares de venta en tiendas, almacenes y afines / Vendedoras y auxiliares de venta en tiendas, almacenes y afines"
+    },
+    {
+      "Nombre de la Ocupación": "Cajeros de comercio, taquilleros y expendedores de boletas / Cajeras de comercio, taquilleros y expendedores de boletas"
+    },
+    {
+      "Nombre de la Ocupación": "Modelos de moda, arte y publicidad"
+    },
+    {
+      "Nombre de la Ocupación": "Demostradores de tiendas, almacenes y afines / Demostradoras de tiendas, almacenes y afines"
+    },
+    {
+      "Nombre de la Ocupación": "Vendedores puerta a puerta / Vendedoras puerta a puerta"
+    },
+    {
+      "Nombre de la Ocupación": "Vendedores a través de medios tecnológicos / Vendedoras a través de medios tecnológicos"
+    },
+    {
+      "Nombre de la Ocupación": "Expendedores de combustibles para vehículos / Expendedoras de combustibles para vehículos"
+    },
+    {
+      "Nombre de la Ocupación": "Vendedores de comidas en mostrador / Vendedoras de comidas en mostrador"
+    },
+    {
+      "Nombre de la Ocupación": "Otros vendedores no clasificados en otras ocupaciones / Otras vendedoras no clasificadas en otras ocupaciones"
+    },
+    {
+      "Nombre de la Ocupación": "Cuidadores de niños / Cuidadoras de niños"
+    },
+    {
+      "Nombre de la Ocupación": "Auxiliares de maestros y primera infancia"
+    },
+    {
+      "Nombre de la Ocupación": "Trabajadores de los cuidados personales en instituciones / Trabajadoras de los cuidados personales en instituciones"
+    },
+    {
+      "Nombre de la Ocupación": "Trabajadores de los cuidados personales a domicilio / Trabajadoras de los cuidados personales a domicilio"
+    },
+    {
+      "Nombre de la Ocupación": "Auxiliares en enfermería"
+    },
+    {
+      "Nombre de la Ocupación": "Auxiliares en salud oral"
+    },
+    {
+      "Nombre de la Ocupación": "Auxiliares en salud pública"
+    },
+    {
+      "Nombre de la Ocupación": "Auxiliares de laboratorio clínico"
+    },
+    {
+      "Nombre de la Ocupación": "Auxiliares en servicios farmacéuticos"
+    },
+    {
+      "Nombre de la Ocupación": "Trabajadores de los cuidados personales en servicios de salud no clasificados en otras ocupaciones / Trabajadoras de los cuidados personales en servicios de salud no clasificados en otras ocupaciones"
+    },
+    {
+      "Nombre de la Ocupación": "Oficiales de bomberos"
+    },
+    {
+      "Nombre de la Ocupación": "Suboficiales de bomberos"
+    },
+    {
+      "Nombre de la Ocupación": "Bomberos / Bomberas"
+    },
+    {
+      "Nombre de la Ocupación": "Rescatistas"
+    },
+    {
+      "Nombre de la Ocupación": "Oficiales de policía"
+    },
+    {
+      "Nombre de la Ocupación": "Suboficiales y nivel ejecutivo de la policía"
+    },
+    {
+      "Nombre de la Ocupación": "Patrulleros y agentes de policía / Patrulleras y agentes de policía"
+    },
+    {
+      "Nombre de la Ocupación": "Auxiliares de policía"
+    },
+    {
+      "Nombre de la Ocupación": "Oficiales del cuerpo de custodia y vigilancia"
+    },
+    {
+      "Nombre de la Ocupación": "Suboficiales del cuerpo de custodia y vigilancia"
+    },
+    {
+      "Nombre de la Ocupación": "Guardianes de prisión / Guardianas de prisión"
+    },
+    {
+      "Nombre de la Ocupación": "Supervisor de personal de vigilancia / Supervisora de personal de vigilancia"
+    },
+    {
+      "Nombre de la Ocupación": "Vigilantes, guardas y personal operativo de seguridad privada"
+    },
+    {
+      "Nombre de la Ocupación": "Guardavidas y salvavidas"
+    },
+    {
+      "Nombre de la Ocupación": "Agentes de tránsito"
+    },
+    {
+      "Nombre de la Ocupación": "Técnicos operativos de tránsito / Técnicas operativas de tránsito"
+    },
+    {
+      "Nombre de la Ocupación": "Personal de los servicios de protección no clasificadas en otras ocupaciones"
+    },
+    {
+      "Nombre de la Ocupación": "Agricultores de cultivos extensivos / Agricultoras de cultivos extensivos"
+    },
+    {
+      "Nombre de la Ocupación": "Trabajadores agrícolas calificados de cultivos extensivos / Trabajadoras agrícolas calificadas de cultivos extensivos"
+    },
+    {
+      "Nombre de la Ocupación": "Trabajadores calificados de riego agrícola / Trabajadoras calificadas de riego agrícola"
+    },
+    {
+      "Nombre de la Ocupación": "Agricultores de plantaciones de árboles y arbustos / Agricultoras de plantaciones de árboles y arbustos"
+    },
+    {
+      "Nombre de la Ocupación": "Trabajadores agrícolas calificados de plantaciones de árboles y arbustos / Trabajadoras agrícolas calificadas de plantaciones de árboles y arbustos"
+    },
+    {
+      "Nombre de la Ocupación": "Agricultores de huertas, invernaderos, viveros y jardines / Agricultoras de huertas, invernaderos, viveros y jardines"
+    },
+    {
+      "Nombre de la Ocupación": "Trabajadores agrícolas calificados de huertas, invernaderos, viveros y jardines / Trabajadoras agrícolas calificadas de huertas, invernaderos, viveros y jardines"
+    },
+    {
+      "Nombre de la Ocupación": "Agricultores y trabajadores calificados de cultivos mixtos / Agricultoras y trabajadoras calificadas de cultivos mixtos"
+    },
+    {
+      "Nombre de la Ocupación": "Criadores de animales (excepto aves de corral) / Criadoras de animales (excepto aves de corral)"
+    },
+    {
+      "Nombre de la Ocupación": "Trabajadores calificados de la cría de animales (excepto aves de corral) / Trabajadoras calificadas de la cría de animales (excepto aves de corral)"
+    },
+    {
+      "Nombre de la Ocupación": "Avicultores / Avicultoras"
+    },
+    {
+      "Nombre de la Ocupación": "Trabajadores calificados de la avicultura / Trabajadoras calificadas de la avicultura"
+    },
+    {
+      "Nombre de la Ocupación": "Criadores y trabajadores calificados de la apicultura y la sericicultura / Criadoras y trabajadoras calificadas de la apicultura y la sericicultura"
+    },
+    {
+      "Nombre de la Ocupación": "Criadores y trabajadores pecuarios calificados, avicultores y criadores de insectos no clasificados en otras ocupaciones / Criadoras y trabajadoras pecuarias calificadas, avicultoras y criadoras de insectos no clasificadas en otras ocupaciones"
+    },
+    {
+      "Nombre de la Ocupación": "Productores y trabajadores calificados de explotaciones agropecuarias mixtas cuya producción se destina al mercado / Productoras y trabajadoras calificadas de explotaciones agropecuarias mixtas cuya producción se destina al mercado"
+    },
+    {
+      "Nombre de la Ocupación": "Trabajadores calificados de explotación forestal / Trabajadoras calificadas de explotación forestal"
+    },
+    {
+      "Nombre de la Ocupación": "Trabajadores de silvicultura y forestación / Trabajadoras de silvicultura y forestación"
+    },
+    {
+      "Nombre de la Ocupación": "Productores de acuicultura / Productoras de acuicultura"
+    },
+    {
+      "Nombre de la Ocupación": "Trabajadores acuícolas calificados / Trabajadoras acuícolas calificadas"
+    },
+    {
+      "Nombre de la Ocupación": "Capitanes y patrones de pesca de aguas dulces y costeras"
+    },
+    {
+      "Nombre de la Ocupación": "Pescadores de aguas dulces y costeras / Pescadoras de aguas dulces y costeras"
+    },
+    {
+      "Nombre de la Ocupación": "Capitanes y patrones de pesca de alta mar"
+    },
+    {
+      "Nombre de la Ocupación": "Pescadores de alta mar / Pescadoras de alta mar"
+    },
+    {
+      "Nombre de la Ocupación": "Cazadores y tramperos / Cazadoras y tramperas"
+    },
+    {
+      "Nombre de la Ocupación": "Trabajadores agrícolas de subsistencia / Trabajadoras agrícolas de subsistencia"
+    },
+    {
+      "Nombre de la Ocupación": "Trabajadores pecuarios de subsistencia / Trabajadoras pecuarias de subsistencia"
+    },
+    {
+      "Nombre de la Ocupación": "Trabajadores agropecuarios de subsistencia / Trabajadoras agropecuarias de subsistencia"
+    },
+    {
+      "Nombre de la Ocupación": "Pescadores, cazadores, tramperos y recolectores de subsistencia / Pescadoras, cazadoras, tramperas y recolectoras de subsistencia"
+    },
+    {
+      "Nombre de la Ocupación": "Constructores de casas / Constructoras de casas"
+    },
+    {
+      "Nombre de la Ocupación": "Albañiles y oficiales de construcción"
+    },
+    {
+      "Nombre de la Ocupación": "Labrantes, tronzadores y grabadores de piedra / Labrantes, tronzadores y grabadores de piedra"
+    },
+    {
+      "Nombre de la Ocupación": "Operarios en cemento armado, enfoscadores y afines / Operarias en cemento armado, enfoscadores y afines"
+    },
+    {
+      "Nombre de la Ocupación": "Carpinteros de armar y de obra blanca / Carpinteras de armar y de obra blanca"
+    },
+    {
+      "Nombre de la Ocupación": "Oficiales y operarios de la construcción de obra gruesa y afines no clasificados en otras ocupaciones"
+    },
+    {
+      "Nombre de la Ocupación": "Techadores / Techadoras"
+    },
+    {
+      "Nombre de la Ocupación": "Enchapadores / Enchapadoras"
+    },
+    {
+      "Nombre de la Ocupación": "Instaladores de pisos / Instaladoras de pisos"
+    },
+    {
+      "Nombre de la Ocupación": "Revocadores / Revocadoras"
+    },
+    {
+      "Nombre de la Ocupación": "Instaladores de material aislante y de insonorización / Instaladoras de material aislante y de insonorización"
+    },
+    {
+      "Nombre de la Ocupación": "Cristaleros y vidrieros / Cristaleras y vidrieras"
+    },
+    {
+      "Nombre de la Ocupación": "Fontaneros y plomeros / Fontaneras y plomeras"
+    },
+    {
+      "Nombre de la Ocupación": "Instaladores de tuberías para sistemas de extinción de incendios / Instaladoras de tuberías para sistemas de extinción de incendios"
+    },
+    {
+      "Nombre de la Ocupación": "Instaladores de redes y equipos a gas / Instaladoras de redes y equipos a gas"
+    },
+    {
+      "Nombre de la Ocupación": "Operarios de mantenimiento de redes de abastecimiento de agua y gas / Operarias de mantenimiento de redes de abastecimiento de agua y gas"
+    },
+    {
+      "Nombre de la Ocupación": "Mecánicos montadores de aire acondicionado y refrigeración / Mecánicas montadoras de aire acondicionado y refrigeración"
+    },
+    {
+      "Nombre de la Ocupación": "Pintores y empapeladores / Pintoras y empapeladoras"
+    },
+    {
+      "Nombre de la Ocupación": "Barnizadores y afines / Barnizadoras y afines"
+    },
+    {
+      "Nombre de la Ocupación": "Limpiadores de fachadas y deshollinadores / Limpiadoras de fachadas y deshollinadores"
+    },
+    {
+      "Nombre de la Ocupación": "Operarios de fundición, moldeadores y macheros / Operarias de fundición, moldeadores y macheros"
+    },
+    {
+      "Nombre de la Ocupación": "Soldadores y oxicortadores / Soldadoras y oxicortadoras"
+    },
+    {
+      "Nombre de la Ocupación": "Chapistas y caldereros / Chapistas y caldereras"
+    },
+    {
+      "Nombre de la Ocupación": "Latoneros / Latoneras"
+    },
+    {
+      "Nombre de la Ocupación": "Montadores de estructuras metálicas / Montadoras de estructuras metálicas"
+    },
+    {
+      "Nombre de la Ocupación": "Aparejadores / Aparejadoras"
+    },
+    {
+      "Nombre de la Ocupación": "Instaladores y empalmadores de cables / Instaladoras y empalmadoras de cables"
+    },
+    {
+      "Nombre de la Ocupación": "Herreros y forjadores / Herreras y forjadoras"
+    },
+    {
+      "Nombre de la Ocupación": "Herramentistas y afines"
+    },
+    {
+      "Nombre de la Ocupación": "Ajustadores y operadores de máquinas herramientas / Ajustadoras y operadoras de máquinas herramientas"
+    },
+    {
+      "Nombre de la Ocupación": "Pulidores de metales y afiladores de herramientas / Pulidoras de metales y afiladores de herramientas"
+    },
+    {
+      "Nombre de la Ocupación": "Mecánicos y reparadores de vehículos de motor / Mecánicas y reparadoras de vehículos de motor"
+    },
+    {
+      "Nombre de la Ocupación": "Mecánicos y reparadores de sistemas y motores de aeronaves / Mecánicas y reparadoras de sistemas y motores de aeronaves"
+    },
+    {
+      "Nombre de la Ocupación": "Mecánicos industriales / Mecánicas industriales"
+    },
+    {
+      "Nombre de la Ocupación": "Mecánicos de equipo pesado / Mecánicas de equipo pesado"
+    },
+    {
+      "Nombre de la Ocupación": "Mecánicos de maquinaria textil, confección, cuero, calzado y marroquinería / Mecánicas de maquinaria textil, confección, cuero, calzado y marroquinería"
+    },
+    {
+      "Nombre de la Ocupación": "Marineros de sala de máquinas / Marineras de sala de máquinas"
+    },
+    {
+      "Nombre de la Ocupación": "Auxiliares en automatización e instrumentación industrial"
+    },
+    {
+      "Nombre de la Ocupación": "Reparadores de bicicletas y afines / Reparadoras de bicicletas y afines"
+    },
+    {
+      "Nombre de la Ocupación": "Mecánicos y reparadores de instrumentos de precisión / Mecánicas y reparadoras de instrumentos de precisión"
+    },
+    {
+      "Nombre de la Ocupación": "Fabricantes y afinadores de instrumentos musicales / Fabricantes y afinadoras de instrumentos musicales"
+    },
+    {
+      "Nombre de la Ocupación": "Alfareros y ceramistas (barro y arcilla) / Alfareras y ceramistas (barro y arcilla)"
+    },
+    {
+      "Nombre de la Ocupación": "Operarios de fabricación, moldeo y acabado del vidrio / Operarias de fabricación, moldeo y acabado del vidrio"
+    },
+    {
+      "Nombre de la Ocupación": "Artesanos de trabajos en vidrio / Artesanas de trabajos en vidrio"
+    },
+    {
+      "Nombre de la Ocupación": "Rotulistas, pintores decorativos y grabadores / Rotulistas, pintoras decorativas y grabadoras"
+    },
+    {
+      "Nombre de la Ocupación": "Pre-impresores y pre-prensistas de artes gráficas / Pre-impresoras y pre-prensistas de artes gráficas"
+    },
+    {
+      "Nombre de la Ocupación": "Tipógrafos / Tipógrafas"
+    },
+    {
+      "Nombre de la Ocupación": "Impresores de artes gráficas / Impresoras de artes gráficas"
+    },
+    {
+      "Nombre de la Ocupación": "Encuadernadores y afines / Encuadernadoras y afines"
+    },
+    {
+      "Nombre de la Ocupación": "Tejedores con telares / Tejedoras con telares"
+    },
+    {
+      "Nombre de la Ocupación": "Tejedores con agujas / Tejedoras con agujas"
+    },
+    {
+      "Nombre de la Ocupación": "Otros tejedores / Otras tejedoras"
+    },
+    {
+      "Nombre de la Ocupación": "Cesteros y mimbreros / Cesteras y mimbreras"
+    },
+    {
+      "Nombre de la Ocupación": "Sombrereros artesanales / Sombrereras artesanales"
+    },
+    {
+      "Nombre de la Ocupación": "Talladores de piezas artesanales de madera / Talladoras de piezas artesanales de madera"
+    },
+    {
+      "Nombre de la Ocupación": "Decoradores de piezas artesanales en madera / Decoradoras de piezas artesanales en madera"
+    },
+    {
+      "Nombre de la Ocupación": "Joyeros / Joyeras"
+    },
+    {
+      "Nombre de la Ocupación": "Orfebres y plateros / Orfebres y plateras"
+    },
+    {
+      "Nombre de la Ocupación": "Bisuteros / Bisuteras"
+    },
+    {
+      "Nombre de la Ocupación": "Artesanos del cuero / Artesanas del cuero"
+    },
+    {
+      "Nombre de la Ocupación": "Artesanos de papel / Artesanas de papel"
+    },
+    {
+      "Nombre de la Ocupación": "Artesanos del hierro y otros metales / Artesanas del hierro y otros metales"
+    },
+    {
+      "Nombre de la Ocupación": "Artesanos de las semillas y cortezas vegetales / Artesanas de las semillas y cortezas vegetales"
+    },
+    {
+      "Nombre de la Ocupación": "Artesanos de trabajos en materiales líticos / Artesanas de trabajos en materiales líticos"
+    },
+    {
+      "Nombre de la Ocupación": "Artesanos de otros materiales no clasificados en otras ocupaciones / Artesanas de otros materiales no clasificados en otras ocupaciones"
+    },
+    {
+      "Nombre de la Ocupación": "Electricistas de obra, residenciales y afines"
+    },
+    {
+      "Nombre de la Ocupación": "Ayudantes electricistas"
+    },
+    {
+      "Nombre de la Ocupación": "Electricistas industriales"
+    },
+    {
+      "Nombre de la Ocupación": "Reparadores de aparatos electrodomésticos / Reparadoras de aparatos electrodomésticos"
+    },
+    {
+      "Nombre de la Ocupación": "Mecánicos electricistas / Mecánicas electricistas"
+    },
+    {
+      "Nombre de la Ocupación": "Instaladores y reparadores de líneas eléctricas / Instaladoras y reparadoras de líneas eléctricas"
+    },
+    {
+      "Nombre de la Ocupación": "Ajustadores, reparadores e instaladores en electrónica / Ajustadoras, reparadoras e instaladoras en electrónica"
+    },
+    {
+      "Nombre de la Ocupación": "Técnicos instaladores de redes y líneas de telecomunicaciones / Técnicas instaladoras de redes y líneas de telecomunicaciones"
+    },
+    {
+      "Nombre de la Ocupación": "Auxiliares técnicos de instalación, mantenimiento y reparación de sistemas de telecomunicaciones / Auxiliares técnicas de instalación, mantenimiento y reparación de sistemas de telecomunicaciones"
+    },
+    {
+      "Nombre de la Ocupación": "Operarios de mantenimiento y servicio de televisión por cable / Operarias de mantenimiento y servicio de televisión por cable"
+    },
+    {
+      "Nombre de la Ocupación": "Carniceros, pescaderos y afines / Carniceras, pescaderas y afines"
+    },
+    {
+      "Nombre de la Ocupación": "Panaderos, pasteleros y confiteros / Panaderas, pasteleras y confiteras"
+    },
+    {
+      "Nombre de la Ocupación": "Paneleros / Paneleras"
+    },
+    {
+      "Nombre de la Ocupación": "Operarios de la elaboración de productos lácteos / Operarias de la elaboración de productos lácteos"
+    },
+    {
+      "Nombre de la Ocupación": "Operarios de la conservación de frutas, legumbres, verduras y afines / Operarias de la conservación de frutas, legumbres, verduras y afines"
+    },
+    {
+      "Nombre de la Ocupación": "Catadores y clasificadores de alimentos y bebidas / Catadoras y clasificadoras de alimentos y bebidas"
+    },
+    {
+      "Nombre de la Ocupación": "Preparadores y elaboradores de cigarros y productos del tabaco / Preparadoras y elaboradoras de cigarros y productos del tabaco"
+    },
+    {
+      "Nombre de la Ocupación": "Operarios del tratamiento de la madera / Operarias del tratamiento de la madera"
+    },
+    {
+      "Nombre de la Ocupación": "Ebanistas y carpinteros (excluye carpinteros de armar y de obra blanca) / Ebanistas y carpinteras (excluye carpinteras de armar y de obra blanca)"
+    },
+    {
+      "Nombre de la Ocupación": "Ajustadores y operadores de máquinas para trabajar madera / Ajustadoras y operadoras de máquinas para trabajar madera"
+    },
+    {
+      "Nombre de la Ocupación": "Sastres, modistos, peleteros y sombrereros / Sastresas, modistas, peleteras y sombrereras"
+    },
+    {
+      "Nombre de la Ocupación": "Patronistas de productos de tela, cuero y piel"
+    },
+    {
+      "Nombre de la Ocupación": "Cortadores de tela, cuero y piel / Cortadoras de tela, cuero y piel"
+    },
+    {
+      "Nombre de la Ocupación": "Costureros, bordadores y afines / Costureras, bordadoras y afines"
+    },
+    {
+      "Nombre de la Ocupación": "Tapiceros, colchoneros y afines / Tapiceras, colchoneras y afines"
+    },
+    {
+      "Nombre de la Ocupación": "Apelambradores, pellejeros y curtidores / Apelambradoras, pellejeras y curtidoras"
+    },
+    {
+      "Nombre de la Ocupación": "Zapateros y afines / Zapateras y afines"
+    },
+    {
+      "Nombre de la Ocupación": "Buzos / Buzas"
+    },
+    {
+      "Nombre de la Ocupación": "Dinamiteros y pegadores / Dinamiteras y pegadoras"
+    },
+    {
+      "Nombre de la Ocupación": "Analistas de calidad de textiles"
+    },
+    {
+      "Nombre de la Ocupación": "Inspectores de control de calidad, fabricación de productos de tela, piel y cuero / Inspectoras de control de calidad, fabricación de productos de tela, piel y cuero"
+    },
+    {
+      "Nombre de la Ocupación": "Inspectores de control de calidad, procesamiento de la madera / Inspectoras de control de calidad, procesamiento de la madera"
+    },
+    {
+      "Nombre de la Ocupación": "Clasificadores y probadores de productos (excluyendo alimentos y bebidas) no clasificados en otras ocupaciones / Clasificadoras y probadoras de productos (excluyendo alimentos y bebidas) no clasificados en otras ocupaciones"
+    },
+    {
+      "Nombre de la Ocupación": "Fumigadores y otros controladores de plagas y malas hierbas / Fumigadoras y otras controladoras de plagas y malas hierbas"
+    },
+    {
+      "Nombre de la Ocupación": "Operarios y auxiliares de mecánica oftálmica / Operarias y auxiliares de mecánica oftálmica"
+    },
+    {
+      "Nombre de la Ocupación": "Otros oficiales, operarios y oficios relacionados no clasificados en otras ocupaciones / Otras oficiales, operarias y oficios relacionados no clasificados en otras ocupaciones"
+    },
+    {
+      "Nombre de la Ocupación": "Mineros y canteros / Mineras y canteras"
+    },
+    {
+      "Nombre de la Ocupación": "Operadores de servicios e instalaciones mineras / Operadoras de servicios e instalaciones mineras"
+    },
+    {
+      "Nombre de la Ocupación": "Operadores de equipo pesado de minería / Operadoras de equipo pesado de minería"
+    },
+    {
+      "Nombre de la Ocupación": "Operadores de instalaciones de procesamiento de minerales y rocas / Operadoras de instalaciones de procesamiento de minerales y rocas"
+    },
+    {
+      "Nombre de la Ocupación": "Perforadores de pozos de gas y petróleo / Perforadoras de pozos de gas y petróleo"
+    },
+    {
+      "Nombre de la Ocupación": "Perforadores de pozos de agua / Perforadoras de pozos de agua"
+    },
+    {
+      "Nombre de la Ocupación": "Operadores de servicios en perforación de petróleo y gas / Operadoras de servicios en perforación de petróleo y gas"
+    },
+    {
+      "Nombre de la Ocupación": "Operadores de producción de hidrocarburos / Operadoras de producción de hidrocarburos"
+    },
+    {
+      "Nombre de la Ocupación": "Operadores de servicios a pozos de hidrocarburos / Operadoras de servicios a pozos de hidrocarburos"
+    },
+    {
+      "Nombre de la Ocupación": "Operadores de torres de perforación de pozos hidrocarburos / Operadoras de torres de perforación de pozos hidrocarburos"
+    },
+    {
+      "Nombre de la Ocupación": "Operadores de máquinas para fabricar cemento y otros productos minerales / Operadoras de máquinas para fabricar cemento y otros productos minerales"
+    },
+    {
+      "Nombre de la Ocupación": "Operadores de instalaciones de procesamiento de metales / Operadoras de instalaciones de procesamiento de metales"
+    },
+    {
+      "Nombre de la Ocupación": "Operadores de máquinas pulidoras, galvanizadoras y recubridoras de metales / Operadoras de máquinas pulidoras, galvanizadoras y recubridoras de metales"
+    },
+    {
+      "Nombre de la Ocupación": "Operadores de máquinas de planta química / Operadoras de máquinas de planta química"
+    },
+    {
+      "Nombre de la Ocupación": "Operadores de planta de gas / Operadoras de planta de gas"
+    },
+    {
+      "Nombre de la Ocupación": "Operadores de máquinas y procesadores fotográficos y de películas / Operadoras de máquinas y procesadores fotográficos y de películas"
+    },
+    {
+      "Nombre de la Ocupación": "Operadores de máquinas para fabricar y procesar productos de caucho / Operadoras de máquinas para fabricar y procesar productos de caucho"
+    },
+    {
+      "Nombre de la Ocupación": "Operadores de máquinas para fabricar productos de material plástico / Operadoras de máquinas para fabricar productos de material plástico"
+    },
+    {
+      "Nombre de la Ocupación": "Operadores de máquinas para fabricar productos de papel / Operadoras de máquinas para fabricar productos de papel"
+    },
+    {
+      "Nombre de la Ocupación": "Operadores de máquinas de preparación de fibras, hilado y devanado / Operadoras de máquinas de preparación de fibras, hilado y devanado"
+    },
+    {
+      "Nombre de la Ocupación": "Operadores de telares y otras máquinas tejedoras / Operadoras de telares y otras máquinas tejedoras"
+    },
+    {
+      "Nombre de la Ocupación": "Operadores de máquinas de coser y bordar / Operadoras de máquinas de coser y bordar"
+    },
+    {
+      "Nombre de la Ocupación": "Operadores de máquinas de blanqueamiento, teñido y limpieza de tejidos / Operadoras de máquinas de blanqueamiento, teñido y limpieza de tejidos"
+    },
+    {
+      "Nombre de la Ocupación": "Operadores de máquinas de tratamiento de pieles y cueros / Operadoras de máquinas de tratamiento de pieles y cueros"
+    },
+    {
+      "Nombre de la Ocupación": "Operadores de máquinas para la fabricación de calzado y afines / Operadoras de máquinas para la fabricación de calzado y afines"
+    },
+    {
+      "Nombre de la Ocupación": "Operadores de máquinas de lavandería / Operadoras de máquinas de lavandería"
+    },
+    {
+      "Nombre de la Ocupación": "Operadores de máquinas para fabricar productos textiles y artículos de piel y cuero no clasificadas en otras ocupaciones / Operadoras de máquinas para fabricar productos textiles y artículos de piel y cuero no clasificadas en otras ocupaciones"
+    },
+    {
+      "Nombre de la Ocupación": "Operadores de máquinas para elaborar alimentos y productos afines / Operadoras de máquinas para elaborar alimentos y productos afines"
+    },
+    {
+      "Nombre de la Ocupación": "Operadores de máquinas para la fabricación de papel / Operadoras de máquinas para la fabricación de papel"
+    },
+    {
+      "Nombre de la Ocupación": "Operadores de máquinas para la producción de pulpa / Operadoras de máquinas para la producción de pulpa"
+    },
+    {
+      "Nombre de la Ocupación": "Operadores de instalaciones de procesamiento de la madera / Operadoras de instalaciones de procesamiento de la madera"
+    },
+    {
+      "Nombre de la Ocupación": "Operadores de fabricación, moldeo y acabado del vidrio / Operadoras de fabricación, moldeo y acabado del vidrio"
+    },
+    {
+      "Nombre de la Ocupación": "Operadores de moldeo de arcilla y piedra / Operadoras de moldeo de arcilla y piedra"
+    },
+    {
+      "Nombre de la Ocupación": "Operadores de máquinas de vapor y calderas / Operadoras de máquinas de vapor y calderas"
+    },
+    {
+      "Nombre de la Ocupación": "Operadores de máquinas de embalaje, embotellamiento y etiquetado / Operadoras de máquinas de embalaje, embotellamiento y etiquetado"
+    },
+    {
+      "Nombre de la Ocupación": "Operadores portuarios / Operadoras portuarias"
+    },
+    {
+      "Nombre de la Ocupación": "Otros operadores de máquinas y de instalaciones fijas no clasificados en otras ocupaciones / Otras operadoras de máquinas y de instalaciones fijas no clasificados en otras ocupaciones"
+    },
+    {
+      "Nombre de la Ocupación": "Ensambladores de maquinaria mecánica / Ensambladoras de maquinaria mecánica"
+    },
+    {
+      "Nombre de la Ocupación": "Ensambladores de productos electrónicos / Ensambladoras de productos electrónicos"
+    },
+    {
+      "Nombre de la Ocupación": "Ensambladores de aparatos y equipo eléctrico / Ensambladoras de aparatos y equipo eléctrico"
+    },
+    {
+      "Nombre de la Ocupación": "Ensambladores de transformadores y motores eléctricos industriales / Ensambladoras de transformadores y motores eléctricos industriales"
+    },
+    {
+      "Nombre de la Ocupación": "Operadores de máquinas para la fabricación de productos y componentes eléctricos / Operadoras de máquinas para la fabricación de productos y componentes eléctricos"
+    },
+    {
+      "Nombre de la Ocupación": "Ensambladores no clasificados en otras ocupaciones / Ensambladoras no clasificadas en otras ocupaciones"
+    },
+    {
+      "Nombre de la Ocupación": "Maquinistas de transporte ferroviario"
+    },
+    {
+      "Nombre de la Ocupación": "Guardafrenos, guardagujas y agentes de maniobras"
+    },
+    {
+      "Nombre de la Ocupación": "Conductores de motocicletas / Conductoras de motocicletas"
+    },
+    {
+      "Nombre de la Ocupación": "Conductores de camionetas y vehículos livianos / Conductoras de camionetas y vehículos livianos"
+    },
+    {
+      "Nombre de la Ocupación": "Conductores de taxis / Conductoras de taxis"
+    },
+    {
+      "Nombre de la Ocupación": "Conductores de buses, microbuses y tranvías / Conductoras de buses, microbuses y tranvías"
+    },
+    {
+      "Nombre de la Ocupación": "Conductores de camiones y vehículos pesados / Conductoras de camiones y vehículos pesados"
+    },
+    {
+      "Nombre de la Ocupación": "Operadores de maquinaria agrícola y forestal móvil / Operadoras de maquinaria agrícola y forestal móvil"
+    },
+    {
+      "Nombre de la Ocupación": "Operadores de máquinas de movimiento de tierras, construcción de vías y afines / Operadoras de máquinas de movimiento de tierras, construcción de vías y afines"
+    },
+    {
+      "Nombre de la Ocupación": "Operadores de grúas, aparatos elevadores y afines / Operadoras de grúas, aparatos elevadores y afines"
+    },
+    {
+      "Nombre de la Ocupación": "Operadores de montacargas / Operadoras de montacargas"
+    },
+    {
+      "Nombre de la Ocupación": "Marineros de cubierta y de apoyo / Marineras de cubierta y de apoyo"
+    },
+    {
+      "Nombre de la Ocupación": "Operadores de embarcaciones menores / Operadoras de embarcaciones menores"
+    },
+    {
+      "Nombre de la Ocupación": "Personal de servicio doméstico"
+    },
+    {
+      "Nombre de la Ocupación": "Aseadores de oficinas, hoteles y otros establecimientos / Aseadoras de oficinas, hoteles y otros establecimientos"
+    },
+    {
+      "Nombre de la Ocupación": "Lavanderos y planchadores manuales / Lavanderas y planchadoras manuales"
+    },
+    {
+      "Nombre de la Ocupación": "Lavadores de vehículos / Lavadoras de vehículos"
+    },
+    {
+      "Nombre de la Ocupación": "Limpiadores de ventanas y vitrinas / Limpiadoras de ventanas y vitrinas"
+    },
+    {
+      "Nombre de la Ocupación": "Otro personal de limpieza no clasificados en otras ocupaciones / Otra personal de limpieza no clasificados en otras ocupaciones"
+    },
+    {
+      "Nombre de la Ocupación": "Obreros y peones de explotaciones agrícolas / Obreras y peonas de explotaciones agrícolas"
+    },
+    {
+      "Nombre de la Ocupación": "Obreros y peones de explotaciones ganaderas / Obreras y peonas de explotaciones ganaderas"
+    },
+    {
+      "Nombre de la Ocupación": "Obreros y peones de explotaciones agropecuarias / Obreras y peonas de explotaciones agropecuarias"
+    },
+    {
+      "Nombre de la Ocupación": "Obreros y peones de jardinería y horticultura / Obreras y peonas de jardinería y horticultura"
+    },
+    {
+      "Nombre de la Ocupación": "Obreros y peones forestales y de silvicultura / Obreras y peonas forestales y de silvicultura"
+    },
+    {
+      "Nombre de la Ocupación": "Obreros y peones de pesca y acuicultura / Obreras y peonas de pesca y acuicultura"
+    },
+    {
+      "Nombre de la Ocupación": "Obreros y peones de minas y canteras / Obreras y peonas de minas y canteras"
+    },
+    {
+      "Nombre de la Ocupación": "Obreros y ayudantes de producción en pozos de petróleo y gas / Obreras y ayudantas de producción en pozos de petróleo y gas"
+    },
+    {
+      "Nombre de la Ocupación": "Obreros y ayudantes de obras públicas y mantenimiento / Obreras y ayudantas de obras públicas y mantenimiento"
+    },
+    {
+      "Nombre de la Ocupación": "Obreros y operarios de cementerios / Obreras y operarias de cementerios"
+    },
+    {
+      "Nombre de la Ocupación": "Obreros y peones de la construcción / Obreras y peonas de la construcción"
+    },
+    {
+      "Nombre de la Ocupación": "Empacadores manuales / Empacadoras manuales"
+    },
+    {
+      "Nombre de la Ocupación": "Obreros y ayudantes en el procesamiento de la madera y producción de pulpa y papel / Obreras y ayudantas en el procesamiento de la madera y producción de pulpa y papel"
+    },
+    {
+      "Nombre de la Ocupación": "Obreros y ayudantes en el tratamiento de metales y minerales / Obreras y ayudantas en el tratamiento de metales y minerales"
+    },
+    {
+      "Nombre de la Ocupación": "Obreros y ayudantes de planta química / Obreras y ayudantas de planta química"
+    },
+    {
+      "Nombre de la Ocupación": "Obreros y ayudantes en la elaboración de alimentos y bebidas / Obreras y ayudantas en la elaboración de alimentos y bebidas"
+    },
+    {
+      "Nombre de la Ocupación": "Obreros y peones de la industria manufacturera no clasificados en otras ocupaciones / Obreras y peonas de la industria manufacturera no clasificadas en otras ocupaciones"
+    },
+    {
+      "Nombre de la Ocupación": "Conductores de vehículos accionados a pedal o a brazo / Conductoras de vehículos accionados a pedal o a brazo"
+    },
+    {
+      "Nombre de la Ocupación": "Conductores de vehículos y maquinaria de tracción animal / Conductoras de vehículos y maquinaria de tracción animal"
+    },
+    {
+      "Nombre de la Ocupación": "Obreros y peones de carga y descarga / Obreras y peonas de carga y descarga"
+    },
+    {
+      "Nombre de la Ocupación": "Obreros y peones portuarios / Obreras y peonas portuarias"
+    },
+    {
+      "Nombre de la Ocupación": "Operarios y auxiliares de rampa de transporte aéreo / Operarias y auxiliares de rampa de transporte aéreo"
+    },
+    {
+      "Nombre de la Ocupación": "Ayudantes de transporte automotor"
+    },
+    {
+      "Nombre de la Ocupación": "Surtidores de estanterías / Surtidoras de estanterías"
+    },
+    {
+      "Nombre de la Ocupación": "Cocineros de comidas rápidas / Cocineras de comidas rápidas"
+    },
+    {
+      "Nombre de la Ocupación": "Ayudantes de cocina"
+    },
+    {
+      "Nombre de la Ocupación": "Trabajadores ambulantes de servicios y afines / Trabajadoras ambulantes de servicios y afines"
+    },
+    {
+      "Nombre de la Ocupación": "Vendedores ambulantes (excluyendo comidas de preparación inmediata) / Vendedoras ambulantes (excluyendo comidas de preparación inmediata)"
+    },
+    {
+      "Nombre de la Ocupación": "Recolectores de basura y material reciclable / Recolectoras de basura y material reciclable"
+    },
+    {
+      "Nombre de la Ocupación": "Clasificadores de desechos / Clasificadoras de desechos"
+    },
+    {
+      "Nombre de la Ocupación": "Ayudantes y operarios de barrido y limpieza de vías y áreas públicas / Ayudantes y operarias de barrido y limpieza de vías y áreas públicas"
+    },
+    {
+      "Nombre de la Ocupación": "Mandaderos, maleteros y repartidores / Mandaderas, maleteras y repartidoras"
+    },
+    {
+      "Nombre de la Ocupación": "Mensajeros / Mensajeras"
+    },
+    {
+      "Nombre de la Ocupación": "Personas que realizan trabajos varios"
+    },
+    {
+      "Nombre de la Ocupación": "Acarreadores de agua y recolectores de leña / Acarreadoras de agua y recolectores de leña"
+    },
+    {
+      "Nombre de la Ocupación": "Recolectores de dinero y surtidores de máquinas de venta automática / Recolectoras de dinero y surtidores de máquinas de venta automática"
+    },
+    {
+      "Nombre de la Ocupación": "Lectores de medidores / Lectoras de medidores"
+    },
+    {
+      "Nombre de la Ocupación": "Auxiliares de servicios de recreación y deporte"
+    },
+    {
+      "Nombre de la Ocupación": "Ayudantes de mecánica y servicio automotriz"
+    },
+    {
+      "Nombre de la Ocupación": "Otras ocupaciones elementales no clasificadas en otras ocupaciones"
+    }
+  ]
+}

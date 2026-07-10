@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Cambiar Contraseña{% endblock %}
+{% block content %}
+<h1>Cambiar Contraseña</h1>
+<p>Por motivos de seguridad, debe actualizar su contraseña antes de continuar utilizando la plataforma.</p>
+
+<fieldset style="max-width: 500px; margin: 20px auto;">
+    <legend>Actualizar Contraseña</legend>
+    <form method="POST">
+        <div>
+            <label>Nueva Contraseña</label>
+            <input type="password" name="nueva_clave" required placeholder="Ingrese su nueva contraseña" style="margin-bottom: 15px;">
+        </div>
+        <div>
+            <label>Confirmar Contraseña</label>
+            <input type="password" name="confirmacion" required placeholder="Confirme su nueva contraseña" style="margin-bottom: 15px;">
+        </div>
+        <div style="display: flex; gap: 10px; margin-top: 10px;">
+            <a href="javascript:history.back()" style="background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px; display: inline-flex; align-items: center; justify-content: center; width: 50%;">← Volver</a>
+            <button type="submit" style="background: #2b6cb0; margin-top: 0; width: 50%;">Actualizar Contraseña</button>
+        </div>
+    </form>
+</fieldset>
+{% endblock %}

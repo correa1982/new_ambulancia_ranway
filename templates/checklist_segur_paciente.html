@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}{{ titulo }}{% endblock %}
+{% block content %}
+
+<style>
+.row { display: grid; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap: 12px; }
+.field { margin-bottom: 10px; }
+</style>
+
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;">
+    <h1 style="margin:0; display:flex; align-items:center; gap:10px;">
+        🛡️ {{ titulo }}
+        {% if record %}
+        <span style="background:#e0f2fe; color:#0369a1; padding:4px 10px; border-radius:20px; font-size:14px; font-weight:600;">Editar Registro (Borrador #{{ record.id }})</span>
+        {% endif %}
+    </h1>
+</div>
+
+<form method="POST" id="form-segur">
+    <input type="hidden" name="id" value="{{ record.id if record }}">
+    <div class="row">
+        <div class="field">
+            <label>Nombre</label>
+            <input type="text" name="primer_nombre" value="{{ record.primer_nombre if record }}" required>
+        </div>
+        <div class="field">
+            <label>Apellidos</label>
+            <input type="text" name="primer_apellido" value="{{ record.primer_apellido if record }}" required>
+        </div>
+        <div class="field">
+            <label>Tipo de Documento</label>
+            <select name="tipo_documento">
+                <option value="CC" {% if record and record.tipo_documento == 'CC' %}selected{% endif %}>CC</option>
+                <option value="TI" {% if record and record.tipo_documento == 'TI' %}selected{% endif %}>TI</option>
+                <option value="RC" {% if record and record.tipo_documento == 'RC' %}selected{% endif %}>RC</option>
+                <option value="CE" {% if record and record.tipo_documento == 'CE' %}selected{% endif %}>CE</option>
+            </select>
+        </div>
+        <div class="field">
+            <label>Número de Documento</label>
+            <input type="text" name="identificacion" value="{{ record.identificacion if record }}" required>
+        </div>
+    </div>
+
+    <div class="row" style="margin-top:8px;">
+        <div class="field">
+            <label>Fecha del reporte</label>
+            <input onclick="this.showPicker()" type="date" name="fecha" value="{{ hoy }}" required>
+        </div>
+        <div class="field">
+            <label>Hora del reporte</label>
+            <input onclick="this.showPicker()" type="time" name="hora" value="{{ hora_actual }}" required>
+        </div>
+    </div>
+
+    <div style="margin-top:12px;">
+        <label>Nombre del reporte</label>
+        <select name="nombre_reporte" required>
+            <option value="">— Seleccione —</option>
+            {% if checklist_items %}
+                {% for cat, items_list in checklist_items.items() %}
+                    {% for it in items_list %}
+                        <option value="{{ it.identificador }}" {% if record and record.nombre_reporte == it.identificador %}selected{% endif %}>{{ it.nombre }}</option>
+                    {% endfor %}
+                {% endfor %}
+            {% endif %}
+        </select>
+    </div>
+
+    <div style="margin-top:12px;">
+        <label>Descripción detallada de lo sucedido</label>
+        <textarea name="descripcion" rows="6" style="width:100%;">{{ record.descripcion if record else '' }}</textarea>
+    </div>
+
+    <div class="submit-row" style="display:flex; flex-wrap:wrap; gap:12px; justify-content: flex-end; margin-top:20px; align-items:center;">
+        <a href="{{ url_for('dashboard') }}" style="margin:0; box-sizing: border-box; height: 44px; font-family: inherit; background:#6b7280; color:white; text-decoration:none; border:none; padding:0 24px; border-radius:10px; font-weight:600; font-size:14px; display:inline-flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(107,114,128,0.2);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(107,114,128,0.3)'" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 6px -1px rgba(107,114,128,0.2)'">
+            <i class="ph ph-arrow-left" style="font-size:18px;"></i> Volver
+        </a>
+        <a href="{{ url_for('registros_checklist', tipo=tipo) }}" style="margin:0; box-sizing: border-box; height: 44px; font-family: inherit; background: linear-gradient(135deg,#f59e0b,#d97706); color:white; text-decoration:none; border:none; padding:0 24px; border-radius:10px; font-weight:600; font-size:14px; display:inline-flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(245,158,11,0.2);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(245,158,11,0.3)'" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 6px -1px rgba(245,158,11,0.2)'">
+            <i class="ph ph-folder-open" style="font-size:18px;"></i> Ver Registros
+        </a>
+        <button type="submit" name="accion" value="borrador" style="margin:0; box-sizing: border-box; height: 44px; font-family: inherit; background:linear-gradient(135deg,#1e6fbf,#185999); color:white; border:none; padding:0 24px; border-radius:10px; font-weight:600; font-size:14px; display:inline-flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(30,111,191,0.3);" formnovalidate onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(30,111,191,0.4)'" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 6px -1px rgba(30,111,191,0.3)'">
+            <i class="ph ph-floppy-disk" style="font-size:18px;"></i> Guardar Borrador
+        </button>
+        <button type="submit" name="accion" value="finalizar" style="margin:0; box-sizing: border-box; height: 44px; font-family: inherit; background:linear-gradient(135deg,#10b981,#059669); color:white; border:none; padding:0 24px; border-radius:10px; font-weight:600; font-size:14px; display:inline-flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(16,185,129,0.2);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(16,185,129,0.3)'" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 6px -1px rgba(16,185,129,0.2)'" onclick="return confirm('¿Está seguro de finalizar este registro? Una vez finalizado no podrá ser editado.');">
+            <i class="ph ph-check-circle" style="font-size:18px;"></i> Guardar y Finalizar
+        </button>
+    </div>
+</form>
+
+{% endblock %}

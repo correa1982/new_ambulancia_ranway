@@ -1,0 +1,186 @@
+{
+  "_info": "Archivo editable. Agregue o quite barrios en cada comuna. El campo 'barrios' es la lista que aparece en el autocompletado del formulario.",
+  "comunas": [
+    {
+      "nombre": "Comuna 1 - Popular",
+      "barrios": [
+        "La Esperanza", "La Avanzada", "Granizal", "Moscú Nº 2", "Villa del Socorro",
+        "Villa Niquía", "Nuevo Horizonte", "El Compromiso", "Carpinelo", "La Quiebra",
+        "La Cruz", "El Playón de Los Comuneros", "Moscú Nº 1", "Popular",
+        "Santo Domingo Savio Nº 1", "Santo Domingo Savio Nº 2", "El Raizal", "San Pablo",
+        "La Esperanza Nº 2"
+      ]
+    },
+    {
+      "nombre": "Comuna 2 - Santa Cruz",
+      "barrios": [
+        "La Frontera", "La Francia", "Andalucía", "Palermo", "Bermejal - Los Álamos",
+        "La Salle", "Las Esmeraldas", "Santa Cruz", "San Isidro", "Picacho", "Picachito",
+        "Mirador del Doce", "El Triunfo", "La Isla", "El Pinal"
+      ]
+    },
+    {
+      "nombre": "Comuna 3 - Manrique",
+      "barrios": [
+        "Manrique Central Nº 1", "Manrique Central Nº 2", "Las Granjas", "El Raizal",
+        "El Pomar", "Medellín Sin Tugurios", "Versalles Nº 1", "Versalles Nº 2",
+        "Santa Inés", "San José La Cima Nº 1", "San José La Cima Nº 2", "La Honda",
+        "Oriente", "La Cruz"
+      ]
+    },
+    {
+      "nombre": "Comuna 4 - Aranjuez",
+      "barrios": [
+        "Aranjuez", "Brasilia", "Berlín", "La Piñuela", "Moravia", "Sevilla",
+        "Toledo", "Tricentenario", "San Pedro", "El Jardín", "Campo Valdés Nº 1",
+        "Campo Valdés Nº 2", "Las Esmeraldas", "Palermo"
+      ]
+    },
+    {
+      "nombre": "Comuna 5 - Castilla",
+      "barrios": [
+        "Castilla", "Francisco Antonio Zea", "Florencia", "Tejelo", "Belalcázar",
+        "Caribe", "Boyacá - Las Brisas", "Héctor Abad Gómez", "Zamora",
+        "Alfonso López", "Girardot", "Toscana", "Tricentenario"
+      ]
+    },
+    {
+      "nombre": "Comuna 6 - Doce de Octubre",
+      "barrios": [
+        "Doce de Octubre Nº 1", "Doce de Octubre Nº 2", "Pedregal", "Kennedy",
+        "Santander", "San Martín de Porres", "Picacho", "Picachito",
+        "Mirador del Doce", "El Triunfo", "La Isla"
+      ]
+    },
+    {
+      "nombre": "Comuna 7 - Robledo",
+      "barrios": [
+        "Robledo", "Córdoba", "El Diamante", "El Volador", "Fuente Clara", "La Iguaná",
+        "La Quintana", "López de Mesa", "Palenque", "San Germán", "Santa Margarita",
+        "Aures Nº 1", "Aures Nº 2", "Bello Horizonte", "Blanquizal", "Las Margaritas",
+        "Los Álamos", "Nuevos Conquistadores", "Olaya Herrera", "Pajarito",
+        "Monteclaro", "Nueva Villa de Aburrá"
+      ]
+    },
+    {
+      "nombre": "Comuna 8 - Villa Hermosa",
+      "barrios": [
+        "Villa Hermosa", "La Mansión", "San Miguel", "La Ladera", "Batallón Girardot",
+        "Llanaditas", "Los Mangos", "Enciso", "Sucre", "El Pinal", "Trece de Noviembre",
+        "La Libertad", "San Antonio", "Las Estancias", "Villa Turbay", "La Sierra",
+        "Villa Lilliam"
+      ]
+    },
+    {
+      "nombre": "Comuna 9 - Buenos Aires",
+      "barrios": [
+        "Buenos Aires", "Barrio Caicedo", "La Milagrosa", "Gerona", "El Salvador",
+        "Loreto", "Alejandro Echavarría", "Barrio Colón", "Barrio Pérez", "Boston",
+        "Cataluña", "La Consolata", "Naranjal", "Prado Centro", "Sevilla",
+        "Trinidad", "Guayaquil"
+      ]
+    },
+    {
+      "nombre": "Comuna 10 - La Candelaria (Centro)",
+      "barrios": [
+        "El Centro", "Barrio Colón", "Guayaquil", "Villanueva", "Prado", "Jesús Nazareno",
+        "El Chagualo", "Estación Villa", "San Benito", "Barrio Triste", "La Alpujarra",
+        "La Candelaria", "Bombona Nº 1", "Bombona Nº 2", "Los Ángeles", "Boston", "Manila"
+      ]
+    },
+    {
+      "nombre": "Comuna 11 - Laureles-Estadio",
+      "barrios": [
+        "Laureles", "Estadio", "Los Conquistadores", "Suramericana", "San Joaquín",
+        "Lorena", "Carlos E. Restrepo", "Bolivariana", "La Castellana", "Cuarta Brigada",
+        "Florida Nueva", "Velódromo", "Los Colores", "Naranjal", "Calasanz",
+        "Calasanz Parte Alta"
+      ]
+    },
+    {
+      "nombre": "Comuna 12 - La América",
+      "barrios": [
+        "La América", "Santa Lucía", "Santa Mónica", "Ferrini", "Los Conquistadores",
+        "El Danubio", "La Floresta", "Las Acacias", "Simón Bolívar", "Trinidad",
+        "La Pradera", "Los Pinos", "Belencito", "Betania", "El Corazón",
+        "Pedregal", "La Gloria"
+      ]
+    },
+    {
+      "nombre": "Comuna 13 - San Javier",
+      "barrios": [
+        "San Javier", "El Salado", "La Gabriela", "El Corazón", "Veinte de Julio",
+        "La Pradera", "Los Alcázares", "El Pesebre", "Belencito", "Betania",
+        "Nuevos Conquistadores", "Blanquizal", "Olaya Herrera", "Las Independencias",
+        "Nuevas Delicias", "Antonio Nariño", "Eduardo Santos", "El Socorro",
+        "Luis Carlos Galán", "Playas de Occidente"
+      ]
+    },
+    {
+      "nombre": "Comuna 14 - El Poblado",
+      "barrios": [
+        "El Poblado", "Astorga", "Manila", "Patio Bonito", "Las Lomas", "El Tesoro",
+        "La Aguacatala", "Alejandría", "Altos del Poblado", "Castropol", "El Esmeraldal",
+        "El Nogal - Los Almendros", "La Florida", "Las Lomas Nº 1", "Las Lomas Nº 2",
+        "Los Balsos Nº 1", "Los Balsos Nº 2", "Los Naranjos", "Los Pinos",
+        "Provenza", "Santa María de Los Ángeles", "Zuñiga"
+      ]
+    },
+    {
+      "nombre": "Comuna 15 - Guayabal",
+      "barrios": [
+        "Guayabal", "Trinidad", "El Rodeo", "La Colina", "Exposiciones",
+        "La Concordia", "Tenche", "Los Alcázares", "Tobón Uribe"
+      ]
+    },
+    {
+      "nombre": "Comuna 16 - Belén",
+      "barrios": [
+        "Belén", "La Mota", "El Rincón", "Zafra", "La Palma", "Las Playas", "Rosales",
+        "Los Alpes", "Loma de Los Bernal", "Granada", "Vizcaya", "Diego Echavarría",
+        "La Doctrina", "La Gloria", "La Hondonada", "Las Mercedes", "Miravalle",
+        "Nueva Villa de Aburrá", "Altavista", "Versalles", "San Bernardo", "Fátima"
+      ]
+    },
+    {
+      "nombre": "Corregimiento Altavista",
+      "barrios": [
+        "Altavista Centro", "El Corazón - La América", "San José del Manzanillo", "Bello Horizonte"
+      ]
+    },
+    {
+      "nombre": "Corregimiento San Antonio de Prado",
+      "barrios": [
+        "San Antonio de Prado Centro", "La Palma", "La Ye", "El Astillero",
+        "Potrerito", "Yarumalito", "Montanitas"
+      ]
+    },
+    {
+      "nombre": "Corregimiento San Cristóbal",
+      "barrios": [
+        "San Cristóbal Centro", "La Loma", "El Llano", "Travesías", "El Picacho",
+        "Pedregal Alto", "Boquerón", "La Cuchilla del Tesoro", "La Ilusión"
+      ]
+    },
+    {
+      "nombre": "Corregimiento Santa Elena",
+      "barrios": [
+        "Santa Elena Centro", "El Placer", "Piedras Blancas", "Mazo", "El Plan",
+        "Barro Blanco"
+      ]
+    },
+    {
+      "nombre": "Corregimiento San Sebastián de Palmitas",
+      "barrios": [
+        "San Sebastián de Palmitas Centro", "Palmitas", "La Suiza", "El Hato"
+      ]
+    },
+    {
+      "nombre": "Municipios del Área Metropolitana",
+      "barrios": [
+        "Bello", "Copacabana", "Girardota", "Barbosa", "Itagüí", "Envigado",
+        "Sabaneta", "La Estrella", "Caldas"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,346 @@
+{% extends "base.html" %}
+{% block title %}Registros de Atención{% endblock %}
+{% block content %}
+<style>
+.filters-form {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #f8fafc;
+    padding: 8px 14px;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    flex-wrap: nowrap;
+}
+@media (max-width: 768px) {
+    .filters-form {
+        flex-wrap: wrap;
+        width: 100%;
+        justify-content: flex-start;
+    }
+    .filters-form > * {
+        flex: 1 1 auto;
+    }
+    .filters-form input[type="text"], .filters-form select, .filters-form input[type="date"] {
+        width: 100%;
+        box-sizing: border-box;
+    }
+}
+</style>
+<div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:20px; padding-bottom:14px; border-bottom:2px solid #dbeafe;">
+    <div style="display:flex; align-items:center; gap:15px;">
+        {% if request.args.get('source') == 'formulario' %}
+        <a href="{{ url_for('formulario') }}" style="display:inline-flex; align-items:center; gap:6px; background:#f8fafc; color:#475569; border:1px solid #cbd5e1; padding:8px 16px; border-radius:8px; text-decoration:none; font-weight:600; font-size:13px; transition: all 0.2s; box-shadow: 0 1px 2px rgba(0,0,0,0.05);" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#f8fafc'">
+        {% else %}
+        <a href="{{ url_for('dashboard') }}" style="display:inline-flex; align-items:center; gap:6px; background:#f8fafc; color:#475569; border:1px solid #cbd5e1; padding:8px 16px; border-radius:8px; text-decoration:none; font-weight:600; font-size:13px; transition: all 0.2s; box-shadow: 0 1px 2px rgba(0,0,0,0.05);" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#f8fafc'">
+        {% endif %}
+            <i class="ph ph-arrow-left"></i> Volver
+        </a>
+        <h1 style="margin:0; padding:0; border:none; font-size:20px;">📁 Registros de Atención</h1>
+    </div>
+    
+    <form method="GET" action="{{ url_for('registros') }}" class="filters-form">
+        {% if request.args.get('source') %}
+        <input type="hidden" name="source" value="{{ request.args.get('source') }}">
+        {% endif %}
+        {% if atencion_colectiva_id %}
+        <input type="hidden" name="atencion_colectiva_id" value="{{ atencion_colectiva_id }}">
+        {% endif %}
+        
+        <div style="display:flex; align-items:center; gap:6px; background:white; border:1px solid #cbd5e1; border-radius:8px; padding:4px 10px; box-shadow:inset 0 1px 2px rgba(0,0,0,0.02);">
+            <i class="ph ph-magnifying-glass" style="color:#64748b; font-size: 16px;"></i>
+            <input type="text" id="search-input" name="search" value="{{ search_query }}" placeholder="Buscar por nombre o ID..." style="border:none; padding:2px; font-size:13px; outline:none; width:150px; box-shadow:none; margin:0; background:transparent;" autofocus>
+        </div>
+
+        {% if session.usuario.rol == 'admin' %}
+        <select name="profesional" style="padding:6px 10px; border:1px solid #cbd5e1; border-radius:8px; font-size:13px; margin:0; background:white;">
+            <option value="">👨‍⚕️ Todos los Profesionales</option>
+            {% for prof in profesionales %}
+            <option value="{{ prof.identificacion }}" {% if prof.identificacion == profesional_filtro %}selected{% endif %}>{{ prof.nombre }}</option>
+            {% endfor %}
+        </select>
+        {% endif %}
+
+
+        <label for="fecha" style="font-size:13px; font-weight:600; color:#475569; margin:0; margin-left:6px;">Fecha:</label>
+        <input onclick="this.showPicker()" type="date" id="fecha" name="fecha" value="{{ fecha_filtro }}" style="padding:5px 10px; border:1px solid #cbd5e1; border-radius:8px; font-size:13px; margin:0; box-shadow:inset 0 1px 2px rgba(0,0,0,0.02);">
+        
+        <button type="submit" style="background:#2563eb; color:white; border:none; padding:7px 16px; font-size:13px; font-weight:600; border-radius:8px; margin:0; cursor:pointer; display:inline-flex; align-items:center; gap:6px; transition:all 0.2s;" onmouseover="this.style.background='#1d4ed8'" onmouseout="this.style.background='#2563eb'"><i class="ph ph-funnel" style="font-size: 16px;"></i> Filtrar</button>
+        <a href="{{ url_for('registros', atencion_colectiva_id=atencion_colectiva_id) }}" style="font-size:13px; color:#ef4444; text-decoration:none; font-weight:600; margin-left:4px; padding:6px 12px; border-radius:6px; transition:background 0.2s;" onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='transparent'" title="Limpiar filtros">Limpiar</a>
+    </form>
+</div>
+
+{% if atencion_colectiva %}
+<div style="background: #eff6ff; border: 1.5px solid #bfdbfe; border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;">
+    <div style="font-size: 13px; color: #1e40af;">
+        🔍 Filtrando pacientes de la <strong>Atención Colectiva #{{ atencion_colectiva.id }}</strong> (Lugar: {{ atencion_colectiva.lugar }}, {{ atencion_colectiva.tipo_incidente }})
+    </div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <a href="{{ url_for('formulario_mci', atencion_colectiva_id=atencion_colectiva.id) }}"
+           style="background: #3b82f6; color: white; padding: 8px 16px; border-radius: 8px; text-decoration: none; font-size: 13px; font-weight: 700; display:inline-flex; align-items:center; gap:6px; box-shadow: 0 2px 4px rgba(59,130,246,0.2); transition: all 0.2s;" onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 8px rgba(59,130,246,0.3)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 4px rgba(59,130,246,0.2)'">
+            <i class="ph ph-plus-circle" style="font-size: 16px;"></i> Agregar Otro Paciente
+        </a>
+        <a href="{{ url_for('registros') }}" style="background: #f8fafc; color: #475569; border: 1px solid #cbd5e1; padding: 8px 16px; border-radius: 8px; text-decoration: none; font-size: 13px; font-weight: 600; display:inline-flex; align-items:center; gap:6px; transition: all 0.2s;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#f8fafc'">
+            <i class="ph ph-x-circle" style="font-size: 16px;"></i> Quitar Filtro
+        </a>
+    </div>
+</div>
+{% endif %}
+
+<div style="overflow-x: auto; margin-top: 4px;">
+{% if pacientes %}
+<table>
+<thead>
+<tr>
+    <th>HC #</th>
+    <th>Documento</th>
+    <th>Paciente</th>
+    <th>Edad</th>
+    <th>Afiliación</th>
+    <th>Aseguradora</th>
+    <th>Motivo de Consulta</th>
+    <th>Profesional</th>
+    <th>Firma</th>
+    <th>Fecha</th>
+    <th style="text-align:center;">Acciones</th>
+</tr>
+</thead>
+<tbody>
+{% for p in pacientes %}
+<tr>
+    <td>
+        <span style="background: #dbeafe; color: #1e40af; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 700;">#{{ p.id }}</span>
+    </td>
+    <td style="font-size: 12px;">
+        <span style="background: #f1f5f9; padding: 1px 6px; border-radius: 4px; font-weight: 600; color: #475569;">{{ p.tipo_documento }}</span>
+        <span style="display:block; font-size:11px; color:#64748b; margin-top:2px;">{{ p.identificacion_paciente }}</span>
+    </td>
+    <td>
+        <strong style="font-size: 13px;">{{ p.primer_nombre }} {{ p.segundo_nombre or '' }} {{ p.primer_apellido }} {{ p.segundo_apellido or '' }}</strong>
+        {% if p.sexo_biologico %}
+        <span style="font-size:11px; color:#64748b; display:block; margin-top:2px;">{{ p.sexo_biologico }}</span>
+        {% endif %}
+        <div style="display:flex; flex-wrap:wrap; gap:6px; margin-top:4px;">
+            {% if p.finalizado == 1 %}
+            <span style="display:inline-block; padding:2px 6px; background:#d1fae5; color:#065f46; border:1px solid #a7f3d0; border-radius:4px; font-size:10px; font-weight:700;">🟢 Finalizado</span>
+            {% else %}
+            <span style="display:inline-block; padding:2px 6px; background:#fef3c7; color:#92400e; border:1px solid #fde68a; border-radius:4px; font-size:10px; font-weight:700;">🟡 Borrador</span>
+            {% endif %}
+            {% if p.atencion_colectiva_id %}
+            <span style="display:inline-block; padding:2px 6px; background:#eff6ff; color:#1e40af; border:1px solid #bfdbfe; border-radius:4px; font-size:10px; font-weight:600;" title="Paciente atendido en evento masivo #{{ p.atencion_colectiva_id }}">
+                👥 Colectiva #{{ p.atencion_colectiva_id }}
+            </span>
+            {% endif %}
+        </div>
+    </td>
+    <td style="font-weight: 600; color: #1e40af; white-space: nowrap;">{{ p.edad }}</td>
+    <td style="font-size: 12px;">{{ p.tipo_afiliacion }}</td>
+    <td style="font-size: 12px;">{{ p.aseguradora }}</td>
+    <td style="max-width: 180px; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ p.motivo_consulta }}">
+        {{ p.motivo_consulta or '—' }}
+    </td>
+    <td style="font-size: 12px;">
+        <strong>{{ p.registrado_por }}</strong>
+        {% if p.perfil_registrador %}
+        <span style="display:block; font-size:10px; color:#64748b; margin-top:1px;">
+            {{ p.perfil_registrador }}{% if p.registro_medico_registrador %} · Resolución: {{ p.registro_medico_registrador }}{% endif %}
+        </span>
+        {% endif %}
+    </td>
+    <td style="text-align: center;">
+        {% if p.firma_registrador %}
+        <img src="{{ p.firma_registrador }}" alt="Firma" style="max-height: 36px; background: white; border: 1px solid #e2e8f0; padding: 2px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
+        {% else %}
+        <span style="color:#cbd5e1; font-style:italic; font-size:11px;">Sin firma</span>
+        {% endif %}
+    </td>
+    <td style="font-size: 11px; color: #64748b; white-space: nowrap;">{{ p.fecha_registro }}</td>
+    <td style="text-align: center; white-space: nowrap;">
+        {% if p.finalizado == 0 %}
+        <a href="{% if p.atencion_colectiva_id %}{{ url_for('formulario_mci', id=p.id | encode_id, atencion_colectiva_id=p.atencion_colectiva_id) }}{% else %}{{ url_for('formulario', id=p.id | encode_id) }}{% endif %}"
+            style="background: #f59e0b; color: white; padding: 6px 14px;
+            border-radius: 8px; text-decoration: none; font-size: 12px; font-weight: 600;
+            display: inline-flex; align-items: center; gap: 6px;
+            box-shadow: 0 2px 4px rgba(245,158,11,0.2); transition: all 0.2s; margin-right: 6px;"
+            onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 8px rgba(245,158,11,0.3)'"
+            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 4px rgba(245,158,11,0.2)'">
+            <i class="ph ph-pencil-simple"></i> Editar
+        </a>
+        {% endif %}
+        <a href="{{ url_for('ver_hc', token=p.id | encode_id) }}"
+            class="action-btn"
+            style="background: #2563eb; color: white; padding: 6px 14px;
+            border-radius: 8px; text-decoration: none; font-size: 12px; font-weight: 600;
+            display: inline-flex; align-items: center; gap: 6px;
+            box-shadow: 0 2px 4px rgba(37,99,235,0.2); transition: all 0.2s;"
+            onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 8px rgba(37,99,235,0.3)'"
+            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 4px rgba(37,99,235,0.2)'">
+            <i class="ph ph-eye"></i> Ver
+        </a>
+    </td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+
+<div style="margin-top: 18px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+    <span style="font-size: 13px; color: #64748b; font-weight: 500;">
+        Mostrando <strong style="color:#1e40af;">{{ pacientes | length }}</strong> registro(s) en esta página
+    </span>
+    
+    {% if total_pages > 1 %}
+    <div style="display: flex; align-items: center; gap: 8px;">
+        {% if page > 1 %}
+        <a href="{{ url_for('registros', page=page-1, search=search_query, fecha=fecha_filtro, atencion_colectiva_id=atencion_colectiva_id) }}" style="display:inline-flex; align-items:center; gap:4px; padding:6px 14px; background:white; border:1px solid #cbd5e1; border-radius:8px; text-decoration:none; color:#475569; font-size:13px; font-weight:600; transition:all 0.2s; box-shadow:0 1px 2px rgba(0,0,0,0.05);" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
+            <i class="ph ph-caret-left"></i> Anterior
+        </a>
+        {% else %}
+        <span style="display:inline-flex; align-items:center; gap:4px; padding:6px 14px; background:#f1f5f9; border:1px solid #e2e8f0; border-radius:8px; color:#94a3b8; font-size:13px; font-weight:600; cursor:not-allowed;">
+            <i class="ph ph-caret-left"></i> Anterior
+        </span>
+        {% endif %}
+        
+        <div style="font-size:13px; font-weight:600; color:#334155; padding: 0 8px;">
+            Página {{ page }} de {{ total_pages }}
+        </div>
+        
+        {% if page < total_pages %}
+        <a href="{{ url_for('registros', page=page+1, search=search_query, fecha=fecha_filtro, atencion_colectiva_id=atencion_colectiva_id) }}" style="display:inline-flex; align-items:center; gap:4px; padding:6px 14px; background:white; border:1px solid #cbd5e1; border-radius:8px; text-decoration:none; color:#475569; font-size:13px; font-weight:600; transition:all 0.2s; box-shadow:0 1px 2px rgba(0,0,0,0.05);" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
+            Siguiente <i class="ph ph-caret-right"></i>
+        </a>
+        {% else %}
+        <span style="display:inline-flex; align-items:center; gap:4px; padding:6px 14px; background:#f1f5f9; border:1px solid #e2e8f0; border-radius:8px; color:#94a3b8; font-size:13px; font-weight:600; cursor:not-allowed;">
+            Siguiente <i class="ph ph-caret-right"></i>
+        </span>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+{% else %}
+<div id="no-registros-container" style="text-align: center; padding: 60px 20px; color: #94a3b8;">
+    <div style="font-size: 48px; margin-bottom: 16px;">📋</div>
+    <h3 style="color: #64748b; font-size: 16px; font-weight: 600; margin-bottom: 8px;">No hay registros aún</h3>
+    <p style="font-size: 14px;">Comience creando el primer registro de atención médica.</p>
+    <a href="{{ url_for('formulario') }}" style="display: inline-block; margin-top: 20px;
+        background: #2563eb; color: white; border: none; padding: 12px 24px; border-radius: 10px; font-weight: 600; font-size: 14px; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);"
+        onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(37, 99, 235, 0.3)'" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 6px -1px rgba(37, 99, 235, 0.2)'">
+        <i class="ph ph-plus-circle" style="font-size: 18px;"></i> Nuevo Registro
+    </a>
+</div>
+{% endif %}
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    var searchInput = document.getElementById("search-input");
+    if (searchInput) {
+        // Selecciona todo el texto para poder sobrescribir directamente
+        searchInput.focus();
+        searchInput.select();
+    }
+});
+</script>
+</script>
+
+<script>
+// ── LOGICA OFFLINE PARA REGISTROS ──
+document.addEventListener("DOMContentLoaded", async () => {
+    const params = new URLSearchParams(window.location.search);
+    const acId = params.get('atencion_colectiva_id');
+
+    // Inyectar botón de "Agregar Paciente" si no existe (al cargar de cache fallback)
+    if (acId && !navigator.onLine) {
+        let btnAgregar = document.querySelector('a[href*="/formulario_mci"]');
+        if (!btnAgregar) {
+            const topDiv = document.querySelector('div[style*="border-bottom"]');
+            if (topDiv) {
+                const btnHTML = `<a href="/formulario_mci?atencion_colectiva_id=${acId}" style="background:#3b82f6; color:white; padding:8px 16px; border-radius:8px; text-decoration:none; font-size:13px; font-weight:700; display:inline-flex; align-items:center; gap:6px; margin-left:10px;">➕ Agregar Paciente (Offline)</a>`;
+                topDiv.insertAdjacentHTML('beforeend', btnHTML);
+            }
+        }
+    }
+
+    if (typeof PWA !== 'undefined') {
+        try {
+            let pendientes = [];
+            if (acId) {
+                pendientes = await PWA.obtenerRegistrosPorMCI(acId);
+            } else {
+                pendientes = await PWA.obtenerPendientes();
+            }
+
+            if (pendientes.length > 0) {
+                const msgVacio = document.getElementById('no-registros-container');
+                if (msgVacio) msgVacio.style.display = 'none';
+
+                let tbody = document.querySelector('tbody');
+                if (!tbody) {
+                    const tableHTML = `
+                        <table style="width:100%;">
+                            <thead>
+                                <tr>
+                                    <th>HC #</th><th>Documento</th><th>Paciente</th><th>Edad</th>
+                                    <th>Motivo</th><th>Fecha</th><th style="text-align:center;">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="offline-tbody"></tbody>
+                        </table>
+                    `;
+                    const container = document.querySelector('div[style*="overflow-x: auto"]');
+                    if (container) container.innerHTML = tableHTML;
+                    tbody = document.getElementById('offline-tbody');
+                }
+
+                // Ordenar para que el último quede arriba
+                pendientes.sort((a, b) => new Date(b.fecha_creacion).getTime() - new Date(a.fecha_creacion).getTime());
+
+                pendientes.forEach(r => {
+                    const d = r.datos;
+                    const nombre = (d.primer_nombre || d.primer_apellido) 
+                        ? `${d.primer_nombre || ''} ${d.primer_apellido || ''}`
+                        : 'Paciente sin identificar';
+                    const edad = d.edad_visual || d.edad || '';
+                    
+                    const hasAcId = d.atencion_colectiva_id && d.atencion_colectiva_id !== 'None' && d.atencion_colectiva_id !== 'null' && d.atencion_colectiva_id !== 'undefined' && d.atencion_colectiva_id !== '';
+                    const isMCI = !!(hasAcId || acId);
+                    const editUrl = isMCI 
+                        ? `/formulario_mci?atencion_colectiva_id=${d.atencion_colectiva_id || acId}`
+                        : `/formulario?offline_id=${r.id}`;
+
+                    const isFinalizado = (d.accion === 'finalizar' || d.accion === 'guardar');
+                    const badgeHTML = isFinalizado
+                        ? '<span style="background:#d1fae5; color:#065f46; border:1px solid #a7f3d0; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:700;">🟢 Finalizado (Offline)</span>'
+                        : '<span style="background:#fef3c7; color:#92400e; border:1px solid #fde68a; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:700;">🟡 Borrador (Offline)</span>';
+
+                    const rowColor = isFinalizado ? '#f0fdf4' : '#fffbeb';
+                    const borderColor = isFinalizado ? '#22c55e' : '#f59e0b';
+
+                    const actionHTML = isFinalizado 
+                        ? '<span style="color:#94a3b8; font-size:11px; font-style:italic;">Esperando Sync</span>'
+                        : `<a href="${editUrl}" style="background:#f59e0b; color:white; padding:6px 14px; border-radius:8px; text-decoration:none; font-size:12px; font-weight:600;">✏️ Completar</a>`;
+
+                    const rowHTML = `
+                    <tr style="background:${rowColor}; border-left:3px solid ${borderColor};">
+                        <td>${badgeHTML}</td>
+                        <td style="font-size:12px;">${d.tipo_documento || ''} <br> ${d.identificacion_paciente || 'Sin ID'}</td>
+                        <td><strong>${nombre}</strong> <br> <span style="font-size:10px; color:#64748b;">${d.diagnostico_cie10 ? '🔬 ' + d.diagnostico_cie10.substring(0,20) : ''}</span></td>
+                        <td style="font-weight:600; color:#1e40af;">${edad}</td>
+                        <td style="font-size:12px; max-width:180px; overflow:hidden; text-overflow:ellipsis;">${d.motivo_consulta || '—'}</td>
+                        <td style="font-size:11px; color:#64748b;">Offline</td>
+                        <td style="text-align:center;">
+                            ${actionHTML}
+                        </td>
+                    </tr>
+                    `;
+                    tbody.insertAdjacentHTML('afterbegin', rowHTML);
+                });
+            }
+        } catch (e) {
+            console.error("Error cargando offline en registros:", e);
+        }
+    }
+});
+</script>
+
+{% endblock %}

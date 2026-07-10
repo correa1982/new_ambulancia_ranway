@@ -1,0 +1,250 @@
+{% extends "base.html" %}
+{% block title %}Gestión de Vehículos – Administración{% endblock %}
+{% block content %}
+
+<style>
+.header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #e2e8f0;
+    padding-bottom: 12px;
+}
+
+.add-form {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    margin-bottom: 24px;
+    border: 1px solid #e2e8f0;
+}
+.add-form h3 {
+    margin-top: 0;
+    font-size: 16px;
+    color: #1e3a5f;
+    margin-bottom: 15px;
+}
+.add-row {
+    display: flex;
+    gap: 15px;
+    align-items: flex-end;
+}
+.field {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+.field label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 5px;
+}
+.field input, .field select {
+    padding: 8px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 14px;
+}
+.btn-add {
+    background: #10b981;
+    color: white;
+    border: none;
+    padding: 9px 20px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.items-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+.items-table th {
+    background: #f8fafc;
+    padding: 12px 15px;
+    text-align: left;
+    font-size: 13px;
+    font-weight: 600;
+    color: #475569;
+    border-bottom: 1px solid #e2e8f0;
+}
+.items-table td {
+    padding: 12px 15px;
+    font-size: 14px;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+}
+.items-table tr:last-child td {
+    border-bottom: none;
+}
+.action-btn {
+    text-decoration: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    display: inline-block;
+    border: 1px solid transparent;
+}
+.btn-toggle { background: #f1f5f9; color: #475569; border-color: #cbd5e1; }
+.btn-del { background: #fee2e2; color: #b91c1c; }
+.status-active { color: #10b981; font-weight: 600; font-size: 13px; }
+.status-inactive { color: #94a3b8; font-weight: 600; font-size: 13px; }
+</style>
+
+<div class="header-row">
+    <h1 style="margin: 0; padding: 0; border: none; font-size: 20px;">🚑 Gestión de Vehículos</h1>
+    <a href="{{ url_for('dashboard') }}" class="action-btn" style="border-color: #e2e8f0; color: #475569; background: white; font-size: 13px; padding: 8px 16px;">
+        ← Volver al Dashboard
+    </a>
+</div>
+
+<!-- Formulario para agregar -->
+<div class="add-form">
+    <h3>➕ Registrar Nuevo Vehículo</h3>
+    <form method="POST" action="{{ url_for('admin_vehiculo_agregar') }}">
+        <div class="add-row">
+            <div class="field">
+                <label>Tipo de Vehículo</label>
+                <select name="tipo" id="select-tipo-vehiculo" required>
+                    <option value="">— Seleccionar —</option>
+                    <option value="Ambulancia">🚑 Ambulancia</option>
+                    <option value="Unidad de Rescate">🚒 Unidad de Rescate</option>
+                    <option value="Unidad Logística">🚚 Unidad Logística</option>
+                    <option value="Moto APH">🏍️ Moto APH</option>
+                </select>
+            </div>
+            <div class="field" id="field-tipo-ambulancia" style="display: none;">
+                <label>Tipo (Ambulancia)</label>
+                <select name="tipo_ambulancia" id="select-tipo-ambulancia">
+                    <option value="">— Seleccionar —</option>
+                    <option value="TAB">TAB</option>
+                    <option value="TAM">TAM</option>
+                </select>
+            </div>
+            <div class="field">
+                <label>Placa</label>
+                <input type="text" name="placa" required placeholder="Ej. ABC-123" style="text-transform: uppercase;">
+            </div>
+            <div class="field">
+                <label>Marca</label>
+                <input type="text" name="marca" required placeholder="Ej. Chevrolet">
+            </div>
+            <div class="field">
+                <label>Serie</label>
+                <input type="text" name="serie" required placeholder="Ej. N-Series">
+            </div>
+            <div class="field">
+                <label>Modelo</label>
+                <input type="text" name="modelo" required placeholder="Ej. 2024">
+            </div>
+            <div style="display: flex; align-items: flex-end;">
+                <button type="submit" class="btn-add">✅ Registrar Vehículo</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Lista de Vehículos -->
+<h2 style="font-size: 14px; text-transform: uppercase; letter-spacing: 0.6px; color: #64748b; margin: 20px 0 10px;">🚗 Vehículos Registrados ({{ vehiculos|length }})</h2>
+<div style="overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 8px; border: 1px solid #cbd5e1; margin-bottom: 24px;">
+    <table class="items-table" style="margin-bottom: 0; min-width: 900px; border-collapse: collapse; border: none;">
+        <thead>
+            <tr>
+                <th style="width: 5%; border-left: none; border-top: none;">#</th>
+                <th style="width: 15%; border-top: none;">Tipo de Vehículo</th>
+                <th style="width: 10%; border-top: none;">Tipo</th>
+                <th style="width: 12%; border-top: none;">Placa</th>
+                <th style="width: 15%; border-top: none;">Marca</th>
+                <th style="width: 15%; border-top: none;">Serie</th>
+                <th style="width: 10%; border-top: none;">Modelo</th>
+                <th style="width: 10%; border-top: none;">Estado</th>
+                <th style="width: 18%; text-align: center; border-right: none; border-top: none;">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for v in vehiculos %}
+            <tr style="{{ 'opacity: 0.6;' if not v.activo }}">
+                <td style="color: #94a3b8; font-weight: 600; border-left: none;">{{ loop.index }}</td>
+                <td>
+                    {% if v.tipo == 'Ambulancia' %}🚑
+                    {% elif v.tipo == 'Unidad de Rescate' %}🚒
+                    {% elif v.tipo == 'Unidad Logística' %}🚚
+                    {% elif v.tipo == 'Moto APH' %}🏍️
+                    {% else %}🚗{% endif %}
+                    {{ v.tipo }}
+                </td>
+                <td style="font-weight: 600;">
+                    {% if v.tipo == 'Ambulancia' %}
+                        <span class="badge-tipo-amb" style="background: #e0f2fe; color: #0369a1; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 700;">{{ v.tipo_ambulancia or '—' }}</span>
+                    {% else %}
+                        <span style="color: #cbd5e1;">—</span>
+                    {% endif %}
+                </td>
+                <td style="font-weight: bold; font-family: monospace; font-size: 15px;">{{ v.placa }}</td>
+                <td>{{ v.marca or '—' }}</td>
+                <td>{{ v.serie or '—' }}</td>
+                <td>{{ v.modelo or '—' }}</td>
+                <td>
+                    {% if v.activo %}
+                    <span class="status-active">✓ Activo</span>
+                    {% else %}
+                    <span class="status-inactive">✗ Inactivo</span>
+                    {% endif %}
+                </td>
+                <td style="text-align: center; border-right: none;">
+                    <a href="{{ url_for('admin_vehiculo_toggle', vehiculo_id=v.id) }}" class="action-btn btn-toggle">
+                        {{ '⏸ Desactivar' if v.activo else '▶ Activar' }}
+                    </a>
+                    <a href="{{ url_for('admin_vehiculo_eliminar', vehiculo_id=v.id) }}" class="action-btn btn-del" onclick="return confirm('¿Está seguro de eliminar este vehículo?');">
+                        🗑️ Eliminar
+                    </a>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="9" style="text-align: center; color: #64748b; padding: 30px; border-left: none; border-right: none; border-bottom: none;">
+                    No hay vehículos registrados en el sistema.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var selectTipoVehiculo = document.getElementById('select-tipo-vehiculo');
+        var fieldTipoAmbulancia = document.getElementById('field-tipo-ambulancia');
+        var selectTipoAmbulancia = document.getElementById('select-tipo-ambulancia');
+        
+        function toggleAmbulanciaFields() {
+            if (selectTipoVehiculo && selectTipoVehiculo.value === 'Ambulancia') {
+                if (fieldTipoAmbulancia) fieldTipoAmbulancia.style.display = 'flex';
+                if (selectTipoAmbulancia) selectTipoAmbulancia.required = true;
+            } else {
+                if (fieldTipoAmbulancia) fieldTipoAmbulancia.style.display = 'none';
+                if (selectTipoAmbulancia) {
+                    selectTipoAmbulancia.required = false;
+                    selectTipoAmbulancia.value = '';
+                }
+            }
+        }
+        
+        if (selectTipoVehiculo) {
+            selectTipoVehiculo.addEventListener('change', toggleAmbulanciaFields);
+        }
+        
+        toggleAmbulanciaFields();
+    });
+</script>
+
+{% endblock %}

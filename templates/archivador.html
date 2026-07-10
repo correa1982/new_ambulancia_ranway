@@ -1,0 +1,265 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+  .filter-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    background: #eff6ff;
+    color: #1e40af;
+    border: 1px solid #bfdbfe;
+  }
+  .filter-chip .remove {
+    cursor: pointer;
+    margin-left: 4px;
+    font-size: 14px;
+    line-height: 1;
+    opacity: 0.6;
+    transition: opacity 0.15s;
+  }
+  .filter-chip .remove:hover {
+    opacity: 1;
+  }
+  .filtros-toggle {
+    cursor: pointer;
+    color: #1e6fbf;
+    font-weight: 600;
+    font-size: 13px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: color 0.2s;
+  }
+  .filtros-toggle:hover {
+    color: #1e3a8a;
+  }
+  .filtros-panel {
+    display: none;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 16px;
+  }
+  .filtros-panel.open {
+    display: block;
+  }
+  .filtros-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+    align-items: end;
+  }
+  .filtros-grid label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 2px;
+  }
+  .filtros-grid input,
+  .filtros-grid select {
+    margin-top: 2px;
+  }
+  .table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  @media (max-width: 700px) {
+    .filtros-grid {
+      grid-template-columns: 1fr;
+    }
+    .table-wrap table {
+      min-width: 650px;
+    }
+    .hide-mobile {
+      display: none !important;
+    }
+    .btn-label {
+      display: none;
+    }
+  }
+</style>
+
+<div style="margin-bottom: 16px;">
+  <a href="{{ url_for('dashboard') }}" style="display: inline-flex; align-items: center; gap: 6px; background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; text-decoration: none; margin-bottom: 12px; transition: all 0.2s;" onmouseover="this.style.background='#e2e8f0'; this.style.color='#1e3a8a'" onmouseout="this.style.background='#f1f5f9'; this.style.color='#475569'">
+    ← Volver al Dashboard
+  </a>
+  <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+    <div style="display:flex; align-items:center; gap:12px;">
+      <span style="font-size: 28px; line-height: 1;">📁</span>
+      <h2 style="color: #1e3a8a; font-weight: 800; font-size: 22px; margin: 0; letter-spacing: -0.5px;">Archivador de Documentos</h2>
+    </div>
+  <div style="display:flex; align-items:center; gap:12px;">
+    <a href="{{ url_for('archivador_nuevo') }}" style="background: #10b981; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s; white-space: nowrap; box-shadow: 0 4px 6px -1px rgba(16,185,129,0.2);" onmouseover="this.style.background='#059669'; this.style.transform='translateY(-1px)'" onmouseout="this.style.background='#10b981'; this.style.transform='none'">
+      + Subir Documento
+    </a>
+  </div>
+</div>
+</div>
+
+<!-- Filters -->
+<div style="display:flex; align-items:center; gap:8px; margin-bottom: 12px; flex-wrap: wrap;">
+  <form method="GET" action="{{ url_for('archivador_list') }}" style="display:flex; align-items:center; gap:8px; background:#f8fafc; padding:6px 12px; border-radius:12px; border:1px solid #e2e8f0; margin: 0; flex:1; min-width: 250px;">
+    <div style="display:flex; align-items:center; gap:6px; background:white; border:1px solid #cbd5e1; border-radius:8px; padding:4px 10px; box-shadow:inset 0 1px 2px rgba(0,0,0,0.02); flex:1;">
+      <i class="ph ph-magnifying-glass" style="color:#64748b; font-size: 16px;"></i>
+      <input type="text" name="search" value="{{ search_query }}" placeholder="Buscar formulario, archivo o descripción..." style="border:none; padding:2px; font-size:13px; outline:none; width:100%; box-shadow:none; margin:0; background:transparent;" autofocus>
+    </div>
+    <button type="submit" style="background:#2563eb; color:white; border:none; padding:7px 16px; font-size:13px; font-weight:600; border-radius:8px; margin:0; cursor:pointer; display:inline-flex; align-items:center; gap:6px; transition:all 0.2s; white-space:nowrap;" onmouseover="this.style.background='#1d4ed8'" onmouseout="this.style.background='#2563eb'">
+      Buscar
+    </button>
+  </form>
+  <span class="filtros-toggle" onclick="toggleFiltros()" id="filtros-toggle">⚙️ Filtros</span>
+</div>
+
+<!-- Active filter chips -->
+{% if categoria_filter or fecha_desde or fecha_hasta %}
+<div style="display:flex; gap:8px; margin-bottom: 12px; flex-wrap: wrap;">
+  {% if categoria_filter %}
+  <span class="filter-chip">
+    📂 {{ categoria_filter }}
+    <a href="?search={{ search_query }}&categoria=&fecha_desde={{ fecha_desde }}&fecha_hasta={{ fecha_hasta }}" class="remove" style="color: #1e40af; text-decoration: none;">✕</a>
+  </span>
+  {% endif %}
+  {% if fecha_desde %}
+  <span class="filter-chip">
+    📅 Desde: {{ fecha_desde }}
+    <a href="?search={{ search_query }}&categoria={{ categoria_filter }}&fecha_desde=&fecha_hasta={{ fecha_hasta }}" class="remove" style="color: #1e40af; text-decoration: none;">✕</a>
+  </span>
+  {% endif %}
+  {% if fecha_hasta %}
+  <span class="filter-chip">
+    📅 Hasta: {{ fecha_hasta }}
+    <a href="?search={{ search_query }}&categoria={{ categoria_filter }}&fecha_desde={{ fecha_desde }}&fecha_hasta=" class="remove" style="color: #1e40af; text-decoration: none;">✕</a>
+  </span>
+  {% endif %}
+  <a href="{{ url_for('archivador_list') }}" style="font-size:12px; color:#ef4444; font-weight:600; text-decoration:none; display:inline-flex; align-items:center;">✕ Limpiar filtros</a>
+</div>
+{% endif %}
+
+<!-- Filters panel -->
+<div class="filtros-panel" id="filtros-panel">
+  <form method="GET" action="{{ url_for('archivador_list') }}" style="margin:0;">
+    <input type="hidden" name="search" value="{{ search_query }}">
+    <div class="filtros-grid">
+      <div>
+        <label for="categoria">Categoría</label>
+        <select id="categoria" name="categoria">
+          <option value="">Todas</option>
+          {% for cat in categorias %}
+            <option value="{{ cat }}" {% if categoria_filter == cat %}selected{% endif %}>{{ cat }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label for="fecha_desde">Fecha desde</label>
+        <input type="date" id="fecha_desde" name="fecha_desde" value="{{ fecha_desde }}">
+      </div>
+      <div>
+        <label for="fecha_hasta">Fecha hasta</label>
+        <input type="date" id="fecha_hasta" name="fecha_hasta" value="{{ fecha_hasta }}">
+      </div>
+    </div>
+    <div style="margin-top: 12px; display: flex; gap: 8px; justify-content: flex-end;">
+      <a href="{{ url_for('archivador_list') }}" style="background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; padding: 7px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; text-decoration: none;">Limpiar</a>
+      <button type="submit" style="background: #2563eb; color: white; border: none; padding: 7px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;">Aplicar Filtros</button>
+    </div>
+  </form>
+</div>
+
+<div class="card shadow-sm border-0">
+  <div class="card-body p-0">
+    <div class="table-wrap">
+      <table class="table table-hover table-striped mb-0 text-center align-middle">
+        <thead class="table-primary text-primary">
+          <tr>
+            <th style="background:#eff6ff; color:#1e3a8a; font-size:12px; font-weight:700; border-bottom: 2px solid #bfdbfe;">#</th>
+            <th style="background:#eff6ff; color:#1e3a8a; font-size:12px; font-weight:700; border-bottom: 2px solid #bfdbfe;">NOMBRE DEL FORMULARIO</th>
+            <th class="hide-mobile" style="background:#eff6ff; color:#1e3a8a; font-size:12px; font-weight:700; border-bottom: 2px solid #bfdbfe;">ARCHIVO</th>
+            <th style="background:#eff6ff; color:#1e3a8a; font-size:12px; font-weight:700; border-bottom: 2px solid #bfdbfe;">FECHA DOC.</th>
+            <th class="hide-mobile" style="background:#eff6ff; color:#1e3a8a; font-size:12px; font-weight:700; border-bottom: 2px solid #bfdbfe;">SUBIDO POR</th>
+            <th class="hide-mobile" style="background:#eff6ff; color:#1e3a8a; font-size:12px; font-weight:700; border-bottom: 2px solid #bfdbfe;">FECHA REGISTRO</th>
+            <th style="background:#eff6ff; color:#1e3a8a; font-size:12px; font-weight:700; text-align: center; border-bottom: 2px solid #bfdbfe;">ACCIONES</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for archivo in archivos %}
+          <tr>
+            <td><span style="background: #fef08a; color: #854d0e; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 700;" title="Consecutivo">#{{ archivo.consecutivo }}</span></td>
+            <td><strong style="font-size: 13px;">{{ archivo.nombre_formulario }}</strong></td>
+            <td class="hide-mobile" style="font-size: 12px; color: #475569; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ archivo.archivo_nombre }}">
+              {{ archivo.archivo_nombre }}
+            </td>
+            <td style="font-size: 11px; color: #64748b; white-space: nowrap;">
+              {% if archivo.fecha_documento %}
+                {{ archivo.fecha_documento }}
+              {% else %}
+                <span style="color: #94a3b8;">—</span>
+              {% endif %}
+            </td>
+            <td class="hide-mobile" style="font-size: 12px;">
+              <strong>{{ archivo.registrado_por }}</strong>
+              <span style="display:block; font-size:10px; color:#64748b; margin-top:1px;">{{ archivo.perfil_registrador }}</span>
+            </td>
+            <td class="hide-mobile" style="font-size: 11px; color: #64748b; white-space: nowrap;">{{ archivo.fecha_registro }}</td>
+            <td style="text-align: center; vertical-align: middle;">
+              <div style="display: flex; justify-content: center; align-items: center; gap: 4px; height: 26px;">
+                <a href="{{ archivo.archivo_url }}" target="_blank"
+                  style="box-sizing: border-box; height: 26px; line-height: 26px; background: #2563eb; color: white; padding: 0 10px; border-radius: 6px; text-decoration: none; font-size: 11px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 4px; box-shadow: 0 2px 4px rgba(37,99,235,0.2); transition: all 0.2s;"
+                  onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='translateY(0)'">
+                  👁<span class="btn-label"> Ver</span>
+                </a>
+                <a href="{{ archivo.archivo_url }}" download
+                  style="box-sizing: border-box; height: 26px; line-height: 26px; background: #0ea5e9; color: white; padding: 0 10px; border-radius: 6px; text-decoration: none; font-size: 11px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 4px; box-shadow: 0 2px 4px rgba(14,165,233,0.2); transition: all 0.2s;"
+                  onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='translateY(0)'">
+                  ⬇<span class="btn-label"> Descargar</span>
+                </a>
+                <a href="{{ url_for('archivador_editar', id=archivo.id) }}"
+                  style="box-sizing: border-box; height: 26px; line-height: 26px; background: #f59e0b; color: white; padding: 0 10px; border-radius: 6px; text-decoration: none; font-size: 11px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 4px; box-shadow: 0 2px 4px rgba(245,158,11,0.2); transition: all 0.2s;"
+                  onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='translateY(0)'">
+                  ✏️<span class="btn-label"> Editar</span>
+                </a>
+                <form action="{{ url_for('archivador_eliminar', id=archivo.id) }}" method="POST" style="margin: 0; padding: 0; display: flex; height: 26px;" onsubmit="return confirm('¿Estás seguro de eliminar este archivo?');">
+                  <button type="submit"
+                    style="margin: 0; font-family: inherit; box-sizing: border-box; height: 26px; line-height: 26px; background: #ef4444; color: white; border: none; padding: 0 10px; border-radius: 6px; font-size: 11px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 4px; cursor: pointer; box-shadow: 0 2px 4px rgba(239,68,68,0.2); transition: all 0.2s;"
+                    onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='translateY(0)'">
+                    🗑<span class="btn-label"> Eliminar</span>
+                  </button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="7" class="text-center text-muted py-5">
+              <h5 class="mb-0">No hay documentos en el archivador.</h5>
+              <p class="mb-0 mt-2">Sube el primero haciendo clic en "Subir Documento".</p>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+function toggleFiltros() {
+  var panel = document.getElementById("filtros-panel");
+  var toggle = document.getElementById("filtros-toggle");
+  panel.classList.toggle("open");
+  toggle.textContent = panel.classList.contains("open") ? "✕ Cerrar filtros" : "⚙️ Filtros";
+}
+
+// Open filters panel if any filter is active
+{% if categoria_filter or fecha_desde or fecha_hasta %}
+document.addEventListener("DOMContentLoaded", function() {
+  document.getElementById("filtros-panel").classList.add("open");
+  document.getElementById("filtros-toggle").textContent = "✕ Cerrar filtros";
+});
+{% endif %}
+</script>
+{% endblock %}

@@ -1,0 +1,159 @@
+<!-- ═══════════════════════════════════════════════════════
+  INSTRUCCIONES DE INTEGRACIÓN — Ambulacia PWA Offline
+  Archivos generados:
+    static/sw.js            ← Service Worker
+    static/manifest.json    ← Manifiesto PWA (instalar como app)
+    static/offline.html     ← Página cuando no hay caché
+    static/pwa-offline.js   ← Lógica offline + IndexedDB + sync
+════════════════════════════════════════════════════════ -->
+
+
+<!-- ────────────────────────────────────────────────────────
+  PASO 1: En templates/base.html → dentro de <head>
+  Agrega estas 2 líneas ANTES del </head>
+──────────────────────────────────────────────────────── -->
+<link rel="manifest" href="/static/manifest.json">
+<meta name="theme-color" content="#1e6fbf">
+<script src="/static/pwa-offline.js" defer></script>
+
+
+<!-- ────────────────────────────────────────────────────────
+  PASO 2: En templates/base.html → dentro de <body>
+  Agrega esto justo después del <body> para cachear la sesión
+  (permite login offline con las credenciales guardadas)
+  Ejemplo: busca donde renderizan el nombre del usuario
+──────────────────────────────────────────────────────── -->
+{% if session.get('usuario') %}
+<span id="usuario-datos" style="display:none"
+  data-usuario='{{ session["usuario"] | tojson }}'></span>
+{% endif %}
+
+
+<!-- ────────────────────────────────────────────────────────
+  PASO 3: En templates/base.html → barra de navegación
+  Agrega el indicador de registros offline pendientes
+  (colócalo en el navbar, junto a los demás iconos)
+──────────────────────────────────────────────────────── -->
+<span title="Registros offline pendientes de sincronizar"
+  style="position:relative; display:inline-flex; align-items:center; gap:6px;
+         background:#fef3c7; border:1px solid #fde68a; border-radius:8px;
+         padding:4px 10px; font-size:12px; font-weight:600; color:#92400e;
+         cursor:pointer;"
+  onclick="window.PWA_sincronizar()">
+  📶
+  <span class="pwa-badge-pendientes"
+    style="display:none; background:#ef4444; color:white;
+           border-radius:999px; padding:1px 6px; font-size:11px;
+           font-weight:800; line-height:1.4;">0</span>
+  <span class="pwa-texto-pendientes" style="display:none; font-size:11px;"></span>
+</span>
+
+
+<!-- ────────────────────────────────────────────────────────
+  PASO 4: En templates/base.html o en una página separada
+  Panel de gestión offline (puede ser un modal o sección)
+  Muestra cuántos registros hay pendientes y permite exportar
+──────────────────────────────────────────────────────── -->
+<div style="background:#fffbeb; border:1.5px solid #fde68a; border-radius:12px;
+            padding:16px 20px; margin:16px 0; display:flex; align-items:center;
+            justify-content:space-between; flex-wrap:wrap; gap:12px;"
+     id="pwa-panel-offline">
+  <div>
+    <div style="font-weight:700; color:#92400e; font-size:13px;">
+      📱 Registros guardados sin internet
+    </div>
+    <div class="pwa-texto-pendientes" style="font-size:12px; color:#b45309; margin-top:3px;">
+      Cargando...
+    </div>
+  </div>
+  <div style="display:flex; gap:8px; flex-wrap:wrap;">
+    <button onclick="window.PWA_sincronizar()"
+      style="background:linear-gradient(135deg,#3b82f6,#1d4ed8); color:white;
+             border:none; border-radius:8px; padding:8px 16px; font-size:12px;
+             font-weight:700; cursor:pointer; font-family:inherit;">
+      🔄 Sincronizar ahora
+    </button>
+    <button onclick="window.PWA_exportarCSV()"
+      style="background:#f0fdf4; color:#065f46; border:1.5px solid #bbf7d0;
+             border-radius:8px; padding:8px 16px; font-size:12px;
+             font-weight:700; cursor:pointer; font-family:inherit;">
+      📊 Exportar CSV
+    </button>
+    <button onclick="window.PWA_exportarJSON()"
+      style="background:#f5f3ff; color:#5b21b6; border:1.5px solid #ddd6fe;
+             border-radius:8px; padding:8px 16px; font-size:12px;
+             font-weight:700; cursor:pointer; font-family:inherit;">
+      📋 Exportar JSON
+    </button>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════
+  PASO 5: En app.py → agregar ruta de sincronización offline
+  Esta ruta recibe los registros del sync y los guarda igual
+  que el formulario normal. Pega esto en app.py:
+════════════════════════════════════════════════════════ -->
+<!--
+@app.route("/api/sync-offline", methods=["POST"])
+@login_required
+def sync_offline():
+    """Endpoint para recibir registros guardados offline."""
+    import json
+    data = request.get_json(force=True) or {}
+    registros = data.get("registros", [])
+    resultados = []
+
+    for reg in registros:
+        try:
+            d = reg.get("datos", {})
+            # Reutilizamos la misma lógica de guardado que el formulario normal
+            # (copia la lógica de tu ruta /formularios/pacientes/nuevo aquí)
+            # Por simplicidad, llamamos la función interna de guardado:
+            _guardar_paciente(d, accion=d.get("accion", "borrador"))
+            resultados.append({"id_offline": reg.get("id"), "ok": True})
+        except Exception as e:
+            resultados.append({"id_offline": reg.get("id"), "ok": False, "error": str(e)})
+
+    return jsonify({"resultados": resultados})
+-->
+
+
+<!-- ════════════════════════════════════════════════════════
+  PASO 6 (OPCIONAL): Generar íconos para la PWA
+  Coloca en static/ dos imágenes:
+    - icon-192.png  (192×192 px)
+    - icon-512.png  (512×512 px)
+  Puedes usar el logo de tu institución redimensionado.
+  Si no los tienes, el manifest igual funciona sin íconos.
+════════════════════════════════════════════════════════ -->
+
+
+<!-- ════════════════════════════════════════════════════════
+  RESUMEN: ¿Cómo funciona todo?
+
+  CON INTERNET:
+  ┌─────────────────────────────────────────────────────┐
+  │  Usuario llena form → submit normal → Flask guarda  │
+  │  Service Worker cachea el HTML del formulario        │
+  │  Credenciales del usuario se guardan en IndexedDB   │
+  └─────────────────────────────────────────────────────┘
+
+  SIN INTERNET:
+  ┌─────────────────────────────────────────────────────┐
+  │  Usuario abre la app → SW sirve el form desde caché  │
+  │  Usuario llena form → JS intercepta el submit        │
+  │  Los datos se guardan en IndexedDB del celular       │
+  │  Aparece toast: "Guardado offline #N"               │
+  └─────────────────────────────────────────────────────┘
+
+  CUANDO VUELVE INTERNET:
+  ┌─────────────────────────────────────────────────────┐
+  │  El evento "online" dispara sincronización           │
+  │  Cada registro pendiente se envía al servidor Flask  │
+  │  Flask los guarda normalmente en la DB               │
+  │  Los registros se marcan como sincronizados          │
+  │  Opción manual: botón "Sincronizar ahora"           │
+  │  Opción backup: exportar CSV o JSON para importar   │
+  └─────────────────────────────────────────────────────┘
+════════════════════════════════════════════════════════ -->

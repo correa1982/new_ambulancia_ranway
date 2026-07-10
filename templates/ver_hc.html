@@ -1,0 +1,930 @@
+{% extends "base.html" %}
+{% block title %}Historia Clínica #{{ p.id }}{% endblock %}
+{% block content %}
+
+<style>
+.no-print { margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+.hc-actions { display: flex; gap: 10px; align-items: center; }
+#btn-back {
+    background: #f8fafc; color: #475569; height: 40px; padding: 0 20px; border-radius: 10px; border: 1px solid #cbd5e1;
+    text-decoration: none; font-size: 14px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    transition: all 0.2s; box-shadow: 0 1px 2px rgba(0,0,0,0.05); box-sizing: border-box; line-height: normal; white-space: nowrap;
+}
+#btn-back:hover { background: #f1f5f9; transform: translateY(-1px); }
+#download-pdf {
+    background: #2563eb; color: white; height: 40px; padding: 0 24px;
+    border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; border: none;
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s;
+    box-shadow: 0 4px 6px -1px rgba(37,99,235,0.2); box-sizing: border-box; line-height: normal; white-space: nowrap;
+}
+#download-pdf:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(37,99,235,0.3); }
+#download-pdf:active { transform: translateY(0); }
+.pdf-loading { display: none; color: #718096; font-size: 13px; align-items: center; gap: 6px; }
+
+/* HC Document */
+#hc-document {
+    background: #ffffff;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    color: #1a202c;
+    line-height: 1.55;
+    max-width: 820px;
+    margin: 0 auto;
+}
+
+.hc-header {
+    display: flex; justify-content: space-between; align-items: center; gap: 15px;
+    padding-bottom: 18px; margin-bottom: 22px;
+    border-bottom: 3px solid #2b6cb0;
+}
+.hc-header-left { display: flex; align-items: center; gap: 14px; flex: 1; }
+.hc-inst-name { margin: 0; color: #1a365d; font-size: 18px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; line-height: 1.2; }
+.hc-inst-sub { font-size: 11px; color: #4a5568; margin-top: 3px; font-weight: 600; letter-spacing: 0.3px; }
+.hc-inst-info { font-size: 11px; color: #718096; margin-top: 2px; }
+.hc-badge-wrap { text-align: right; min-width: 170px; }
+.hc-badge {
+    background: linear-gradient(135deg, #2b6cb0, #2c5282); color: white;
+    padding: 7px 14px; border-radius: 6px; font-weight: 700; font-size: 13px;
+    display: inline-block; letter-spacing: 0.3px;
+}
+.hc-badge-sub { font-size: 10px; color: #718096; margin-top: 5px; }
+
+/* Timeline bar */
+.hc-timeline {
+    background: linear-gradient(135deg, #f7fafc, #edf2f7);
+    border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 18px;
+    margin-bottom: 22px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+}
+.hc-timeline-item span { font-size: 9px; text-transform: uppercase; color: #718096; font-weight: 700; display: block; letter-spacing: 0.5px; }
+.hc-timeline-item strong { font-size: 12px; color: #2d3748; }
+
+/* Sections */
+.hc-section { margin-bottom: 20px; }
+.hc-section-title {
+    font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.7px;
+    color: #2b6cb0; border-bottom: 2px solid #ebf8ff; padding-bottom: 5px;
+    margin-bottom: 12px; display: flex; align-items: center; gap: 7px;
+}
+.hc-section-title::before {
+    content: ''; display: inline-block; width: 4px; height: 14px;
+    background: #2b6cb0; border-radius: 2px; flex-shrink: 0;
+}
+
+/* Grid helpers */
+.hc-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px 18px; }
+.hc-grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px 18px; }
+.hc-grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+.col-span-2 { grid-column: span 2; }
+.col-span-3 { grid-column: span 3; }
+
+.hc-field span { font-size: 10px; color: #a0aec0; display: block; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 2px; }
+.hc-field strong, .hc-field p { font-size: 13px; color: #1a202c; margin: 0; }
+
+/* Vital sign cards */
+.vs-card {
+    background: #f7fafc; border: 1px solid #e2e8f0; border-radius: 8px;
+    padding: 10px 6px; text-align: center;
+}
+.vs-card .vs-label { font-size: 9px; color: #718096; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; display: block; }
+.vs-card .vs-value { font-size: 16px; font-weight: 700; color: #1a365d; display: block; margin: 4px 0 2px; }
+.vs-card .vs-unit { font-size: 9px; color: #a0aec0; }
+
+/* Clinical text boxes */
+.hc-text-box {
+    background: #fafbfc; border: 1px solid #e8edf3; border-radius: 6px;
+    padding: 10px 12px; font-size: 12.5px; color: #2d3748;
+    white-space: pre-wrap; min-height: 40px; line-height: 1.6;
+}
+
+/* Diagnostic */
+.hc-diag {
+    background: #ebf8ff; border: 1px solid #bee3f8; border-radius: 6px;
+    padding: 12px 16px; display: flex; align-items: center; gap: 12px;
+}
+.hc-diag .diag-icon { font-size: 22px; }
+.hc-diag .diag-label { font-size: 10px; color: #2b6cb0; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; display: block; }
+.hc-diag .diag-value { font-size: 14px; font-weight: 700; color: #1a365d; margin-top: 2px; }
+
+/* Professional footer */
+.hc-footer {
+    margin-top: 35px; padding-top: 18px;
+    border-top: 2px solid #e2e8f0;
+    display: flex; justify-content: space-between; align-items: flex-end;
+    page-break-inside: avoid;
+}
+.hc-footer-left { flex: 1; }
+.hc-footer-name { font-size: 15px; font-weight: 700; color: #1a202c; }
+.hc-footer-role { font-size: 12px; color: #4a5568; margin-top: 3px; }
+.hc-footer-rm { font-size: 11px; color: #718096; margin-top: 2px; }
+.hc-footer-sig { text-align: center; min-width: 200px; }
+.hc-header-logo img { max-height: 120px; max-width: 280px; object-fit: contain; }
+tr { page-break-inside: avoid; break-inside: avoid; }
+.hc-section-title, .hc-grid-title { page-break-after: avoid; break-after: avoid; page-break-inside: avoid; break-inside: avoid; }
+.hc-footer-sig img { max-height: 65px; max-width: 180px; border-bottom: 1px solid #cbd5e0; padding-bottom: 5px; display: block; margin: 0 auto; }
+.hc-footer-sig-line { width: 180px; height: 1px; background: #cbd5e0; margin: 0 auto 5px auto; }
+.hc-footer-sig-label { font-size: 9px; text-transform: uppercase; color: #718096; font-weight: 700; letter-spacing: 0.5px; display: block; }
+.hc-footer-sig-empty { height: 55px; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 5px; }
+.hc-footer-sig-empty span { color: #cbd5e0; font-style: italic; font-size: 11px; }
+
+/* Watermark line */
+.hc-watermark {
+    text-align: center; margin-top: 20px; padding-top: 12px;
+    border-top: 1px dashed #e2e8f0; font-size: 10px; color: #cbd5e0;
+    letter-spacing: 0.3px;
+}
+
+@media print {
+    body { background: #fff !important; color: #000 !important; }
+    .no-print, .navbar, .flash { display: none !important; }
+    .container { box-shadow: none !important; padding: 0 !important; margin: 0 !important; max-width: 100% !important; }
+    #hc-document { padding: 0 !important; }
+}
+</style>
+
+<!-- Action bar -->
+{% if p.finalizado == 0 %}
+<div class="no-print" style="background: #fffbeb; border: 1.5px solid #fde68a; border-radius: 8px; padding: 12px 16px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+    <div style="font-size: 13px; color: #b45309; font-weight: 600;">
+        <i class="ph ph-warning" style="font-size: 16px; margin-right: 4px; vertical-align: middle;"></i> ESTA HISTORIA CLÍNICA ES UN BORRADOR Y NO HA SIDO FINALIZADA.
+    </div>
+    <a href="{% if p.atencion_colectiva_id %}{{ url_for('formulario_mci', id=p.id | encode_id, atencion_colectiva_id=p.atencion_colectiva_id) }}{% else %}{{ url_for('formulario', id=p.id | encode_id) }}{% endif %}" style="background: #f59e0b; color: white; padding: 10px 20px; border-radius: 10px; text-decoration: none; font-size: 13px; font-weight: 600; box-shadow: 0 4px 6px -1px rgba(245,158,11,0.2); transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(245,158,11,0.3)'" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 6px -1px rgba(245,158,11,0.2)'">
+        <i class="ph ph-pencil-simple" style="font-size: 16px;"></i> Continuar Diligenciando
+    </a>
+</div>
+{% endif %}
+
+<div class="no-print">
+    <a href="javascript:history.back()" id="btn-back"><i class="ph ph-arrow-left" style="font-size: 18px;"></i> Volver a Registros</a>
+    <div class="hc-actions">
+        {% if session.usuario.rol != 'usuario' %}
+        <div class="pdf-loading" id="pdf-loading"><i class="ph ph-spinner ph-spin"></i> Generando PDF…</div>
+        <button type="button" id="download-pdf"><i class="ph ph-download-simple" style="font-size: 18px;"></i> Descargar PDF</button>
+        {% endif %}
+    </div>
+</div>
+
+<!-- HC Document -->
+<div id="hc-document">
+
+    {% if p.finalizado == 0 %}
+    <div style="background: #fffbeb; border: 2px dashed #f59e0b; border-radius: 8px; padding: 10px 14px; margin-bottom: 15px; text-align: center; font-weight: 800; color: #d97706; text-transform: uppercase; font-size: 14px; letter-spacing: 1px;">
+        ⚠️ BORRADOR - REGISTRO NO FINALIZADO ⚠️
+    </div>
+    {% endif %}
+
+    <!-- Header institucional -->
+    <div class="hc-header">
+        <div class="hc-header-left">
+            {% if institucion.logo %}
+            <img src="{{ institucion.logo }}" alt="Logo" style="max-height: 60px; border-radius: 4px; border: 1px solid #edf2f7; padding: 2px; background: white; flex-shrink: 0;">
+            {% endif %}
+            <div>
+                <h2 class="hc-inst-name">{{ institucion.nombre_institucion }}</h2>
+                <div class="hc-inst-sub">{{ institucion.subtitulo_institucion }}</div>
+                <div class="hc-inst-info">{{ institucion.nit }} &nbsp;|&nbsp; {{ institucion.habilitacion|format_habilitacion }}</div>
+            </div>
+        </div>
+        <div class="hc-badge-wrap">
+            <div class="hc-badge">HISTORIA CLÍNICA<br>N° {{ p.id }}</div>
+            <div class="hc-badge-sub">Documento Digital de Soporte</div>
+        </div>
+    </div>
+
+    <!-- Timeline -->
+    <div class="hc-timeline">
+        <div class="hc-timeline-item">
+            <span>Inicio de Atención</span>
+            <strong>{{ p.fecha_inicio_atencion or p.fecha_registro }}</strong>
+        </div>
+        <div class="hc-timeline-item">
+            <span>Finalización de Registro</span>
+            <strong>{{ p.fecha_finalizacion_registro or p.fecha_registro }}</strong>
+        </div>
+        <div class="hc-timeline-item">
+            <span>Fecha de Emisión</span>
+            <strong>{{ p.fecha_registro }}</strong>
+        </div>
+    </div>
+
+    <!-- Datos del Evento -->
+    <div class="hc-section">
+        <div class="hc-section-title">Datos del Evento</div>
+        <div class="hc-grid-3">
+            <div class="hc-field col-span-2">
+                <span>Nombre del evento</span>
+                <strong>{{ p.nombre_evento or '—' }}</strong>
+            </div>
+            <div class="hc-field">
+                <span>Tipo de servicio</span>
+                <strong>{{ p.tipo_servicio or '—' }}</strong>
+            </div>
+            <div class="hc-field">
+                <span>Ubicación</span>
+                <strong>{{ p.municipio or '' }}{% if p.departamento %} - {{ p.departamento }}{% endif %}</strong>
+            </div>
+            <div class="hc-field">
+                <span>Barrio</span>
+                <strong>{{ p.barrio or '—' }}</strong>
+            </div>
+            <div class="hc-field">
+                <span>Dirección de la atención</span>
+                <strong>{{ p.direccion_atencion or '—' }}</strong>
+            </div>
+            <div class="hc-field">
+                <span>Hora de despacho</span>
+                <strong>{{ p.hora_despacho or '—' }}</strong>
+            </div>
+            <div class="hc-field">
+                <span>Hora de arribo a la escena</span>
+                <strong>{{ p.hora_arribo or '—' }}</strong>
+            </div>
+            <div class="hc-field">
+                <span>Ámbito territorial</span>
+                <strong>{{ p.ambito_territorial or '—' }}</strong>
+            </div>
+            <div class="hc-field">
+                <span>Entorno de atención</span>
+                <strong>{{ p.entorno_atencion or '—' }}{% if p.entorno_atencion == 'OTRO' and p.entorno_otro %} ({{ p.entorno_otro }}){% endif %}</strong>
+            </div>
+            <div class="hc-field">
+                <span>Clasificación</span>
+                <strong>{{ p.clasificacion or '—' }}</strong>
+            </div>
+            <div class="hc-field">
+                <span>Causa que Motiva la Atención</span>
+                <strong>{{ p.causa_motiva_atencion or '—' }}</strong>
+            </div>
+            <div class="hc-field">
+                <span>Tipo de traslado</span>
+                <strong>{{ p.tipo_traslado or '—' }}</strong>
+            </div>
+        </div>
+    </div>
+
+    <!-- Identificación del Paciente -->
+    <div class="hc-section">
+        <div class="hc-section-title">Identificación del Paciente</div>
+        <div class="hc-grid-3">
+            <div class="hc-field col-span-2">
+                <span>Nombre Completo</span>
+                <strong>{{ p.primer_nombre }} {{ p.segundo_nombre or '' }} {{ p.primer_apellido }} {{ p.segundo_apellido or '' }}</strong>
+            </div>
+            <div class="hc-field">
+                <span>Documento de Identidad</span>
+                <strong>{{ p.tipo_documento }} {{ p.identificacion_paciente }}</strong>
+            </div>
+            <div class="hc-field">
+                <span>Fecha de Nacimiento</span>
+                <strong>{{ p.fecha_nacimiento }}</strong>
+            </div>
+            <div class="hc-field">
+                <span>Edad</span>
+                <strong style="color: #2b6cb0;">{{ p.edad }}</strong>
+            </div>
+            <div class="hc-field">
+                <span>Número de Contacto</span>
+                <strong>{{ p.telefono or 'No registrado' }}</strong>
+            </div>
+            <div class="hc-field">
+                <span>Sexo Biológico</span>
+                <strong>{{ p.sexo_biologico or 'No registrado' }}</strong>
+            </div>
+            <div class="hc-field">
+                <span>Identidad de Género</span>
+                <strong>{{ p.identidad_genero or 'No registrado' }}</strong>
+            </div>
+            <div class="hc-field">
+                <span>Estado Civil</span>
+                <strong>{{ p.estado_civil or 'No registrado' }}</strong>
+            </div>
+            <div class="hc-field">
+                <span>Ocupación</span>
+                <strong>{{ p.ocupacion or 'No registrada' }}</strong>
+            </div>
+            <div class="hc-field">
+                <span>Nacionalidad</span>
+                <strong>{{ p.nacionalidad or 'No registrada' }}</strong>
+            </div>
+            <div class="hc-field">
+                <span>Pertenencia Étnica</span>
+                <strong>{{ p.pertenencia_etnica or 'Ninguno de los anteriores / Sin pertenencia étnica' }}</strong>
+            </div>
+            <div class="hc-field">
+                <span>Discapacidad</span>
+                <strong>{{ p.discapacidad or 'Sin discapacidad' }}</strong>
+            </div>
+
+            <div class="hc-field">
+                <span>Correo Electrónico</span>
+                <strong>{{ p.correo_electronico or 'No registrado' }}</strong>
+            </div>
+            <div class="hc-field col-span-2">
+                <span>Municipio / Dpto / Barrio</span>
+                <strong>
+                    {% if p.municipio_residencia or p.departamento_residencia %}
+                        {{ p.municipio_residencia or 'No registrado' }} - {{ p.departamento_residencia or 'No registrado' }} {% if p.barrio_residencia %}(Barrio: {{ p.barrio_residencia }}){% endif %}
+                    {% else %}
+                        No registrado
+                    {% endif %}
+                </strong>
+            </div>
+            <div class="hc-field col-span-3">
+                <span>Dirección de Residencia</span>
+                <strong>{{ p.direccion or 'No registrada' }}</strong>
+            </div>
+        </div>
+    </div>
+
+    <!-- Acompañante y Responsable -->
+    <div class="hc-section">
+        <div class="hc-section-title">Acompañante / Responsable</div>
+        
+        <div style="background: #fafbfc; border: 1.5px solid #edf2f7; border-radius: 8px; padding: 12px 16px; margin-bottom: 12px;">
+            <span style="font-size: 11px; font-weight: 700; color: #4a5568; text-transform: uppercase; display: block; margin-bottom: 8px;">👨‍👩‍👧‍👦 Acompañante</span>
+            <div class="hc-grid-3">
+                <div class="hc-field">
+                    <span>Nombre</span>
+                    <strong>{{ p.acompanante_nombre or 'No registrado' }}</strong>
+                </div>
+                <div class="hc-field">
+                    <span>Identificación</span>
+                    <strong>{% if p.acompanante_tipo_doc %}{{ p.acompanante_tipo_doc }} {{ p.acompanante_doc or '' }}{% else %}{{ p.acompanante_doc or 'No registrada' }}{% endif %}</strong>
+                </div>
+                <div class="hc-field">
+                    <span>Parentesco / Teléfono</span>
+                    <strong>{{ p.acompanante_parentesco or 'No registrado' }} {% if p.acompanante_telefono %}(Tel: {{ p.acompanante_telefono }}){% endif %}</strong>
+                </div>
+            </div>
+        </div>
+
+        <div style="background: #fafbfc; border: 1.5px solid #edf2f7; border-radius: 8px; padding: 12px 16px;">
+            <span style="font-size: 11px; font-weight: 700; color: #4a5568; text-transform: uppercase; display: block; margin-bottom: 8px;">👤 Responsable</span>
+            <div class="hc-grid-3">
+                <div class="hc-field">
+                    <span>Nombre</span>
+                    <strong>{{ p.responsable_nombre or 'No registrado' }}</strong>
+                </div>
+                <div class="hc-field">
+                    <span>Identificación</span>
+                    <strong>{% if p.responsable_tipo_doc %}{{ p.responsable_tipo_doc }} {{ p.responsable_doc or '' }}{% else %}{{ p.responsable_doc or 'No registrada' }}{% endif %}</strong>
+                </div>
+                <div class="hc-field">
+                    <span>Parentesco / Teléfono</span>
+                    <strong>{{ p.responsable_parentesco or 'No registrado' }} {% if p.responsable_telefono %}(Tel: {{ p.responsable_telefono }}){% endif %}</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Seguridad Social -->
+    <div class="hc-section">
+        <div class="hc-section-title">Seguridad Social</div>
+        <div class="hc-grid-2">
+            <div class="hc-field">
+                <span>Régimen de Afiliación</span>
+                <strong>{{ p.tipo_afiliacion }}</strong>
+            </div>
+            <div class="hc-field">
+                <span>Aseguradora (EPS)</span>
+                <strong>{{ p.aseguradora }}</strong>
+            </div>
+            <div class="hc-field" style="margin-top: 10px;">
+                <span style="color: #166534;">Póliza de SOAT</span>
+                <strong style="color: #166534;">{{ p.soat_aseguradora }}</strong>
+            </div>
+            <div class="hc-field" style="margin-top: 10px;">
+                <span style="color: #166534;">Vigencia del SOAT</span>
+                <strong style="color: #166534;">{{ p.soat_vigencia or 'No registrada' }}</strong>
+            </div>
+        </div>
+    </div>
+
+    {% if p.atencion_colectiva_id %}
+    <!-- Atención Colectiva Vinculada -->
+    <div class="hc-section">
+        <div class="hc-section-title">Atención Colectiva / MCI Vinculada</div>
+        <div class="hc-grid-2">
+            <div class="hc-field">
+                <span>ID de Atención Colectiva</span>
+                <strong>#{{ p.atencion_colectiva_id }}</strong>
+            </div>
+            {% if atencion_colectiva %}
+            <div class="hc-field">
+                <span>Lugar e Incidente</span>
+                <strong>{{ atencion_colectiva.lugar }} ({{ atencion_colectiva.tipo_incidente }})</strong>
+            </div>
+            {% else %}
+            <div class="hc-field">
+                <span>Detalles</span>
+                <strong>Vinculado a evento masivo</strong>
+            </div>
+            {% endif %}
+            {% if p.triage_mci %}
+            <div class="hc-field col-span-2">
+                <span>Prioridad de Triage (MCI)</span>
+                <strong style="display:inline-block; padding: 4px 12px; border-radius: 6px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; color: {% if p.triage_mci in ['Rojo','Amarillo','Verde','Negro'] %}white{% else %}#1e293b{% endif %}; background: {% if p.triage_mci == 'Rojo' %}#ef4444{% elif p.triage_mci == 'Amarillo' %}#eab308{% elif p.triage_mci == 'Verde' %}#22c55e{% elif p.triage_mci == 'Negro' %}#1f2937{% elif p.triage_mci == 'Blanco' %}#f1f5f9{% else %}#94a3b8{% endif %}; border: 1px solid {% if p.triage_mci == 'Blanco' %}#cbd5e1{% else %}transparent{% endif %};">{{ p.triage_mci }}</strong>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Signos Vitales -->
+    <div class="hc-section">
+        <div class="hc-section-title">Signos Vitales</div>
+        <div class="hc-grid-5">
+            <div class="vs-card">
+                <span class="vs-label">P. Arterial</span>
+                <span class="vs-value">{{ p.presion_arterial or '—' }}</span>
+                <span class="vs-unit">mmHg</span>
+            </div>
+            <div class="vs-card">
+                <span class="vs-label">Sat. O₂</span>
+                <span class="vs-value">{% if p.saturacion_oxigeno %}{{ p.saturacion_oxigeno }}%{% else %}—{% endif %}</span>
+                <span class="vs-unit">SatO2</span>
+            </div>
+            <div class="vs-card">
+                <span class="vs-label">Frec. Cardíaca</span>
+                <span class="vs-value">{% if p.frecuencia_cardiaca %}{{ p.frecuencia_cardiaca }}{% else %}—{% endif %}</span>
+                <span class="vs-unit">lpm</span>
+            </div>
+            <div class="vs-card">
+                <span class="vs-label">Frec. Respirat.</span>
+                <span class="vs-value">{% if p.frecuencia_respiratoria %}{{ p.frecuencia_respiratoria }}{% else %}—{% endif %}</span>
+                <span class="vs-unit">rpm</span>
+            </div>
+            <div class="vs-card">
+                <span class="vs-label">Glicemia</span>
+                <span class="vs-value">{% if p.glicemia %}{{ p.glicemia }}{% else %}—{% endif %}</span>
+                <span class="vs-unit">mg/dl</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Antecedentes Clínicos -->
+    <div class="hc-section">
+        <div class="hc-section-title">Antecedentes Clínicos</div>
+        
+        <!-- Fila 1: Patológicos - Quirúrgicos -->
+        <div class="hc-grid-2">
+            <div>
+                <div class="hc-field" style="margin-bottom: 5px;"><span>Antecedentes Patológicos</span></div>
+                <div class="hc-text-box">{{ p.antecedentes_personales or 'Niega antecedentes patológicos de importancia.' }}</div>
+            </div>
+            <div>
+                <div class="hc-field" style="margin-bottom: 5px;"><span>Antecedentes Quirúrgicos</span></div>
+                <div class="hc-text-box">{{ p.antecedentes_quirurgicos or 'Niega antecedentes quirúrgicos de importancia.' }}</div>
+            </div>
+        </div>
+
+        <!-- Fila 2: Toxicológicos - Alérgicos -->
+        <div class="hc-grid-2" style="margin-top: 12px;">
+            <div>
+                <div class="hc-field" style="margin-bottom: 5px;"><span>Antecedentes Toxicológicos</span></div>
+                <div class="hc-text-box">{{ p.antecedentes_toxicologicos or 'Niega antecedentes toxicológicos de importancia.' }}</div>
+            </div>
+            <div>
+                <div class="hc-field" style="margin-bottom: 5px;"><span>Antecedentes Alérgicos</span></div>
+                <div class="hc-text-box">{{ p.antecedentes_alergicos or 'Niega antecedentes alérgicos de importancia.' }}</div>
+            </div>
+        </div>
+
+        <!-- Fila 3: Ginecobstétricos - Medicamentos actuales -->
+        <div class="hc-grid-2" style="margin-top: 12px;">
+            <div>
+                <div class="hc-field" style="margin-bottom: 5px;"><span>Antecedentes Ginecobstétricos</span></div>
+                {% if p.sexo_biologico == 'Femenino' %}
+                <div class="hc-text-box">{{ p.antecedentes_ginecobstetricos or 'Niega antecedentes ginecobstétricos de importancia.' }}</div>
+                {% else %}
+                <div class="hc-text-box" style="background: #f1f5f9; color: #64748b; opacity: 0.7;">No aplica (Sexo biológico: {{ p.sexo_biologico or 'No registrado' }})</div>
+                {% endif %}
+            </div>
+            <div>
+                <div class="hc-field" style="margin-bottom: 5px;"><span>Medicamentos Actuales</span></div>
+                <div class="hc-text-box">{{ p.medicamentos_actuales or 'Niega consumo de medicamentos actualmente.' }}</div>
+            </div>
+        </div>
+
+        <!-- Fila 4: Otros antecedentes (ancho completo) -->
+        <div style="margin-top: 12px;">
+            <div class="hc-field" style="margin-bottom: 5px;"><span>Otros Antecedentes</span></div>
+            <div class="hc-text-box">{{ p.otros_antecedentes or 'No registra otros antecedentes.' }}</div>
+        </div>
+
+        <!-- Fila 5: Antecedentes Familiares (ancho completo) -->
+        <div style="margin-top: 12px;">
+            <div class="hc-field" style="margin-bottom: 5px;"><span>Antecedentes Familiares</span></div>
+            <div class="hc-text-box">{{ p.antecedentes_familiares or 'Niega antecedentes familiares de importancia.' }}</div>
+        </div>
+    </div>
+
+    <!-- Triage Hospitalario -->
+    <div class="hc-section">
+        <div class="hc-section-title">Triage Hospitalario</div>
+        <div class="hc-grid-2">
+            <div class="hc-field">
+                <span>Fecha y Hora del Triage</span>
+                <strong>{{ p.triage_fecha_hora or 'No registrado' }}</strong>
+            </div>
+            <div class="hc-field">
+                <span>Clasificación del Triage</span>
+                {% set tc = p.triage_clasificacion or '' %}
+                {% if tc == 'Triage I' %}
+                <strong style="color:#dc2626; font-weight:800;">🔴 {{ tc }}</strong>
+                {% elif tc == 'Triage II' %}
+                <strong style="color:#ea580c; font-weight:800;">🟠 {{ tc }}</strong>
+                {% elif tc == 'Triage III' %}
+                <strong style="color:#ca8a04; font-weight:800;">🟡 {{ tc }}</strong>
+                {% elif tc == 'Triage IV' %}
+                <strong style="color:#16a34a; font-weight:800;">🟢 {{ tc }}</strong>
+                {% elif tc == 'Triage V' %}
+                <strong style="color:#2563eb; font-weight:800;">🔵 {{ tc }}</strong>
+                {% else %}
+                <strong>{{ tc or 'No registrado' }}</strong>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Escala de Glasgow -->
+    <div class="hc-section">
+        <div class="hc-section-title">Escala de Coma de Glasgow</div>
+        <div style="display:flex; align-items:stretch; gap:12px; flex-wrap:wrap; margin-bottom:12px;">
+            <!-- Ocular -->
+            <div style="flex:1; min-width:120px; background:#f0f9ff; border:1.5px solid #bae6fd; border-radius:10px; padding:14px; text-align:center;">
+                <div style="font-size:9px; color:#0369a1; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px;">Resp. Ocular</div>
+                <div style="font-size:28px; font-weight:800; color:#0284c7; line-height:1;">{{ p.glasgow_ocular or '—' }}</div>
+                <div style="font-size:9px; color:#0369a1; margin-top:4px;">/ 4</div>
+            </div>
+            <!-- Verbal -->
+            <div style="flex:1; min-width:120px; background:#f0fdf4; border:1.5px solid #bbf7d0; border-radius:10px; padding:14px; text-align:center;">
+                <div style="font-size:9px; color:#15803d; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px;">Resp. Verbal</div>
+                <div style="font-size:28px; font-weight:800; color:#16a34a; line-height:1;">{{ p.glasgow_verbal or '—' }}</div>
+                <div style="font-size:9px; color:#15803d; margin-top:4px;">/ 5</div>
+            </div>
+            <!-- Motora -->
+            <div style="flex:1; min-width:120px; background:#fdf4ff; border:1.5px solid #e9d5ff; border-radius:10px; padding:14px; text-align:center;">
+                <div style="font-size:9px; color:#7c3aed; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px;">Resp. Motora</div>
+                <div style="font-size:28px; font-weight:800; color:#7c3aed; line-height:1;">{{ p.glasgow_motora or '—' }}</div>
+                <div style="font-size:9px; color:#7c3aed; margin-top:4px;">/ 6</div>
+            </div>
+            <!-- Total -->
+            {% set gt = p.glasgow_total | int(0) %}
+            {% if gt %}
+            <div style="flex:1.2; min-width:140px; background:linear-gradient(135deg,#1e40af,#1e3a8a); border-radius:10px; padding:14px; text-align:center; display:flex; flex-direction:column; align-items:center; justify-content:center; box-shadow:0 4px 12px rgba(30,64,175,0.25);">
+                <div style="font-size:9px; color:#93c5fd; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">TOTAL</div>
+                <div style="display:flex; align-items:baseline; gap:2px;">
+                    <span style="font-size:36px; font-weight:800; color:white; line-height:1;">{{ gt }}</span>
+                    <span style="font-size:16px; color:#93c5fd;">/15</span>
+                </div>
+                <div style="margin-top:8px; padding:3px 10px; border-radius:6px; font-size:10px; font-weight:700;
+                    {% if gt >= 13 %}background:#dcfce7; color:#14532d;
+                    {% elif gt >= 9 %}background:#fef3c7; color:#713f12;
+                    {% else %}background:#fee2e2; color:#7f1d1d;{% endif %}">
+                    {% if gt >= 13 %}🟢 Leve
+                    {% elif gt >= 9 %}🟡 Moderado
+                    {% else %}🔴 Severo{% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Estado de Consciencia (AVDI) -->
+    <div class="hc-section">
+        <div class="hc-section-title">Valoración de Consciencia (AVDI)</div>
+        <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:8px; padding:12px 16px; display:inline-flex; align-items:center; gap:8px;">
+            <span style="font-size: 20px;">🧠</span>
+            <span style="font-size:14px; font-weight:600; color:#334155;">Estado de Consciencia:</span>
+            <span style="background:#e2e8f0; color:#1e293b; font-weight:700; padding:4px 12px; border-radius:6px; font-size:14px;">
+                {{ p.estado_consciencia }}
+            </span>
+        </div>
+    </div>
+
+    <!-- Escala de Cincinnati (ACV) -->
+    <div class="hc-section">
+        <div class="hc-section-title">Escala de Cincinnati (Sospecha de ACV)</div>
+        <div style="display:flex; align-items:stretch; gap:12px; flex-wrap:wrap; margin-bottom:12px;">
+            <!-- Parálisis Facial -->
+            <div style="flex:1; min-width:120px; background:#fff7ed; border:1.5px solid #fed7aa; border-radius:10px; padding:14px; text-align:center;">
+                <div style="font-size:9px; color:#c2410c; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px;">Parálisis Facial</div>
+                <div style="font-size:16px; font-weight:800; color:#c2410c; line-height:1.2;">
+                    {% if p.cincinnati_facial == '1' %}Anormal (1){% elif p.cincinnati_facial == '0' %}Normal (0){% else %}—{% endif %}
+                </div>
+            </div>
+            <!-- Caída de Brazo -->
+            <div style="flex:1; min-width:120px; background:#fff7ed; border:1.5px solid #fed7aa; border-radius:10px; padding:14px; text-align:center;">
+                <div style="font-size:9px; color:#c2410c; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px;">Debilidad de Brazo</div>
+                <div style="font-size:16px; font-weight:800; color:#c2410c; line-height:1.2;">
+                    {% if p.cincinnati_brazo == '1' %}Anormal (1){% elif p.cincinnati_brazo == '0' %}Normal (0){% else %}—{% endif %}
+                </div>
+            </div>
+            <!-- Dificultad Hablar -->
+            <div style="flex:1; min-width:120px; background:#fff7ed; border:1.5px solid #fed7aa; border-radius:10px; padding:14px; text-align:center;">
+                <div style="font-size:9px; color:#c2410c; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px;">Dificultad al Hablar</div>
+                <div style="font-size:16px; font-weight:800; color:#c2410c; line-height:1.2;">
+                    {% if p.cincinnati_habla == '1' %}Anormal (1){% elif p.cincinnati_habla == '0' %}Normal (0){% else %}—{% endif %}
+                </div>
+            </div>
+            <!-- Total -->
+            {% set ct = p.cincinnati_total | int(-1) %}
+            {% if ct >= 0 %}
+            <div style="flex:1.2; min-width:140px; background:linear-gradient(135deg,#c2410c,#7c2d12); border-radius:10px; padding:14px; text-align:center; display:flex; flex-direction:column; align-items:center; justify-content:center; box-shadow:0 4px 12px rgba(194,65,12,0.25);">
+                <div style="font-size:9px; color:#ffedd5; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">TOTAL</div>
+                <div style="display:flex; align-items:baseline; gap:2px;">
+                    <span style="font-size:36px; font-weight:800; color:white; line-height:1;">{{ ct }}</span>
+                    <span style="font-size:16px; color:#ffedd5;">/3</span>
+                </div>
+                <div style="margin-top:8px; padding:3px 10px; border-radius:6px; font-size:10px; font-weight:700;
+                    {% if ct == 0 %}background:#dcfce7; color:#14532d;
+                    {% else %}background:#fee2e2; color:#7f1d1d;{% endif %}">
+                    {% if ct == 0 %}🟢 Normal{% else %}🔴 Sospecha de ACV{% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Escala RTS -->
+    <div class="hc-section">
+        <div class="hc-section-title">Escala RTS (Revised Trauma Score)</div>
+        <div style="background:#f0fdfa; border:1.5px solid #99f6e4; border-radius:10px; padding:16px; display:flex; flex-direction:column; gap:8px;">
+            <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <span style="font-size:24px;">🚑</span>
+                    <div>
+                        <div style="font-size:14px; font-weight:700; color:#0f766e;">Revised Trauma Score</div>
+                        <div style="font-size:12px; color:#14b8a6;">
+                            {{ p.rts_total }}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Badge for survival probability -->
+                {% set rts_triage_val = -1 %}
+                {% if p.rts_total and 'Triage: ' in p.rts_total %}
+                    {% set parts_rts = p.rts_total.split('/') %}
+                    {% if parts_rts | length > 0 %}
+                        {% set rts_triage_val = parts_rts[0].replace('Triage: ', '').split('/')[0] | int(-1) %}
+                    {% endif %}
+                {% endif %}
+                
+                {% if rts_triage_val >= 0 %}
+                <div style="background:#0d9488; color:white; padding:6px 14px; border-radius:8px; font-weight:700; font-size:13px; text-align:center;">
+                    Probabilidad de Supervivencia: 
+                    {% if rts_triage_val == 12 %}98.8%
+                    {% elif rts_triage_val == 11 %}96.9%
+                    {% elif rts_triage_val == 10 %}94.6%
+                    {% elif rts_triage_val == 9 %}80.5%
+                    {% elif rts_triage_val == 8 %}66.8%
+                    {% elif rts_triage_val == 7 %}44.8%
+                    {% elif rts_triage_val == 6 %}36.1%
+                    {% elif rts_triage_val == 5 %}25.8%
+                    {% elif rts_triage_val == 4 or rts_triage_val == 3 %}13.4%
+                    {% elif rts_triage_val == 2 or rts_triage_val == 1 %}7.0%
+                    {% else %}2.7%{% endif %}
+                </div>
+                {% endif %}
+            </div>
+            
+            <div style="font-size:11px; color:#0f766e; border-top:1px dashed #99f6e4; padding-top:6px; display:flex; gap:16px;">
+                <span><strong>GCS:</strong> {{ p.glasgow_total or '—' }}/15</span>
+                <span><strong>PAS:</strong> {{ p.presion_arterial or '—' }}</span>
+                <span><strong>FR:</strong> {{ p.frecuencia_respiratoria or '—' }} rpm</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Examen Físico -->
+    {% set ef_items = [
+        ('cabeza', 'Cabeza'), ('ojos', 'Ojos'), ('nariz', 'Nariz'), ('oidos', 'Oídos'),
+        ('boca', 'Boca'), ('cuello', 'Cuello'), ('torax', 'Tórax'), ('cardio', 'Cardio'),
+        ('pulmonar', 'Pulmonar'), ('abdomen', 'Abdomen'), ('pelvis', 'Pelvis'), ('piel', 'Piel'),
+        ('genito_urinario', 'Génito Urinario'), ('extremidades', 'Extremidades'),
+        ('osteomuscular', 'Osteomuscular'), ('vascular_periferico', 'Vascular periférico'),
+        ('neurologico', 'Neurológico'), ('estado_mental', 'Estado mental')
+    ] %}
+    {% set ef_obj = p.examen_fisico_obj if p and p.examen_fisico_obj else {} %}
+    <div class="hc-section">
+        <div class="hc-section-title">Examen Físico</div>
+        <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:12px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:12px 16px;">
+            {% for key, label in ef_items %}
+                {% set ef_val = ef_obj.get(key) or {} %}
+                {% set is_dict = (ef_val is mapping) %}
+                {% set estado = (ef_val.get('estado') if is_dict else ef_val) or 'No evaluado' %}
+                {% set obs = ef_val.get('obs') if is_dict else '' %}
+                <div style="display:flex; flex-direction:column; border-bottom:1px solid #f1f5f9; padding-bottom:4px;">
+                    <div style="display:flex; justify-content:space-between;">
+                        <span style="font-size:13px; font-weight:600; color:#475569;">{{ label }}</span>
+                        <span style="font-size:13px; font-weight:700; color:{% if estado == 'Anormal' %}#dc2626{% else %}#16a34a{% endif %};">{{ estado }}</span>
+                    </div>
+                    {% if estado == 'Anormal' and obs %}
+                    <div style="font-size:11px; color:#ef4444; margin-top:2px; font-style:italic;">
+                        Obs: {{ obs }}
+                    </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Intervenciones y Procedimientos -->
+    <div class="hc-section">
+        <div class="hc-section-title">Intervenciones y Procedimientos</div>
+        
+        <div style="background: #fafbfc; border: 1.5px solid #edf2f7; border-radius: 8px; padding: 12px 16px; margin-bottom: 12px;">
+            <span style="font-size: 13px; font-weight: 700; color: #4a5568; display: block; margin-bottom: 8px;">Inmovilización y Otros Procedimientos</span>
+            <div class="hc-grid-2">
+                <div class="hc-field">
+                    <span>Inmovilización</span>
+                    <strong>{{ p.inmovilizacion or '—' }}</strong>
+                </div>
+                <div class="hc-field">
+                    <span>Otros Procedimientos</span>
+                    <strong>{{ p.otros_procedimientos or '—' }}</strong>
+                </div>
+                <div class="hc-field">
+                    <span>Ventilación Mecánica</span>
+                    <strong>{{ p.ventilacion_mecanica or '—' }}</strong>
+                </div>
+                <div class="hc-field">
+                    <span>Torniquete</span>
+                    <strong>{{ p.torniquete or '—' }}</strong>
+                </div>
+            </div>
+        </div>
+
+        <div style="background: #fafbfc; border: 1.5px solid #edf2f7; border-radius: 8px; padding: 12px 16px;">
+            <span style="font-size: 13px; font-weight: 700; color: #4a5568; display: block; margin-bottom: 8px;">Intervenciones (X / A / B / C / D / E)</span>
+            <div class="hc-grid-3">
+                <div class="hc-field">
+                    <span>X (Hemorragias)</span>
+                    <strong>{{ p.x_items or '—' }}</strong>
+                </div>
+                <div class="hc-field">
+                    <span>A (Vía Aérea)</span>
+                    <strong>{{ p.a_items or '—' }}</strong>
+                </div>
+                <div class="hc-field">
+                    <span>B (Ventilación)</span>
+                    <strong>{{ p.b_items or '—' }}</strong>
+                </div>
+                <div class="hc-field">
+                    <span>C (Circulación)</span>
+                    <strong>{{ p.c_items or '—' }}</strong>
+                </div>
+                <div class="hc-field">
+                    <span>D (Neurológico)</span>
+                    <strong>{{ p.d_items or '—' }}</strong>
+                </div>
+                <div class="hc-field">
+                    <span>E (Exposición)</span>
+                    <strong>{{ p.e_items or '—' }}</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Evolución Clínica -->
+    <div class="hc-section">
+        <div class="hc-section-title">Evolución de Atención Clínica</div>
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+            <div>
+                <div class="hc-field" style="margin-bottom: 5px;"><span>Motivo de Consulta</span></div>
+                <div class="hc-text-box">{{ p.motivo_consulta or 'No registrado' }}</div>
+            </div>
+            <div>
+                <div class="hc-field" style="margin-bottom: 5px;"><span>Enfermedad Actual</span></div>
+                <div class="hc-text-box">{{ p.enfermedad_actual or 'No registrado' }}</div>
+            </div>
+            <div>
+                <div class="hc-field" style="margin-bottom: 5px;"><span>Análisis Clínico</span></div>
+                <div class="hc-text-box">{{ p.analisis or 'No registrado' }}</div>
+            </div>
+            <div>
+                <div class="hc-field" style="margin-bottom: 5px;"><span>Plan de Manejo y Conducta</span></div>
+                <div class="hc-text-box">{{ p.plan or 'No registrado' }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Diagnóstico CIE10 -->
+    <div class="hc-section">
+        <div class="hc-section-title">Impresión Diagnóstica</div>
+        <div class="hc-diag">
+            <div class="diag-icon">🩺</div>
+            <div>
+                <span class="diag-label">Diagnóstico Principal (CIE10)</span>
+                <div class="diag-value">{{ p.diagnostico_cie10 or 'No especificado' }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pie de página profesional -->
+    <div class="hc-footer">
+        <div class="hc-footer-left">
+            <div class="hc-footer-name">{{ p.registrado_por }}</div>
+            <div class="hc-footer-role">{{ p.perfil_registrador or 'Profesional de la Salud' }}</div>
+            <div class="hc-footer-rm">Resolución en Salud: {{ p.registro_medico_registrador or 'N/A' }}</div>
+        </div>
+        <div class="hc-footer-sig">
+            {% if p.firma_registrador %}
+            <div class="signature-container">
+                <img src="{{ p.firma_registrador }}" alt="Firma Profesional">
+            </div>
+            {% else %}
+            <div class="hc-footer-sig-empty">
+                <span>Sin firma registrada</span>
+            </div>
+            {% endif %}
+            <div class="hc-footer-sig-line"></div>
+            <span class="hc-footer-sig-label">Firma del Diligenciador</span>
+        </div>
+    </div>
+
+    <!-- Marca de agua de autenticidad -->
+    <div class="hc-watermark" style="border-top: 1px dashed #cbd5e0; margin-top: 25px; padding-top: 10px; font-size: 10px; color: #718096; text-align: center;">
+        <div>Documento generado electrónicamente por {{ institucion.nombre_institucion }} &nbsp;|&nbsp; Historia Clínica N° {{ p.id }} &nbsp;|&nbsp; {{ p.fecha_registro }}</div>
+        <div style="margin-top: 5px; font-weight: 600;">Impreso por: {{ session.usuario.nombre }} - <span class="print-datetime"></span></div>
+    </div>
+
+</div>
+
+<!-- Load html2pdf.js -->
+{% if session.usuario.rol != 'usuario' %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script>
+document.getElementById('download-pdf').addEventListener('click', function() {
+    // Set print timestamp dynamically
+    const now = new Date();
+    const formattedDate = now.getFullYear() + '-' + 
+                          String(now.getMonth() + 1).padStart(2, '0') + '-' + 
+                          String(now.getDate()).padStart(2, '0') + ' ' + 
+                          String(now.getHours()).padStart(2, '0') + ':' + 
+                          String(now.getMinutes()).padStart(2, '0') + ':' + 
+                          String(now.getSeconds()).padStart(2, '0');
+    document.querySelectorAll('.print-datetime').forEach(el => el.textContent = formattedDate);
+
+    const btn = this;
+    const loading = document.getElementById('pdf-loading');
+    const element = document.getElementById('hc-document');
+
+    // Show loading state
+    btn.disabled = true;
+    btn.textContent = '⏳ Generando...';
+    loading.style.display = 'flex';
+
+    const opt = {
+        margin:       [10, 10, 10, 10],
+        filename:     'HC_{{ p.id }}_{{ p.primer_apellido }}_{{ p.primer_nombre }}.pdf',
+        image:        { type: 'jpeg', quality: 0.97 },
+        html2canvas:  {
+            scale: 2,
+            useCORS: true,
+            logging: false,
+            allowTaint: true,
+            backgroundColor: '#ffffff'
+        },
+        jsPDF:        { unit: 'mm', format: 'letter', orientation: 'portrait' }
+    };
+    
+    const tempContainer = document.createElement('div');
+    tempContainer.style.position = 'absolute';
+    tempContainer.style.left = '-9999px';
+    tempContainer.style.top = window.scrollY + 'px';
+    tempContainer.style.width = '800px';
+    tempContainer.style.background = 'white';
+    
+    const clone = element.cloneNode(true);
+    const wrappers = clone.querySelectorAll('.table-responsive, .table-wrap');
+    wrappers.forEach(w => w.style.overflowX = 'visible');
+    
+    tempContainer.appendChild(clone);
+    document.body.appendChild(tempContainer);
+
+    html2pdf().set(opt).from(clone).outputPdf('blob').then(function(blob) {
+        document.body.removeChild(tempContainer);
+        
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'HC_{{ p.id }}_{{ p.primer_apellido }}_{{ p.primer_nombre }}.pdf';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    }).catch(function(err) {
+        console.error('Error generando PDF:', err);
+        alert('Error al generar el PDF. Por favor intente nuevamente.');
+        if (document.body.contains(tempContainer)) {
+            document.body.removeChild(tempContainer);
+        }
+    }).finally(function() {
+        btn.disabled = false;
+        btn.textContent = '📥 Descargar PDF';
+        loading.style.display = 'none';
+    });
+});
+</script>
+{% endif %}
+{% endblock %}

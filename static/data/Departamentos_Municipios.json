@@ -1,0 +1,4486 @@
+[
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "MEDELLIN"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "ABEJORRAL"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "ABRIAQUI"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "ALEJANDRIA"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "AMAGA"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "AMALFI"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "ANDES"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "ANGELOPOLIS"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "ANGOSTURA"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "ANORI"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "SANTAFE DE ANTIOQUIA"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "ANZA"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "APARTADO"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "ARBOLETES"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "ARGELIA"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "ARMENIA"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "BARBOSA"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "BELMIRA"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "BELLO"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "BETANIA"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "BETULIA"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "CIUDAD BOLIVAR"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "BRICEÑO"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "BURITICA"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "CACERES"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "CAICEDO"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "CALDAS"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "CAMPAMENTO"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "CAÑASGORDAS"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "CARACOLI"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "CARAMANTA"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "CAREPA"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "EL CARMEN DE VIBORAL"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "CAROLINA"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "CAUCASIA"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "CHIGORODO"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "CISNEROS"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "COCORNA"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "CONCEPCION"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "CONCORDIA"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "COPACABANA"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "DABEIBA"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "DON MATIAS"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "EBEJICO"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "EL BAGRE"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "ENTRERRIOS"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "ENVIGADO"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "FREDONIA"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "FRONTINO"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "GIRALDO"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "GIRARDOTA"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "GOMEZ PLATA"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "GRANADA"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "GUADALUPE"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "GUARNE"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "GUATAPE"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "HELICONIA"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "HISPANIA"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "ITAGUI"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "ITUANGO"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "JARDIN"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "JERICO"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "LA CEJA"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "LA ESTRELLA"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "LA PINTADA"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "LA UNION"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "LIBORINA"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "MACEO"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "MARINILLA"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "MONTEBELLO"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "MURINDO"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "MUTATA"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "NARIÑO"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "NECOCLI"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "NECHI"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "OLAYA"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "PEÐOL"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "PEQUE"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "PUEBLORRICO"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "PUERTO BERRIO"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "PUERTO NARE"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "PUERTO TRIUNFO"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "REMEDIOS"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "RETIRO"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "RIONEGRO"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "SABANALARGA"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "SABANETA"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "SALGAR"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "SAN ANDRES DE CUERQUIA"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "SAN CARLOS"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "SAN FRANCISCO"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "SAN JERONIMO"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "SAN JOSE DE LA MONTAÑA"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "SAN JUAN DE URABA"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "SAN LUIS"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "SAN PEDRO"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "SAN PEDRO DE URABA"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "SAN RAFAEL"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "SAN ROQUE"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "SAN VICENTE"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "SANTA BARBARA"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "SANTA ROSA DE OSOS"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "SANTO DOMINGO"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "EL SANTUARIO"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "SEGOVIA"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "SONSON"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "SOPETRAN"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "TAMESIS"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "TARAZA"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "TARSO"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "TITIRIBI"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "TOLEDO"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "TURBO"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "URAMITA"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "URRAO"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "VALDIVIA"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "VALPARAISO"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "VEGACHI"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "VENECIA"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "VIGIA DEL FUERTE"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "YALI"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "YARUMAL"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "YOLOMBO"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "YONDO"
+  },
+  {
+    "Nombre Departamento": "ANTIOQUIA",
+    "Nombre Municipio": "ZARAGOZA"
+  },
+  {
+    "Nombre Departamento": "ATLANTICO",
+    "Nombre Municipio": "BARRANQUILLA"
+  },
+  {
+    "Nombre Departamento": "ATLANTICO",
+    "Nombre Municipio": "BARANOA"
+  },
+  {
+    "Nombre Departamento": "ATLANTICO",
+    "Nombre Municipio": "CAMPO DE LA CRUZ"
+  },
+  {
+    "Nombre Departamento": "ATLANTICO",
+    "Nombre Municipio": "CANDELARIA"
+  },
+  {
+    "Nombre Departamento": "ATLANTICO",
+    "Nombre Municipio": "GALAPA"
+  },
+  {
+    "Nombre Departamento": "ATLANTICO",
+    "Nombre Municipio": "JUAN DE ACOSTA"
+  },
+  {
+    "Nombre Departamento": "ATLANTICO",
+    "Nombre Municipio": "LURUACO"
+  },
+  {
+    "Nombre Departamento": "ATLANTICO",
+    "Nombre Municipio": "MALAMBO"
+  },
+  {
+    "Nombre Departamento": "ATLANTICO",
+    "Nombre Municipio": "MANATI"
+  },
+  {
+    "Nombre Departamento": "ATLANTICO",
+    "Nombre Municipio": "PALMAR DE VARELA"
+  },
+  {
+    "Nombre Departamento": "ATLANTICO",
+    "Nombre Municipio": "PIOJO"
+  },
+  {
+    "Nombre Departamento": "ATLANTICO",
+    "Nombre Municipio": "POLONUEVO"
+  },
+  {
+    "Nombre Departamento": "ATLANTICO",
+    "Nombre Municipio": "PONEDERA"
+  },
+  {
+    "Nombre Departamento": "ATLANTICO",
+    "Nombre Municipio": "PUERTO COLOMBIA"
+  },
+  {
+    "Nombre Departamento": "ATLANTICO",
+    "Nombre Municipio": "REPELON"
+  },
+  {
+    "Nombre Departamento": "ATLANTICO",
+    "Nombre Municipio": "SABANAGRANDE"
+  },
+  {
+    "Nombre Departamento": "ATLANTICO",
+    "Nombre Municipio": "SABANALARGA"
+  },
+  {
+    "Nombre Departamento": "ATLANTICO",
+    "Nombre Municipio": "SANTA LUCIA"
+  },
+  {
+    "Nombre Departamento": "ATLANTICO",
+    "Nombre Municipio": "SANTO TOMAS"
+  },
+  {
+    "Nombre Departamento": "ATLANTICO",
+    "Nombre Municipio": "SOLEDAD"
+  },
+  {
+    "Nombre Departamento": "ATLANTICO",
+    "Nombre Municipio": "SUAN"
+  },
+  {
+    "Nombre Departamento": "ATLANTICO",
+    "Nombre Municipio": "TUBARA"
+  },
+  {
+    "Nombre Departamento": "ATLANTICO",
+    "Nombre Municipio": "USIACURI"
+  },
+  {
+    "Nombre Departamento": "BOGOTA",
+    "Nombre Municipio": "BOGOTA, D.C."
+  },
+  {
+    "Nombre Departamento": "BOLIVAR",
+    "Nombre Municipio": "CARTAGENA"
+  },
+  {
+    "Nombre Departamento": "BOLIVAR",
+    "Nombre Municipio": "ACHI"
+  },
+  {
+    "Nombre Departamento": "BOLIVAR",
+    "Nombre Municipio": "ALTOS DEL ROSARIO"
+  },
+  {
+    "Nombre Departamento": "BOLIVAR",
+    "Nombre Municipio": "ARENAL"
+  },
+  {
+    "Nombre Departamento": "BOLIVAR",
+    "Nombre Municipio": "ARJONA"
+  },
+  {
+    "Nombre Departamento": "BOLIVAR",
+    "Nombre Municipio": "ARROYOHONDO"
+  },
+  {
+    "Nombre Departamento": "BOLIVAR",
+    "Nombre Municipio": "BARRANCO DE LOBA"
+  },
+  {
+    "Nombre Departamento": "BOLIVAR",
+    "Nombre Municipio": "CALAMAR"
+  },
+  {
+    "Nombre Departamento": "BOLIVAR",
+    "Nombre Municipio": "CANTAGALLO"
+  },
+  {
+    "Nombre Departamento": "BOLIVAR",
+    "Nombre Municipio": "CICUCO"
+  },
+  {
+    "Nombre Departamento": "BOLIVAR",
+    "Nombre Municipio": "CORDOBA"
+  },
+  {
+    "Nombre Departamento": "BOLIVAR",
+    "Nombre Municipio": "CLEMENCIA"
+  },
+  {
+    "Nombre Departamento": "BOLIVAR",
+    "Nombre Municipio": "EL CARMEN DE BOLIVAR"
+  },
+  {
+    "Nombre Departamento": "BOLIVAR",
+    "Nombre Municipio": "EL GUAMO"
+  },
+  {
+    "Nombre Departamento": "BOLIVAR",
+    "Nombre Municipio": "EL PEÑON"
+  },
+  {
+    "Nombre Departamento": "BOLIVAR",
+    "Nombre Municipio": "HATILLO DE LOBA"
+  },
+  {
+    "Nombre Departamento": "BOLIVAR",
+    "Nombre Municipio": "MAGANGUE"
+  },
+  {
+    "Nombre Departamento": "BOLIVAR",
+    "Nombre Municipio": "MAHATES"
+  },
+  {
+    "Nombre Departamento": "BOLIVAR",
+    "Nombre Municipio": "MARGARITA"
+  },
+  {
+    "Nombre Departamento": "BOLIVAR",
+    "Nombre Municipio": "MARIA LA BAJA"
+  },
+  {
+    "Nombre Departamento": "BOLIVAR",
+    "Nombre Municipio": "MONTECRISTO"
+  },
+  {
+    "Nombre Departamento": "BOLIVAR",
+    "Nombre Municipio": "MOMPOS"
+  },
+  {
+    "Nombre Departamento": "BOLIVAR",
+    "Nombre Municipio": "NOROSI (1)"
+  },
+  {
+    "Nombre Departamento": "BOLIVAR",
+    "Nombre Municipio": "MORALES"
+  },
+  {
+    "Nombre Departamento": "BOLIVAR",
+    "Nombre Municipio": "PINILLOS"
+  },
+  {
+    "Nombre Departamento": "BOLIVAR",
+    "Nombre Municipio": "REGIDOR"
+  },
+  {
+    "Nombre Departamento": "BOLIVAR",
+    "Nombre Municipio": "RIO VIEJO (1)"
+  },
+  {
+    "Nombre Departamento": "BOLIVAR",
+    "Nombre Municipio": "SAN CRISTOBAL"
+  },
+  {
+    "Nombre Departamento": "BOLIVAR",
+    "Nombre Municipio": "SAN ESTANISLAO"
+  },
+  {
+    "Nombre Departamento": "BOLIVAR",
+    "Nombre Municipio": "SAN FERNANDO"
+  },
+  {
+    "Nombre Departamento": "BOLIVAR",
+    "Nombre Municipio": "SAN JACINTO"
+  },
+  {
+    "Nombre Departamento": "BOLIVAR",
+    "Nombre Municipio": "SAN JACINTO DEL CAUCA"
+  },
+  {
+    "Nombre Departamento": "BOLIVAR",
+    "Nombre Municipio": "SAN JUAN NEPOMUCENO"
+  },
+  {
+    "Nombre Departamento": "BOLIVAR",
+    "Nombre Municipio": "SAN MARTIN DE LOBA"
+  },
+  {
+    "Nombre Departamento": "BOLIVAR",
+    "Nombre Municipio": "SAN PABLO"
+  },
+  {
+    "Nombre Departamento": "BOLIVAR",
+    "Nombre Municipio": "SANTA CATALINA"
+  },
+  {
+    "Nombre Departamento": "BOLIVAR",
+    "Nombre Municipio": "SANTA ROSA"
+  },
+  {
+    "Nombre Departamento": "BOLIVAR",
+    "Nombre Municipio": "SANTA ROSA DEL SUR"
+  },
+  {
+    "Nombre Departamento": "BOLIVAR",
+    "Nombre Municipio": "SIMITI"
+  },
+  {
+    "Nombre Departamento": "BOLIVAR",
+    "Nombre Municipio": "SOPLAVIENTO"
+  },
+  {
+    "Nombre Departamento": "BOLIVAR",
+    "Nombre Municipio": "TALAIGUA NUEVO"
+  },
+  {
+    "Nombre Departamento": "BOLIVAR",
+    "Nombre Municipio": "TIQUISIO"
+  },
+  {
+    "Nombre Departamento": "BOLIVAR",
+    "Nombre Municipio": "TURBACO"
+  },
+  {
+    "Nombre Departamento": "BOLIVAR",
+    "Nombre Municipio": "TURBANA"
+  },
+  {
+    "Nombre Departamento": "BOLIVAR",
+    "Nombre Municipio": "VILLANUEVA"
+  },
+  {
+    "Nombre Departamento": "BOLIVAR",
+    "Nombre Municipio": "ZAMBRANO"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "TUNJA"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "ALMEIDA"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "AQUITANIA"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "ARCABUCO"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "BELEN"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "BERBEO"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "BETEITIVA"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "BOAVITA"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "BOYACA"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "BRICEÑO"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "BUENAVISTA"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "BUSBANZA"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "CALDAS"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "CAMPOHERMOSO"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "CERINZA"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "CHINAVITA"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "CHIQUINQUIRA"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "CHISCAS"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "CHITA"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "CHITARAQUE"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "CHIVATA"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "CIENEGA"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "COMBITA"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "COPER"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "CORRALES"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "COVARACHIA"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "CUBARA"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "CUCAITA"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "CUITIVA"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "CHIQUIZA"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "CHIVOR"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "DUITAMA"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "EL COCUY"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "EL ESPINO"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "FIRAVITOBA"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "FLORESTA"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "GACHANTIVA"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "GAMEZA"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "GARAGOA"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "GUACAMAYAS"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "GUATEQUE"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "GUAYATA"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "GsICAN"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "IZA"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "JENESANO"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "JERICO"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "LABRANZAGRANDE"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "LA CAPILLA"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "LA VICTORIA"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "LA UVITA"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "VILLA DE LEYVA"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "MACANAL"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "MARIPI"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "MIRAFLORES"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "MONGUA"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "MONGUI"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "MONIQUIRA"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "MOTAVITA"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "MUZO"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "NOBSA"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "NUEVO COLON"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "OICATA"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "OTANCHE"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "PACHAVITA"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "PAEZ"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "PAIPA"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "PAJARITO"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "PANQUEBA"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "PAUNA"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "PAYA"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "PAZ DE RIO"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "PESCA"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "PISBA"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "PUERTO BOYACA"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "QUIPAMA"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "RAMIRIQUI"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "RAQUIRA"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "RONDON"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "SABOYA"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "SACHICA"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "SAMACA"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "SAN EDUARDO"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "SAN JOSE DE PARE"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "SAN LUIS DE GACENO"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "SAN MATEO"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "SAN MIGUEL DE SEMA"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "SAN PABLO DE BORBUR"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "SANTANA"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "SANTA MARIA"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "SANTA ROSA DE VITERBO"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "SANTA SOFIA"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "SATIVANORTE"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "SATIVASUR"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "SIACHOQUE"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "SOATA"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "SOCOTA"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "SOCHA"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "SOGAMOSO"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "SOMONDOCO"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "SORA"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "SOTAQUIRA"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "SORACA"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "SUSACON"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "SUTAMARCHAN"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "SUTATENZA"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "TASCO"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "TENZA"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "TIBANA"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "TIBASOSA"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "TINJACA"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "TIPACOQUE"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "TOCA"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "TOGsI"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "TOPAGA"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "TOTA"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "TUNUNGUA"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "TURMEQUE"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "TUTA"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "TUTAZA"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "UMBITA"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "VENTAQUEMADA"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "VIRACACHA"
+  },
+  {
+    "Nombre Departamento": "BOYACA",
+    "Nombre Municipio": "ZETAQUIRA"
+  },
+  {
+    "Nombre Departamento": "CALDAS",
+    "Nombre Municipio": "MANIZALES"
+  },
+  {
+    "Nombre Departamento": "CALDAS",
+    "Nombre Municipio": "AGUADAS"
+  },
+  {
+    "Nombre Departamento": "CALDAS",
+    "Nombre Municipio": "ANSERMA"
+  },
+  {
+    "Nombre Departamento": "CALDAS",
+    "Nombre Municipio": "ARANZAZU"
+  },
+  {
+    "Nombre Departamento": "CALDAS",
+    "Nombre Municipio": "BELALCAZAR"
+  },
+  {
+    "Nombre Departamento": "CALDAS",
+    "Nombre Municipio": "CHINCHINA"
+  },
+  {
+    "Nombre Departamento": "CALDAS",
+    "Nombre Municipio": "FILADELFIA"
+  },
+  {
+    "Nombre Departamento": "CALDAS",
+    "Nombre Municipio": "LA DORADA"
+  },
+  {
+    "Nombre Departamento": "CALDAS",
+    "Nombre Municipio": "LA MERCED"
+  },
+  {
+    "Nombre Departamento": "CALDAS",
+    "Nombre Municipio": "MANZANARES"
+  },
+  {
+    "Nombre Departamento": "CALDAS",
+    "Nombre Municipio": "MARMATO"
+  },
+  {
+    "Nombre Departamento": "CALDAS",
+    "Nombre Municipio": "MARQUETALIA"
+  },
+  {
+    "Nombre Departamento": "CALDAS",
+    "Nombre Municipio": "MARULANDA"
+  },
+  {
+    "Nombre Departamento": "CALDAS",
+    "Nombre Municipio": "NEIRA"
+  },
+  {
+    "Nombre Departamento": "CALDAS",
+    "Nombre Municipio": "NORCASIA"
+  },
+  {
+    "Nombre Departamento": "CALDAS",
+    "Nombre Municipio": "PACORA"
+  },
+  {
+    "Nombre Departamento": "CALDAS",
+    "Nombre Municipio": "PALESTINA"
+  },
+  {
+    "Nombre Departamento": "CALDAS",
+    "Nombre Municipio": "PENSILVANIA"
+  },
+  {
+    "Nombre Departamento": "CALDAS",
+    "Nombre Municipio": "RIOSUCIO"
+  },
+  {
+    "Nombre Departamento": "CALDAS",
+    "Nombre Municipio": "RISARALDA"
+  },
+  {
+    "Nombre Departamento": "CALDAS",
+    "Nombre Municipio": "SALAMINA"
+  },
+  {
+    "Nombre Departamento": "CALDAS",
+    "Nombre Municipio": "SAMANA"
+  },
+  {
+    "Nombre Departamento": "CALDAS",
+    "Nombre Municipio": "SAN JOSE"
+  },
+  {
+    "Nombre Departamento": "CALDAS",
+    "Nombre Municipio": "SUPIA"
+  },
+  {
+    "Nombre Departamento": "CALDAS",
+    "Nombre Municipio": "VICTORIA"
+  },
+  {
+    "Nombre Departamento": "CALDAS",
+    "Nombre Municipio": "VILLAMARIA"
+  },
+  {
+    "Nombre Departamento": "CALDAS",
+    "Nombre Municipio": "VITERBO"
+  },
+  {
+    "Nombre Departamento": "CAQUETA",
+    "Nombre Municipio": "FLORENCIA"
+  },
+  {
+    "Nombre Departamento": "CAQUETA",
+    "Nombre Municipio": "ALBANIA"
+  },
+  {
+    "Nombre Departamento": "CAQUETA",
+    "Nombre Municipio": "BELEN DE LOS ANDAQUIES"
+  },
+  {
+    "Nombre Departamento": "CAQUETA",
+    "Nombre Municipio": "CARTAGENA DEL CHAIRA"
+  },
+  {
+    "Nombre Departamento": "CAQUETA",
+    "Nombre Municipio": "CURILLO"
+  },
+  {
+    "Nombre Departamento": "CAQUETA",
+    "Nombre Municipio": "EL DONCELLO"
+  },
+  {
+    "Nombre Departamento": "CAQUETA",
+    "Nombre Municipio": "EL PAUJIL"
+  },
+  {
+    "Nombre Departamento": "CAQUETA",
+    "Nombre Municipio": "LA MONTAÑITA"
+  },
+  {
+    "Nombre Departamento": "CAQUETA",
+    "Nombre Municipio": "MILAN"
+  },
+  {
+    "Nombre Departamento": "CAQUETA",
+    "Nombre Municipio": "MORELIA"
+  },
+  {
+    "Nombre Departamento": "CAQUETA",
+    "Nombre Municipio": "PUERTO RICO"
+  },
+  {
+    "Nombre Departamento": "CAQUETA",
+    "Nombre Municipio": "SAN JOSE DEL FRAGUA"
+  },
+  {
+    "Nombre Departamento": "CAQUETA",
+    "Nombre Municipio": "SAN VICENTE DEL CAGUAN"
+  },
+  {
+    "Nombre Departamento": "CAQUETA",
+    "Nombre Municipio": "SOLANO"
+  },
+  {
+    "Nombre Departamento": "CAQUETA",
+    "Nombre Municipio": "SOLITA"
+  },
+  {
+    "Nombre Departamento": "CAQUETA",
+    "Nombre Municipio": "VALPARAISO"
+  },
+  {
+    "Nombre Departamento": "CAUCA",
+    "Nombre Municipio": "POPAYAN"
+  },
+  {
+    "Nombre Departamento": "CAUCA",
+    "Nombre Municipio": "ALMAGUER"
+  },
+  {
+    "Nombre Departamento": "CAUCA",
+    "Nombre Municipio": "ARGELIA"
+  },
+  {
+    "Nombre Departamento": "CAUCA",
+    "Nombre Municipio": "BALBOA"
+  },
+  {
+    "Nombre Departamento": "CAUCA",
+    "Nombre Municipio": "BOLIVAR"
+  },
+  {
+    "Nombre Departamento": "CAUCA",
+    "Nombre Municipio": "BUENOS AIRES"
+  },
+  {
+    "Nombre Departamento": "CAUCA",
+    "Nombre Municipio": "CAJIBIO"
+  },
+  {
+    "Nombre Departamento": "CAUCA",
+    "Nombre Municipio": "CALDONO"
+  },
+  {
+    "Nombre Departamento": "CAUCA",
+    "Nombre Municipio": "CALOTO (1)"
+  },
+  {
+    "Nombre Departamento": "CAUCA",
+    "Nombre Municipio": "CORINTO"
+  },
+  {
+    "Nombre Departamento": "CAUCA",
+    "Nombre Municipio": "EL TAMBO"
+  },
+  {
+    "Nombre Departamento": "CAUCA",
+    "Nombre Municipio": "FLORENCIA"
+  },
+  {
+    "Nombre Departamento": "CAUCA",
+    "Nombre Municipio": "GUACHENE (1)"
+  },
+  {
+    "Nombre Departamento": "CAUCA",
+    "Nombre Municipio": "GUAPI"
+  },
+  {
+    "Nombre Departamento": "CAUCA",
+    "Nombre Municipio": "INZA"
+  },
+  {
+    "Nombre Departamento": "CAUCA",
+    "Nombre Municipio": "JAMBALO"
+  },
+  {
+    "Nombre Departamento": "CAUCA",
+    "Nombre Municipio": "LA SIERRA"
+  },
+  {
+    "Nombre Departamento": "CAUCA",
+    "Nombre Municipio": "LA VEGA"
+  },
+  {
+    "Nombre Departamento": "CAUCA",
+    "Nombre Municipio": "LOPEZ"
+  },
+  {
+    "Nombre Departamento": "CAUCA",
+    "Nombre Municipio": "MERCADERES"
+  },
+  {
+    "Nombre Departamento": "CAUCA",
+    "Nombre Municipio": "MIRANDA"
+  },
+  {
+    "Nombre Departamento": "CAUCA",
+    "Nombre Municipio": "MORALES"
+  },
+  {
+    "Nombre Departamento": "CAUCA",
+    "Nombre Municipio": "PADILLA"
+  },
+  {
+    "Nombre Departamento": "CAUCA",
+    "Nombre Municipio": "PAEZ"
+  },
+  {
+    "Nombre Departamento": "CAUCA",
+    "Nombre Municipio": "PATIA"
+  },
+  {
+    "Nombre Departamento": "CAUCA",
+    "Nombre Municipio": "PIAMONTE"
+  },
+  {
+    "Nombre Departamento": "CAUCA",
+    "Nombre Municipio": "PIENDAMO"
+  },
+  {
+    "Nombre Departamento": "CAUCA",
+    "Nombre Municipio": "PUERTO TEJADA"
+  },
+  {
+    "Nombre Departamento": "CAUCA",
+    "Nombre Municipio": "PURACE"
+  },
+  {
+    "Nombre Departamento": "CAUCA",
+    "Nombre Municipio": "ROSAS"
+  },
+  {
+    "Nombre Departamento": "CAUCA",
+    "Nombre Municipio": "SAN SEBASTIAN"
+  },
+  {
+    "Nombre Departamento": "CAUCA",
+    "Nombre Municipio": "SANTANDER DE QUILICHAO"
+  },
+  {
+    "Nombre Departamento": "CAUCA",
+    "Nombre Municipio": "SANTA ROSA"
+  },
+  {
+    "Nombre Departamento": "CAUCA",
+    "Nombre Municipio": "SILVIA"
+  },
+  {
+    "Nombre Departamento": "CAUCA",
+    "Nombre Municipio": "SOTARA"
+  },
+  {
+    "Nombre Departamento": "CAUCA",
+    "Nombre Municipio": "SUAREZ"
+  },
+  {
+    "Nombre Departamento": "CAUCA",
+    "Nombre Municipio": "SUCRE"
+  },
+  {
+    "Nombre Departamento": "CAUCA",
+    "Nombre Municipio": "TIMBIO"
+  },
+  {
+    "Nombre Departamento": "CAUCA",
+    "Nombre Municipio": "TIMBIQUI"
+  },
+  {
+    "Nombre Departamento": "CAUCA",
+    "Nombre Municipio": "TORIBIO"
+  },
+  {
+    "Nombre Departamento": "CAUCA",
+    "Nombre Municipio": "TOTORO"
+  },
+  {
+    "Nombre Departamento": "CAUCA",
+    "Nombre Municipio": "VILLA RICA"
+  },
+  {
+    "Nombre Departamento": "CESAR",
+    "Nombre Municipio": "VALLEDUPAR"
+  },
+  {
+    "Nombre Departamento": "CESAR",
+    "Nombre Municipio": "AGUACHICA"
+  },
+  {
+    "Nombre Departamento": "CESAR",
+    "Nombre Municipio": "AGUSTIN CODAZZI"
+  },
+  {
+    "Nombre Departamento": "CESAR",
+    "Nombre Municipio": "ASTREA"
+  },
+  {
+    "Nombre Departamento": "CESAR",
+    "Nombre Municipio": "BECERRIL"
+  },
+  {
+    "Nombre Departamento": "CESAR",
+    "Nombre Municipio": "BOSCONIA"
+  },
+  {
+    "Nombre Departamento": "CESAR",
+    "Nombre Municipio": "CHIMICHAGUA"
+  },
+  {
+    "Nombre Departamento": "CESAR",
+    "Nombre Municipio": "CHIRIGUANA"
+  },
+  {
+    "Nombre Departamento": "CESAR",
+    "Nombre Municipio": "CURUMANI"
+  },
+  {
+    "Nombre Departamento": "CESAR",
+    "Nombre Municipio": "EL COPEY"
+  },
+  {
+    "Nombre Departamento": "CESAR",
+    "Nombre Municipio": "EL PASO"
+  },
+  {
+    "Nombre Departamento": "CESAR",
+    "Nombre Municipio": "GAMARRA"
+  },
+  {
+    "Nombre Departamento": "CESAR",
+    "Nombre Municipio": "GONZALEZ"
+  },
+  {
+    "Nombre Departamento": "CESAR",
+    "Nombre Municipio": "LA GLORIA"
+  },
+  {
+    "Nombre Departamento": "CESAR",
+    "Nombre Municipio": "LA JAGUA DE IBIRICO"
+  },
+  {
+    "Nombre Departamento": "CESAR",
+    "Nombre Municipio": "MANAURE"
+  },
+  {
+    "Nombre Departamento": "CESAR",
+    "Nombre Municipio": "PAILITAS"
+  },
+  {
+    "Nombre Departamento": "CESAR",
+    "Nombre Municipio": "PELAYA"
+  },
+  {
+    "Nombre Departamento": "CESAR",
+    "Nombre Municipio": "PUEBLO BELLO"
+  },
+  {
+    "Nombre Departamento": "CESAR",
+    "Nombre Municipio": "RIO DE ORO"
+  },
+  {
+    "Nombre Departamento": "CESAR",
+    "Nombre Municipio": "LA PAZ"
+  },
+  {
+    "Nombre Departamento": "CESAR",
+    "Nombre Municipio": "SAN ALBERTO"
+  },
+  {
+    "Nombre Departamento": "CESAR",
+    "Nombre Municipio": "SAN DIEGO"
+  },
+  {
+    "Nombre Departamento": "CESAR",
+    "Nombre Municipio": "SAN MARTIN"
+  },
+  {
+    "Nombre Departamento": "CESAR",
+    "Nombre Municipio": "TAMALAMEQUE"
+  },
+  {
+    "Nombre Departamento": "CORDOBA",
+    "Nombre Municipio": "MONTERIA"
+  },
+  {
+    "Nombre Departamento": "CORDOBA",
+    "Nombre Municipio": "AYAPEL"
+  },
+  {
+    "Nombre Departamento": "CORDOBA",
+    "Nombre Municipio": "BUENAVISTA"
+  },
+  {
+    "Nombre Departamento": "CORDOBA",
+    "Nombre Municipio": "CANALETE"
+  },
+  {
+    "Nombre Departamento": "CORDOBA",
+    "Nombre Municipio": "CERETE"
+  },
+  {
+    "Nombre Departamento": "CORDOBA",
+    "Nombre Municipio": "CHIMA (3)"
+  },
+  {
+    "Nombre Departamento": "CORDOBA",
+    "Nombre Municipio": "CHINU"
+  },
+  {
+    "Nombre Departamento": "CORDOBA",
+    "Nombre Municipio": "CIENAGA DE ORO"
+  },
+  {
+    "Nombre Departamento": "CORDOBA",
+    "Nombre Municipio": "COTORRA"
+  },
+  {
+    "Nombre Departamento": "CORDOBA",
+    "Nombre Municipio": "LA APARTADA"
+  },
+  {
+    "Nombre Departamento": "CORDOBA",
+    "Nombre Municipio": "LORICA"
+  },
+  {
+    "Nombre Departamento": "CORDOBA",
+    "Nombre Municipio": "LOS CORDOBAS"
+  },
+  {
+    "Nombre Departamento": "CORDOBA",
+    "Nombre Municipio": "MOMIL"
+  },
+  {
+    "Nombre Departamento": "CORDOBA",
+    "Nombre Municipio": "MONTELIBANO (1)"
+  },
+  {
+    "Nombre Departamento": "CORDOBA",
+    "Nombre Municipio": "MOÑITOS"
+  },
+  {
+    "Nombre Departamento": "CORDOBA",
+    "Nombre Municipio": "PLANETA RICA"
+  },
+  {
+    "Nombre Departamento": "CORDOBA",
+    "Nombre Municipio": "PUEBLO NUEVO"
+  },
+  {
+    "Nombre Departamento": "CORDOBA",
+    "Nombre Municipio": "PUERTO ESCONDIDO"
+  },
+  {
+    "Nombre Departamento": "CORDOBA",
+    "Nombre Municipio": "PUERTO LIBERTADOR"
+  },
+  {
+    "Nombre Departamento": "CORDOBA",
+    "Nombre Municipio": "PURISIMA"
+  },
+  {
+    "Nombre Departamento": "CORDOBA",
+    "Nombre Municipio": "SAHAGUN"
+  },
+  {
+    "Nombre Departamento": "CORDOBA",
+    "Nombre Municipio": "SAN ANDRES SOTAVENTO (3)"
+  },
+  {
+    "Nombre Departamento": "CORDOBA",
+    "Nombre Municipio": "SAN ANTERO"
+  },
+  {
+    "Nombre Departamento": "CORDOBA",
+    "Nombre Municipio": "SAN BERNARDO DEL VIENTO"
+  },
+  {
+    "Nombre Departamento": "CORDOBA",
+    "Nombre Municipio": "SAN CARLOS"
+  },
+  {
+    "Nombre Departamento": "CORDOBA",
+    "Nombre Municipio": "SAN JOSE DE URE (1)"
+  },
+  {
+    "Nombre Departamento": "CORDOBA",
+    "Nombre Municipio": "SAN PELAYO"
+  },
+  {
+    "Nombre Departamento": "CORDOBA",
+    "Nombre Municipio": "TIERRALTA"
+  },
+  {
+    "Nombre Departamento": "CORDOBA",
+    "Nombre Municipio": "VALENCIA"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "AGUA DE DIOS"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "ALBAN"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "ANAPOIMA"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "ANOLAIMA"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "ARBELAEZ"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "BELTRAN"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "BITUIMA"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "BOJACA"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "CABRERA"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "CACHIPAY"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "CAJICA"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "CAPARRAPI"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "CAQUEZA"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "CARMEN DE CARUPA"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "CHAGUANI"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "CHIA"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "CHIPAQUE"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "CHOACHI"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "CHOCONTA"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "COGUA"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "COTA"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "CUCUNUBA"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "EL COLEGIO"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "EL PEÑON"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "EL ROSAL"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "FACATATIVA"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "FOMEQUE"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "FOSCA"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "FUNZA"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "FUQUENE"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "FUSAGASUGA"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "GACHALA"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "GACHANCIPA"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "GACHETA"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "GAMA"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "GIRARDOT"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "GRANADA"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "GUACHETA"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "GUADUAS"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "GUASCA"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "GUATAQUI"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "GUATAVITA"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "GUAYABAL DE SIQUIMA"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "GUAYABETAL"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "GUTIERREZ"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "JERUSALEN"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "JUNIN"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "LA CALERA"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "LA MESA"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "LA PALMA"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "LA PEÑA"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "LA VEGA"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "LENGUAZAQUE"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "MACHETA"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "MADRID"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "MANTA"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "MEDINA"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "MOSQUERA"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "NARIÑO"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "NEMOCON"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "NILO"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "NIMAIMA"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "NOCAIMA"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "VENECIA"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "PACHO"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "PAIME"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "PANDI"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "PARATEBUENO"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "PASCA"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "PUERTO SALGAR"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "PULI"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "QUEBRADANEGRA"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "QUETAME"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "QUIPILE"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "APULO"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "RICAURTE"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "SAN ANTONIO DEL TEQUENDAMA"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "SAN BERNARDO"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "SAN CAYETANO"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "SAN FRANCISCO"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "SAN JUAN DE RIO SECO"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "SASAIMA"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "SESQUILE"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "SIBATE"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "SILVANIA"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "SIMIJACA"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "SOACHA"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "SOPO"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "SUBACHOQUE"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "SUESCA"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "SUPATA"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "SUSA"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "SUTATAUSA"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "TABIO"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "TAUSA"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "TENA"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "TENJO"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "TIBACUY"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "TIBIRITA"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "TOCAIMA"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "TOCANCIPA"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "TOPAIPI"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "UBALA"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "UBAQUE"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "VILLA DE SAN DIEGO DE UBATE"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "UNE"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "UTICA"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "VERGARA"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "VIANI"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "VILLAGOMEZ"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "VILLAPINZON"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "VILLETA"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "VIOTA"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "YACOPI"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "ZIPACON"
+  },
+  {
+    "Nombre Departamento": "CUNDINAMARCA",
+    "Nombre Municipio": "ZIPAQUIRA"
+  },
+  {
+    "Nombre Departamento": "CHOCO",
+    "Nombre Municipio": "QUIBDO"
+  },
+  {
+    "Nombre Departamento": "CHOCO",
+    "Nombre Municipio": "ACANDI"
+  },
+  {
+    "Nombre Departamento": "CHOCO",
+    "Nombre Municipio": "ALTO BAUDO"
+  },
+  {
+    "Nombre Departamento": "CHOCO",
+    "Nombre Municipio": "ATRATO"
+  },
+  {
+    "Nombre Departamento": "CHOCO",
+    "Nombre Municipio": "BAGADO"
+  },
+  {
+    "Nombre Departamento": "CHOCO",
+    "Nombre Municipio": "BAHIA SOLANO"
+  },
+  {
+    "Nombre Departamento": "CHOCO",
+    "Nombre Municipio": "BAJO BAUDO"
+  },
+  {
+    "Nombre Departamento": "CHOCO",
+    "Nombre Municipio": "BOJAYA"
+  },
+  {
+    "Nombre Departamento": "CHOCO",
+    "Nombre Municipio": "EL CANTON DEL SAN PABLO"
+  },
+  {
+    "Nombre Departamento": "CHOCO",
+    "Nombre Municipio": "CARMEN DEL DARIEN"
+  },
+  {
+    "Nombre Departamento": "CHOCO",
+    "Nombre Municipio": "CERTEGUI"
+  },
+  {
+    "Nombre Departamento": "CHOCO",
+    "Nombre Municipio": "CONDOTO"
+  },
+  {
+    "Nombre Departamento": "CHOCO",
+    "Nombre Municipio": "EL CARMEN DE ATRATO"
+  },
+  {
+    "Nombre Departamento": "CHOCO",
+    "Nombre Municipio": "EL LITORAL DEL SAN JUAN"
+  },
+  {
+    "Nombre Departamento": "CHOCO",
+    "Nombre Municipio": "ISTMINA"
+  },
+  {
+    "Nombre Departamento": "CHOCO",
+    "Nombre Municipio": "JURADO"
+  },
+  {
+    "Nombre Departamento": "CHOCO",
+    "Nombre Municipio": "LLORO"
+  },
+  {
+    "Nombre Departamento": "CHOCO",
+    "Nombre Municipio": "MEDIO ATRATO"
+  },
+  {
+    "Nombre Departamento": "CHOCO",
+    "Nombre Municipio": "MEDIO BAUDO"
+  },
+  {
+    "Nombre Departamento": "CHOCO",
+    "Nombre Municipio": "MEDIO SAN JUAN"
+  },
+  {
+    "Nombre Departamento": "CHOCO",
+    "Nombre Municipio": "NOVITA"
+  },
+  {
+    "Nombre Departamento": "CHOCO",
+    "Nombre Municipio": "NUQUI"
+  },
+  {
+    "Nombre Departamento": "CHOCO",
+    "Nombre Municipio": "RIO IRO"
+  },
+  {
+    "Nombre Departamento": "CHOCO",
+    "Nombre Municipio": "RIO QUITO"
+  },
+  {
+    "Nombre Departamento": "CHOCO",
+    "Nombre Municipio": "RIOSUCIO (2)"
+  },
+  {
+    "Nombre Departamento": "CHOCO",
+    "Nombre Municipio": "SAN JOSE DEL PALMAR"
+  },
+  {
+    "Nombre Departamento": "CHOCO",
+    "Nombre Municipio": "SIPI"
+  },
+  {
+    "Nombre Departamento": "CHOCO",
+    "Nombre Municipio": "TADO"
+  },
+  {
+    "Nombre Departamento": "CHOCO",
+    "Nombre Municipio": "UNGUIA"
+  },
+  {
+    "Nombre Departamento": "CHOCO",
+    "Nombre Municipio": "UNION PANAMERICANA"
+  },
+  {
+    "Nombre Departamento": "HUILA",
+    "Nombre Municipio": "NEIVA"
+  },
+  {
+    "Nombre Departamento": "HUILA",
+    "Nombre Municipio": "ACEVEDO"
+  },
+  {
+    "Nombre Departamento": "HUILA",
+    "Nombre Municipio": "AGRADO"
+  },
+  {
+    "Nombre Departamento": "HUILA",
+    "Nombre Municipio": "AIPE"
+  },
+  {
+    "Nombre Departamento": "HUILA",
+    "Nombre Municipio": "ALGECIRAS"
+  },
+  {
+    "Nombre Departamento": "HUILA",
+    "Nombre Municipio": "ALTAMIRA"
+  },
+  {
+    "Nombre Departamento": "HUILA",
+    "Nombre Municipio": "BARAYA"
+  },
+  {
+    "Nombre Departamento": "HUILA",
+    "Nombre Municipio": "CAMPOALEGRE"
+  },
+  {
+    "Nombre Departamento": "HUILA",
+    "Nombre Municipio": "COLOMBIA"
+  },
+  {
+    "Nombre Departamento": "HUILA",
+    "Nombre Municipio": "ELIAS"
+  },
+  {
+    "Nombre Departamento": "HUILA",
+    "Nombre Municipio": "GARZON"
+  },
+  {
+    "Nombre Departamento": "HUILA",
+    "Nombre Municipio": "GIGANTE"
+  },
+  {
+    "Nombre Departamento": "HUILA",
+    "Nombre Municipio": "GUADALUPE"
+  },
+  {
+    "Nombre Departamento": "HUILA",
+    "Nombre Municipio": "HOBO"
+  },
+  {
+    "Nombre Departamento": "HUILA",
+    "Nombre Municipio": "IQUIRA"
+  },
+  {
+    "Nombre Departamento": "HUILA",
+    "Nombre Municipio": "ISNOS"
+  },
+  {
+    "Nombre Departamento": "HUILA",
+    "Nombre Municipio": "LA ARGENTINA"
+  },
+  {
+    "Nombre Departamento": "HUILA",
+    "Nombre Municipio": "LA PLATA"
+  },
+  {
+    "Nombre Departamento": "HUILA",
+    "Nombre Municipio": "NATAGA"
+  },
+  {
+    "Nombre Departamento": "HUILA",
+    "Nombre Municipio": "OPORAPA"
+  },
+  {
+    "Nombre Departamento": "HUILA",
+    "Nombre Municipio": "PAICOL"
+  },
+  {
+    "Nombre Departamento": "HUILA",
+    "Nombre Municipio": "PALERMO"
+  },
+  {
+    "Nombre Departamento": "HUILA",
+    "Nombre Municipio": "PALESTINA"
+  },
+  {
+    "Nombre Departamento": "HUILA",
+    "Nombre Municipio": "PITAL"
+  },
+  {
+    "Nombre Departamento": "HUILA",
+    "Nombre Municipio": "PITALITO"
+  },
+  {
+    "Nombre Departamento": "HUILA",
+    "Nombre Municipio": "RIVERA"
+  },
+  {
+    "Nombre Departamento": "HUILA",
+    "Nombre Municipio": "SALADOBLANCO"
+  },
+  {
+    "Nombre Departamento": "HUILA",
+    "Nombre Municipio": "SAN AGUSTIN"
+  },
+  {
+    "Nombre Departamento": "HUILA",
+    "Nombre Municipio": "SANTA MARIA"
+  },
+  {
+    "Nombre Departamento": "HUILA",
+    "Nombre Municipio": "SUAZA"
+  },
+  {
+    "Nombre Departamento": "HUILA",
+    "Nombre Municipio": "TARQUI"
+  },
+  {
+    "Nombre Departamento": "HUILA",
+    "Nombre Municipio": "TESALIA"
+  },
+  {
+    "Nombre Departamento": "HUILA",
+    "Nombre Municipio": "TELLO"
+  },
+  {
+    "Nombre Departamento": "HUILA",
+    "Nombre Municipio": "TERUEL"
+  },
+  {
+    "Nombre Departamento": "HUILA",
+    "Nombre Municipio": "TIMANA"
+  },
+  {
+    "Nombre Departamento": "HUILA",
+    "Nombre Municipio": "VILLAVIEJA"
+  },
+  {
+    "Nombre Departamento": "HUILA",
+    "Nombre Municipio": "YAGUARA"
+  },
+  {
+    "Nombre Departamento": "LA GUAJIRA",
+    "Nombre Municipio": "RIOHACHA"
+  },
+  {
+    "Nombre Departamento": "LA GUAJIRA",
+    "Nombre Municipio": "ALBANIA"
+  },
+  {
+    "Nombre Departamento": "LA GUAJIRA",
+    "Nombre Municipio": "BARRANCAS"
+  },
+  {
+    "Nombre Departamento": "LA GUAJIRA",
+    "Nombre Municipio": "DIBULLA"
+  },
+  {
+    "Nombre Departamento": "LA GUAJIRA",
+    "Nombre Municipio": "DISTRACCION"
+  },
+  {
+    "Nombre Departamento": "LA GUAJIRA",
+    "Nombre Municipio": "EL MOLINO"
+  },
+  {
+    "Nombre Departamento": "LA GUAJIRA",
+    "Nombre Municipio": "FONSECA"
+  },
+  {
+    "Nombre Departamento": "LA GUAJIRA",
+    "Nombre Municipio": "HATONUEVO"
+  },
+  {
+    "Nombre Departamento": "LA GUAJIRA",
+    "Nombre Municipio": "LA JAGUA DEL PILAR"
+  },
+  {
+    "Nombre Departamento": "LA GUAJIRA",
+    "Nombre Municipio": "MAICAO"
+  },
+  {
+    "Nombre Departamento": "LA GUAJIRA",
+    "Nombre Municipio": "MANAURE"
+  },
+  {
+    "Nombre Departamento": "LA GUAJIRA",
+    "Nombre Municipio": "SAN JUAN DEL CESAR"
+  },
+  {
+    "Nombre Departamento": "LA GUAJIRA",
+    "Nombre Municipio": "URIBIA"
+  },
+  {
+    "Nombre Departamento": "LA GUAJIRA",
+    "Nombre Municipio": "URUMITA"
+  },
+  {
+    "Nombre Departamento": "LA GUAJIRA",
+    "Nombre Municipio": "VILLANUEVA"
+  },
+  {
+    "Nombre Departamento": "MAGDALENA",
+    "Nombre Municipio": "SANTA MARTA"
+  },
+  {
+    "Nombre Departamento": "MAGDALENA",
+    "Nombre Municipio": "ALGARROBO"
+  },
+  {
+    "Nombre Departamento": "MAGDALENA",
+    "Nombre Municipio": "ARACATACA"
+  },
+  {
+    "Nombre Departamento": "MAGDALENA",
+    "Nombre Municipio": "ARIGUANI"
+  },
+  {
+    "Nombre Departamento": "MAGDALENA",
+    "Nombre Municipio": "CERRO SAN ANTONIO"
+  },
+  {
+    "Nombre Departamento": "MAGDALENA",
+    "Nombre Municipio": "CHIBOLO"
+  },
+  {
+    "Nombre Departamento": "MAGDALENA",
+    "Nombre Municipio": "CIENAGA"
+  },
+  {
+    "Nombre Departamento": "MAGDALENA",
+    "Nombre Municipio": "CONCORDIA"
+  },
+  {
+    "Nombre Departamento": "MAGDALENA",
+    "Nombre Municipio": "EL BANCO"
+  },
+  {
+    "Nombre Departamento": "MAGDALENA",
+    "Nombre Municipio": "EL PIÑON"
+  },
+  {
+    "Nombre Departamento": "MAGDALENA",
+    "Nombre Municipio": "EL RETEN"
+  },
+  {
+    "Nombre Departamento": "MAGDALENA",
+    "Nombre Municipio": "FUNDACION"
+  },
+  {
+    "Nombre Departamento": "MAGDALENA",
+    "Nombre Municipio": "GUAMAL"
+  },
+  {
+    "Nombre Departamento": "MAGDALENA",
+    "Nombre Municipio": "NUEVA GRANADA"
+  },
+  {
+    "Nombre Departamento": "MAGDALENA",
+    "Nombre Municipio": "PEDRAZA"
+  },
+  {
+    "Nombre Departamento": "MAGDALENA",
+    "Nombre Municipio": "PIJIÑO DEL CARMEN"
+  },
+  {
+    "Nombre Departamento": "MAGDALENA",
+    "Nombre Municipio": "PIVIJAY"
+  },
+  {
+    "Nombre Departamento": "MAGDALENA",
+    "Nombre Municipio": "PLATO"
+  },
+  {
+    "Nombre Departamento": "MAGDALENA",
+    "Nombre Municipio": "PUEBLOVIEJO"
+  },
+  {
+    "Nombre Departamento": "MAGDALENA",
+    "Nombre Municipio": "REMOLINO"
+  },
+  {
+    "Nombre Departamento": "MAGDALENA",
+    "Nombre Municipio": "SABANAS DE SAN ANGEL"
+  },
+  {
+    "Nombre Departamento": "MAGDALENA",
+    "Nombre Municipio": "SALAMINA"
+  },
+  {
+    "Nombre Departamento": "MAGDALENA",
+    "Nombre Municipio": "SAN SEBASTIAN DE BUENAVISTA"
+  },
+  {
+    "Nombre Departamento": "MAGDALENA",
+    "Nombre Municipio": "SAN ZENON"
+  },
+  {
+    "Nombre Departamento": "MAGDALENA",
+    "Nombre Municipio": "SANTA ANA"
+  },
+  {
+    "Nombre Departamento": "MAGDALENA",
+    "Nombre Municipio": "SANTA BARBARA DE PINTO"
+  },
+  {
+    "Nombre Departamento": "MAGDALENA",
+    "Nombre Municipio": "SITIONUEVO"
+  },
+  {
+    "Nombre Departamento": "MAGDALENA",
+    "Nombre Municipio": "TENERIFE"
+  },
+  {
+    "Nombre Departamento": "MAGDALENA",
+    "Nombre Municipio": "ZAPAYAN"
+  },
+  {
+    "Nombre Departamento": "MAGDALENA",
+    "Nombre Municipio": "ZONA BANANERA"
+  },
+  {
+    "Nombre Departamento": "META",
+    "Nombre Municipio": "VILLAVICENCIO"
+  },
+  {
+    "Nombre Departamento": "META",
+    "Nombre Municipio": "ACACIAS"
+  },
+  {
+    "Nombre Departamento": "META",
+    "Nombre Municipio": "BARRANCA DE UPIA"
+  },
+  {
+    "Nombre Departamento": "META",
+    "Nombre Municipio": "CABUYARO"
+  },
+  {
+    "Nombre Departamento": "META",
+    "Nombre Municipio": "CASTILLA LA NUEVA"
+  },
+  {
+    "Nombre Departamento": "META",
+    "Nombre Municipio": "CUBARRAL"
+  },
+  {
+    "Nombre Departamento": "META",
+    "Nombre Municipio": "CUMARAL"
+  },
+  {
+    "Nombre Departamento": "META",
+    "Nombre Municipio": "EL CALVARIO"
+  },
+  {
+    "Nombre Departamento": "META",
+    "Nombre Municipio": "EL CASTILLO"
+  },
+  {
+    "Nombre Departamento": "META",
+    "Nombre Municipio": "EL DORADO"
+  },
+  {
+    "Nombre Departamento": "META",
+    "Nombre Municipio": "FUENTE DE ORO"
+  },
+  {
+    "Nombre Departamento": "META",
+    "Nombre Municipio": "GRANADA"
+  },
+  {
+    "Nombre Departamento": "META",
+    "Nombre Municipio": "GUAMAL"
+  },
+  {
+    "Nombre Departamento": "META",
+    "Nombre Municipio": "MAPIRIPAN"
+  },
+  {
+    "Nombre Departamento": "META",
+    "Nombre Municipio": "MESETAS"
+  },
+  {
+    "Nombre Departamento": "META",
+    "Nombre Municipio": "LA MACARENA"
+  },
+  {
+    "Nombre Departamento": "META",
+    "Nombre Municipio": "URIBE"
+  },
+  {
+    "Nombre Departamento": "META",
+    "Nombre Municipio": "LEJANIAS"
+  },
+  {
+    "Nombre Departamento": "META",
+    "Nombre Municipio": "PUERTO CONCORDIA"
+  },
+  {
+    "Nombre Departamento": "META",
+    "Nombre Municipio": "PUERTO GAITAN"
+  },
+  {
+    "Nombre Departamento": "META",
+    "Nombre Municipio": "PUERTO LOPEZ"
+  },
+  {
+    "Nombre Departamento": "META",
+    "Nombre Municipio": "PUERTO LLERAS"
+  },
+  {
+    "Nombre Departamento": "META",
+    "Nombre Municipio": "PUERTO RICO"
+  },
+  {
+    "Nombre Departamento": "META",
+    "Nombre Municipio": "RESTREPO"
+  },
+  {
+    "Nombre Departamento": "META",
+    "Nombre Municipio": "SAN CARLOS DE GUAROA"
+  },
+  {
+    "Nombre Departamento": "META",
+    "Nombre Municipio": "SAN JUAN DE ARAMA"
+  },
+  {
+    "Nombre Departamento": "META",
+    "Nombre Municipio": "SAN JUANITO"
+  },
+  {
+    "Nombre Departamento": "META",
+    "Nombre Municipio": "SAN MARTIN"
+  },
+  {
+    "Nombre Departamento": "META",
+    "Nombre Municipio": "VISTAHERMOSA"
+  },
+  {
+    "Nombre Departamento": "NARIÑO",
+    "Nombre Municipio": "PASTO"
+  },
+  {
+    "Nombre Departamento": "NARIÑO",
+    "Nombre Municipio": "ALBAN"
+  },
+  {
+    "Nombre Departamento": "NARIÑO",
+    "Nombre Municipio": "ALDANA"
+  },
+  {
+    "Nombre Departamento": "NARIÑO",
+    "Nombre Municipio": "ANCUYA"
+  },
+  {
+    "Nombre Departamento": "NARIÑO",
+    "Nombre Municipio": "ARBOLEDA"
+  },
+  {
+    "Nombre Departamento": "NARIÑO",
+    "Nombre Municipio": "BARBACOAS"
+  },
+  {
+    "Nombre Departamento": "NARIÑO",
+    "Nombre Municipio": "BELEN"
+  },
+  {
+    "Nombre Departamento": "NARIÑO",
+    "Nombre Municipio": "BUESACO"
+  },
+  {
+    "Nombre Departamento": "NARIÑO",
+    "Nombre Municipio": "COLON"
+  },
+  {
+    "Nombre Departamento": "NARIÑO",
+    "Nombre Municipio": "CONSACA"
+  },
+  {
+    "Nombre Departamento": "NARIÑO",
+    "Nombre Municipio": "CONTADERO"
+  },
+  {
+    "Nombre Departamento": "NARIÑO",
+    "Nombre Municipio": "CORDOBA"
+  },
+  {
+    "Nombre Departamento": "NARIÑO",
+    "Nombre Municipio": "CUASPUD"
+  },
+  {
+    "Nombre Departamento": "NARIÑO",
+    "Nombre Municipio": "CUMBAL"
+  },
+  {
+    "Nombre Departamento": "NARIÑO",
+    "Nombre Municipio": "CUMBITARA"
+  },
+  {
+    "Nombre Departamento": "NARIÑO",
+    "Nombre Municipio": "CHACHAGsI"
+  },
+  {
+    "Nombre Departamento": "NARIÑO",
+    "Nombre Municipio": "EL CHARCO"
+  },
+  {
+    "Nombre Departamento": "NARIÑO",
+    "Nombre Municipio": "EL PEÑOL"
+  },
+  {
+    "Nombre Departamento": "NARIÑO",
+    "Nombre Municipio": "EL ROSARIO"
+  },
+  {
+    "Nombre Departamento": "NARIÑO",
+    "Nombre Municipio": "EL TABLON DE GOMEZ"
+  },
+  {
+    "Nombre Departamento": "NARIÑO",
+    "Nombre Municipio": "EL TAMBO"
+  },
+  {
+    "Nombre Departamento": "NARIÑO",
+    "Nombre Municipio": "FUNES"
+  },
+  {
+    "Nombre Departamento": "NARIÑO",
+    "Nombre Municipio": "GUACHUCAL"
+  },
+  {
+    "Nombre Departamento": "NARIÑO",
+    "Nombre Municipio": "GUAITARILLA"
+  },
+  {
+    "Nombre Departamento": "NARIÑO",
+    "Nombre Municipio": "GUALMATAN"
+  },
+  {
+    "Nombre Departamento": "NARIÑO",
+    "Nombre Municipio": "ILES"
+  },
+  {
+    "Nombre Departamento": "NARIÑO",
+    "Nombre Municipio": "IMUES"
+  },
+  {
+    "Nombre Departamento": "NARIÑO",
+    "Nombre Municipio": "IPIALES"
+  },
+  {
+    "Nombre Departamento": "NARIÑO",
+    "Nombre Municipio": "LA CRUZ"
+  },
+  {
+    "Nombre Departamento": "NARIÑO",
+    "Nombre Municipio": "LA FLORIDA"
+  },
+  {
+    "Nombre Departamento": "NARIÑO",
+    "Nombre Municipio": "LA LLANADA"
+  },
+  {
+    "Nombre Departamento": "NARIÑO",
+    "Nombre Municipio": "LA TOLA"
+  },
+  {
+    "Nombre Departamento": "NARIÑO",
+    "Nombre Municipio": "LA UNION"
+  },
+  {
+    "Nombre Departamento": "NARIÑO",
+    "Nombre Municipio": "LEIVA"
+  },
+  {
+    "Nombre Departamento": "NARIÑO",
+    "Nombre Municipio": "LINARES"
+  },
+  {
+    "Nombre Departamento": "NARIÑO",
+    "Nombre Municipio": "LOS ANDES"
+  },
+  {
+    "Nombre Departamento": "NARIÑO",
+    "Nombre Municipio": "MAGsI"
+  },
+  {
+    "Nombre Departamento": "NARIÑO",
+    "Nombre Municipio": "MALLAMA"
+  },
+  {
+    "Nombre Departamento": "NARIÑO",
+    "Nombre Municipio": "MOSQUERA"
+  },
+  {
+    "Nombre Departamento": "NARIÑO",
+    "Nombre Municipio": "NARIÑO"
+  },
+  {
+    "Nombre Departamento": "NARIÑO",
+    "Nombre Municipio": "OLAYA HERRERA"
+  },
+  {
+    "Nombre Departamento": "NARIÑO",
+    "Nombre Municipio": "OSPINA"
+  },
+  {
+    "Nombre Departamento": "NARIÑO",
+    "Nombre Municipio": "FRANCISCO PIZARRO"
+  },
+  {
+    "Nombre Departamento": "NARIÑO",
+    "Nombre Municipio": "POLICARPA"
+  },
+  {
+    "Nombre Departamento": "NARIÑO",
+    "Nombre Municipio": "POTOSI"
+  },
+  {
+    "Nombre Departamento": "NARIÑO",
+    "Nombre Municipio": "PROVIDENCIA"
+  },
+  {
+    "Nombre Departamento": "NARIÑO",
+    "Nombre Municipio": "PUERRES"
+  },
+  {
+    "Nombre Departamento": "NARIÑO",
+    "Nombre Municipio": "PUPIALES"
+  },
+  {
+    "Nombre Departamento": "NARIÑO",
+    "Nombre Municipio": "RICAURTE"
+  },
+  {
+    "Nombre Departamento": "NARIÑO",
+    "Nombre Municipio": "ROBERTO PAYAN"
+  },
+  {
+    "Nombre Departamento": "NARIÑO",
+    "Nombre Municipio": "SAMANIEGO"
+  },
+  {
+    "Nombre Departamento": "NARIÑO",
+    "Nombre Municipio": "SANDONA"
+  },
+  {
+    "Nombre Departamento": "NARIÑO",
+    "Nombre Municipio": "SAN BERNARDO"
+  },
+  {
+    "Nombre Departamento": "NARIÑO",
+    "Nombre Municipio": "SAN LORENZO"
+  },
+  {
+    "Nombre Departamento": "NARIÑO",
+    "Nombre Municipio": "SAN PABLO"
+  },
+  {
+    "Nombre Departamento": "NARIÑO",
+    "Nombre Municipio": "SAN PEDRO DE CARTAGO"
+  },
+  {
+    "Nombre Departamento": "NARIÑO",
+    "Nombre Municipio": "SANTA BARBARA"
+  },
+  {
+    "Nombre Departamento": "NARIÑO",
+    "Nombre Municipio": "SANTACRUZ"
+  },
+  {
+    "Nombre Departamento": "NARIÑO",
+    "Nombre Municipio": "SAPUYES"
+  },
+  {
+    "Nombre Departamento": "NARIÑO",
+    "Nombre Municipio": "TAMINANGO"
+  },
+  {
+    "Nombre Departamento": "NARIÑO",
+    "Nombre Municipio": "TANGUA"
+  },
+  {
+    "Nombre Departamento": "NARIÑO",
+    "Nombre Municipio": "SAN ANDRES DE TUMACO"
+  },
+  {
+    "Nombre Departamento": "NARIÑO",
+    "Nombre Municipio": "TUQUERRES"
+  },
+  {
+    "Nombre Departamento": "NARIÑO",
+    "Nombre Municipio": "YACUANQUER"
+  },
+  {
+    "Nombre Departamento": "N. DE SANTANDER",
+    "Nombre Municipio": "CUCUTA"
+  },
+  {
+    "Nombre Departamento": "N. DE SANTANDER",
+    "Nombre Municipio": "ABREGO"
+  },
+  {
+    "Nombre Departamento": "N. DE SANTANDER",
+    "Nombre Municipio": "ARBOLEDAS"
+  },
+  {
+    "Nombre Departamento": "N. DE SANTANDER",
+    "Nombre Municipio": "BOCHALEMA"
+  },
+  {
+    "Nombre Departamento": "N. DE SANTANDER",
+    "Nombre Municipio": "BUCARASICA"
+  },
+  {
+    "Nombre Departamento": "N. DE SANTANDER",
+    "Nombre Municipio": "CACOTA"
+  },
+  {
+    "Nombre Departamento": "N. DE SANTANDER",
+    "Nombre Municipio": "CACHIRA"
+  },
+  {
+    "Nombre Departamento": "N. DE SANTANDER",
+    "Nombre Municipio": "CHINACOTA"
+  },
+  {
+    "Nombre Departamento": "N. DE SANTANDER",
+    "Nombre Municipio": "CHITAGA"
+  },
+  {
+    "Nombre Departamento": "N. DE SANTANDER",
+    "Nombre Municipio": "CONVENCION"
+  },
+  {
+    "Nombre Departamento": "N. DE SANTANDER",
+    "Nombre Municipio": "CUCUTILLA"
+  },
+  {
+    "Nombre Departamento": "N. DE SANTANDER",
+    "Nombre Municipio": "DURANIA"
+  },
+  {
+    "Nombre Departamento": "N. DE SANTANDER",
+    "Nombre Municipio": "EL CARMEN"
+  },
+  {
+    "Nombre Departamento": "N. DE SANTANDER",
+    "Nombre Municipio": "EL TARRA"
+  },
+  {
+    "Nombre Departamento": "N. DE SANTANDER",
+    "Nombre Municipio": "EL ZULIA"
+  },
+  {
+    "Nombre Departamento": "N. DE SANTANDER",
+    "Nombre Municipio": "GRAMALOTE"
+  },
+  {
+    "Nombre Departamento": "N. DE SANTANDER",
+    "Nombre Municipio": "HACARI"
+  },
+  {
+    "Nombre Departamento": "N. DE SANTANDER",
+    "Nombre Municipio": "HERRAN"
+  },
+  {
+    "Nombre Departamento": "N. DE SANTANDER",
+    "Nombre Municipio": "LABATECA"
+  },
+  {
+    "Nombre Departamento": "N. DE SANTANDER",
+    "Nombre Municipio": "LA ESPERANZA"
+  },
+  {
+    "Nombre Departamento": "N. DE SANTANDER",
+    "Nombre Municipio": "LA PLAYA"
+  },
+  {
+    "Nombre Departamento": "N. DE SANTANDER",
+    "Nombre Municipio": "LOS PATIOS"
+  },
+  {
+    "Nombre Departamento": "N. DE SANTANDER",
+    "Nombre Municipio": "LOURDES"
+  },
+  {
+    "Nombre Departamento": "N. DE SANTANDER",
+    "Nombre Municipio": "MUTISCUA"
+  },
+  {
+    "Nombre Departamento": "N. DE SANTANDER",
+    "Nombre Municipio": "OCAÑA"
+  },
+  {
+    "Nombre Departamento": "N. DE SANTANDER",
+    "Nombre Municipio": "PAMPLONA"
+  },
+  {
+    "Nombre Departamento": "N. DE SANTANDER",
+    "Nombre Municipio": "PAMPLONITA"
+  },
+  {
+    "Nombre Departamento": "N. DE SANTANDER",
+    "Nombre Municipio": "PUERTO SANTANDER"
+  },
+  {
+    "Nombre Departamento": "N. DE SANTANDER",
+    "Nombre Municipio": "RAGONVALIA"
+  },
+  {
+    "Nombre Departamento": "N. DE SANTANDER",
+    "Nombre Municipio": "SALAZAR"
+  },
+  {
+    "Nombre Departamento": "N. DE SANTANDER",
+    "Nombre Municipio": "SAN CALIXTO"
+  },
+  {
+    "Nombre Departamento": "N. DE SANTANDER",
+    "Nombre Municipio": "SAN CAYETANO"
+  },
+  {
+    "Nombre Departamento": "N. DE SANTANDER",
+    "Nombre Municipio": "SANTIAGO"
+  },
+  {
+    "Nombre Departamento": "N. DE SANTANDER",
+    "Nombre Municipio": "SARDINATA"
+  },
+  {
+    "Nombre Departamento": "N. DE SANTANDER",
+    "Nombre Municipio": "SILOS"
+  },
+  {
+    "Nombre Departamento": "N. DE SANTANDER",
+    "Nombre Municipio": "TEORAMA"
+  },
+  {
+    "Nombre Departamento": "N. DE SANTANDER",
+    "Nombre Municipio": "TIBU"
+  },
+  {
+    "Nombre Departamento": "N. DE SANTANDER",
+    "Nombre Municipio": "TOLEDO"
+  },
+  {
+    "Nombre Departamento": "N. DE SANTANDER",
+    "Nombre Municipio": "VILLA CARO"
+  },
+  {
+    "Nombre Departamento": "N. DE SANTANDER",
+    "Nombre Municipio": "VILLA DEL ROSARIO"
+  },
+  {
+    "Nombre Departamento": "QUINDIO",
+    "Nombre Municipio": "ARMENIA"
+  },
+  {
+    "Nombre Departamento": "QUINDIO",
+    "Nombre Municipio": "BUENAVISTA"
+  },
+  {
+    "Nombre Departamento": "QUINDIO",
+    "Nombre Municipio": "CALARCA"
+  },
+  {
+    "Nombre Departamento": "QUINDIO",
+    "Nombre Municipio": "CIRCASIA"
+  },
+  {
+    "Nombre Departamento": "QUINDIO",
+    "Nombre Municipio": "CORDOBA"
+  },
+  {
+    "Nombre Departamento": "QUINDIO",
+    "Nombre Municipio": "FILANDIA"
+  },
+  {
+    "Nombre Departamento": "QUINDIO",
+    "Nombre Municipio": "GENOVA"
+  },
+  {
+    "Nombre Departamento": "QUINDIO",
+    "Nombre Municipio": "LA TEBAIDA"
+  },
+  {
+    "Nombre Departamento": "QUINDIO",
+    "Nombre Municipio": "MONTENEGRO"
+  },
+  {
+    "Nombre Departamento": "QUINDIO",
+    "Nombre Municipio": "PIJAO"
+  },
+  {
+    "Nombre Departamento": "QUINDIO",
+    "Nombre Municipio": "QUIMBAYA"
+  },
+  {
+    "Nombre Departamento": "QUINDIO",
+    "Nombre Municipio": "SALENTO"
+  },
+  {
+    "Nombre Departamento": "RISARALDA",
+    "Nombre Municipio": "PEREIRA"
+  },
+  {
+    "Nombre Departamento": "RISARALDA",
+    "Nombre Municipio": "APIA"
+  },
+  {
+    "Nombre Departamento": "RISARALDA",
+    "Nombre Municipio": "BALBOA"
+  },
+  {
+    "Nombre Departamento": "RISARALDA",
+    "Nombre Municipio": "BELEN DE UMBRIA"
+  },
+  {
+    "Nombre Departamento": "RISARALDA",
+    "Nombre Municipio": "DOSQUEBRADAS"
+  },
+  {
+    "Nombre Departamento": "RISARALDA",
+    "Nombre Municipio": "GUATICA"
+  },
+  {
+    "Nombre Departamento": "RISARALDA",
+    "Nombre Municipio": "LA CELIA"
+  },
+  {
+    "Nombre Departamento": "RISARALDA",
+    "Nombre Municipio": "LA VIRGINIA"
+  },
+  {
+    "Nombre Departamento": "RISARALDA",
+    "Nombre Municipio": "MARSELLA"
+  },
+  {
+    "Nombre Departamento": "RISARALDA",
+    "Nombre Municipio": "MISTRATO"
+  },
+  {
+    "Nombre Departamento": "RISARALDA",
+    "Nombre Municipio": "PUEBLO RICO"
+  },
+  {
+    "Nombre Departamento": "RISARALDA",
+    "Nombre Municipio": "QUINCHIA"
+  },
+  {
+    "Nombre Departamento": "RISARALDA",
+    "Nombre Municipio": "SANTA ROSA DE CABAL"
+  },
+  {
+    "Nombre Departamento": "RISARALDA",
+    "Nombre Municipio": "SANTUARIO"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "BUCARAMANGA"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "AGUADA"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "ALBANIA"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "ARATOCA"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "BARBOSA"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "BARICHARA"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "BARRANCABERMEJA"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "BETULIA"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "BOLIVAR"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "CABRERA"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "CALIFORNIA"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "CAPITANEJO"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "CARCASI"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "CEPITA"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "CERRITO"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "CHARALA"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "CHARTA"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "CHIMA"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "CHIPATA"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "CIMITARRA"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "CONCEPCION"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "CONFINES"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "CONTRATACION"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "COROMORO"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "CURITI"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "EL CARMEN DE CHUCURI"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "EL GUACAMAYO"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "EL PEÑON"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "EL PLAYON"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "ENCINO"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "ENCISO"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "FLORIAN"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "FLORIDABLANCA"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "GALAN"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "GAMBITA"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "GIRON"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "GUACA"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "GUADALUPE"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "GUAPOTA"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "GUAVATA"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "GsEPSA"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "HATO"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "JESUS MARIA"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "JORDAN"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "LA BELLEZA"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "LANDAZURI"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "LA PAZ"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "LEBRIJA"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "LOS SANTOS"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "MACARAVITA"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "MALAGA"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "MATANZA"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "MOGOTES"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "MOLAGAVITA"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "OCAMONTE"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "OIBA"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "ONZAGA"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "PALMAR"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "PALMAS DEL SOCORRO"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "PARAMO"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "PIEDECUESTA"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "PINCHOTE"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "PUENTE NACIONAL"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "PUERTO PARRA"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "PUERTO WILCHES"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "RIONEGRO"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "SABANA DE TORRES"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "SAN ANDRES"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "SAN BENITO"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "SAN GIL"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "SAN JOAQUIN"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "SAN JOSE DE MIRANDA"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "SAN MIGUEL"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "SAN VICENTE DE CHUCURI"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "SANTA BARBARA"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "SANTA HELENA DEL OPON"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "SIMACOTA"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "SOCORRO"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "SUAITA"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "SUCRE"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "SURATA"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "TONA"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "VALLE DE SAN JOSE"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "VELEZ"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "VETAS"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "VILLANUEVA"
+  },
+  {
+    "Nombre Departamento": "SANTANDER",
+    "Nombre Municipio": "ZAPATOCA"
+  },
+  {
+    "Nombre Departamento": "SUCRE",
+    "Nombre Municipio": "SINCELEJO"
+  },
+  {
+    "Nombre Departamento": "SUCRE",
+    "Nombre Municipio": "BUENAVISTA"
+  },
+  {
+    "Nombre Departamento": "SUCRE",
+    "Nombre Municipio": "CAIMITO"
+  },
+  {
+    "Nombre Departamento": "SUCRE",
+    "Nombre Municipio": "COLOSO"
+  },
+  {
+    "Nombre Departamento": "SUCRE",
+    "Nombre Municipio": "COROZAL"
+  },
+  {
+    "Nombre Departamento": "SUCRE",
+    "Nombre Municipio": "COVEÑAS"
+  },
+  {
+    "Nombre Departamento": "SUCRE",
+    "Nombre Municipio": "CHALAN"
+  },
+  {
+    "Nombre Departamento": "SUCRE",
+    "Nombre Municipio": "EL ROBLE"
+  },
+  {
+    "Nombre Departamento": "SUCRE",
+    "Nombre Municipio": "GALERAS"
+  },
+  {
+    "Nombre Departamento": "SUCRE",
+    "Nombre Municipio": "GUARANDA"
+  },
+  {
+    "Nombre Departamento": "SUCRE",
+    "Nombre Municipio": "LA UNION"
+  },
+  {
+    "Nombre Departamento": "SUCRE",
+    "Nombre Municipio": "LOS PALMITOS"
+  },
+  {
+    "Nombre Departamento": "SUCRE",
+    "Nombre Municipio": "MAJAGUAL"
+  },
+  {
+    "Nombre Departamento": "SUCRE",
+    "Nombre Municipio": "MORROA"
+  },
+  {
+    "Nombre Departamento": "SUCRE",
+    "Nombre Municipio": "OVEJAS"
+  },
+  {
+    "Nombre Departamento": "SUCRE",
+    "Nombre Municipio": "PALMITO"
+  },
+  {
+    "Nombre Departamento": "SUCRE",
+    "Nombre Municipio": "SAMPUES"
+  },
+  {
+    "Nombre Departamento": "SUCRE",
+    "Nombre Municipio": "SAN BENITO ABAD"
+  },
+  {
+    "Nombre Departamento": "SUCRE",
+    "Nombre Municipio": "SAN JUAN DE BETULIA"
+  },
+  {
+    "Nombre Departamento": "SUCRE",
+    "Nombre Municipio": "SAN MARCOS"
+  },
+  {
+    "Nombre Departamento": "SUCRE",
+    "Nombre Municipio": "SAN ONOFRE"
+  },
+  {
+    "Nombre Departamento": "SUCRE",
+    "Nombre Municipio": "SAN PEDRO"
+  },
+  {
+    "Nombre Departamento": "SUCRE",
+    "Nombre Municipio": "SAN LUIS DE SINCE"
+  },
+  {
+    "Nombre Departamento": "SUCRE",
+    "Nombre Municipio": "SUCRE"
+  },
+  {
+    "Nombre Departamento": "SUCRE",
+    "Nombre Municipio": "SANTIAGO DE TOLU"
+  },
+  {
+    "Nombre Departamento": "SUCRE",
+    "Nombre Municipio": "TOLU VIEJO"
+  },
+  {
+    "Nombre Departamento": "TOLIMA",
+    "Nombre Municipio": "IBAGUE"
+  },
+  {
+    "Nombre Departamento": "TOLIMA",
+    "Nombre Municipio": "ALPUJARRA"
+  },
+  {
+    "Nombre Departamento": "TOLIMA",
+    "Nombre Municipio": "ALVARADO"
+  },
+  {
+    "Nombre Departamento": "TOLIMA",
+    "Nombre Municipio": "AMBALEMA"
+  },
+  {
+    "Nombre Departamento": "TOLIMA",
+    "Nombre Municipio": "ANZOATEGUI"
+  },
+  {
+    "Nombre Departamento": "TOLIMA",
+    "Nombre Municipio": "ARMERO"
+  },
+  {
+    "Nombre Departamento": "TOLIMA",
+    "Nombre Municipio": "ATACO"
+  },
+  {
+    "Nombre Departamento": "TOLIMA",
+    "Nombre Municipio": "CAJAMARCA"
+  },
+  {
+    "Nombre Departamento": "TOLIMA",
+    "Nombre Municipio": "CARMEN DE APICALA"
+  },
+  {
+    "Nombre Departamento": "TOLIMA",
+    "Nombre Municipio": "CASABIANCA"
+  },
+  {
+    "Nombre Departamento": "TOLIMA",
+    "Nombre Municipio": "CHAPARRAL"
+  },
+  {
+    "Nombre Departamento": "TOLIMA",
+    "Nombre Municipio": "COELLO"
+  },
+  {
+    "Nombre Departamento": "TOLIMA",
+    "Nombre Municipio": "COYAIMA"
+  },
+  {
+    "Nombre Departamento": "TOLIMA",
+    "Nombre Municipio": "CUNDAY"
+  },
+  {
+    "Nombre Departamento": "TOLIMA",
+    "Nombre Municipio": "DOLORES"
+  },
+  {
+    "Nombre Departamento": "TOLIMA",
+    "Nombre Municipio": "ESPINAL"
+  },
+  {
+    "Nombre Departamento": "TOLIMA",
+    "Nombre Municipio": "FALAN"
+  },
+  {
+    "Nombre Departamento": "TOLIMA",
+    "Nombre Municipio": "FLANDES"
+  },
+  {
+    "Nombre Departamento": "TOLIMA",
+    "Nombre Municipio": "FRESNO"
+  },
+  {
+    "Nombre Departamento": "TOLIMA",
+    "Nombre Municipio": "GUAMO"
+  },
+  {
+    "Nombre Departamento": "TOLIMA",
+    "Nombre Municipio": "HERVEO"
+  },
+  {
+    "Nombre Departamento": "TOLIMA",
+    "Nombre Municipio": "HONDA"
+  },
+  {
+    "Nombre Departamento": "TOLIMA",
+    "Nombre Municipio": "ICONONZO"
+  },
+  {
+    "Nombre Departamento": "TOLIMA",
+    "Nombre Municipio": "LERIDA"
+  },
+  {
+    "Nombre Departamento": "TOLIMA",
+    "Nombre Municipio": "LIBANO"
+  },
+  {
+    "Nombre Departamento": "TOLIMA",
+    "Nombre Municipio": "MARIQUITA"
+  },
+  {
+    "Nombre Departamento": "TOLIMA",
+    "Nombre Municipio": "MELGAR"
+  },
+  {
+    "Nombre Departamento": "TOLIMA",
+    "Nombre Municipio": "MURILLO"
+  },
+  {
+    "Nombre Departamento": "TOLIMA",
+    "Nombre Municipio": "NATAGAIMA"
+  },
+  {
+    "Nombre Departamento": "TOLIMA",
+    "Nombre Municipio": "ORTEGA"
+  },
+  {
+    "Nombre Departamento": "TOLIMA",
+    "Nombre Municipio": "PALOCABILDO"
+  },
+  {
+    "Nombre Departamento": "TOLIMA",
+    "Nombre Municipio": "PIEDRAS"
+  },
+  {
+    "Nombre Departamento": "TOLIMA",
+    "Nombre Municipio": "PLANADAS"
+  },
+  {
+    "Nombre Departamento": "TOLIMA",
+    "Nombre Municipio": "PRADO"
+  },
+  {
+    "Nombre Departamento": "TOLIMA",
+    "Nombre Municipio": "PURIFICACION"
+  },
+  {
+    "Nombre Departamento": "TOLIMA",
+    "Nombre Municipio": "RIOBLANCO"
+  },
+  {
+    "Nombre Departamento": "TOLIMA",
+    "Nombre Municipio": "RONCESVALLES"
+  },
+  {
+    "Nombre Departamento": "TOLIMA",
+    "Nombre Municipio": "ROVIRA"
+  },
+  {
+    "Nombre Departamento": "TOLIMA",
+    "Nombre Municipio": "SALDAÑA"
+  },
+  {
+    "Nombre Departamento": "TOLIMA",
+    "Nombre Municipio": "SAN ANTONIO"
+  },
+  {
+    "Nombre Departamento": "TOLIMA",
+    "Nombre Municipio": "SAN LUIS"
+  },
+  {
+    "Nombre Departamento": "TOLIMA",
+    "Nombre Municipio": "SANTA ISABEL"
+  },
+  {
+    "Nombre Departamento": "TOLIMA",
+    "Nombre Municipio": "SUAREZ"
+  },
+  {
+    "Nombre Departamento": "TOLIMA",
+    "Nombre Municipio": "VALLE DE SAN JUAN"
+  },
+  {
+    "Nombre Departamento": "TOLIMA",
+    "Nombre Municipio": "VENADILLO"
+  },
+  {
+    "Nombre Departamento": "TOLIMA",
+    "Nombre Municipio": "VILLAHERMOSA"
+  },
+  {
+    "Nombre Departamento": "TOLIMA",
+    "Nombre Municipio": "VILLARRICA"
+  },
+  {
+    "Nombre Departamento": "VALLE DEL CAUCA",
+    "Nombre Municipio": "CALI"
+  },
+  {
+    "Nombre Departamento": "VALLE DEL CAUCA",
+    "Nombre Municipio": "ALCALA"
+  },
+  {
+    "Nombre Departamento": "VALLE DEL CAUCA",
+    "Nombre Municipio": "ANDALUCIA"
+  },
+  {
+    "Nombre Departamento": "VALLE DEL CAUCA",
+    "Nombre Municipio": "ANSERMANUEVO"
+  },
+  {
+    "Nombre Departamento": "VALLE DEL CAUCA",
+    "Nombre Municipio": "ARGELIA"
+  },
+  {
+    "Nombre Departamento": "VALLE DEL CAUCA",
+    "Nombre Municipio": "BOLIVAR"
+  },
+  {
+    "Nombre Departamento": "VALLE DEL CAUCA",
+    "Nombre Municipio": "BUENAVENTURA"
+  },
+  {
+    "Nombre Departamento": "VALLE DEL CAUCA",
+    "Nombre Municipio": "GUADALAJARA DE BUGA"
+  },
+  {
+    "Nombre Departamento": "VALLE DEL CAUCA",
+    "Nombre Municipio": "BUGALAGRANDE"
+  },
+  {
+    "Nombre Departamento": "VALLE DEL CAUCA",
+    "Nombre Municipio": "CAICEDONIA"
+  },
+  {
+    "Nombre Departamento": "VALLE DEL CAUCA",
+    "Nombre Municipio": "CALIMA"
+  },
+  {
+    "Nombre Departamento": "VALLE DEL CAUCA",
+    "Nombre Municipio": "CANDELARIA"
+  },
+  {
+    "Nombre Departamento": "VALLE DEL CAUCA",
+    "Nombre Municipio": "CARTAGO"
+  },
+  {
+    "Nombre Departamento": "VALLE DEL CAUCA",
+    "Nombre Municipio": "DAGUA"
+  },
+  {
+    "Nombre Departamento": "VALLE DEL CAUCA",
+    "Nombre Municipio": "EL AGUILA"
+  },
+  {
+    "Nombre Departamento": "VALLE DEL CAUCA",
+    "Nombre Municipio": "EL CAIRO"
+  },
+  {
+    "Nombre Departamento": "VALLE DEL CAUCA",
+    "Nombre Municipio": "EL CERRITO"
+  },
+  {
+    "Nombre Departamento": "VALLE DEL CAUCA",
+    "Nombre Municipio": "EL DOVIO"
+  },
+  {
+    "Nombre Departamento": "VALLE DEL CAUCA",
+    "Nombre Municipio": "FLORIDA"
+  },
+  {
+    "Nombre Departamento": "VALLE DEL CAUCA",
+    "Nombre Municipio": "GINEBRA"
+  },
+  {
+    "Nombre Departamento": "VALLE DEL CAUCA",
+    "Nombre Municipio": "GUACARI"
+  },
+  {
+    "Nombre Departamento": "VALLE DEL CAUCA",
+    "Nombre Municipio": "JAMUNDI"
+  },
+  {
+    "Nombre Departamento": "VALLE DEL CAUCA",
+    "Nombre Municipio": "LA CUMBRE"
+  },
+  {
+    "Nombre Departamento": "VALLE DEL CAUCA",
+    "Nombre Municipio": "LA UNION"
+  },
+  {
+    "Nombre Departamento": "VALLE DEL CAUCA",
+    "Nombre Municipio": "LA VICTORIA"
+  },
+  {
+    "Nombre Departamento": "VALLE DEL CAUCA",
+    "Nombre Municipio": "OBANDO"
+  },
+  {
+    "Nombre Departamento": "VALLE DEL CAUCA",
+    "Nombre Municipio": "PALMIRA"
+  },
+  {
+    "Nombre Departamento": "VALLE DEL CAUCA",
+    "Nombre Municipio": "PRADERA"
+  },
+  {
+    "Nombre Departamento": "VALLE DEL CAUCA",
+    "Nombre Municipio": "RESTREPO"
+  },
+  {
+    "Nombre Departamento": "VALLE DEL CAUCA",
+    "Nombre Municipio": "RIOFRIO"
+  },
+  {
+    "Nombre Departamento": "VALLE DEL CAUCA",
+    "Nombre Municipio": "ROLDANILLO"
+  },
+  {
+    "Nombre Departamento": "VALLE DEL CAUCA",
+    "Nombre Municipio": "SAN PEDRO"
+  },
+  {
+    "Nombre Departamento": "VALLE DEL CAUCA",
+    "Nombre Municipio": "SEVILLA"
+  },
+  {
+    "Nombre Departamento": "VALLE DEL CAUCA",
+    "Nombre Municipio": "TORO"
+  },
+  {
+    "Nombre Departamento": "VALLE DEL CAUCA",
+    "Nombre Municipio": "TRUJILLO"
+  },
+  {
+    "Nombre Departamento": "VALLE DEL CAUCA",
+    "Nombre Municipio": "TULUA"
+  },
+  {
+    "Nombre Departamento": "VALLE DEL CAUCA",
+    "Nombre Municipio": "ULLOA"
+  },
+  {
+    "Nombre Departamento": "VALLE DEL CAUCA",
+    "Nombre Municipio": "VERSALLES"
+  },
+  {
+    "Nombre Departamento": "VALLE DEL CAUCA",
+    "Nombre Municipio": "VIJES"
+  },
+  {
+    "Nombre Departamento": "VALLE DEL CAUCA",
+    "Nombre Municipio": "YOTOCO"
+  },
+  {
+    "Nombre Departamento": "VALLE DEL CAUCA",
+    "Nombre Municipio": "YUMBO"
+  },
+  {
+    "Nombre Departamento": "VALLE DEL CAUCA",
+    "Nombre Municipio": "ZARZAL"
+  },
+  {
+    "Nombre Departamento": "ARAUCA",
+    "Nombre Municipio": "ARAUCA"
+  },
+  {
+    "Nombre Departamento": "ARAUCA",
+    "Nombre Municipio": "ARAUQUITA"
+  },
+  {
+    "Nombre Departamento": "ARAUCA",
+    "Nombre Municipio": "CRAVO NORTE"
+  },
+  {
+    "Nombre Departamento": "ARAUCA",
+    "Nombre Municipio": "FORTUL"
+  },
+  {
+    "Nombre Departamento": "ARAUCA",
+    "Nombre Municipio": "PUERTO RONDON"
+  },
+  {
+    "Nombre Departamento": "ARAUCA",
+    "Nombre Municipio": "SARAVENA"
+  },
+  {
+    "Nombre Departamento": "ARAUCA",
+    "Nombre Municipio": "TAME"
+  },
+  {
+    "Nombre Departamento": "CASANARE",
+    "Nombre Municipio": "YOPAL"
+  },
+  {
+    "Nombre Departamento": "CASANARE",
+    "Nombre Municipio": "AGUAZUL"
+  },
+  {
+    "Nombre Departamento": "CASANARE",
+    "Nombre Municipio": "CHAMEZA"
+  },
+  {
+    "Nombre Departamento": "CASANARE",
+    "Nombre Municipio": "HATO COROZAL"
+  },
+  {
+    "Nombre Departamento": "CASANARE",
+    "Nombre Municipio": "LA SALINA"
+  },
+  {
+    "Nombre Departamento": "CASANARE",
+    "Nombre Municipio": "MANI"
+  },
+  {
+    "Nombre Departamento": "CASANARE",
+    "Nombre Municipio": "MONTERREY"
+  },
+  {
+    "Nombre Departamento": "CASANARE",
+    "Nombre Municipio": "NUNCHIA"
+  },
+  {
+    "Nombre Departamento": "CASANARE",
+    "Nombre Municipio": "OROCUE"
+  },
+  {
+    "Nombre Departamento": "CASANARE",
+    "Nombre Municipio": "PAZ DE ARIPORO"
+  },
+  {
+    "Nombre Departamento": "CASANARE",
+    "Nombre Municipio": "PORE"
+  },
+  {
+    "Nombre Departamento": "CASANARE",
+    "Nombre Municipio": "RECETOR"
+  },
+  {
+    "Nombre Departamento": "CASANARE",
+    "Nombre Municipio": "SABANALARGA"
+  },
+  {
+    "Nombre Departamento": "CASANARE",
+    "Nombre Municipio": "SACAMA"
+  },
+  {
+    "Nombre Departamento": "CASANARE",
+    "Nombre Municipio": "SAN LUIS DE PALENQUE"
+  },
+  {
+    "Nombre Departamento": "CASANARE",
+    "Nombre Municipio": "TAMARA"
+  },
+  {
+    "Nombre Departamento": "CASANARE",
+    "Nombre Municipio": "TAURAMENA"
+  },
+  {
+    "Nombre Departamento": "CASANARE",
+    "Nombre Municipio": "TRINIDAD"
+  },
+  {
+    "Nombre Departamento": "CASANARE",
+    "Nombre Municipio": "VILLANUEVA"
+  },
+  {
+    "Nombre Departamento": "PUTUMAYO",
+    "Nombre Municipio": "MOCOA"
+  },
+  {
+    "Nombre Departamento": "PUTUMAYO",
+    "Nombre Municipio": "COLON"
+  },
+  {
+    "Nombre Departamento": "PUTUMAYO",
+    "Nombre Municipio": "ORITO"
+  },
+  {
+    "Nombre Departamento": "PUTUMAYO",
+    "Nombre Municipio": "PUERTO ASIS"
+  },
+  {
+    "Nombre Departamento": "PUTUMAYO",
+    "Nombre Municipio": "PUERTO CAICEDO"
+  },
+  {
+    "Nombre Departamento": "PUTUMAYO",
+    "Nombre Municipio": "PUERTO GUZMAN"
+  },
+  {
+    "Nombre Departamento": "PUTUMAYO",
+    "Nombre Municipio": "LEGUIZAMO"
+  },
+  {
+    "Nombre Departamento": "PUTUMAYO",
+    "Nombre Municipio": "SIBUNDOY"
+  },
+  {
+    "Nombre Departamento": "PUTUMAYO",
+    "Nombre Municipio": "SAN FRANCISCO"
+  },
+  {
+    "Nombre Departamento": "PUTUMAYO",
+    "Nombre Municipio": "SAN MIGUEL"
+  },
+  {
+    "Nombre Departamento": "PUTUMAYO",
+    "Nombre Municipio": "SANTIAGO"
+  },
+  {
+    "Nombre Departamento": "PUTUMAYO",
+    "Nombre Municipio": "VALLE DEL GUAMUEZ"
+  },
+  {
+    "Nombre Departamento": "PUTUMAYO",
+    "Nombre Municipio": "VILLAGARZON"
+  },
+  {
+    "Nombre Departamento": "SAN ANDRES",
+    "Nombre Municipio": "SAN ANDRES"
+  },
+  {
+    "Nombre Departamento": "SAN ANDRES",
+    "Nombre Municipio": "PROVIDENCIA"
+  },
+  {
+    "Nombre Departamento": "AMAZONAS",
+    "Nombre Municipio": "LETICIA"
+  },
+  {
+    "Nombre Departamento": "AMAZONAS",
+    "Nombre Municipio": "EL ENCANTO (CD)"
+  },
+  {
+    "Nombre Departamento": "AMAZONAS",
+    "Nombre Municipio": "LA CHORRERA (CD)"
+  },
+  {
+    "Nombre Departamento": "AMAZONAS",
+    "Nombre Municipio": "LA PEDRERA (CD)"
+  },
+  {
+    "Nombre Departamento": "AMAZONAS",
+    "Nombre Municipio": "LA VICTORIA (CD)"
+  },
+  {
+    "Nombre Departamento": "AMAZONAS",
+    "Nombre Municipio": "MIRITI - PARANA (CD)"
+  },
+  {
+    "Nombre Departamento": "AMAZONAS",
+    "Nombre Municipio": "PUERTO ALEGRIA (CD)"
+  },
+  {
+    "Nombre Departamento": "AMAZONAS",
+    "Nombre Municipio": "PUERTO ARICA (CD)"
+  },
+  {
+    "Nombre Departamento": "AMAZONAS",
+    "Nombre Municipio": "PUERTO NARIÑO"
+  },
+  {
+    "Nombre Departamento": "AMAZONAS",
+    "Nombre Municipio": "PUERTO SANTANDER (CD)"
+  },
+  {
+    "Nombre Departamento": "AMAZONAS",
+    "Nombre Municipio": "TARAPACA (CD)"
+  },
+  {
+    "Nombre Departamento": "GUAINIA",
+    "Nombre Municipio": "INIRIDA"
+  },
+  {
+    "Nombre Departamento": "GUAINIA",
+    "Nombre Municipio": "BARRANCO MINAS (CD)"
+  },
+  {
+    "Nombre Departamento": "GUAINIA",
+    "Nombre Municipio": "MAPIRIPANA (CD)"
+  },
+  {
+    "Nombre Departamento": "GUAINIA",
+    "Nombre Municipio": "SAN FELIPE (CD)"
+  },
+  {
+    "Nombre Departamento": "GUAINIA",
+    "Nombre Municipio": "PUERTO COLOMBIA (CD)"
+  },
+  {
+    "Nombre Departamento": "GUAINIA",
+    "Nombre Municipio": "LA GUADALUPE (CD)"
+  },
+  {
+    "Nombre Departamento": "GUAINIA",
+    "Nombre Municipio": "CACAHUAL (CD)"
+  },
+  {
+    "Nombre Departamento": "GUAINIA",
+    "Nombre Municipio": "PANA PANA (CD)"
+  },
+  {
+    "Nombre Departamento": "GUAINIA",
+    "Nombre Municipio": "MORICHAL (CD)"
+  },
+  {
+    "Nombre Departamento": "GUAVIARE",
+    "Nombre Municipio": "SAN JOSE DEL GUAVIARE"
+  },
+  {
+    "Nombre Departamento": "GUAVIARE",
+    "Nombre Municipio": "CALAMAR"
+  },
+  {
+    "Nombre Departamento": "GUAVIARE",
+    "Nombre Municipio": "EL RETORNO"
+  },
+  {
+    "Nombre Departamento": "GUAVIARE",
+    "Nombre Municipio": "MIRAFLORES"
+  },
+  {
+    "Nombre Departamento": "VAUPES",
+    "Nombre Municipio": "MITU"
+  },
+  {
+    "Nombre Departamento": "VAUPES",
+    "Nombre Municipio": "CARURU"
+  },
+  {
+    "Nombre Departamento": "VAUPES",
+    "Nombre Municipio": "PACOA (CD)"
+  },
+  {
+    "Nombre Departamento": "VAUPES",
+    "Nombre Municipio": "TARAIRA"
+  },
+  {
+    "Nombre Departamento": "VAUPES",
+    "Nombre Municipio": "PAPUNAUA (CD)"
+  },
+  {
+    "Nombre Departamento": "VAUPES",
+    "Nombre Municipio": "YAVARATE (CD)"
+  },
+  {
+    "Nombre Departamento": "VICHADA",
+    "Nombre Municipio": "PUERTO CARREÑO"
+  },
+  {
+    "Nombre Departamento": "VICHADA",
+    "Nombre Municipio": "LA PRIMAVERA"
+  },
+  {
+    "Nombre Departamento": "VICHADA",
+    "Nombre Municipio": "SANTA ROSALIA"
+  },
+  {
+    "Nombre Departamento": "VICHADA",
+    "Nombre Municipio": "CUMARIBO"
+  }
+]

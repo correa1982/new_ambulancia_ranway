@@ -1,0 +1,447 @@
+{% extends "base.html" %}
+{% block title %}Editar Usuario{% endblock %}
+{% block content %}
+<h1>Editar Usuario: {{ user.nombre }}</h1>
+<p>Modifique los datos, rol, perfil o firma digitalizada del usuario.</p>
+
+<fieldset>
+    <legend>Datos del Usuario</legend>
+    <form method="POST" id="edit-user-form">
+        <div class="row">
+            <div>
+                <label>Nombre Completo</label>
+                <input type="text" name="nombre" value="{{ user.nombre }}" required>
+            </div>
+            <div>
+                <label>Número de Identificación</label>
+                <input type="text" name="identificacion" value="{{ user.identificacion }}" required {% if user.identificacion == 'admin' %}readonly style="background: #e2e8f0; cursor: not-allowed;"{% endif %}>
+            </div>
+        </div>
+
+        <div class="row">
+            <div>
+                <label>Correo Electrónico</label>
+                <input type="email" name="correo" value="{{ user.correo }}" required>
+            </div>
+            <div>
+                <label>Resolución en Salud</label>
+                <input type="text" name="registro_medico" id="registro-medico-input" value="{{ user.registro_medico }}" placeholder="Ej. RES-98765">
+            </div>
+        </div>
+
+        <div class="row">
+            <div>
+                <label>Rol</label>
+                <select name="rol" required {% if user.identificacion == 'admin' %}disabled style="background: #e2e8f0; cursor: not-allowed;"{% endif %}>
+                    <option value="usuario" {% if user.rol == 'usuario' %}selected{% endif %}>Usuario (Diligenciador)</option>
+                    <option value="admin" {% if user.rol == 'admin' %}selected{% endif %}>Administrador</option>
+                </select>
+                {% if user.identificacion == 'admin' %}
+                <!-- Hidden input to preserve value since select is disabled -->
+                <input type="hidden" name="rol" value="admin">
+                {% endif %}
+            </div>
+            <div>
+                <label>Fecha de Validez</label>
+                <input onclick="this.showPicker()" type="date" name="fecha_validez" value="{{ user.fecha_validez or '' }}" placeholder="Sin límite">
+            </div>
+        </div>
+
+        <div class="row">
+            <div>
+                <label style="display: flex; align-items: center; gap: 4px;"><i class="ph ph-stethoscope" style="color: #6366f1; font-size: 14px;"></i> Perfil(es) Profesional(es)</label>
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; margin-top: 4px;">
+                    <label class="perm-toggle"><input type="checkbox" name="perfil" value="Médico" {% if user.perfil and '"Médico"' in user.perfil %}checked{% endif %}><span class="perm-label"><i class="ph ph-stethoscope perm-icon" style="color: #6366f1;"></i>Médico</span></label>
+                    <label class="perm-toggle"><input type="checkbox" name="perfil" value="Enfermero" {% if user.perfil and '"Enfermero"' in user.perfil %}checked{% endif %}><span class="perm-label"><i class="ph ph-syringe perm-icon" style="color: #3b82f6;"></i>Enfermero</span></label>
+                    <label class="perm-toggle"><input type="checkbox" name="perfil" value="APH" {% if user.perfil and '"APH"' in user.perfil %}checked{% endif %}><span class="perm-label"><i class="ph ph-ambulance perm-icon" style="color: #ef4444;"></i>APH</span></label>
+                    <label class="perm-toggle"><input type="checkbox" name="perfil" value="Auxiliar en Enfermeria" {% if user.perfil and '"Auxiliar en Enfermeria"' in user.perfil %}checked{% endif %}><span class="perm-label"><i class="ph ph-bandaids perm-icon" style="color: #38bdf8;"></i>Auxiliar en Enfermeria</span></label>
+                    <label class="perm-toggle"><input type="checkbox" name="perfil" value="Conductor" {% if user.perfil and '"Conductor"' in user.perfil %}checked{% endif %}><span class="perm-label"><i class="ph ph-car perm-icon" style="color: #ef4444;"></i>Conductor</span></label>
+                    <label class="perm-toggle"><input type="checkbox" name="perfil" value="Socorrista" {% if user.perfil and '"Socorrista"' in user.perfil %}checked{% endif %}><span class="perm-label"><i class="ph ph-first-aid-kit perm-icon" style="color: #ef4444;"></i>Socorrista</span></label>
+                    <label class="perm-toggle"><input type="checkbox" name="perfil" value="Administrador" {% if user.perfil and '"Administrador"' in user.perfil %}checked{% endif %}><span class="perm-label"><i class="ph ph-gear-six perm-icon" style="color: #64748b;"></i>Administrador</span></label>
+                </div>
+                <p style="font-size: 11px; color: #94a3b8; margin-top: 6px; display: flex; align-items: center; gap: 4px;"><i class="ph ph-info" style="color: #3b82f6;"></i> Si el usuario tiene varios perfiles, al iniciar sesión podrá elegir con cuál operar.</p>
+            </div>
+            <div>
+                <label>Estado</label>
+                <select name="activo" required {% if user.identificacion == 'admin' %}disabled style="background: #e2e8f0; cursor: not-allowed;"{% endif %}>
+                    <option value="1" {% if user.activo == 1 %}selected{% endif %}>Activo</option>
+                    <option value="0" {% if user.activo == 0 %}selected{% endif %}>Inactivo (Deshabilitado)</option>
+                </select>
+                {% if user.identificacion == 'admin' %}
+                <!-- Hidden input to preserve value since select is disabled -->
+                <input type="hidden" name="activo" value="1">
+                {% endif %}
+            </div>
+        </div>
+
+        <div style="margin-top: 18px;" id="accesos-container">
+            <h3 style="font-weight: 700; font-size: 15px; color: #1e293b; margin-bottom: 10px;">🔐 Acceso a Formularios por Perfil</h3>
+            <p style="font-size: 12px; color: #64748b; margin-bottom: 15px;">Seleccione un perfil arriba para configurar sus accesos correspondientes.</p>
+            
+            <div id="accesos-tabs" style="display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap;"></div>
+
+            {% set perfiles_lista = ['Médico', 'Enfermero', 'APH', 'Auxiliar en Enfermeria', 'Conductor', 'Socorrista', 'Administrador'] %}
+            
+            {% set forms_dict = {} %}
+            {% if user.formularios_acceso and user.formularios_acceso.startswith('{') %}
+                {% set forms_dict = json.loads(user.formularios_acceso) %}
+            {% elif user.formularios_acceso and user.formularios_acceso.startswith('[') %}
+                {# Legacy support for lists #}
+                {% set legacy_list = json.loads(user.formularios_acceso) %}
+                {% for p in perfiles_lista %}
+                    {% set _ = forms_dict.update({p: legacy_list}) %}
+                {% endfor %}
+            {% endif %}
+
+            {% for p in perfiles_lista %}
+            <div id="accesos-block-{{ p }}" class="accesos-block" style="display: none; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 15px; margin-bottom: 15px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+                    <label style="font-weight: 700; font-size: 14px; color: #334155;">Permisos para {{ p }}</label>
+                    <button type="button" onclick="toggleAllEnBloque('{{ p }}', this)" style="margin:0; padding: 4px 12px; font-size: 12px; background: #e2e8f0; color: #475569; border-radius: 20px; border: none; cursor: pointer; font-weight: 600;">Marcar todos</button>
+                </div>
+
+                {% set current_p_forms = forms_dict.get(p, []) %}
+
+                <!-- Atención Clínica -->
+                <div style="margin-bottom: 10px;">
+                    <div style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; padding-left: 2px;">Atención Clínica</div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px;">
+                        <label class="perm-toggle"><input type="checkbox" name="formularios_acceso_{{ p }}" value="hc" {% if 'hc' in current_p_forms %}checked{% endif %}><span class="perm-label"><span class="perm-icon">🚑</span>Historia Clínica Individual</span></label>
+                        <label class="perm-toggle"><input type="checkbox" name="formularios_acceso_{{ p }}" value="atencion_colectiva" {% if 'atencion_colectiva' in current_p_forms %}checked{% endif %}><span class="perm-label"><span class="perm-icon">👥</span>Atención Colectiva / MCI</span></label>
+                        <label class="perm-toggle"><input type="checkbox" name="formularios_acceso_{{ p }}" value="eventos" {% if 'eventos' in current_p_forms %}checked{% endif %}><span class="perm-label"><span class="perm-icon">📅</span>Formulario de Eventos</span></label>
+                        <label class="perm-toggle"><input type="checkbox" name="formularios_acceso_{{ p }}" value="calif_atencion" {% if 'calif_atencion' in current_p_forms %}checked{% endif %}><span class="perm-label"><span class="perm-icon">📝</span>Calif. Atención</span></label>
+                        <label class="perm-toggle"><input type="checkbox" name="formularios_acceso_{{ p }}" value="segur_paciente" {% if 'segur_paciente' in current_p_forms %}checked{% endif %}><span class="perm-label"><span class="perm-icon">🛡️</span>Segur. Paciente</span></label>
+                        <label class="perm-toggle"><input type="checkbox" name="formularios_acceso_{{ p }}" value="atencion_vehiculo" {% if 'atencion_vehiculo' in current_p_forms %}checked{% endif %}><span class="perm-label"><span class="perm-icon">🚒</span>Atención Vehículo Intervención</span></label>
+                    </div>
+                </div>
+
+                <!-- Checklists -->
+                <div style="margin-bottom: 10px;">
+                    <div style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; padding-left: 2px;">Listas de Verificación</div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px;">
+                        <label class="perm-toggle"><input type="checkbox" name="formularios_acceso_{{ p }}" value="preoperacional" {% if 'preoperacional' in current_p_forms %}checked{% endif %}><span class="perm-label"><span class="perm-icon">🚗</span>Preoperacional Conductores</span></label>
+                        <label class="perm-toggle"><input type="checkbox" name="formularios_acceso_{{ p }}" value="tam" {% if 'tam' in current_p_forms %}checked{% endif %}><span class="perm-label"><span class="perm-icon">🏥</span>Check List TAM</span></label>
+                        <label class="perm-toggle"><input type="checkbox" name="formularios_acceso_{{ p }}" value="tab" {% if 'tab' in current_p_forms %}checked{% endif %}><span class="perm-label"><span class="perm-icon">🩺</span>Check List TAB</span></label>
+                        <label class="perm-toggle"><input type="checkbox" name="formularios_acceso_{{ p }}" value="avanzada" {% if 'avanzada' in current_p_forms %}checked{% endif %}><span class="perm-label"><span class="perm-icon">⚡</span>Check List Avanzada</span></label>
+                        <label class="perm-toggle"><input type="checkbox" name="formularios_acceso_{{ p }}" value="pasb" {% if 'pasb' in current_p_forms %}checked{% endif %}><span class="perm-label"><span class="perm-icon">🧰</span>Check List PASB</span></label>
+                        <label class="perm-toggle"><input type="checkbox" name="formularios_acceso_{{ p }}" value="pasm" {% if 'pasm' in current_p_forms %}checked{% endif %}><span class="perm-label"><span class="perm-icon">🎒</span>Check List PASM</span></label>
+                        <label class="perm-toggle"><input type="checkbox" name="formularios_acceso_{{ p }}" value="equipos" {% if 'equipos' in current_p_forms %}checked{% endif %}><span class="perm-label"><span class="perm-icon">🩺</span>Preoperacional Equipos</span></label>
+                    </div>
+                </div>
+
+                <!-- Reportes -->
+                <div style="margin-bottom: 4px;">
+                    <div style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; padding-left: 2px;">Reportes</div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px;">
+                        <label class="perm-toggle"><input type="checkbox" name="formularios_acceso_{{ p }}" value="registros" {% if 'registros' in current_p_forms %}checked{% endif %}><span class="perm-label"><span class="perm-icon">📁</span>Explorador de Registros</span></label>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+
+            <p style="font-size: 11px; color: #94a3b8; margin-top: 8px;">ℹ️ El rol Administrador siempre tiene acceso completo sin importar lo seleccionado.</p>
+        </div>
+
+        <style>
+        .perm-toggle {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            background: #f8fafc;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 8px 12px;
+            margin: 0;
+            font-weight: normal;
+            transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+            user-select: none;
+        }
+        .perm-toggle:hover { border-color: #94a3b8; background: #f1f5f9; }
+        .perm-toggle input[type=checkbox] { display: none; }
+        .perm-toggle input[type=checkbox]:checked + .perm-label { color: #1d4ed8; }
+        .perm-toggle:has(input:checked) {
+            border-color: #3b82f6;
+            background: #eff6ff;
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.12);
+        }
+        .perm-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13.5px;
+            color: #475569;
+            font-weight: 500;
+            flex: 1;
+        }
+        .perm-label::before {
+            content: '';
+            width: 16px;
+            height: 16px;
+            min-width: 16px;
+            border: 2px solid #cbd5e1;
+            border-radius: 4px;
+            background: white;
+            transition: all 0.15s;
+        }
+        .perm-toggle:has(input:checked) .perm-label::before {
+            background: #3b82f6;
+            border-color: #3b82f6;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 10'%3E%3Cpath d='M1 5l3.5 3.5L11 1' stroke='white' stroke-width='2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: 10px;
+        }
+        .perm-icon { font-size: 16px; }
+        </style>
+
+        <script>
+        function toggleAllEnBloque(perfil, btn) {
+            const boxes = document.querySelectorAll(`input[name="formularios_acceso_${perfil}"]`);
+            const allChecked = Array.from(boxes).every(b => b.checked);
+            boxes.forEach(b => b.checked = !allChecked);
+            btn.textContent = allChecked ? 'Marcar todos' : 'Desmarcar todos';
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            const perfilCheckboxes = document.querySelectorAll('input[name="perfil"]');
+            const rmInput = document.getElementById('registro-medico-input');
+            
+            const tabsContainer = document.getElementById('accesos-tabs');
+            let activeTabPerfil = null;
+
+            function toggleAccesos() {
+                const checkedProfiles = Array.from(perfilCheckboxes).filter(cb => cb.checked).map(cb => cb.value);
+                tabsContainer.innerHTML = '';
+                
+                if (checkedProfiles.length === 0) {
+                    activeTabPerfil = null;
+                } else if (!checkedProfiles.includes(activeTabPerfil)) {
+                    activeTabPerfil = checkedProfiles[0];
+                }
+
+                checkedProfiles.forEach(perfil => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.textContent = perfil;
+                    const isActive = perfil === activeTabPerfil;
+                    btn.style.cssText = `
+                        padding: 8px 16px; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer;
+                        background: ${isActive ? '#3b82f6' : '#e2e8f0'};
+                        color: ${isActive ? 'white' : '#475569'}; transition: all 0.2s;
+                    `;
+                    btn.onclick = () => { activeTabPerfil = perfil; toggleAccesos(); };
+                    tabsContainer.appendChild(btn);
+                });
+
+                document.querySelectorAll('.accesos-block').forEach(block => block.style.display = 'none');
+                
+                if (activeTabPerfil) {
+                    const activeBlock = document.getElementById('accesos-block-' + activeTabPerfil);
+                    if (activeBlock) activeBlock.style.display = 'block';
+                }
+            }
+            
+            // Configurar auto-marcado
+            const defaultPermissions = {
+                'Conductor': ['preoperacional', 'hc', 'equipos', 'atencion_vehiculo'],
+                'Socorrista': ['equipos', 'atencion_vehiculo'],
+                'Enfermero': ['hc', 'atencion_colectiva', 'eventos', 'calif_atencion', 'segur_paciente', 'tam', 'tab', 'pasb', 'pasm'],
+                'Auxiliar en Enfermeria': ['hc', 'atencion_colectiva', 'eventos', 'calif_atencion', 'segur_paciente', 'tam', 'tab', 'pasb', 'pasm'],
+                'APH': ['hc', 'atencion_colectiva', 'eventos', 'calif_atencion', 'segur_paciente', 'tam', 'tab', 'pasb', 'pasm'],
+                'Médico': ['hc', 'atencion_colectiva']
+            };
+
+            function handleProfileSelect(e) {
+                const perfil = e.target.value;
+                const isChecked = e.target.checked;
+                if (isChecked && defaultPermissions[perfil]) {
+                    const block = document.getElementById('accesos-block-' + perfil);
+                    if (block) {
+                        const checkboxes = block.querySelectorAll('input[type="checkbox"]');
+                        checkboxes.forEach(cb => {
+                            cb.checked = defaultPermissions[perfil].includes(cb.value);
+                        });
+                    }
+                }
+            }
+            
+            function toggleRM() {
+                const medico = document.querySelector('input[name="perfil"][value="Médico"]');
+                const enfermero = document.querySelector('input[name="perfil"][value="Enfermero"]');
+                const aph = document.querySelector('input[name="perfil"][value="APH"]');
+                const auxEnf = document.querySelector('input[name="perfil"][value="Auxiliar en Enfermeria"]');
+                
+                const requiresRM = (medico && medico.checked) || 
+                                   (enfermero && enfermero.checked) || 
+                                       (aph && aph.checked) ||
+                                       (auxEnf && auxEnf.checked);
+                
+                if (requiresRM) {
+                    rmInput.required = true;
+                    rmInput.placeholder = "Ej. RES-98765 (Obligatorio)";
+                    const label = rmInput.previousElementSibling;
+                    if (label && label.tagName === 'LABEL' && !label.querySelector('.req-ast')) {
+                        label.innerHTML = 'Resolución en Salud <span class="req-ast" style="color: #ef4444;">*</span>';
+                    }
+                } else {
+                    rmInput.required = false;
+                    rmInput.placeholder = "Ej. RES-98765 (Opcional)";
+                    const label = rmInput.previousElementSibling;
+                    if (label && label.tagName === 'LABEL') {
+                        const ast = label.querySelector('.req-ast');
+                        if (ast) ast.remove();
+                    }
+                }
+            }
+            
+            perfilCheckboxes.forEach(cb => {
+                cb.addEventListener('change', toggleRM);
+                cb.addEventListener('change', toggleAccesos);
+                cb.addEventListener('change', handleProfileSelect);
+            });
+            toggleRM(); // Ejecutar al inicio
+            toggleAccesos(); // Ejecutar al inicio
+        });
+        </script>
+
+        <div style="margin-top: 15px;">
+            <label>Firma Digitalizada</label>
+            <div style="border: 2px dashed #cbd5e0; border-radius: 8px; padding: 15px; background: #f7fafc; text-align: center; margin-top: 5px;">
+                <canvas id="signature-pad" width="450" height="150" style="border: 1px solid #cbd5e0; background: #ffffff; cursor: crosshair; touch-action: none; max-width: 100%; display: block; margin: 0 auto; border-radius: 4px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);"></canvas>
+                <div style="margin-top: 10px; display: flex; justify-content: center; gap: 10px; align-items: center; flex-wrap: wrap;">
+                    <button type="button" id="clear-signature" style="margin-top: 0; background: #e53e3e; font-size: 13px; padding: 6px 15px;">Limpiar Lienzo</button>
+                    <label for="signature-file" style="margin-top: 0; background: #4a5568; font-size: 13px; padding: 6px 15px; border-radius: 6px; cursor: pointer; color: white; display: inline-block;">Subir Nueva Imagen</label>
+                    <input type="file" id="signature-file" accept="image/*" style="display: none;">
+                </div>
+                <div id="signature-preview-text" style="font-size: 12px; color: #38a169; margin-top: 6px;">Firma actual cargada. Dibuje de nuevo para sobrescribirla o cargue un archivo.</div>
+            </div>
+            <input type="hidden" name="firma" id="firma-data" value="{{ user.firma or '' }}">
+        </div>
+
+        <div style="margin-top: 25px; display: flex; gap: 10px;">
+            <button type="submit" style="background: #2b6cb0; margin-top: 0;">Guardar Cambios</button>
+            <a href="{{ url_for('usuarios') }}" style="background: #718096; color: white; padding: 10px 22px; border-radius: 6px; text-decoration: none; font-size: 15px; display: inline-block;">Cancelar</a>
+        </div>
+    </form>
+</fieldset>
+
+<script>
+// --- Firma Canvas Logic ---
+const canvas = document.getElementById('signature-pad');
+const ctx = canvas.getContext('2d');
+const clearBtn = document.getElementById('clear-signature');
+const fileInput = document.getElementById('signature-file');
+const firmaInput = document.getElementById('firma-data');
+const previewText = document.getElementById('signature-preview-text');
+
+let drawing = false;
+
+// Configure canvas line style
+ctx.strokeStyle = "#1a202c";
+ctx.lineWidth = 2.5;
+ctx.lineCap = "round";
+ctx.lineJoin = "round";
+
+// Pre-load the existing signature image
+const existingSignature = firmaInput.value;
+if (existingSignature) {
+    const img = new Image();
+    img.onload = function() {
+        // Draw the existing base64 signature onto the canvas
+        ctx.drawImage(img, 0, 0);
+    };
+    img.src = existingSignature;
+} else {
+    previewText.textContent = "Sin firma registrada. Dibuje una o suba un archivo.";
+    previewText.style.color = "#718096";
+}
+
+// Get pointer coordinate relative to canvas
+function getPointerPos(canvasDom, e) {
+    const rect = canvasDom.getBoundingClientRect();
+    const scaleX = canvasDom.width / rect.width;
+    const scaleY = canvasDom.height / rect.height;
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    return {
+        x: (clientX - rect.left) * scaleX,
+        y: (clientY - rect.top) * scaleY
+    };
+}
+
+// Start drawing
+function startDrawing(e) {
+    drawing = true;
+    const pos = getPointerPos(canvas, e);
+    ctx.beginPath();
+    ctx.moveTo(pos.x, pos.y);
+    e.preventDefault();
+}
+
+// Draw line
+function draw(e) {
+    if (!drawing) return;
+    const pos = getPointerPos(canvas, e);
+    ctx.lineTo(pos.x, pos.y);
+    ctx.stroke();
+    updateHiddenInput();
+    e.preventDefault();
+}
+
+// Stop drawing
+function stopDrawing() {
+    drawing = false;
+}
+
+// Mouse events
+canvas.addEventListener('mousedown', startDrawing);
+canvas.addEventListener('mousemove', draw);
+canvas.addEventListener('mouseup', stopDrawing);
+canvas.addEventListener('mouseleave', stopDrawing);
+
+// Touch events for mobile screens
+canvas.addEventListener('touchstart', startDrawing);
+canvas.addEventListener('touchmove', draw);
+canvas.addEventListener('touchend', stopDrawing);
+
+function updateHiddenInput() {
+    firmaInput.value = canvas.toDataURL('image/png');
+    previewText.textContent = "Nueva firma registrada desde el lienzo interactivo.";
+    previewText.style.color = "#38a169";
+}
+
+// Clear canvas
+clearBtn.addEventListener('click', () => {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    firmaInput.value = '';
+    previewText.textContent = "Lienzo limpio. Se eliminará la firma si guarda ahora.";
+    previewText.style.color = "#e53e3e";
+});
+
+// File upload option
+fileInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            const img = new Image();
+            img.onload = function() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                // Draw uploaded image centered and scaled
+                const hRatio = canvas.width / img.width;
+                const vRatio = canvas.height / img.height;
+                const ratio = Math.min(hRatio, vRatio);
+                const shiftX = (canvas.width - img.width * ratio) / 2;
+                const shiftY = (canvas.height - img.height * ratio) / 2;
+                ctx.drawImage(img, 0, 0, img.width, img.height, shiftX, shiftY, img.width * ratio, img.height * ratio);
+                
+                updateHiddenInput();
+            };
+            img.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+});
+</script>
+{% endblock %}

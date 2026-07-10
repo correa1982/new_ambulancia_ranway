@@ -1,0 +1,678 @@
+{% extends "base.html" %}
+{% block title %}{% if item %}Editar{% else %}Nueva{% endif %} Atención Vehículo de Intervención{% endblock %}
+{% block content %}
+
+<style>
+/* Dictation Button */
+.btn-dictar { background: #eff6ff; border: 1px solid #bfdbfe; color: #3b82f6; border-radius: 50%; width: 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; padding: 0; }
+.btn-dictar:hover { background: #dbeafe; }
+.btn-dictar.recording { background: #fee2e2; border-color: #fca5a5; color: #ef4444; animation: pulse-record 1.5s infinite; }
+@keyframes pulse-record { 0% { box-shadow: 0 0 0 0 rgba(239,68,68,0.4); } 70% { box-shadow: 0 0 0 6px rgba(239,68,68,0); } 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); } }
+</style>
+
+<div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:20px; padding-bottom:14px; border-bottom:2px solid #dbeafe;">
+    <div style="display:flex; align-items:center; gap:15px;">
+        <a href="{{ url_for('dashboard') }}" style="display:inline-flex; align-items:center; gap:5px; background:#f1f5f9; color:#475569; border:1px solid #e2e8f0; padding:6px 12px; border-radius:6px; text-decoration:none; font-weight:600; font-size:13px;">
+            ← Volver
+        </a>
+        <h1 style="margin:0; padding:0; border:none; font-size:20px;">🚒 {% if item %}Editar{% else %}Nueva{% endif %} Atención Vehículo de Intervención</h1>
+    </div>
+</div>
+
+<form method="POST">
+
+    <!-- ── Consecutivo y Ubicación ── -->
+    <fieldset>
+        <legend>📍 Ubicación e Identificación</legend>
+        <div class="row row-3">
+            <div>
+                <label>Consecutivo <span style="color:#ef4444">*</span></label>
+                <input type="number" name="consecutivo" required value="{{ item.consecutivo or '' }}" placeholder="Ej. 1045">
+            </div>
+            <div>
+                <label>País <span style="color:#ef4444">*</span></label>
+                <select name="pais" id="select_pais" required>
+                    <option value="">— Seleccione —</option>
+                    <option value="Colombia" {% if not item or item.pais == 'Colombia' %}selected{% endif %}>Colombia</option>
+                    <option value="Venezuela" {% if item and item.pais == 'Venezuela' %}selected{% endif %}>Venezuela</option>
+                    <option value="Ecuador" {% if item and item.pais == 'Ecuador' %}selected{% endif %}>Ecuador</option>
+                    <option value="Perú" {% if item and item.pais == 'Perú' %}selected{% endif %}>Perú</option>
+                    <option value="Panamá" {% if item and item.pais == 'Panamá' %}selected{% endif %}>Panamá</option>
+                    <option value="Otro" {% if item and item.pais == 'Otro' %}selected{% endif %}>Otro</option>
+                </select>
+            </div>
+            <div>
+                <label>Departamento <span style="color:#ef4444">*</span></label>
+                <select name="departamento" id="select_departamento" required>
+                    <option value="">— Seleccione —</option>
+                </select>
+            </div>
+        </div>
+        <div class="row row-3" style="margin-top:12px;">
+            <div>
+                <label>Municipio <span style="color:#ef4444">*</span></label>
+                <select name="municipio" id="select_municipio" required>
+                    <option value="">— Seleccione —</option>
+                </select>
+            </div>
+            <div>
+                <label>Barrio</label>
+                <select name="barrio" id="select_barrio">
+                    <option value="">— Seleccione —</option>
+                </select>
+            </div>
+            <div>
+                <label>Dirección <span style="color:#ef4444">*</span></label>
+                <input type="text" name="direccion" required value="{{ item.direccion or '' }}" placeholder="Ej. Calle 10 # 43A-25">
+            </div>
+        </div>
+    </fieldset>
+
+    <!-- ── Fechas y Tiempos ── -->
+    <fieldset style="margin-top:20px;">
+        <legend>🕐 Fechas y Horas (Horario 24h)</legend>
+        <div class="row row-4">
+            <div>
+                <label>Fecha y Hora Despacho <span style="color:#ef4444">*</span></label>
+                <div style="display:flex; gap:8px;">
+                    <input type="date" id="fecha_despacho" required value="{% if item and item.fecha_hora_despacho %}{{ item.fecha_hora_despacho[:10] }}{% endif %}" onclick="this.showPicker()">
+                    <input type="time" id="hora_despacho" required value="{% if item and item.fecha_hora_despacho %}{{ item.fecha_hora_despacho[11:16] }}{% endif %}" onclick="this.showPicker()">
+                </div>
+                <input type="hidden" name="fecha_hora_despacho" id="fecha_hora_despacho" value="{{ item.fecha_hora_despacho or '' }}">
+            </div>
+            <div>
+                <label>Fecha y Hora Salida <span style="color:#ef4444">*</span></label>
+                <div style="display:flex; gap:8px;">
+                    <input type="date" id="fecha_salida" required value="{% if item and item.fecha_hora_salida %}{{ item.fecha_hora_salida[:10] }}{% endif %}" onclick="this.showPicker()">
+                    <input type="time" id="hora_salida" required value="{% if item and item.fecha_hora_salida %}{{ item.fecha_hora_salida[11:16] }}{% endif %}" onclick="this.showPicker()">
+                </div>
+                <input type="hidden" name="fecha_hora_salida" id="fecha_hora_salida" value="{{ item.fecha_hora_salida or '' }}">
+            </div>
+            <div>
+                <label>Fecha y Hora Llegada <span style="color:#ef4444">*</span></label>
+                <div style="display:flex; gap:8px;">
+                    <input type="date" id="fecha_llegada" required value="{% if item and item.fecha_hora_llegada %}{{ item.fecha_hora_llegada[:10] }}{% endif %}" onclick="this.showPicker()">
+                    <input type="time" id="hora_llegada" required value="{% if item and item.fecha_hora_llegada %}{{ item.fecha_hora_llegada[11:16] }}{% endif %}" onclick="this.showPicker()">
+                </div>
+                <input type="hidden" name="fecha_hora_llegada" id="fecha_hora_llegada" value="{{ item.fecha_hora_llegada or '' }}">
+            </div>
+            <div>
+                <label>Fecha y Hora Finalización <span style="color:#ef4444">*</span></label>
+                <div style="display:flex; gap:8px;">
+                    <input type="date" id="fecha_finalizacion" required value="{% if item and item.fecha_hora_finalizacion %}{{ item.fecha_hora_finalizacion[:10] }}{% endif %}" onclick="this.showPicker()">
+                    <input type="time" id="hora_finalizacion" required value="{% if item and item.fecha_hora_finalizacion %}{{ item.fecha_hora_finalizacion[11:16] }}{% endif %}" onclick="this.showPicker()">
+                </div>
+                <input type="hidden" name="fecha_hora_finalizacion" id="fecha_hora_finalizacion" value="{{ item.fecha_hora_finalizacion or '' }}">
+            </div>
+        </div>
+        
+        <!-- Cálculo de Tiempos en tiempo real -->
+        <div id="calculo_tiempos_container" style="margin-top:16px; display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:12px; background:#f8fafc; border:1px solid #e2e8f0; padding:16px; border-radius:8px;">
+            <div style="font-size:13px; color:#475569;">
+                <strong>Reacción (Despacho → Salida):</strong> <span id="time_despacho_salida" style="font-weight:600; color:#1e293b;">—</span>
+            </div>
+            <div style="font-size:13px; color:#475569;">
+                <strong>Tránsito (Salida → Llegada):</strong> <span id="time_salida_llegada" style="font-weight:600; color:#1e293b;">—</span>
+            </div>
+            <div style="font-size:13px; color:#475569;">
+                <strong>Respuesta (Despacho → Llegada):</strong> <span id="time_despacho_llegada" style="color:#1e6fbf; font-weight:700;">—</span>
+            </div>
+            <div style="font-size:13px; color:#475569;">
+                <strong>Atención (Llegada → Finalización):</strong> <span id="time_llegada_finalizacion" style="font-weight:600; color:#1e293b;">—</span>
+            </div>
+        </div>
+    </fieldset>
+
+    <!-- ── Personal y Tripulación ── -->
+    <fieldset style="margin-top:20px;">
+        <legend>👥 Tripulación e Incidentes</legend>
+        <div class="row row-2">
+            <div>
+                <label>Comandante de Incidente <span style="color:#ef4444">*</span></label>
+                <input type="text" name="comandante_incidente" required value="{{ item.comandante_incidente or '' }}" placeholder="Nombre del Comandante">
+            </div>
+            <div>
+                <label>Integrantes de la Tripulación <span style="color:#ef4444">*</span></label>
+                <input type="text" name="integrantes_tripulacion" required value="{{ item.integrantes_tripulacion or '' }}" placeholder="Integrantes separados por comas">
+            </div>
+        </div>
+    </fieldset>
+
+    <!-- ── Clasificación del Servicio ── -->
+    <fieldset style="margin-top:20px;">
+        <legend>🏷️ Clasificación del Servicio</legend>
+        <div class="row row-2">
+            <div>
+                <label>Tipo <span style="color:#ef4444">*</span></label>
+                <select name="tipo" id="select_tipo" required>
+                    <option value="">— Seleccione Tipo —</option>
+                </select>
+            </div>
+            <div>
+                <label>Subtipo <span style="color:#ef4444">*</span></label>
+                <select name="subtipo" id="select_subtipo" required>
+                    <option value="">— Seleccione Subtipo —</option>
+                </select>
+            </div>
+        </div>
+    </fieldset>
+
+    <!-- ── Descripción ── -->
+    <fieldset style="margin-top:20px;">
+        <legend>📝 Descripción y Observaciones</legend>
+        <div style="position: relative;">
+            <label style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <span>Descripción del Evento <span style="color:#ef4444">*</span></span>
+                <button type="button" class="btn-dictar" tabindex="-1" title="Dictar por voz" onclick="startDictation(this, this.parentElement.nextElementSibling)"><i class="ph ph-microphone"></i></button>
+            </label>
+            <textarea name="descripcion" required placeholder="Escriba aquí la descripción detallada..." style="width:100%; min-height:120px; box-sizing:border-box;">{{ item.descripcion or '' }}</textarea>
+        </div>
+    </fieldset>
+
+    <!-- ── Equipos Utilizados ── -->
+    <fieldset style="margin-top:20px;">
+        <legend>🩺 Equipos Utilizados / Observaciones</legend>
+        <p style="font-size:13px; color:#64748b; margin-top:0; margin-bottom:12px;">
+            Seleccione los grupos de equipos utilizados en esta atención y registre observaciones para cada uno.
+        </p>
+        
+        <div style="display:flex; gap:12px; align-items:center; margin-bottom:16px; flex-wrap:wrap;">
+            <select id="add_grupo_select" style="flex:1; min-width:240px; padding:10px 14px; border-radius:8px; border:1px solid #cbd5e1; font-family:inherit; font-size:14px; color:#334155; background:white; outline:none; transition: border-color 0.2s;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='#cbd5e1'">
+                <option value="">— Seleccione un Grupo de Equipos —</option>
+                {% for grupo in grupos_equipos %}
+                    <option value="{{ grupo }}">{{ grupo }}</option>
+                {% endfor %}
+            </select>
+            <button type="button" id="btn_add_grupo" style="padding:10px 20px; border-radius:8px; border:none; background:#1e6fbf; color:white; font-weight:600; cursor:pointer; font-size:14px; display:inline-flex; align-items:center; gap:6px; transition: all 0.2s; box-shadow: 0 2px 4px rgba(30,111,191,0.2);" onmouseover="this.style.background='#15508a'; this.style.transform='translateY(-1px)'" onmouseout="this.style.background='#1e6fbf'; this.style.transform='none'">
+                ＋ Agregar Grupo
+            </button>
+        </div>
+
+        <textarea id="hidden_equipos_json" name="equipos_json" style="display:none;">{{ item.equipos_json or '[]' }}</textarea>
+
+        <div id="equipos_seleccionados_container" style="display:flex; flex-direction:column; gap:12px;">
+            <!-- Filas dinámicas cargadas por JS -->
+        </div>
+    </fieldset>
+
+    <!-- Guardar / Enviar -->
+    <div class="submit-row" style="display:flex; flex-wrap:wrap; gap:12px; justify-content: flex-end; margin-top:20px; align-items:center;">
+        <a href="{{ url_for('dashboard') }}" style="margin:0; box-sizing: border-box; height: 44px; font-family: inherit; background:#6b7280; color:white; text-decoration:none; border:none; padding:0 24px; border-radius:10px; font-weight:600; font-size:14px; display:inline-flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(107,114,128,0.2);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(107,114,128,0.3)'" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 6px -1px rgba(107,114,128,0.2)'">
+            <i class="ph ph-arrow-left" style="font-size:18px;"></i> Volver
+        </a>
+        <a href="{{ url_for('registros_atencion_vehiculo') }}" style="margin:0; box-sizing: border-box; height: 44px; font-family: inherit; background: linear-gradient(135deg,#f59e0b,#d97706); color:white; text-decoration:none; border:none; padding:0 24px; border-radius:10px; font-weight:600; font-size:14px; display:inline-flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(245,158,11,0.2);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(245,158,11,0.3)'" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 6px -1px rgba(245,158,11,0.2)'">
+            <i class="ph ph-folder-open" style="font-size:18px;"></i> Ver Registros
+        </a>
+        <button type="submit" name="accion" value="borrador" style="margin:0; box-sizing: border-box; height: 44px; font-family: inherit; background:linear-gradient(135deg,#1e6fbf,#185999); color:white; border:none; padding:0 24px; border-radius:10px; font-weight:600; font-size:14px; display:inline-flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(30,111,191,0.3);" formnovalidate onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(30,111,191,0.4)'" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 6px -1px rgba(30,111,191,0.3)'">
+            <i class="ph ph-floppy-disk" style="font-size:18px;"></i> Guardar Borrador
+        </button>
+        <button type="submit" name="accion" value="finalizar" style="margin:0; box-sizing: border-box; height: 44px; font-family: inherit; background:linear-gradient(135deg,#10b981,#059669); color:white; border:none; padding:0 24px; border-radius:10px; font-weight:600; font-size:14px; display:inline-flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(16,185,129,0.2);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(16,185,129,0.3)'" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 6px -1px rgba(16,185,129,0.2)'" onclick="return confirm('¿Está seguro de finalizar este registro? Una vez finalizado no podrá ser editado.');">
+            <i class="ph ph-check-circle" style="font-size:18px;"></i> Guardar y Finalizar
+        </button>
+    </div>
+
+</form>
+
+<script>
+(function () {
+    const subtiposPorTipo = {
+        "Aguas Infiltradas": [
+            "Humedades - Afloramiento de aguas"
+        ],
+        "Incendio Agrícolas y Forestales": [
+            "Incendio de Interfaz",
+            "Incendio Forestal",
+            "Incendio Agrícola"
+        ],
+        "Incendio en Vehículos": [
+            "Incendio Vehículo Matpel",
+            "Incendio Vehículo Múltiple",
+            "Incendio Vehículo Pequeño",
+            "Incendio Vehículo Pesado",
+            "Incendio Vehículo Público",
+            "Incendio Vehículo Eléctrico",
+            "Incendio Vehículo Túnel"
+        ],
+        "Incendio Estructural": [
+            "Incendio Bodegas incluye Matpel",
+            "Incendio Domiciliarios",
+            "Incendio Edificios Altos",
+            "Incendio Grandes Superficies",
+            "Incendio Industrial",
+            "Incendio Local Comercial",
+            "Incendio Redes Eléctricas"
+        ],
+        "Incidente Estructural": [
+            "Colapso Estructural",
+            "Inspección Deterioro Estructural",
+            "Rescate Estructuras Colapsadas"
+        ],
+        "Incidente Metro": [
+            "Accidente Metro",
+            "Rescate Metro"
+        ],
+        "Incidente Metro cable": [
+            "Rescate Cables"
+        ],
+        "Incidente Vehicular": [
+            "Accidente de tránsito con lesionados",
+            "Accidente multitud de lesionados + de 5",
+            "Colisión Múltiple (3 o más vehículos)",
+            "Incendio Vehicular Derivado",
+            "Rescate Vehicular",
+            "Volcamiento",
+            "Colisión Vehicular con Riesgo",
+            "Colisión contra Estructuras",
+            "Accidente Tranvía",
+            "Rescate Tranvía"
+        ],
+        "Incidentes con Animales": [
+            "Rescate y/o Captura Animal",
+            "Inspección de Animales"
+        ],
+        "Incidentes con Arboles": [
+            "Desplome de Arbol",
+            "Inspección de Arbol",
+            "Rescate por Desplome de Árbol"
+        ],
+        "Incidentes con Gas": [
+            "Escape de gas natural en estructura",
+            "Escape de gas natural en vía pública",
+            "Escape de Gas Vehicular",
+            "Incendio redes de gas en vía pública",
+            "Inspección por Escape de Gas",
+            "Incendio con Gas licuado de petróleo (GLP)"
+        ],
+        "Incidentes con Materiales Peligrosos": [
+            "Control de MAT-PEL",
+            "Derrames de Hidrocarburos (poliductos)",
+            "Inspección por olores y/o derrames",
+            "Derrame Fluidos Químicos en vía pública"
+        ],
+        "Inundaciones": [
+            "Inundación - Creciente súbita de Quebradas",
+            "Inundación – Soterrados",
+            "Inundación Fuga en Redes",
+            "Inundación - Insuficiencia de Desagües"
+        ],
+        "Movimiento en Masa": [
+            "Inspección por Movimiento en Masa",
+            "Rescate Movimiento en Masa"
+        ],
+        "Rescate": [
+            "Rescate Aprisionamiento o Atrapamiento",
+            "Rescate Ascensores",
+            "Rescate Casos Suicida",
+            "Rescate con Materiales Peligrosos",
+            "Rescate de Montaña",
+            "Rescate en Alturas",
+            "Rescate Espacios Confinados",
+            "Rescate Zanjas",
+            "Rescate Zona Urbana",
+            "Rescate Acuático",
+            "Rescate con Riesgo Eléctrico",
+            "Rescate Recuperación de Cadáver"
+        ],
+        "Servicios Especiales": [
+            "Acompañamientos a la Comunidad",
+            "Apoyo con Equipo Especializado",
+            "Apoyo en Emergencia médica en trauma",
+            "Entrada Forzada",
+            "Suministro de Agua"
+        ],
+        "Accidente de Aviación": [
+            "Rescate Aeronaves",
+            "Incendio de Aeronaves"
+        ],
+        "Incidentes con Himenópteros": [
+            "Inspección de Himenópteros",
+            "Control de Himenópteros",
+            "Rescate victimas por Himenópteros"
+        ],
+        "Explosión": [
+            "Explosión"
+        ],
+        "Quemas Vía Pública": [
+            "Quema en sitio Público"
+        ],
+        "Servicios de Prevención": [
+            "Incidentes de Afluencia Masiva",
+            "Operativos de Control",
+            "Practicas - demostraciones - Simulaciones - Simulacros",
+            "Recorridos Zonales",
+            "Destrucción de pólvora"
+        ]
+    };
+
+    const selectTipo = document.getElementById("select_tipo");
+    const selectSubtipo = document.getElementById("select_subtipo");
+
+    // Populate Tipo dropdown
+    for (const tipo in subtiposPorTipo) {
+        const option = document.createElement("option");
+        option.value = tipo;
+        option.textContent = tipo;
+        selectTipo.appendChild(option);
+    }
+
+    // Prefill Tipo & Subtipo if editing
+    const prefilledTipo = "{{ item.tipo or '' }}";
+    const prefilledSubtipo = "{{ item.subtipo or '' }}";
+
+    function updateSubtipos(selectedTipo, valueToSelect = "") {
+        selectSubtipo.innerHTML = '<option value="">— Seleccione Subtipo —</option>';
+        if (selectedTipo && subtiposPorTipo[selectedTipo]) {
+            subtiposPorTipo[selectedTipo].forEach(sub => {
+                const option = document.createElement("option");
+                option.value = sub;
+                option.textContent = sub;
+                if (sub === valueToSelect) {
+                    option.selected = true;
+                }
+                selectSubtipo.appendChild(option);
+            });
+        }
+    }
+
+    selectTipo.addEventListener("change", function () {
+        updateSubtipos(this.value);
+    });
+
+    if (prefilledTipo) {
+        selectTipo.value = prefilledTipo;
+        updateSubtipos(prefilledTipo, prefilledSubtipo);
+    }
+
+    // --- JSON Loading for Location (Departamento, Municipio, Barrio) ---
+    const selectDept = document.getElementById("select_departamento");
+    const selectMuni = document.getElementById("select_municipio");
+    const selectBarrio = document.getElementById("select_barrio");
+
+    const prefilledDept = "{{ item.departamento or 'Antioquia' }}";
+    const prefilledMuni = "{{ item.municipio or '' }}";
+    const prefilledBarrio = "{{ item.barrio or '' }}";
+
+    let geoData = [];
+
+    // Load Departamentos & Municipios
+    fetch('/static/data/Departamentos_Municipios.json')
+        .then(r => r.json())
+        .then(data => {
+            geoData = data;
+            const depts = [...new Set(data.map(item => item["Nombre Departamento"]))].sort();
+            
+            // Clear and populate Departamento select
+            selectDept.innerHTML = '<option value="">— Seleccione Departamento —</option>';
+            depts.forEach(d => {
+                const opt = document.createElement("option");
+                opt.value = d;
+                opt.textContent = d;
+                selectDept.appendChild(opt);
+            });
+
+            // Set prefilled department and update municipalities
+            if (prefilledDept) {
+                selectDept.value = prefilledDept;
+                updateMunicipios(prefilledDept, prefilledMuni);
+            }
+        })
+        .catch(err => console.error("Error loading Departamentos_Municipios.json:", err));
+
+    function updateMunicipios(deptName, valueToSelect = "") {
+        selectMuni.innerHTML = '<option value="">— Seleccione Municipio —</option>';
+        selectBarrio.innerHTML = '<option value="">— Seleccione Barrio —</option>';
+        if (!deptName) return;
+
+        const munis = geoData.filter(item => item["Nombre Departamento"] === deptName)
+                             .map(item => item["Nombre Municipio"]);
+        const uniqueMunis = [...new Set(munis)].sort();
+
+        uniqueMunis.forEach(m => {
+            const opt = document.createElement("option");
+            opt.value = m;
+            opt.textContent = m;
+            if (m === valueToSelect) {
+                opt.selected = true;
+            }
+            selectMuni.appendChild(opt);
+        });
+
+        if (valueToSelect) {
+            updateBarrios(valueToSelect, prefilledBarrio);
+        }
+    }
+
+    function updateBarrios(muniName, valueToSelect = "") {
+        selectBarrio.innerHTML = '<option value="">— Seleccione Barrio —</option>';
+        // Only load Medellin barrios for now, matching the standard
+        fetch('/static/data/barrios_medellin.json')
+            .then(r => r.json())
+            .then(data => {
+                let barrios = [];
+                data.comunas.forEach(c => {
+                    barrios = barrios.concat(c.barrios);
+                });
+                barrios.sort();
+                barrios.forEach(b => {
+                    const opt = document.createElement("option");
+                    opt.value = b;
+                    opt.textContent = b;
+                    if (b === valueToSelect) {
+                        opt.selected = true;
+                    }
+                    selectBarrio.appendChild(opt);
+                });
+            })
+            .catch(err => console.error("Error loading barrios_medellin.json:", err));
+    }
+
+    selectDept.addEventListener("change", function () {
+        updateMunicipios(this.value);
+    });
+
+    selectMuni.addEventListener("change", function () {
+        updateBarrios(this.value);
+    });
+
+    // --- Lógica de Equipos Seleccionados y Observaciones ---
+    const container = document.getElementById("equipos_seleccionados_container");
+    const addSelect = document.getElementById("add_grupo_select");
+    const addBtn = document.getElementById("btn_add_grupo");
+    const hiddenJson = document.getElementById("hidden_equipos_json");
+
+    let equiposSeleccionados = [];
+    try {
+        equiposSeleccionados = JSON.parse(hiddenJson.value || "[]");
+    } catch (e) {
+        equiposSeleccionados = [];
+    }
+
+    function renderEquiposRows() {
+        container.innerHTML = "";
+        if (equiposSeleccionados.length === 0) {
+            container.innerHTML = `
+                <div id="no-equipos-msg" style="text-align:center; padding:20px; background:#f8fafc; border:1px dashed #e2e8f0; border-radius:8px; color:#64748b; font-size:13.5px;">
+                    Ningún grupo de equipos seleccionado para esta atención.
+                </div>
+            `;
+            return;
+        }
+
+        equiposSeleccionados.forEach((item, index) => {
+            const row = document.createElement("div");
+            row.className = "grupo-equipo-row";
+            row.style.display = "flex";
+            row.style.flexDirection = "column";
+            row.style.gap = "8px";
+            row.style.border = "1px solid #e2e8f0";
+            row.style.padding = "14px";
+            row.style.borderRadius = "8px";
+            row.style.background = "#f8fafc";
+            row.style.boxShadow = "0 1px 3px rgba(0,0,0,0.02)";
+
+            row.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-weight:700; color:#1e3a5f; display:flex; align-items:center; gap:6px; font-size:14px;">
+                        🩺 ${item.grupo}
+                    </span>
+                    <button type="button" class="btn-remove-grupo" data-index="${index}" style="background:none; border:none; color:#ef4444; font-weight:600; font-size:12px; cursor:pointer; display:inline-flex; align-items:center; gap:4px; padding:4px 8px; border-radius:4px; transition: background 0.2s;" onmouseover="this.style.background='#fee2e2'" onmouseout="this.style.background='none'">
+                        🗑️ Quitar
+                    </button>
+                </div>
+                <textarea class="obs-textarea" data-index="${index}" placeholder="Novedades, observaciones de uso, insumos requeridos para el grupo ${item.grupo}..." style="width:100%; min-height:70px; box-sizing:border-box; padding:8px 12px; border-radius:6px; border:1px solid #cbd5e1; font-family:inherit; font-size:13px; color:#334155; line-height:1.4; outline:none; transition: border-color 0.2s;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='#cbd5e1'">${item.observaciones || ""}</textarea>
+            `;
+
+            const tx = row.querySelector(".obs-textarea");
+            tx.addEventListener("input", function() {
+                const idx = parseInt(this.getAttribute("data-index"));
+                equiposSeleccionados[idx].observaciones = this.value;
+                updateHiddenJson();
+            });
+
+            const removeBtn = row.querySelector(".btn-remove-grupo");
+            removeBtn.addEventListener("click", function() {
+                const idx = parseInt(this.getAttribute("data-index"));
+                equiposSeleccionados.splice(idx, 1);
+                updateHiddenJson();
+                renderEquiposRows();
+            });
+
+            container.appendChild(row);
+        });
+    }
+
+    function updateHiddenJson() {
+        hiddenJson.value = JSON.stringify(equiposSeleccionados);
+    }
+
+    addBtn.addEventListener("click", function() {
+        const val = addSelect.value;
+        if (!val) {
+            alert("Por favor, seleccione un grupo de equipos.");
+            return;
+        }
+
+        if (equiposSeleccionados.some(item => item.grupo === val)) {
+            alert("Este grupo de equipos ya ha sido agregado.");
+            return;
+        }
+
+        equiposSeleccionados.push({ grupo: val, observaciones: "" });
+        updateHiddenJson();
+        renderEquiposRows();
+        addSelect.value = "";
+    });
+
+    // --- Lógica de cálculo de tiempos ---
+    const inputDespacho = document.getElementById("fecha_hora_despacho");
+    const inputSalida = document.getElementById("fecha_hora_salida");
+    const inputLlegada = document.getElementById("fecha_hora_llegada");
+    const inputFinalizacion = document.getElementById("fecha_hora_finalizacion");
+
+    const labelDespachoSalida = document.getElementById("time_despacho_salida");
+    const labelSalidaLlegada = document.getElementById("time_salida_llegada");
+    const labelDespachoLlegada = document.getElementById("time_despacho_llegada");
+    const labelLlegadaFinalizacion = document.getElementById("time_llegada_finalizacion");
+
+    function calcularDiferencias() {
+        const valDespacho = inputDespacho.value ? new Date(inputDespacho.value) : null;
+        const valSalida = inputSalida.value ? new Date(inputSalida.value) : null;
+        const valLlegada = inputLlegada.value ? new Date(inputLlegada.value) : null;
+        const valFinalizacion = inputFinalizacion.value ? new Date(inputFinalizacion.value) : null;
+
+        function formatDiff(d1, d2) {
+            if (!d1 || !d2 || isNaN(d1.getTime()) || isNaN(d2.getTime())) return "—";
+            const diffMs = d2 - d1;
+            if (diffMs < 0) return `<span style="color:#ef4444; font-weight:700;">Inconsistente</span>`;
+            const diffMins = Math.floor(diffMs / 60000);
+            const hrs = Math.floor(diffMins / 60);
+            const mins = diffMins % 60;
+            if (hrs > 0) {
+                return `${hrs}h ${mins}m`;
+            }
+            return `${diffMins} min`;
+        }
+
+        labelDespachoSalida.innerHTML = formatDiff(valDespacho, valSalida);
+        labelSalidaLlegada.innerHTML = formatDiff(valSalida, valLlegada);
+        labelDespachoLlegada.innerHTML = formatDiff(valDespacho, valLlegada);
+        labelLlegadaFinalizacion.innerHTML = formatDiff(valLlegada, valFinalizacion);
+    }
+
+    // --- Lógica de combinación de fecha y hora ---
+    const events = ['despacho', 'salida', 'llegada', 'finalizacion'];
+    events.forEach(evt => {
+        const d = document.getElementById('fecha_' + evt);
+        const t = document.getElementById('hora_' + evt);
+        const h = document.getElementById('fecha_hora_' + evt);
+        function updateHidden() {
+            if(d.value && t.value) {
+                h.value = d.value + 'T' + t.value;
+            } else {
+                h.value = '';
+            }
+            calcularDiferencias();
+        }
+        if(d) {
+            d.addEventListener('change', updateHidden);
+            d.addEventListener('input', updateHidden);
+        }
+        if(t) {
+            t.addEventListener('change', updateHidden);
+            t.addEventListener('input', updateHidden);
+        }
+    });
+
+    calcularDiferencias();
+
+    renderEquiposRows();
+})();
+</script>
+<script>
+// ── Dictado por Voz ──
+let currentRecognition = null;
+function startDictation(btn, targetTextarea) {
+    if (currentRecognition) {
+        currentRecognition.stop();
+        currentRecognition = null;
+        document.querySelectorAll('.btn-dictar').forEach(b => b.classList.remove('recording'));
+        return;
+    }
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+        alert("El dictado por voz no está soportado en este navegador. Intente usar Chrome o Safari.");
+        return;
+    }
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    
+    recognition.lang = 'es-ES';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onstart = function() {
+        btn.classList.add('recording');
+        currentRecognition = recognition;
+    };
+    recognition.onresult = function(event) {
+        const transcript = event.results[0][0].transcript;
+        if (targetTextarea.value) {
+            targetTextarea.value += " " + transcript;
+        } else {
+            targetTextarea.value = transcript.charAt(0).toUpperCase() + transcript.slice(1);
+        }
+        targetTextarea.dispatchEvent(new Event('input', { bubbles: true }));
+    };
+    recognition.onerror = function(event) {
+        if (event.error !== 'no-speech') {
+            alert("Error en el dictado de voz: " + event.error);
+        }
+    };
+    recognition.onend = function() {
+        btn.classList.remove('recording');
+        currentRecognition = null;
+    };
+    recognition.start();
+}
+</script>
+
+{% endblock %}

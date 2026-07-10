@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Acceso al Sistema – HC Prehospitalario</title>
+<link rel="icon" type="image/png" href="{{ url_for('static', filename='icon-192.png') }}">
+<meta name="description" content="Sistema de Historia Clínica para atención prehospitalaria y ambulancias.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+        font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+        background: #0f172a;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        position: relative;
+    }
+
+    /* Animated background */
+    .bg-gradient {
+        position: fixed; inset: 0; z-index: 0;
+        background: radial-gradient(ellipse 80% 60% at 20% 30%, rgba(30,111,191,0.35) 0%, transparent 60%),
+                    radial-gradient(ellipse 70% 50% at 80% 70%, rgba(14,165,233,0.2) 0%, transparent 55%),
+                    linear-gradient(160deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+    }
+    .bg-circles {
+        position: fixed; inset: 0; z-index: 0; overflow: hidden;
+    }
+    .circle {
+        position: absolute; border-radius: 50%;
+        background: rgba(30,111,191,0.06); border: 1px solid rgba(30,111,191,0.1);
+        animation: float 8s ease-in-out infinite;
+    }
+    .circle:nth-child(1) { width: 400px; height: 400px; top: -100px; right: -100px; animation-delay: 0s; }
+    .circle:nth-child(2) { width: 250px; height: 250px; bottom: -50px; left: -50px; animation-delay: 2s; }
+    .circle:nth-child(3) { width: 150px; height: 150px; bottom: 20%; right: 15%; animation-delay: 4s; }
+    @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-20px); }
+    }
+
+    /* Card */
+    .login-card {
+        position: relative; z-index: 1;
+        width: 420px; max-width: calc(100vw - 32px);
+        background: rgba(255,255,255,0.04);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 20px;
+        padding: 44px 40px;
+        box-shadow: 0 25px 50px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05) inset;
+        animation: slideUp 0.5s ease-out;
+    }
+    @keyframes slideUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Header */
+    .login-icon {
+        width: 64px; height: 64px; margin: 0 auto 20px;
+        background: linear-gradient(135deg, #1e6fbf, #0ea5e9);
+        border-radius: 18px; display: flex; align-items: center;
+        justify-content: center; font-size: 28px;
+        box-shadow: 0 8px 20px rgba(30,111,191,0.4);
+    }
+    .login-logo-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+    .login-logo {
+        max-height: 80px;
+        max-width: 100%;
+        object-fit: contain;
+        filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+        border-radius: 8px;
+    }
+    .login-title {
+        text-align: center; color: white; font-size: 22px;
+        font-weight: 800; letter-spacing: -0.4px; margin-bottom: 4px;
+    }
+    .login-subtitle {
+        text-align: center; color: rgba(255,255,255,0.45);
+        font-size: 13px; margin-bottom: 32px; font-weight: 400;
+    }
+
+    /* Flash messages */
+    .flash-msg {
+        background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.3);
+        border-radius: 8px; padding: 11px 14px; margin-bottom: 20px;
+        color: #fca5a5; font-size: 13px; display: flex; align-items: flex-start; gap: 8px;
+    }
+    .flash-msg.success { background: rgba(16,185,129,0.15); border-color: rgba(16,185,129,0.3); color: #6ee7b7; }
+
+    /* Form */
+    .form-group { margin-bottom: 18px; }
+    .form-label {
+        display: block; color: rgba(255,255,255,0.7);
+        font-size: 12px; font-weight: 600; margin-bottom: 7px;
+        letter-spacing: 0.4px; text-transform: uppercase;
+    }
+    .input-wrap { position: relative; }
+    .input-icon {
+        position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+        font-size: 15px; pointer-events: none; opacity: 0.5;
+    }
+    .form-input {
+        width: 100%; background: rgba(255,255,255,0.06);
+        border: 1.5px solid rgba(255,255,255,0.1);
+        border-radius: 10px; padding: 12px 14px 12px 42px;
+        color: white; font-size: 14px; font-family: inherit;
+        transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+    }
+    .form-input::placeholder { color: rgba(255,255,255,0.25); }
+    .form-input:focus {
+        outline: none;
+        border-color: rgba(30,111,191,0.7);
+        background: rgba(255,255,255,0.08);
+        box-shadow: 0 0 0 3px rgba(30,111,191,0.2);
+    }
+
+    /* Submit button */
+    .btn-login {
+        width: 100%; margin-top: 8px;
+        background: linear-gradient(135deg, #1e6fbf, #0ea5e9);
+        color: white; border: none; border-radius: 10px;
+        padding: 13px 24px; font-size: 15px; font-weight: 700;
+        cursor: pointer; font-family: inherit;
+        transition: transform 0.12s, box-shadow 0.15s, opacity 0.15s;
+        box-shadow: 0 4px 16px rgba(30,111,191,0.4);
+        display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .btn-login:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(30,111,191,0.55); }
+    .btn-login:active { transform: translateY(0); }
+
+    /* Footer note */
+    .login-footer {
+        text-align: center; margin-top: 28px;
+        color: rgba(255,255,255,0.25); font-size: 11px; line-height: 1.6;
+    }
+    .login-footer strong { color: rgba(255,255,255,0.4); }
+    .divider { height: 1px; background: rgba(255,255,255,0.08); margin: 20px 0; }
+</style>
+</head>
+<body>
+<div class="bg-gradient"></div>
+<div class="bg-circles">
+    <div class="circle"></div>
+    <div class="circle"></div>
+    <div class="circle"></div>
+</div>
+
+<div class="login-card">
+    {% if institucion.logo %}
+    <div class="login-logo-container">
+        <img src="{{ institucion.logo }}" alt="Logo" class="login-logo">
+    </div>
+    {% else %}
+    <div class="login-logo-container" id="login-logo-div">
+        <img src="/logo.jpg" alt="Logo" class="login-logo" onerror="document.getElementById('login-logo-div').style.display='none'; document.getElementById('login-icon-fallback').style.display='flex';">
+    </div>
+    <div class="login-icon" id="login-icon-fallback" style="display: none;">🏥</div>
+    {% endif %}
+    <h1 class="login-title">{{ institucion.nombre_institucion }}</h1>
+    <p class="login-subtitle">{{ institucion.subtitulo_institucion }}</p>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+    <div class="flash-msg {{ category }}">⚠ {{ message }}</div>
+    {% endfor %}
+    {% endwith %}
+
+    <form method="POST" id="login-form" autocomplete="off">
+        <div class="form-group">
+            <label class="form-label" for="identificacion">Número de Identificación</label>
+            <div class="input-wrap">
+                <span class="input-icon">👤</span>
+                <input type="text" id="identificacion" name="identificacion" class="form-input"
+                    placeholder="Ingrese su identificación" required autocomplete="off">
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="form-label" for="contrasena">Contraseña</label>
+            <div class="input-wrap">
+                <span class="input-icon">🔒</span>
+                <input type="password" id="contrasena" name="contrasena" class="form-input"
+                    placeholder="Ingrese su contraseña" required autocomplete="off">
+            </div>
+        </div>
+        <button type="submit" class="btn-login" id="login-btn">
+            🔑 Ingresar al Sistema
+        </button>
+    </form>
+
+    <div class="divider"></div>
+    <div class="login-footer">
+        <strong>¿Olvidó su contraseña?</strong><br>
+        <a href="{{ url_for('recuperar_contrasena') }}" style="color: #0ea5e9; text-decoration: none; font-weight: 600;">Recuperar contraseña</a><br><br>
+        <strong>Primer ingreso:</strong> Su contraseña inicial es su número de identificación.
+    </div>
+</div>
+
+<script>
+document.getElementById('login-form').addEventListener('submit', function() {
+    const btn = document.getElementById('login-btn');
+    btn.textContent = '⏳ Verificando...';
+    btn.disabled = true;
+    setTimeout(() => { btn.disabled = false; btn.innerHTML = '🔑 Ingresar al Sistema'; }, 4000);
+});
+</script>
+</body>
+</html>

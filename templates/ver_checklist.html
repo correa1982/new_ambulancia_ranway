@@ -1,0 +1,600 @@
+{% extends "base.html" %}
+{% block title %}{{ titulo }} #{{ record.id }}{% endblock %}
+{% block content %}
+
+<style>
+.detail-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; padding-bottom: 14px; border-bottom: 2px solid #dbeafe; flex-wrap: wrap; gap: 10px; }
+.detail-badge { background: linear-gradient(135deg,#1e6fbf,#185999); color: white; padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+.info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 20px; }
+.info-item { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; }
+.info-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: #64748b; font-weight: 700; margin-bottom: 4px; }
+.info-value { font-size: 14px; font-weight: 600; color: #1e3a5f; }
+
+.result-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+.result-table th { background: linear-gradient(135deg, #ebf4ff, #dbeafe); font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: #1e40af; padding: 10px 14px; border: 1px solid #e2e8f0; text-align: left; }
+.result-table td { padding: 10px 14px; border: 1px solid #f1f5f9; font-size: 13px; }
+.result-table tr:hover td { background: #fafcff; }
+
+.val-si { background: #d1fae5; color: #065f46; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; display: inline-block; }
+.val-no { background: #fee2e2; color: #991b1b; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; display: inline-block; }
+.val-na { background: #f1f5f9; color: #64748b; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; display: inline-block; }
+.val-empty { color: #cbd5e1; font-size: 12px; }
+
+/* ── Split columns checklist (TAM, TAB, PASM, PASB) ── */
+.col-split-table td { padding: 5px 8px; font-size: 11px; line-height: 1.2; }
+.col-split-table th { padding: 6px 8px; font-size: 9px; text-transform: uppercase; letter-spacing: 0.5px; }
+.col-split-table .val-si, .col-split-table .val-no, .col-split-table .val-na { padding: 2px 6px; font-size: 9px; font-weight: 700; border-radius: 8px; }
+
+.cat-title { font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #1e40af; margin: 20px 0 10px; display: flex; align-items: center; gap: 8px; }
+.cat-title::after { content: ''; flex: 1; height: 1px; background: #dbeafe; }
+
+.obs-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 14px; font-size: 13px; color: #92400e; }
+
+.firma-box { text-align: center; margin-top: 20px; padding: 16px; border-top: 2px solid #e2e8f0; }
+.firma-box img { max-height: 80px; margin-bottom: 6px; }
+.firma-box .firma-name { font-weight: 700; font-size: 13px; color: #1e3a5f; }
+.firma-box .firma-meta { font-size: 11px; color: #64748b; }
+
+/* Header */
+.doc-header { display: flex; align-items: center; justify-content: space-between; border-bottom: 3px solid #1e6fbf; padding-bottom: 18px; margin-bottom: 24px; }
+.doc-logo img { max-height: 120px; max-width: 250px; object-fit: contain; }
+tr { page-break-inside: avoid; break-inside: avoid; }
+.doc-section-title, .cat-title { page-break-after: avoid; break-after: avoid; page-break-inside: avoid; break-inside: avoid; }
+.doc-logo-placeholder { width: 100px; height: 60px; background: #f1f5f9; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #94a3b8; font-size: 11px; }
+.doc-inst { text-align: right; }
+.doc-inst .inst-name { font-size: 15px; font-weight: 800; color: #1e3a5f; }
+.doc-inst .inst-sub { font-size: 11px; color: #64748b; margin-top: 2px; }
+
+/* Title band */
+.doc-title-band {
+    background: linear-gradient(135deg, #1e6fbf, #1e3a5f);
+    color: white; border-radius: 8px; padding: 14px 20px; margin-bottom: 22px;
+    display: flex; align-items: center; justify-content: space-between;
+}
+.doc-title-band .dt-main { font-size: 17px; font-weight: 800; letter-spacing: -0.3px; }
+.doc-title-band .dt-num { font-size: 13px; font-weight: 600; opacity: 0.8; }
+
+/* Footer */
+.doc-footer { margin-top: 30px; padding-top: 14px; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; font-size: 10px; color: #94a3b8; }
+
+.formal-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 24px;
+    border: 1.5px solid #cbd5e1;
+}
+.formal-table td {
+    padding: 10px 14px;
+    border: 1px solid #cbd5e1;
+    font-size: 12px;
+    color: #334155;
+    vertical-align: middle;
+}
+.formal-table .lbl {
+    font-weight: 700;
+    background-color: #f8fafc;
+    color: #1e293b;
+    text-transform: uppercase;
+    font-size: 10px;
+    letter-spacing: 0.5px;
+    width: 25%;
+}
+.formal-table .val {
+    width: 25%;
+    font-weight: 600;
+    color: #0f172a;
+}
+@media print {
+    .formal-table { border: 1.5px solid #000; }
+    .formal-table td { border: 1px solid #000; color: #000; }
+    .formal-table .lbl { background-color: #f1f5f9; color: #000; }
+    .formal-table .val { color: #000; }
+}
+
+@media print {
+    .no-print { display: none !important; }
+    .container { box-shadow: none; border: none; max-width: 100%; }
+    body { background: white; }
+}
+
+@media (max-width: 700px) {
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .table-wrap table { min-width: 600px; }
+    #checklist-doc { padding: 12px !important; }
+}
+
+
+/* ── Action buttons (height-normalized) ── */
+.action-btn {
+    -webkit-appearance: none;
+    appearance: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 38px;
+    min-height: 38px;
+    max-height: 38px;
+    padding: 0 16px;
+    margin: 0;
+    border-radius: 7px;
+    font-size: 13px;
+    font-family: inherit;
+    font-weight: 600;
+    box-sizing: border-box;
+    white-space: nowrap;
+    text-decoration: none;
+    cursor: pointer;
+    vertical-align: middle;
+    line-height: 1;
+    border: none;
+    outline: none;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+.action-btn-back {
+    background: #f1f5f9;
+    color: #475569;
+    border: 1px solid #e2e8f0;
+}
+.action-btn-primary {
+    background: #1e40af;
+    color: white;
+}
+.action-btn:hover { opacity: 0.9; }
+</style>
+
+<div class="detail-header">
+    <h1 style="margin:0; padding:0; border:none; font-size:20px;">📋 {{ titulo }} #{{ record.id }}</h1>
+    <div style="display:flex; gap:8px; align-items:stretch;" class="no-print">
+        <a href="javascript:history.back()" class="action-btn action-btn-back">← Volver a Registros</a>
+        {% if session.usuario.rol != 'usuario' %}
+        <button onclick="descargarPDF()" id="btn-pdf" class="action-btn action-btn-primary">📥 Descargar PDF</button>
+        {% endif %}
+    </div>
+</div>
+
+<div id="checklist-doc" style="background: white; padding: 20px;">
+
+    <!-- ── Encabezado institucional ── -->
+    <div class="doc-header">
+        <div class="doc-logo">
+            {% if cfg.get('logo') %}
+            <img src="{{ cfg.logo }}" alt="Logo" crossorigin="anonymous">
+            {% else %}
+            <div class="doc-logo-placeholder">Sin logo</div>
+            {% endif %}
+        </div>
+        <div class="doc-inst">
+            <div class="inst-name">{{ cfg.get('nombre_institucion','Institución sin configurar') }}</div>
+            {% if cfg.get('nit') %}
+            <div class="inst-sub">NIT: {{ cfg.nit }}</div>
+            {% endif %}
+            {% if cfg.get('habilitacion') %}
+            <div class="inst-sub">{{ cfg.habilitacion|format_habilitacion }}</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- ── Título ── -->
+    <div class="doc-title-band">
+        <div>
+            <div class="dt-main">{{ titulo }}</div>
+            <div class="dt-num">Registro N° {{ record.id }} · Creado: {{ record.fecha_registro or '—' }}</div>
+        </div>
+    </div>
+
+<div class="table-wrap">
+<table class="formal-table">
+  <tbody>
+    <tr>
+      <td class="lbl">Fecha</td>
+      <td class="val">{{ record.fecha or '—' }}</td>
+      <td class="lbl">Hora</td>
+      <td class="val">{{ record.hora or '—' }}</td>
+    </tr>
+    {% if tipo in ('tam', 'tab') %}
+    <tr>
+      <td class="lbl">Placa del Vehículo</td>
+      <td class="val" colspan="3">{{ record.placa or '—' }}</td>
+    </tr>
+    {% elif tipo == 'avanzada' %}
+    <tr>
+      <td class="lbl">Evento</td>
+      <td class="val">{{ record.evento or '—' }}</td>
+      <td class="lbl">Botiquín</td>
+      <td class="val">{{ record.botiquin or '—' }}</td>
+    </tr>
+    {% elif tipo == 'equipos' %}
+    <tr>
+      <td class="lbl">Grupo de Equipos</td>
+      <td class="val" colspan="3">{{ record.grupo_equipos or '—' }}</td>
+    </tr>
+    {% elif tipo in ('calif_atencion', 'segur_paciente') %}
+    <tr>
+      <td class="lbl">Paciente</td>
+      <td class="val">{{ record.primer_nombre }} {{ record.primer_apellido }}</td>
+      <td class="lbl">Documento</td>
+      <td class="val">{{ record.tipo_documento or '' }} {{ record.identificacion or '—' }}</td>
+    </tr>
+    {% else %}
+    <tr>
+      <td class="lbl">Ubicación / Lugar</td>
+      <td class="val"{% if tipo in ('pasm', 'pasb') %} colspan="3"{% endif %}>{{ record.ubicacion or '—' }}</td>
+      {% if tipo not in ('pasm', 'pasb') %}
+      <td class="lbl">Personal APH</td>
+      <td class="val">{{ record.personal_aph or '—' }}</td>
+      {% endif %}
+    </tr>
+    <tr>
+      <td class="lbl">Estado Operativo</td>
+      <td class="val" colspan="3">{{ record.estado_operativo or '—' }}</td>
+    </tr>
+    {% endif %}
+    <tr>
+      <td class="lbl">Registrado por</td>
+      <td class="val">{{ record.registrado_por or '—' }}</td>
+      <td class="lbl">Fecha Registro</td>
+      <td class="val">{{ record.fecha_registro or '—' }}</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+{% if tipo in ('avanzada', 'tam', 'tab', 'pasm', 'pasb') and datos.get('_integrantes') %}
+<div style="margin-top: 20px;">
+    <div class="cat-title">👥 Integrantes de la Tripulación / Personal</div>
+    <div class="table-wrap">
+    <table class="result-table">
+        <thead>
+            <tr>
+                <th style="width: 40%;">INTEGRANTE</th>
+                <th style="width: 30%;">DOCUMENTO DE IDENTIDAD</th>
+                <th style="width: 30%;">CARGO</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for member in datos['_integrantes'] %}
+            <tr>
+                <td><strong>{{ member.nombre }}</strong></td>
+                <td>{{ member.identificacion or '—' }}</td>
+                <td>
+                    <span style="background: #e0f2fe; color: #0369a1; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 700;">
+                        {{ member.perfil }}
+                    </span>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    </div>
+</div>
+{% endif %}
+
+{% if tipo in ('calif_atencion', 'segur_paciente') and record.responsable_nombre %}
+<div style="margin-top: 20px;">
+    <div class="cat-title">👤 Datos de la persona responsable (paciente menor de edad)</div>
+    <div class="table-wrap">
+    <table class="formal-table" style="margin-bottom: 0;">
+      <tbody>
+        <tr>
+          <td class="lbl">Nombre Completo</td>
+          <td class="val">{{ record.responsable_nombre }} {{ record.responsable_apellido }}</td>
+          <td class="lbl">Documento</td>
+          <td class="val">{{ record.responsable_tipo_doc or '' }} {{ record.responsable_identificacion or '—' }}</td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+</div>
+{% endif %}
+
+{% if tipo == 'segur_paciente' %}
+<div style="margin-top: 20px;">
+    <div class="cat-title">📝 Detalles del Reporte</div>
+    <div style="background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 15px; margin-bottom: 15px;">
+        <div class="info-label" style="font-size: 12px; color: #64748b; font-weight: 700; text-transform: uppercase; margin-bottom: 5px;">Nombre del Reporte</div>
+        <div class="info-value" style="font-size: 15px; color: #0f172a; font-weight: 600;">{{ record.nombre_reporte or '—' }}</div>
+    </div>
+    <div style="background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 15px;">
+        <div class="info-label" style="font-size: 12px; color: #64748b; font-weight: 700; text-transform: uppercase; margin-bottom: 10px;">Descripción detallada de lo sucedido</div>
+        <div class="info-value" style="font-size: 14px; color: #334155; line-height: 1.6; white-space: pre-wrap; font-weight: normal;">{{ record.descripcion or '—' }}</div>
+    </div>
+</div>
+{% endif %}
+
+{% if datos and tipo != 'segur_paciente' %}
+    {% set cat_icons = {
+        'equipos': '🏥', 
+        'medicamentos': '💊', 
+        'botiquin': '💊', 
+        'bioseguridad': '🦺',
+        'insumos': '🩹',
+        'dispositivos_medicos': '🩺',
+        'infraestructura': '🏕️',
+        'logistica': '📡'
+    } %}
+
+    {% for cat, items_list in checklist_items.items() %}
+    {% if tipo != 'equipos' or cat == record.grupo_equipos %}
+    {% if tipo in ('tam', 'tab', 'pasb', 'pasm', 'avanzada') %}
+        {# 2-column layout #}
+        {% set ns = namespace(valid_items=[]) %}
+        {% for item in items_list %}
+            {% set field = item.identificador %}
+            {% if field in datos %}
+                {% set ns.valid_items = ns.valid_items + [item] %}
+            {% endif %}
+        {% endfor %}
+        
+        {% set total_items = ns.valid_items|length %}
+        {% set rows_count = ((total_items + 1) / 2)|int %}
+        
+        <div class="table-wrap">
+        <table class="result-table col-split-table">
+        <thead>
+            <tr>
+                <th colspan="6" style="border: none; background: none; text-align: left; padding: 0 0 10px 0;">
+                    <div class="cat-title" style="margin-bottom: 0;">{{ cat_icons.get(cat, '📦') }} {{ cat }}</div>
+                </th>
+            </tr>
+            <tr>
+                <th style="width: 32%;">ÍTEM</th>
+                <th style="width: 8%; text-align: center;">RESULTADO</th>
+                <th style="width: 10%;">OBSERVACIÓN</th>
+                <th style="border-left: 2px solid #cbd5e1; padding-left: 10px; width: 32%;">ÍTEM</th>
+                <th style="width: 8%; text-align: center;">RESULTADO</th>
+                <th style="width: 10%;">OBSERVACIÓN</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for i in range(rows_count) %}
+            {# Left item #}
+            {% set left_item = ns.valid_items[i] %}
+            {% set left_field = left_item.identificador %}
+            {% set left_info = datos[left_field] %}
+            
+            {# Right item #}
+            {% set right_idx = i + rows_count %}
+            {% set right_item = ns.valid_items[right_idx] if right_idx < total_items else None %}
+            
+            <tr>
+                {# Render left item #}
+                <td>
+                    <strong>{{ left_info.nombre }}</strong>{% if left_info.get('cantidad') is not none %} <span style="font-size: 11px; color: #64748b; font-weight: normal;">(Cant: {{ left_info.cantidad }})</span>{% endif %}
+                </td>
+                <td style="text-align: center;">
+                    {% if left_info.valor == 'SI' %}
+                        <span class="val-si">C</span>
+                    {% elif left_info.valor == 'NO' %}
+                        <span class="val-no">NC</span>
+                    {% elif left_info.valor == 'NA' %}
+                        <span class="val-na">NA</span>
+                    {% elif left_info.valor %}
+                        <span style="background: #e0e7ff; color: #3730a3; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: 800; display: inline-block;">{{ left_info.valor }}</span>
+                    {% else %}
+                        <span class="val-empty">—</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if left_info.observacion %}
+                        <span style="font-size: 11px; color: #475569;">{{ left_info.observacion }}</span>
+                    {% else %}
+                        <span style="color: #cbd5e1;">—</span>
+                    {% endif %}
+                </td>
+                
+                {# Render right item #}
+                {% if right_item %}
+                    {% set right_field = right_item.identificador %}
+                    {% set right_info = datos[right_field] %}
+                    <td style="border-left: 2px solid #cbd5e1; padding-left: 10px;">
+                        <strong>{{ right_info.nombre }}</strong>{% if right_info.get('cantidad') is not none %} <span style="font-size: 11px; color: #64748b; font-weight: normal;">(Cant: {{ right_info.cantidad }})</span>{% endif %}
+                    </td>
+                    <td style="text-align: center;">
+                        {% if right_info.valor == 'SI' %}
+                            <span class="val-si">C</span>
+                        {% elif right_info.valor == 'NO' %}
+                            <span class="val-no">NC</span>
+                        {% elif right_info.valor == 'NA' %}
+                            <span class="val-na">NA</span>
+                        {% elif right_info.valor %}
+                            <span style="background: #e0e7ff; color: #3730a3; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: 800; display: inline-block;">{{ right_info.valor }}</span>
+                        {% else %}
+                            <span class="val-empty">—</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if right_info.observacion %}
+                            <span style="font-size: 11px; color: #475569;">{{ right_info.observacion }}</span>
+                        {% else %}
+                            <span style="color: #cbd5e1;">—</span>
+                        {% endif %}
+                    </td>
+                {% else %}
+                    {# Empty cells #}
+                    <td style="border-left: 2px solid #cbd5e1; padding-left: 10px;"></td>
+                    <td></td>
+                    <td></td>
+                {% endif %}
+            </tr>
+        {% endfor %}
+        </tbody>
+        </table>
+        </div>
+    {% else %}
+        {# original single-column layout #}
+        <div class="table-wrap">
+        <table class="result-table">
+        <thead>
+            <tr>
+                <th colspan="3" style="border: none; background: none; text-align: left; padding: 0 0 10px 0;">
+                    <div class="cat-title" style="margin-bottom: 0;">{{ cat_icons.get(cat, '📦') }} {{ cat }}</div>
+                </th>
+            </tr>
+            <tr>
+                <th style="width: 50%;">ÍTEM</th>
+                <th style="width: 20%; text-align: center;">
+                    {% if tipo == 'calif_atencion' %}
+                        CALIFICACIÓN (1-5)
+                    {% else %}
+                        RESULTADO
+                    {% endif %}
+                </th>
+                <th style="width: 30%;">OBSERVACIÓN</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for item in items_list %}
+            {% set field = item.identificador %}
+            {% if field in datos %}
+            {% set info = datos[field] %}
+            <tr>
+                <td>
+                    <strong>{{ info.nombre }}</strong>{% if info.get('cantidad') is not none %} <span style="font-size: 11px; color: #64748b; font-weight: normal;">(Cant: {{ info.cantidad }})</span>{% endif %}
+                </td>
+                <td style="text-align: center;">
+                    {% if info.valor == 'SI' %}
+                        <span class="val-si">C</span>
+                    {% elif info.valor == 'NO' %}
+                        <span class="val-no">NC</span>
+                    {% elif info.valor == 'NA' %}
+                        <span class="val-na">NA</span>
+                    {% elif info.valor %}
+                        <span style="background: #e0e7ff; color: #3730a3; padding: 4px 12px; border-radius: 12px; font-size: 13px; font-weight: 800; display: inline-block;">{{ info.valor }}</span>
+                    {% else %}
+                        <span class="val-empty">—</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if info.observacion %}
+                        <span style="font-size: 12px; color: #475569;">{{ info.observacion }}</span>
+                    {% else %}
+                        <span style="color: #cbd5e1;">—</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endif %}
+        {% endfor %}
+        </tbody>
+        </table>
+        </div>
+    {% endif %}
+    {% endif %}
+    {% endfor %}
+
+{% elif tipo != 'segur_paciente' %}
+    <div style="padding: 40px; text-align: center; color: #94a3b8;">
+        <div style="font-size: 40px; margin-bottom: 15px;">📄</div>
+        No hay datos registrados en este formulario.
+    </div>
+{% endif %}
+
+{% if record.observaciones %}
+<div class="cat-title">📝 Observaciones</div>
+<div class="obs-box">{{ record.observaciones }}</div>
+{% endif %}
+
+<!-- Firma del Registrador -->
+<div style="display:flex; justify-content:space-around; align-items:flex-end; flex-wrap:wrap; margin-top:20px; border-top:2px solid #e2e8f0; padding-top:20px;">
+    {% if record.firma_registrador %}
+    <div class="firma-box" style="border-top:none; margin-top:0;">
+    <div class="signature-container">
+        <img src="{{ record.firma_registrador }}" alt="Firma Registrador">
+    </div>
+        <div class="firma-name">{{ record.registrado_por }}</div>
+        <div class="firma-meta">
+            {{ record.perfil_registrador or '' }}
+            {% if record.registrado_por_identificacion %} · ID: {{ record.registrado_por_identificacion }}{% endif %}
+        </div>
+        <div class="firma-meta" style="margin-top:4px; font-weight:700;">Funcionario</div>
+    </div>
+    {% endif %}
+
+    {% if tipo == 'calif_atencion' and record.firma_paciente %}
+    <div class="firma-box" style="border-top:none; margin-top:0;">
+    <div class="signature-container">
+        <img src="{{ record.firma_paciente }}" alt="Firma Paciente">
+    </div>
+        <div class="firma-name">
+            {% if record.responsable_nombre %}
+                {{ record.responsable_nombre }} {{ record.responsable_apellido }}
+            {% else %}
+                {{ record.primer_nombre }} {{ record.primer_apellido }}
+            {% endif %}
+        </div>
+        <div class="firma-meta">
+            {% if record.responsable_nombre %}
+                {{ record.responsable_tipo_doc or '' }} {{ record.responsable_identificacion or '' }}
+            {% else %}
+                {{ record.tipo_documento or '' }} {{ record.identificacion or '' }}
+            {% endif %}
+        </div>
+        <div class="firma-meta" style="margin-top:4px; font-weight:700;">
+            {% if record.responsable_nombre %}Responsable{% else %}Paciente{% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+    <!-- ── Pie de página ── -->
+    <div class="doc-footer">
+        <span>{{ cfg.get('nombre_institucion','') }} · {{ cfg.get('nit','') }}</span>
+        <span>Impreso por: {{ session.usuario.nombre }} - <span class="print-datetime"></span></span>
+    </div>
+
+</div> <!-- end checklist-doc -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+{% if session.usuario.rol != 'usuario' %}
+<script>
+function descargarPDF() {
+    // Set print timestamp dynamically
+    const now = new Date();
+    const formattedDate = now.getFullYear() + '-' + 
+                          String(now.getMonth() + 1).padStart(2, '0') + '-' + 
+                          String(now.getDate()).padStart(2, '0') + ' ' + 
+                          String(now.getHours()).padStart(2, '0') + ':' + 
+                          String(now.getMinutes()).padStart(2, '0') + ':' + 
+                          String(now.getSeconds()).padStart(2, '0');
+    document.querySelectorAll('.print-datetime').forEach(el => el.textContent = formattedDate);
+
+    const btn = document.getElementById('btn-pdf');
+    btn.textContent = '⏳ Generando...';
+    btn.disabled = true;
+
+    const opt = {
+        margin: [8, 8, 8, 8],
+        filename: "{{ tipo|upper }}_{{ record.id }}_{{ cfg.get('nombre_institucion','APH')|replace(' ','_') }}.pdf",
+        image: { type: 'jpeg', quality: 0.95 },
+        html2canvas: { scale: 2, useCORS: true, allowTaint: true, logging: false },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak: { mode: ['css', 'legacy'] }
+    };
+    
+    const doc = document.getElementById('checklist-doc');
+    
+    const tempContainer = document.createElement('div');
+    tempContainer.style.position = 'absolute';
+    tempContainer.style.left = '-9999px';
+    tempContainer.style.top = window.scrollY + 'px';
+    tempContainer.style.width = '800px';
+    tempContainer.style.background = 'white';
+    
+    const clone = doc.cloneNode(true);
+    const wrappers = clone.querySelectorAll('.table-wrap, .table-responsive');
+    wrappers.forEach(w => w.style.overflowX = 'visible');
+    
+    tempContainer.appendChild(clone);
+    document.body.appendChild(tempContainer);
+
+    html2pdf().set(opt).from(clone).save()
+        .then(() => {
+            document.body.removeChild(tempContainer);
+            btn.textContent = '📥 Descargar PDF';
+            btn.disabled = false;
+        });
+}
+</script>
+{% endif %}
+
+{% endblock %}

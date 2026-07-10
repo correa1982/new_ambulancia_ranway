@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+{% block title %}{{ titulo }}{% endblock %}
+{% block content %}
+
+<style>
+.field { margin-bottom: 12px; }
+.row { display: grid; grid-template-columns: repeat(auto-fit,minmax(200px,1fr)); gap: 12px; }
+.items-table { width: 100%; border-collapse: collapse; }
+.items-table th, .items-table td { padding: 8px 10px; border: 1px solid #eef2ff; }
+.signature-canvas { border: 1px solid #cbd5e1; border-radius: 6px; background: white; max-width: 100%; width: 100%; height: auto; touch-action: none; }
+</style>
+
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;">
+    <h1 style="margin:0; display:flex; align-items:center; gap:10px;">
+        📊 {{ titulo }}
+        {% if record %}
+        <span style="background:#e0f2fe; color:#0369a1; padding:4px 10px; border-radius:20px; font-size:14px; font-weight:600;">Editar Registro (Borrador #{{ record.id }})</span>
+        {% endif %}
+    </h1>
+</div>
+
+<form method="POST" id="form-calif">
+    <input type="hidden" name="id" value="{{ record.id if record }}">
+    <input type="hidden" name="fecha" value="{{ hoy }}">
+    <input type="hidden" name="hora" value="{{ hora_actual }}">
+    <div class="row">
+        <div class="field">
+            <label>Nombres</label>
+            <input type="text" name="primer_nombre" value="{{ record.primer_nombre if record }}" required>
+        </div>
+        <div class="field">
+            <label>Apellidos</label>
+            <input type="text" name="primer_apellido" value="{{ record.primer_apellido if record }}" required>
+        </div>
+        <div class="field">
+            <label>Tipo de documento</label>
+            <select name="tipo_documento" id="tipo_documento">
+                <option value="CC" {% if record and record.tipo_documento=='CC' %}selected{% endif %}>Cédula de Ciudadanía (CC)</option>
+                <option value="TI" {% if record and record.tipo_documento=='TI' %}selected{% endif %}>Tarjeta de Identidad (TI)</option>
+                <option value="RC" {% if record and record.tipo_documento=='RC' %}selected{% endif %}>Registro Civil (RC)</option>
+                <option value="CE" {% if record and record.tipo_documento=='CE' %}selected{% endif %}>Cédula Extranjería (CE)</option>
+                <option value="PA" {% if record and record.tipo_documento=='PA' %}selected{% endif %}>Pasaporte (PA)</option>
+                <option value="PEP" {% if record and record.tipo_documento=='PEP' %}selected{% endif %}>PEP</option>
+                <option value="NIT" {% if record and record.tipo_documento=='NIT' %}selected{% endif %}>NIT</option>
+                <option value="NN" {% if record and record.tipo_documento=='NN' %}selected{% endif %}>NN</option>
+            </select>
+        </div>
+        <div class="field">
+            <label>Número de documento</label>
+            <input type="text" name="identificacion" value="{{ record.identificacion if record }}" required>
+        </div>
+    </div>
+
+    <div id="responsable-block" style="display:none; margin-top: 12px; padding: 12px; border: 1px dashed #f1f5f9; border-radius: 8px; background: #fffaf0;">
+        <strong>Datos de la persona responsable (paciente menor de edad)</strong>
+        <div class="row" style="margin-top:8px;">
+            <div class="field"><label>Nombres (Responsable)</label><input type="text" name="responsable_nombre" value="{{ record.responsable_nombre if record }}"></div>
+            <div class="field"><label>Apellidos (Responsable)</label><input type="text" name="responsable_apellido" value="{{ record.responsable_apellido if record }}"></div>
+            <div class="field">
+                <label>Tipo documento (Responsable)</label>
+                <select name="responsable_tipo_doc">
+                    <option value="CC" {% if record and record.responsable_tipo_doc=='CC' %}selected{% endif %}>CC</option>
+                    <option value="TI" {% if record and record.responsable_tipo_doc=='TI' %}selected{% endif %}>TI</option>
+                    <option value="RC" {% if record and record.responsable_tipo_doc=='RC' %}selected{% endif %}>RC</option>
+                    <option value="CE" {% if record and record.responsable_tipo_doc=='CE' %}selected{% endif %}>CE</option>
+                </select>
+            </div>
+            <div class="field"><label>Número documento (Responsable)</label><input type="text" name="responsable_identificacion" value="{{ record.responsable_identificacion if record }}"></div>
+        </div>
+    </div>
+
+    <hr style="margin:18px 0;">
+
+    <h3 style="margin-top:0;">Ítems a Calificar</h3>
+    {% if checklist_items %}
+        {% for cat, items_list in checklist_items.items() %}
+            <h4 style="margin-bottom:6px; margin-top:12px;">{{ cat.replace('_',' ')|capitalize }}</h4>
+            <table class="items-table">
+                <thead><tr><th>Ítem</th><th>Calificación (1-5)</th><th>Observación (opcional)</th></tr></thead>
+                <tbody>
+                {% for it in items_list %}
+                <tr>
+                    <td style="width:60%;">{{ it.nombre }}</td>
+                    <td style="width:20%;">
+                        <select name="{{ it.identificador }}">
+                            <option value="">—</option>
+                            <option value="1" {% if datos and it.identificador in datos and datos[it.identificador].valor == '1' %}selected{% endif %}>1</option>
+                            <option value="2" {% if datos and it.identificador in datos and datos[it.identificador].valor == '2' %}selected{% endif %}>2</option>
+                            <option value="3" {% if datos and it.identificador in datos and datos[it.identificador].valor == '3' %}selected{% endif %}>3</option>
+                            <option value="4" {% if datos and it.identificador in datos and datos[it.identificador].valor == '4' %}selected{% endif %}>4</option>
+                            <option value="5" {% if datos and it.identificador in datos and datos[it.identificador].valor == '5' %}selected{% endif %}>5</option>
+                        </select>
+                    </td>
+                    <td style="width:20%;"><input type="text" name="obs_{{ it.identificador }}" placeholder="Observación" value="{% if datos and it.identificador in datos %}{{ datos[it.identificador].observacion }}{% endif %}"></td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        {% endfor %}
+    {% else %}
+        <div style="padding:12px; background:#f8fafc; border:1px solid #e2e8f0;">No hay ítems configurados para este formulario. Pídale al administrador que agregue ítems.</div>
+    {% endif %}
+
+    <hr style="margin:18px 0;">
+
+    <div>
+        <label>Firma táctil (paciente o responsable)</label>
+        <div style="padding:12px; background:#fff; border:1px solid #cbd5e1; border-radius:8px;">
+            <canvas id="signature-pad" width="600" height="180" class="signature-canvas"></canvas>
+            <div style="margin-top:8px; display:flex; gap:8px;">
+                <button type="button" id="clear-signature" style="background:#ef4444;color:#fff;padding:8px;border:none;border-radius:6px;">Limpiar</button>
+            </div>
+            <input type="hidden" name="firma_paciente" id="firma-paciente-input" value="{{ record.firma_paciente if record }}">
+        </div>
+    </div>
+
+    <div class="submit-row" style="display:flex; flex-wrap:wrap; gap:12px; justify-content: flex-end; margin-top:20px; align-items:center;">
+        <a href="{{ url_for('dashboard') }}" style="margin:0; box-sizing: border-box; height: 44px; font-family: inherit; background:#6b7280; color:white; text-decoration:none; border:none; padding:0 24px; border-radius:10px; font-weight:600; font-size:14px; display:inline-flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(107,114,128,0.2);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(107,114,128,0.3)'" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 6px -1px rgba(107,114,128,0.2)'">
+            <i class="ph ph-arrow-left" style="font-size:18px;"></i> Volver
+        </a>
+        <a href="{{ url_for('registros_checklist', tipo=tipo) }}" style="margin:0; box-sizing: border-box; height: 44px; font-family: inherit; background: linear-gradient(135deg,#f59e0b,#d97706); color:white; text-decoration:none; border:none; padding:0 24px; border-radius:10px; font-weight:600; font-size:14px; display:inline-flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(245,158,11,0.2);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(245,158,11,0.3)'" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 6px -1px rgba(245,158,11,0.2)'">
+            <i class="ph ph-folder-open" style="font-size:18px;"></i> Ver Registros
+        </a>
+        <button type="submit" name="accion" value="borrador" style="margin:0; box-sizing: border-box; height: 44px; font-family: inherit; background:linear-gradient(135deg,#1e6fbf,#185999); color:white; border:none; padding:0 24px; border-radius:10px; font-weight:600; font-size:14px; display:inline-flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(30,111,191,0.3);" formnovalidate onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(30,111,191,0.4)'" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 6px -1px rgba(30,111,191,0.3)'">
+            <i class="ph ph-floppy-disk" style="font-size:18px;"></i> Guardar Borrador
+        </button>
+        <button type="submit" name="accion" value="finalizar" style="margin:0; box-sizing: border-box; height: 44px; font-family: inherit; background:linear-gradient(135deg,#10b981,#059669); color:white; border:none; padding:0 24px; border-radius:10px; font-weight:600; font-size:14px; display:inline-flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(16,185,129,0.2);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(16,185,129,0.3)'" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 6px -1px rgba(16,185,129,0.2)'" onclick="return confirm('¿Está seguro de finalizar este registro? Una vez finalizado no podrá ser editado.');">
+            <i class="ph ph-check-circle" style="font-size:18px;"></i> Guardar y Finalizar
+        </button>
+    </div>
+</form>
+
+<script>
+function onTipoDocChange() {
+    const tipo = document.getElementById('tipo_documento').value;
+    const block = document.getElementById('responsable-block');
+    if (tipo === 'TI' || tipo === 'RC') {
+        block.style.display = 'block';
+        // Make responsible inputs required
+        block.querySelectorAll('input, select').forEach(i=>i.required=true);
+    } else {
+        block.style.display = 'none';
+        block.querySelectorAll('input, select').forEach(i=>{ i.required=false; i.value=''; });
+    }
+}
+
+document.getElementById('tipo_documento').addEventListener('change', onTipoDocChange);
+window.addEventListener('DOMContentLoaded', function(){ onTipoDocChange();
+    // Signature canvas logic (basic)
+    const canvas = document.getElementById('signature-pad');
+    const ctx = canvas.getContext('2d');
+    let drawing = false;
+    ctx.strokeStyle = '#111827'; ctx.lineWidth = 2.2; ctx.lineCap = 'round';
+    function getPos(e){ const rect=canvas.getBoundingClientRect(); const scaleX=canvas.width/rect.width; const scaleY=canvas.height/rect.height; const clientX=e.touches?e.touches[0].clientX:e.clientX; const clientY=e.touches?e.touches[0].clientY:e.clientY; return {x:(clientX-rect.left)*scaleX, y:(clientY-rect.top)*scaleY}; }
+    function start(e){ drawing=true; const p=getPos(e); ctx.beginPath(); ctx.moveTo(p.x,p.y); e.preventDefault(); }
+    function draw(e){ if(!drawing) return; const p=getPos(e); ctx.lineTo(p.x,p.y); ctx.stroke(); updateHidden(); e.preventDefault(); }
+    function stop(){ drawing=false; }
+    function updateHidden(){ document.getElementById('firma-paciente-input').value = canvas.toDataURL('image/png'); }
+    canvas.addEventListener('mousedown', start); canvas.addEventListener('mousemove', draw); canvas.addEventListener('mouseup', stop); canvas.addEventListener('mouseleave', stop);
+    canvas.addEventListener('touchstart', start); canvas.addEventListener('touchmove', draw); canvas.addEventListener('touchend', stop);
+    document.getElementById('clear-signature').addEventListener('click', function(){ ctx.clearRect(0,0,canvas.width,canvas.height); document.getElementById('firma-paciente-input').value=''; });
+    // preload existing signature if present
+    const existing = document.getElementById('firma-paciente-input').value;
+    if (existing) { const img=new Image(); img.onload=function(){ ctx.drawImage(img,0,0); }; img.src = existing; }
+});
+</script>
+
+{% endblock %}

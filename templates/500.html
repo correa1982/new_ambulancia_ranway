@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Error interno del servidor</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f7f7f7; color: #333; margin: 0; padding: 0; }
+    .container { max-width: 640px; margin: 80px auto; background: white; padding: 32px; border-radius: 10px; box-shadow: 0 16px 40px rgba(0,0,0,0.08); }
+    h1 { margin-top: 0; color: #c0392b; }
+    p { line-height: 1.6; }
+    .detail { margin-top: 20px; padding: 16px; background: #f0f0f0; border-radius: 8px; font-family: monospace; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Error interno del servidor</h1>
+    <p>Hubo un problema en la aplicación mientras procesaba tu solicitud. Por favor, intenta de nuevo en unos minutos.</p>
+    {% if error %}
+      <div class="detail">{{ error }}</div>
+    {% endif %}
+  </div>
+</body>
+</html>

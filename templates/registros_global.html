@@ -1,0 +1,379 @@
+{% extends "base.html" %}
+{% block title %}Explorador de Registros{% endblock %}
+{% block content %}
+
+<style>
+/* ═══════════════════════════════════════════
+   EXPLORADOR GLOBAL DE REGISTROS
+═══════════════════════════════════════════ */
+.rg-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 20px; padding-bottom: 16px;
+    border-bottom: 2px solid #dbeafe; flex-wrap: wrap; gap: 12px;
+}
+.rg-title { margin: 0; padding: 0; border: none; font-size: 22px; color: #1e3a5f; }
+.rg-badge {
+    background: linear-gradient(135deg,#1e6fbf,#185999);
+    color: white; padding: 5px 16px;
+    border-radius: 20px; font-size: 12px; font-weight: 700;
+}
+
+/* Filter card */
+.filter-card {
+    background: #f8fafc;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+}
+.filter-row {
+    display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap;
+}
+.filter-field { display: flex; flex-direction: column; gap: 4px; }
+.filter-field label {
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.5px; color: #64748b;
+}
+.filter-field input,
+.filter-field select {
+    padding: 8px 12px; border: 1.5px solid #cbd5e1;
+    border-radius: 8px; font-size: 13px; font-family: inherit;
+    background: white; transition: border-color 0.15s;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.03);
+}
+.filter-field input:focus,
+.filter-field select:focus {
+    outline: none; border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.12);
+}
+.filter-field select { min-width: 200px; }
+.filter-field input[type="date"] { min-width: 140px; }
+.filter-field input[type="text"] { min-width: 180px; }
+
+.btn-filter {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: linear-gradient(135deg,#1e6fbf,#185999);
+    color: white; border: none; padding: 9px 20px;
+    border-radius: 8px; font-size: 13px; font-weight: 700;
+    cursor: pointer; font-family: inherit;
+    box-shadow: 0 2px 6px rgba(30,111,191,0.25);
+    transition: all 0.15s;
+}
+.btn-filter:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(30,111,191,0.3); }
+.btn-clear {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: white; color: #ef4444;
+    border: 1.5px solid #fecaca; padding: 8px 16px;
+    border-radius: 8px; font-size: 13px; font-weight: 600;
+    text-decoration: none; transition: all 0.15s;
+}
+.btn-clear:hover { background: #fef2f2; }
+
+/* Type pill filter */
+.type-pills {
+    display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px;
+}
+.type-pill {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 5px 14px; border-radius: 99px; font-size: 12px; font-weight: 600;
+    border: 1.5px solid #e2e8f0; background: white; color: #475569;
+    text-decoration: none; transition: all 0.15s; cursor: pointer;
+}
+.type-pill:hover { border-color: #93c5fd; color: #1e6fbf; background: #eff6ff; }
+.type-pill.active {
+    color: white; border-color: transparent;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+/* Stats row */
+.stats-row {
+    display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;
+}
+.stat-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: white; border: 1px solid #e2e8f0;
+    border-radius: 8px; padding: 6px 14px;
+    font-size: 13px; font-weight: 600; color: #475569;
+}
+.stat-chip strong { color: #1e40af; }
+
+/* Results table */
+.rg-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.rg-table thead th {
+    background: linear-gradient(135deg,#ebf4ff,#dbeafe);
+    font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px;
+    color: #1e40af; padding: 10px 14px; border: 1px solid #e2e8f0;
+    text-align: left; white-space: nowrap;
+}
+.rg-table tbody tr { border-bottom: 1px solid #f1f5f9; transition: background 0.1s; }
+.rg-table tbody tr:hover { background: #f8fbff; }
+.rg-table tbody td { padding: 10px 14px; vertical-align: middle; }
+
+/* Type badge */
+.type-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 3px 10px; border-radius: 99px;
+    font-size: 11px; font-weight: 700; white-space: nowrap;
+    color: white;
+}
+
+/* Action button */
+.btn-view {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: #1e6fbf; color: white;
+    padding: 5px 12px; border-radius: 6px;
+    text-decoration: none; font-size: 11px; font-weight: 700;
+    transition: all 0.15s;
+}
+.btn-view:hover { background: #185999; transform: translateY(-1px); }
+
+/* Empty state */
+.empty-state {
+    text-align: center; padding: 70px 20px; color: #94a3b8;
+}
+.empty-state .empty-icon { font-size: 52px; margin-bottom: 16px; }
+.empty-state h3 { font-size: 16px; color: #64748b; margin-bottom: 8px; }
+
+/* Period badge */
+.period-tag {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: #f0fdf4; border: 1px solid #a7f3d0;
+    color: #065f46; border-radius: 8px;
+    padding: 4px 12px; font-size: 12px; font-weight: 600;
+}
+
+@media (max-width: 768px) {
+    .filter-row { flex-direction: column; }
+    .filter-field { width: 100%; }
+    .filter-field select, .filter-field input { width: 100%; box-sizing: border-box; }
+    .rg-table { display: block; overflow-x: auto; }
+}
+</style>
+
+<!-- HEADER -->
+<div class="rg-header">
+    <div style="display:flex; align-items:center; gap:14px;">
+        <a href="{{ url_for('dashboard') }}"
+           style="display:inline-flex; align-items:center; gap:6px; background:#f8fafc;
+                  color:#475569; border:1px solid #cbd5e1; padding:7px 14px;
+                  border-radius:8px; text-decoration:none; font-weight:600; font-size:13px;
+                  transition:all 0.15s;"
+           onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#f8fafc'">
+            ← Volver
+        </a>
+        <h1 class="rg-title">📁 Explorador de Registros</h1>
+    </div>
+    <span class="rg-badge">{{ total }} resultado(s)</span>
+</div>
+
+<!-- FILTER CARD -->
+<div class="filter-card">
+    <form method="GET" action="{{ url_for('registros_global') }}" id="filterForm">
+        <div class="filter-row">
+
+            <!-- Tipo de formulario -->
+            <div class="filter-field">
+                <label>Tipo de Formulario</label>
+                <select name="tipo" id="tipo_select">
+                    <option value="">— Todos los tipos —</option>
+                    {% for key, cfg in form_types.items() %}
+                    <option value="{{ key }}" {% if tipo_filtro == key %}selected{% endif %}>
+                        {{ cfg.icon }} {{ cfg.label }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Fecha desde -->
+            <div class="filter-field">
+                <label>Desde</label>
+                <input onclick="this.showPicker()" type="date" name="fecha_desde" value="{{ fecha_desde }}" id="fecha_desde">
+            </div>
+
+            <!-- Fecha hasta -->
+            <div class="filter-field">
+                <label>Hasta</label>
+                <input onclick="this.showPicker()" type="date" name="fecha_hasta" value="{{ fecha_hasta }}" id="fecha_hasta">
+            </div>
+
+            <!-- Búsqueda libre -->
+            <div class="filter-field">
+                <label>Buscar (HC)</label>
+                <input type="text" name="search" value="{{ search_query }}"
+                       placeholder="Nombre o documento..." id="search_input">
+            </div>
+
+            <div style="display:flex; gap:8px; padding-bottom:1px;">
+                <button type="submit" class="btn-filter">🔍 Filtrar</button>
+                <a href="{{ url_for('registros_global') }}" class="btn-clear">✕ Limpiar</a>
+            </div>
+        </div>
+
+        <!-- Quick date shortcuts -->
+        <div style="margin-top:10px; display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
+            <span style="font-size:11px; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.5px;">Acceso rápido:</span>
+            <button type="button" class="type-pill" onclick="setDateRange('today')">Hoy</button>
+            <button type="button" class="type-pill" onclick="setDateRange('week')">Esta semana</button>
+            <button type="button" class="type-pill" onclick="setDateRange('month')">Este mes</button>
+            <button type="button" class="type-pill" onclick="setDateRange('last30')">Últimos 30 días</button>
+        </div>
+    </form>
+</div>
+
+<!-- STATS + PERIOD -->
+<div class="stats-row">
+    {% if fecha_desde or fecha_hasta %}
+    <div class="period-tag">
+        📅 {{ fecha_desde or '—' }} → {{ fecha_hasta or '—' }}
+    </div>
+    {% endif %}
+
+    {% if total > 0 %}
+    {# Count by type #}
+    {% set ns = namespace() %}
+    {% for key, cfg in form_types.items() %}
+    {% set count = results | selectattr('tipo_key', 'equalto', key) | list | length %}
+    {% if count > 0 %}
+    <div class="stat-chip" style="border-color:{{ cfg.color }}20;">
+        {{ cfg.icon }} {{ cfg.label }}: <strong>{{ count }}</strong>
+    </div>
+    {% endif %}
+    {% endfor %}
+    {% endif %}
+</div>
+
+
+
+<!-- RESULTS TABLE -->
+{% if results %}
+<div style="overflow-x:auto;">
+<table class="rg-table">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Tipo</th>
+            <th>Fecha</th>
+            <th>Hora</th>
+            <th>Resumen / Identificador</th>
+            <th>Registrado por</th>
+            <th>Fecha Registro</th>
+            <th style="text-align:center;">Acción</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for r in results %}
+    <tr>
+        <td style="color:#94a3b8; font-size:11px; font-weight:700;">{{ loop.index }}</td>
+        <td>
+            <span class="type-badge" style="background:{{ r.tipo_color }};">
+                {{ r.tipo_icon }} {{ r.tipo_label }}
+            </span>
+        </td>
+        <td style="white-space:nowrap; font-weight:600; color:#1e40af;">
+            {{ r.fecha or '—' }}
+        </td>
+        <td style="white-space:nowrap; color:#64748b; font-size:12px;">
+            {{ r.hora or '—' }}
+        </td>
+        <td>
+            <strong style="font-size:13px;">{{ r.summary }}</strong>
+            {% if r.finalizado == 0 %}
+            <span style="background:#fffbeb; color:#d97706; border:1px solid #fde68a; padding:1px 6px; border-radius:4px; font-size:10px; font-weight:700; margin-left:4px; display:inline-block; vertical-align:middle;">⏳ Borrador</span>
+            {% endif %}
+        </td>
+        <td style="font-size:12px;">
+            <strong>{{ r.registrado_por }}</strong>
+            {% if r.perfil_registrador %}
+            <span style="display:block; font-size:10px; color:#64748b;">{{ r.perfil_registrador }}</span>
+            {% endif %}
+        </td>
+        <td style="font-size:11px; color:#64748b; white-space:nowrap;">
+            {{ r.fecha_registro }}
+        </td>
+        <td style="text-align:center;">
+            {% if r.finalizado == 0 and r.complete_url %}
+            <a href="{{ r.complete_url }}" class="btn-view" style="background: linear-gradient(135deg, #f59e0b, #d97706); border: none; font-weight: 700;" title="Completar borrador">
+                ✏️ Completar
+            </a>
+            {% else %}
+            <a href="{{ r.view_url }}" class="btn-view">👁 Ver</a>
+            {% endif %}
+        </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+</div>
+
+<div style="margin-top:14px; font-size:12px; color:#94a3b8; text-align:right;">
+    Mostrando <strong style="color:#1e40af;">{{ total }}</strong> registro(s) — máx. 200 por tipo
+</div>
+
+{% else %}
+<div class="empty-state">
+    <div class="empty-icon">📭</div>
+    <h3>No hay registros para los filtros seleccionados</h3>
+    <p style="font-size:14px;">
+        {% if tipo_filtro %}
+        No se encontraron registros de tipo <strong>{{ form_types[tipo_filtro].label }}</strong>
+        en el rango de fechas indicado.
+        {% else %}
+        No se encontraron registros en el rango de fechas indicado.
+        {% endif %}
+    </p>
+    <a href="{{ url_for('registros_global') }}" class="btn-filter" style="margin-top:16px; display:inline-flex;">
+        ✕ Limpiar filtros
+    </a>
+</div>
+{% endif %}
+
+<script>
+function setDateRange(range) {
+    const today = new Date();
+    let desde, hasta;
+
+    const pad = n => String(n).padStart(2, '0');
+    const fmt = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+
+    hasta = fmt(today);
+
+    if (range === 'today') {
+        desde = fmt(today);
+    } else if (range === 'week') {
+        const d = new Date(today);
+        d.setDate(today.getDate() - today.getDay());
+        desde = fmt(d);
+    } else if (range === 'month') {
+        desde = `${today.getFullYear()}-${pad(today.getMonth()+1)}-01`;
+    } else if (range === 'last30') {
+        const d = new Date(today);
+        d.setDate(today.getDate() - 29);
+        desde = fmt(d);
+    }
+
+    document.getElementById('fecha_desde').value = desde;
+    document.getElementById('fecha_hasta').value = hasta;
+    document.getElementById('filterForm').submit();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const tipoSelect = document.getElementById('tipo_select');
+    const searchInput = document.getElementById('search_input');
+
+    function toggleSearch() {
+        if (tipoSelect.value === 'hc') {
+            searchInput.disabled = false;
+        } else {
+            searchInput.disabled = true;
+            searchInput.value = ''; // Limpiar al deshabilitar
+        }
+    }
+
+    if (tipoSelect && searchInput) {
+        tipoSelect.addEventListener('change', toggleSearch);
+        toggleSearch(); // Estado inicial
+    }
+});
+</script>
+
+{% endblock %}

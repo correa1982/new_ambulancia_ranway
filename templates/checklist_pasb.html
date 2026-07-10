@@ -1,0 +1,366 @@
+{% extends "base.html" %}
+{% block title %}{{ titulo }}{% endblock %}
+{% block content %}
+
+<style>
+.cl-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; padding-bottom: 14px; border-bottom: 2px solid #dbeafe; }
+.cl-badge { background: linear-gradient(135deg,#1e6fbf,#185999); color: white; padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+.check-table { width: 100%; border-collapse: collapse; }
+.check-table thead tr th { background: linear-gradient(135deg,#ebf4ff,#dbeafe); font-size:10px; text-transform:uppercase; letter-spacing:0.5px; color:#1e40af; padding:8px 14px; border: 1px solid #e2e8f0; }
+.check-table tbody td { padding: 0; border: 1px solid #f1f5f9; }
+.check-row { display: flex; align-items: center; padding: 8px 14px; gap: 12px; transition: background 0.1s; }
+.check-row:hover { background: #f0f7ff; }
+.item-name { flex: 1; font-size: 13px; font-weight: 500; color: #374151; }
+.radio-trio { display: flex; gap: 4px; }
+.radio-trio input[type="radio"] { display: none; }
+.radio-trio label { padding: 4px 11px; border-radius: 5px; font-size: 11px; font-weight: 700; cursor: pointer; border: 1.5px solid; transition: all 0.12s; margin: 0; user-select: none; }
+.ri-si label { border-color: #bbf7d0; color: #166534; background: #f0fdf4; }
+.ri-si input:checked + label { background: #10b981; color: white; border-color: #059669; }
+.ri-no label { border-color: #fecaca; color: #991b1b; background: #fef2f2; }
+.ri-no input:checked + label { background: #ef4444; color: white; border-color: #dc2626; }
+.ri-na label { border-color: #e2e8f0; color: #64748b; background: #f8fafc; }
+.ri-na input:checked + label { background: #94a3b8; color: white; border-color: #64748b; }
+
+.select-btn {
+    appearance: none;
+    -webkit-appearance: none;
+    background-color: white;
+    color: #333;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    padding: 12px 36px 12px 16px;
+    font-weight: normal;
+    font-size: 14px;
+    cursor: pointer;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23333'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 20px;
+    transition: all 0.2s;
+    width: 100%;
+    box-sizing: border-box;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+.select-btn:hover {
+    background-color: #f8fafc;
+    border-color: #94a3b8;
+}
+.select-btn:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.2);
+}
+.select-btn option {
+    background-color: white;
+    color: #333;
+}
+@media (max-width: 650px) {
+    .check-table thead { display: none; }
+    .check-table, .check-table tbody, .check-table tr, .check-table td { display: block; width: 100%; box-sizing: border-box; }
+    .check-table tr { border: 1px solid #e2e8f0; border-radius: 12px; margin-bottom: 12px; padding: 16px; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.03); }
+    .check-table td { border: none !important; padding: 0 !important; }
+    .check-row { display: flex; flex-direction: column; align-items: stretch !important; gap: 12px; padding: 0; }
+    .item-name { text-align: center; font-weight: 700; color: #475569; font-size: 14px; margin-bottom: 8px; }
+    .radio-trio { display: flex; flex-direction: row; justify-content: space-between; width: 100%; gap: 6px; }
+    .radio-trio > div { flex: 1; text-align: center; }
+    .radio-trio label { display: block; width: 100%; padding: 12px 0; font-size: 14px; border-radius: 6px; text-align: center; box-sizing: border-box; }
+    .obs-item-row { margin-top: 12px; }
+}
+</style>
+
+<div class="cl-header">
+    <h1 style="margin:0; padding:0; border:none; font-size:20px;">✅ {{ titulo }}</h1>
+    <span class="cl-badge">{{ subtitulo }}</span>
+</div>
+
+<form method="POST">
+{% if record %}<input type="hidden" name="id" value="{{ record.id }}">{% endif %}
+<fieldset>
+<legend>📋 Datos del Puesto</legend>
+<div class="row row-3">
+    <div><label>Fecha <span style="color:#ef4444">*</span></label>
+        <input onclick="this.showPicker()" type="date" name="fecha" max="{{ hoy }}" required value="{{ record.fecha if record else hoy }}"></div>
+    <div><label>Hora</label><input onclick="this.showPicker()" type="time" name="hora" value="{{ record.hora if record else hora_actual }}"></div>
+    <div><label>Ubicación / Lugar</label>
+        <input type="text" name="ubicacion" placeholder="Ej. Parque principal, Estadio, Vía principal Km 5..." value="{{ record.ubicacion if record else '' }}"></div>
+</div>
+<div style="margin-top:12px; display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+    <div>
+        <label>Número del PASB</label>
+        <select name="pasb_numero" class="select-btn">
+            <option value="">— Seleccione —</option>
+            {% for opcion in pasb_opciones %}
+            <option value="{{ opcion }}" {% if record and record.pasb_numero == opcion %}selected{% endif %}>{{ opcion }}</option>
+            {% endfor %}
+        </select>
+    </div>
+</div>
+</fieldset>
+
+<!-- Integrantes del PASB -->
+<fieldset>
+<legend>👥 Integrantes del PASB</legend>
+<table class="check-table" id="tabla-integrantes-tam" style="width: 100%; border-collapse: collapse; margin-top: 8px;">
+    <thead><tr>
+        <th style="width: 25%;">Cargo</th>
+        <th style="width: 40%;">Nombre Completo</th>
+        <th style="width: 25%;">Documento de Identidad</th>
+        <th style="width: 10%; text-align: center;">Quitar</th>
+    </tr></thead>
+    <tbody id="tbody-integrantes-tam">
+        {% if datos and datos.get('_integrantes') %}
+            {% for member in datos['_integrantes'] %}
+            <tr class="integrante-row">
+                <td style="padding: 6px 14px; border: 1px solid #f1f5f9;">
+                    <select name="integrante_perfil[]" class="form-control integrante-cargo" required style="width: 100%; border: 1px solid #cbd5e1; border-radius: 5px; padding: 6px; font-size: 13px; box-sizing: border-box; background: white;" onchange="onCargoCambioTam(this)">
+                        <option value="">— Cargo —</option>
+                        {% for cargo in ['Enfermero','APH','Auxiliar en Enfermeria','Socorrista','Estudiante'] %}
+                        <option value="{{ cargo }}" {% if member.perfil == cargo %}selected{% endif %}>{{ cargo }}</option>
+                        {% endfor %}
+                    </select>
+                </td>
+                <td style="padding: 6px 14px; border: 1px solid #f1f5f9;"><input type="text" name="integrante_nombre[]" class="form-control integrante-nombre" required placeholder="Nombre completo" value="{{ member.nombre }}" style="width: 100%; border: 1px solid #cbd5e1; border-radius: 5px; padding: 6px; font-size: 13px; box-sizing: border-box;"></td>
+                <td style="padding: 6px 14px; border: 1px solid #f1f5f9;"><input type="text" name="integrante_doc[]" class="form-control integrante-doc" placeholder="Cédula / ID" value="{{ member.identificacion }}" style="width: 100%; border: 1px solid #cbd5e1; border-radius: 5px; padding: 6px; font-size: 13px; box-sizing: border-box;"></td>
+                <td style="text-align: center; border: 1px solid #f1f5f9;">
+                    <button type="button" style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 18px;" onclick="removeIntegranteTam(this)">✕</button>
+                </td>
+            </tr>
+            {% endfor %}
+        {% else %}
+            <tr class="integrante-row">
+                <td style="padding: 6px 14px; border: 1px solid #f1f5f9;">
+                    <select name="integrante_perfil[]" class="form-control integrante-cargo" required style="width: 100%; border: 1px solid #cbd5e1; border-radius: 5px; padding: 6px; font-size: 13px; box-sizing: border-box; background: white;" onchange="onCargoCambioTam(this)">
+                        <option value="">— Cargo —</option>
+                        <option>Enfermero</option>
+                        <option>APH</option>
+                        <option>Auxiliar en Enfermeria</option>
+                        <option>Socorrista</option>
+                        <option>Estudiante</option>
+                    </select>
+                </td>
+                <td style="padding: 6px 14px; border: 1px solid #f1f5f9;"><input type="text" name="integrante_nombre[]" class="form-control integrante-nombre" required placeholder="Nombre completo" style="width: 100%; border: 1px solid #cbd5e1; border-radius: 5px; padding: 6px; font-size: 13px; box-sizing: border-box;"></td>
+                <td style="padding: 6px 14px; border: 1px solid #f1f5f9;"><input type="text" name="integrante_doc[]" class="form-control integrante-doc" placeholder="Cédula / ID" style="width: 100%; border: 1px solid #cbd5e1; border-radius: 5px; padding: 6px; font-size: 13px; box-sizing: border-box;"></td>
+                <td style="text-align: center; border: 1px solid #f1f5f9;">
+                    <button type="button" style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 18px;" onclick="removeIntegranteTam(this)">✕</button>
+                </td>
+            </tr>
+        {% endif %}
+    </tbody>
+</table>
+<div style="margin-top: 10px;">
+    <button type="button" id="btn-add-integrante-tam" style="font-size: 12px; padding: 6px 14px; display: inline-flex; align-items: center; gap: 4px; border-radius: 6px; cursor: pointer; border: none; background: linear-gradient(135deg,#10b981,#059669); color: white; font-weight: 700; height: 32px; min-height: 32px;">
+        + Agregar Integrante
+    </button>
+</div>
+</fieldset>
+
+{% set cat_labels = {
+    'infraestructura': ('🏕️ Infraestructura del Puesto', 'Ítem', 'Estado'),
+    'equipos': ('🏥 Equipos y Suministros Médicos', 'Equipo / Material', 'Disponible'),
+    'logistica': ('📡 Logística y Soporte', 'Elemento', 'Estado'),
+    'botiquin': ('💊 Botiquín Básico', 'Insumo', 'Disponible'),
+    'bioseguridad': ('🦺 Bioseguridad', 'Elemento', 'Estado')
+} %}
+
+{% if checklist_items %}
+    {% for cat, items_list in checklist_items.items() %}
+    {% set info = cat_labels.get(cat, ('📦 ' + cat|capitalize, 'Ítem', 'Estado')) %}
+    <fieldset>
+    <legend>{{ info[0] }}</legend>
+    <table class="check-table">
+    <thead><tr>
+        <th style="width:60%;">{{ info[1] }}</th>
+        <th style="width:40%; text-align:left;">Observaciones</th>
+    </tr></thead>
+    <tbody>
+    {% for item in items_list %}
+    {% set field = item.identificador %}
+    {% set val_exist = datos[field]['valor'] if (datos and field in datos) else '' %}
+    {% set obs_exist = datos[field]['observacion'] if (datos and field in datos) else '' %}
+    <tr>
+        <td style="vertical-align: middle;">
+            <div class="check-row">
+                <span class="item-name">{{ item.nombre }}{% if item.cantidad is not none %} <span style="font-size: 11px; color: #64748b; font-weight: normal;">(Cant: {{ item.cantidad }})</span>{% endif %}</span>
+                <div class="radio-trio">
+                    <div class="ri-si">
+                        <input type="radio" name="{{ field }}" id="pasb_{{ field }}_si" value="SI" {% if val_exist == 'SI' %}checked{% endif %}>
+                        <label for="pasb_{{ field }}_si">SI</label>
+                    </div>
+                    <div class="ri-no">
+                        <input type="radio" name="{{ field }}" id="pasb_{{ field }}_no" value="NO" {% if val_exist == 'NO' %}checked{% endif %}>
+                        <label for="pasb_{{ field }}_no">NO</label>
+                    </div>
+                    <div class="ri-na">
+                        <input type="radio" name="{{ field }}" id="pasb_{{ field }}_na" value="NA" {% if val_exist == 'NA' %}checked{% endif %}>
+                        <label for="pasb_{{ field }}_na">N/A</label>
+                    </div>
+                </div>
+            </div>
+        </td>
+        <td style="vertical-align: middle; padding: 6px 14px;">
+            <div class="obs-item-row" id="obs_row_{{ field }}" style="{% if val_exist == 'NO' %}display:block;{% else %}display:none;{% endif %}">
+                <input type="text" name="obs_{{ field }}" id="obs_{{ field }}" class="form-control" placeholder="Detalle la novedad..." style="width: 100%; border: 1px solid #fecaca; border-radius: 5px; padding: 6px; font-size: 12px; box-sizing: border-box;" value="{{ obs_exist }}" {% if val_exist == 'NO' %}required{% endif %}>
+            </div>
+        </td>
+    </tr>
+    {% endfor %}
+    </tbody></table>
+    </fieldset>
+    {% endfor %}
+{% else %}
+<div style="text-align: center; padding: 30px; color: #94a3b8; font-size: 14px;">
+    <p style="font-size: 32px;">📭</p>
+    <p>No hay ítems configurados para este checklist.</p>
+    <p>El administrador debe configurarlos desde el panel de <strong>Gestión de Checklists</strong>.</p>
+</div>
+{% endif %}
+
+<fieldset>
+<legend>🟢 Estado Operativo</legend>
+<div class="row">
+    <div>
+        <label>Estado del Puesto</label>
+        <select name="estado_operativo">
+            <option value="">— Seleccione —</option>
+            <option value="Operativo" {% if record and record.estado_operativo == 'Operativo' %}selected{% endif %}>🟢 Operativo</option>
+            <option value="Operativo con novedades" {% if record and record.estado_operativo == 'Operativo con novedades' %}selected{% endif %}>🟡 Operativo con novedades</option>
+            <option value="No operativo" {% if record and record.estado_operativo == 'No operativo' %}selected{% endif %}>🔴 No operativo</option>
+        </select>
+    </div>
+</div>
+<label style="margin-top:12px;">Observaciones</label>
+<textarea name="observaciones" placeholder="Novedades, faltantes, situaciones especiales del puesto...">{{ record.observaciones if record else '' }}</textarea>
+</fieldset>
+
+<div class="submit-row" style="display:flex; flex-wrap:wrap; gap:12px; justify-content: flex-end; margin-top:20px; align-items:center;">
+    <a href="{{ url_for('dashboard') }}" style="margin:0; box-sizing: border-box; height: 44px; font-family: inherit; background:#6b7280; color:white; text-decoration:none; border:none; padding:0 24px; border-radius:10px; font-weight:600; font-size:14px; display:inline-flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(107,114,128,0.2);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(107,114,128,0.3)'" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 6px -1px rgba(107,114,128,0.2)'">
+        <i class="ph ph-arrow-left" style="font-size:18px;"></i> Volver
+    </a>
+    <a href="{{ url_for('registros_checklist', tipo='pasb') }}" style="margin:0; box-sizing: border-box; height: 44px; font-family: inherit; background: linear-gradient(135deg,#f59e0b,#d97706); color:white; text-decoration:none; border:none; padding:0 24px; border-radius:10px; font-weight:600; font-size:14px; display:inline-flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(245,158,11,0.2);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(245,158,11,0.3)'" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 6px -1px rgba(245,158,11,0.2)'">
+        <i class="ph ph-folder-open" style="font-size:18px;"></i> Ver Registros
+    </a>
+    <button type="submit" name="accion" value="borrador" style="margin:0; box-sizing: border-box; height: 44px; font-family: inherit; background:linear-gradient(135deg,#1e6fbf,#185999); color:white; border:none; padding:0 24px; border-radius:10px; font-weight:600; font-size:14px; display:inline-flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(30,111,191,0.3);" formnovalidate onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(30,111,191,0.4)'" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 6px -1px rgba(30,111,191,0.3)'">
+        <i class="ph ph-floppy-disk" style="font-size:18px;"></i> Guardar Borrador
+    </button>
+    <button type="submit" name="accion" value="finalizar" style="margin:0; box-sizing: border-box; height: 44px; font-family: inherit; background:linear-gradient(135deg,#10b981,#059669); color:white; border:none; padding:0 24px; border-radius:10px; font-weight:600; font-size:14px; display:inline-flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(16,185,129,0.2);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(16,185,129,0.3)'" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 6px -1px rgba(16,185,129,0.2)'" onclick="return confirm('¿Está seguro de finalizar este registro? Una vez finalizado no podrá ser editado.');">
+        <i class="ph ph-check-circle" style="font-size:18px;"></i> Finalizar Check List PASB
+    </button>
+</div>
+</form>
+
+<script>
+(function() {
+    function checkNo() {
+        document.querySelectorAll('input[type="radio"]').forEach(function(radio) {
+            if (radio.checked) {
+                const fieldName = radio.name;
+                const obsRow = document.getElementById('obs_row_' + fieldName);
+                const obsInput = document.getElementById('obs_' + fieldName);
+                if (obsRow && obsInput) {
+                    if (radio.value === 'NO') {
+                        obsRow.style.display = 'block';
+                        obsInput.required = true;
+                    } else {
+                        obsRow.style.display = 'none';
+                        obsInput.required = false;
+                        obsInput.value = '';
+                    }
+                }
+            }
+        });
+    }
+    document.querySelectorAll('input[type="radio"]').forEach(function(radio) {
+        radio.addEventListener('change', checkNo);
+    });
+    checkNo();
+})();
+
+// ── Integrantes PASB ──
+const CARGOS_PASB = ['Enfermero','APH','Auxiliar en Enfermeria','Socorrista','Estudiante'];
+const INPUT_STYLE  = 'width:100%;border:1px solid #cbd5e1;border-radius:5px;padding:6px;font-size:13px;box-sizing:border-box;';
+const SELECT_STYLE = INPUT_STYLE + 'background:white;';
+
+function buildCargoOptions(selected) {
+    return '<option value="">— Cargo —</option>' +
+        CARGOS_PASB.map(c => `<option value="${c}" ${c === selected ? 'selected' : ''}>${c}</option>`).join('');
+}
+
+function buildNombreInput(nombre) {
+    return `<input type="text" name="integrante_nombre[]" class="form-control integrante-nombre" required placeholder="Nombre completo" value="${nombre||''}" style="${INPUT_STYLE}">`;
+}
+
+function buildDocInput(doc) {
+    return `<input type="text" name="integrante_doc[]" class="form-control integrante-doc" placeholder="Cédula / ID" value="${doc||''}" style="${INPUT_STYLE}">`;
+}
+
+async function onCargoCambioTam(selectEl) {
+    const cargo = selectEl.value;
+    const row   = selectEl.closest('tr');
+    const tdNom = row.querySelector('td:nth-child(2)');
+    const tdDoc = row.querySelector('td:nth-child(3)');
+
+    if (!cargo || cargo === 'Estudiante') {
+        tdNom.innerHTML = buildNombreInput('');
+        tdDoc.innerHTML = buildDocInput('');
+        return;
+    }
+
+    try {
+        const res   = await fetch(`/api/usuarios_por_cargo?cargo=${encodeURIComponent(cargo)}`);
+        const users = await res.json();
+
+        if (users.length === 0) {
+            tdNom.innerHTML = buildNombreInput('');
+            tdDoc.innerHTML = buildDocInput('');
+            return;
+        }
+
+        const opts = '<option value="">— Seleccionar —</option>' +
+            users.map(u => `<option value="${u.nombre}" data-doc="${u.identificacion}">${u.nombre}</option>`).join('');
+        tdNom.innerHTML = `<select name="integrante_nombre[]" class="form-control integrante-nombre" required style="${SELECT_STYLE}">${opts}</select>`;
+        tdDoc.innerHTML = buildDocInput('');
+
+        tdNom.querySelector('select').addEventListener('change', function() {
+            const opt = this.options[this.selectedIndex];
+            tdDoc.querySelector('input').value = opt.dataset.doc || '';
+        });
+    } catch(e) {
+        tdNom.innerHTML = buildNombreInput('');
+        tdDoc.innerHTML = buildDocInput('');
+    }
+}
+
+function makeRowTam(nombre, doc, cargo) {
+    return `
+        <td style="padding:6px 14px;border:1px solid #f1f5f9;">
+            <select name="integrante_perfil[]" class="form-control integrante-cargo" required style="${SELECT_STYLE}" onchange="onCargoCambioTam(this)">${buildCargoOptions(cargo)}</select>
+        </td>
+        <td style="padding:6px 14px;border:1px solid #f1f5f9;">${buildNombreInput(nombre)}</td>
+        <td style="padding:6px 14px;border:1px solid #f1f5f9;">${buildDocInput(doc)}</td>
+        <td style="text-align:center;border:1px solid #f1f5f9;">
+            <button type="button" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:18px;" onclick="removeIntegranteTam(this)">✕</button>
+        </td>`;
+}
+
+document.getElementById('btn-add-integrante-tam').addEventListener('click', function() {
+    const tbody = document.getElementById('tbody-integrantes-tam');
+    const tr = document.createElement('tr');
+    tr.className = 'integrante-row';
+    tr.innerHTML = makeRowTam('', '', '');
+    tbody.appendChild(tr);
+});
+
+function removeIntegranteTam(btn) {
+    const rows = document.querySelectorAll('#tbody-integrantes-tam .integrante-row');
+    if (rows.length > 1) {
+        btn.closest('tr').remove();
+    } else {
+        alert('Debe tener al menos un integrante.');
+    }
+}
+
+document.querySelectorAll('#tbody-integrantes-tam .integrante-cargo').forEach(function(sel) {
+    sel.addEventListener('change', function() { onCargoCambioTam(this); });
+});
+</script>
+{% endblock %}

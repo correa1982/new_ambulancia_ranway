@@ -1,0 +1,310 @@
+{% extends "base.html" %}
+{% block title %}Gestión de Ítems – Archivador{% endblock %}
+{% block content %}
+
+<style>
+.tabs {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 12px;
+    margin-bottom: 28px;
+}
+.tab-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 16px 12px;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    text-decoration: none;
+    color: var(--text-muted);
+    text-align: center;
+    min-height: 100px;
+    transition: all 0.2s ease-in-out;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+}
+.tab-btn .tab-icon-wrapper {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: var(--primary-light);
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    margin-bottom: 8px;
+    transition: all 0.2s ease-in-out;
+}
+.tab-btn .tab-label {
+    font-weight: 600;
+    line-height: 1.3;
+    white-space: normal;
+}
+.tab-btn:hover:not(.active) {
+    transform: translateY(-2px);
+    border-color: var(--primary);
+    color: var(--primary);
+    background: var(--surface);
+    box-shadow: 0 6px 16px rgba(30,111,191,0.08);
+}
+.tab-btn:hover:not(.active) .tab-icon-wrapper {
+    background: var(--primary);
+    color: var(--surface);
+    transform: scale(1.05);
+}
+.tab-btn.active {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    border-color: transparent;
+    color: var(--surface);
+    box-shadow: 0 8px 20px rgba(30,111,191,0.22), 0 2px 4px rgba(30,111,191,0.08);
+}
+.tab-btn.active .tab-icon-wrapper {
+    background: rgba(255, 255, 255, 0.22);
+    color: var(--surface);
+}
+
+.items-table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+.items-table th {
+    background: linear-gradient(135deg, #ebf4ff, #dbeafe); font-size: 10px;
+    text-transform: uppercase; letter-spacing: 0.5px; color: #1e40af;
+    padding: 4px 6px; border: 1px solid #e2e8f0; text-align: center;
+    white-space: nowrap;
+}
+.items-table td { padding: 4px 6px; border: 1px solid #f1f5f9; font-size: 11.5px; vertical-align: middle; text-align: center; white-space: nowrap; }
+.table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; margin-bottom: 24px; }
+.table-responsive .items-table { margin-bottom: 0; min-width: 400px; }
+.items-table tr:hover td { background: #fafcff; }
+
+.status-active { color: #10b981; font-weight: 700; }
+.status-inactive { color: #ef4444; font-weight: 700; }
+
+.action-btn {
+    display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px;
+    border-radius: 6px; font-size: 11px; font-weight: 600; text-decoration: none;
+    border: 1px solid; transition: all 0.12s; cursor: pointer;
+}
+.btn-toggle { border-color: #fcd34d; color: #92400e; background: #fffbeb; }
+.btn-toggle:hover { background: #fef3c7; }
+.btn-delete { border-color: #fecaca; color: #991b1b; background: #fef2f2; }
+.btn-delete:hover { background: #fee2e2; }
+
+.add-form {
+    background: #f8fafc; border: 1.5px dashed #cbd5e1; border-radius: 10px;
+    padding: 18px 22px; margin-bottom: 24px;
+}
+.add-form h3 { font-size: 14px; color: #1e3a5f; margin-bottom: 12px; }
+.add-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; }
+.add-row .field { flex: 1; min-width: 180px; }
+.add-row .field label { font-size: 12px; font-weight: 600; color: #475569; display: block; margin-bottom: 4px; }
+.add-row .field input, .add-row .field select {
+    width: 100%; padding: 8px 12px; border: 1.5px solid #cbd5e1; border-radius: 7px;
+    font-size: 13px; font-family: inherit; background: white;
+}
+.add-row .field input:focus, .add-row .field select:focus {
+    outline: none; border-color: #1e6fbf; box-shadow: 0 0 0 3px rgba(30,111,191,0.1);
+}
+.btn-add {
+    display: inline-flex; align-items: center; gap: 6px; padding: 9px 18px;
+    background: linear-gradient(135deg, #10b981, #059669); color: white;
+    border: none; border-radius: 7px; font-size: 13px; font-weight: 700;
+    cursor: pointer; font-family: inherit; transition: transform 0.1s;
+}
+.btn-add:hover { transform: translateY(-1px); }
+
+.header-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; flex-wrap: wrap; gap: 12px; }
+
+.section-card {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 28px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+}
+.section-card h2 {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1e3a5f;
+    margin: 0 0 16px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-bottom: 12px;
+    border-bottom: 1.5px solid #f1f5f9;
+}
+
+@media (max-width: 700px) {
+    .add-row { flex-direction: column; }
+    .add-row .field { min-width: 100%; }
+}
+</style>
+
+<div class="header-row">
+    <h1 style="margin: 0; padding: 0; border: none; font-size: 20px; display: flex; align-items: center; gap: 8px;">
+        <i class="ph ph-archive"></i> Gestión de Ítems – Archivador
+    </h1>
+    <div style="display:flex; gap:8px;">
+        <a href="{{ url_for('archivador_list') }}" class="action-btn" style="border-color: #e2e8f0; color: #475569; background: white; font-size: 13px; padding: 8px 16px;">
+            <i class="ph ph-folder"></i> Archivador
+        </a>
+        <a href="{{ url_for('dashboard') }}" class="action-btn" style="border-color: #e2e8f0; color: #475569; background: white; font-size: 13px; padding: 8px 16px;">
+            <i class="ph ph-arrow-left"></i> Volver al Dashboard
+        </a>
+    </div>
+</div>
+
+<!-- ═══════════════ CATEGORÍAS ═══════════════ -->
+<div class="section-card">
+    <h2><i class="ph ph-tag"></i> Categorías</h2>
+
+    <div class="add-form">
+        <h3><i class="ph ph-plus-circle"></i> Agregar Nueva Categoría</h3>
+        <form method="POST" action="{{ url_for('archivador_categoria_agregar') }}">
+            <div class="add-row">
+                <div class="field">
+                    <label>Nombre de la categoría</label>
+                    <input type="text" name="nombre" required placeholder="Ej. Financiero">
+                </div>
+                <button type="submit" class="btn-add" style="height: 38px;"><i class="ph ph-plus"></i> Agregar</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="table-responsive">
+        <table class="items-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Nombre</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cat in categorias %}
+                <tr>
+                    <td>{{ cat.id }}</td>
+                    <td><strong>{{ cat.nombre }}</strong></td>
+                    <td>
+                        {% if cat.activo == 1 %}
+                            <span class="status-active">● Activa</span>
+                        {% else %}
+                            <span class="status-inactive">● Inactiva</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div style="display:flex; gap:4px; justify-content:center;">
+                            <form method="POST" action="{{ url_for('archivador_categoria_toggle', id=cat.id) }}" style="margin:0; display:inline;">
+                                <button type="submit" class="action-btn btn-toggle">
+                                    {% if cat.activo == 1 %}
+                                        <i class="ph ph-eye-slash"></i> Desactivar
+                                    {% else %}
+                                        <i class="ph ph-eye"></i> Activar
+                                    {% endif %}
+                                </button>
+                            </form>
+                            <form method="POST" action="{{ url_for('archivador_categoria_eliminar', id=cat.id) }}" style="margin:0; display:inline;" onsubmit="return confirm('¿Estás seguro de eliminar la categoría «{{ cat.nombre }}»?');">
+                                <button type="submit" class="action-btn btn-delete">
+                                    <i class="ph ph-trash"></i> Eliminar
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="4" class="text-center text-muted py-4">
+                        No hay categorías registradas.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- ═══════════════ FORMULARIOS ═══════════════ -->
+<div class="section-card">
+    <h2><i class="ph ph-file-text"></i> Formularios</h2>
+
+    <div class="add-form">
+        <h3><i class="ph ph-plus-circle"></i> Agregar Nuevo Formulario</h3>
+        <form method="POST" action="{{ url_for('archivador_formulario_agregar') }}">
+            <div class="add-row">
+                <div class="field">
+                    <label>Nombre del formulario</label>
+                    <input type="text" name="nombre" required placeholder="Ej. Consentimiento Informado">
+                </div>
+                <button type="submit" class="btn-add" style="height: 38px;"><i class="ph ph-plus"></i> Agregar</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="table-responsive">
+        <table class="items-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Nombre del Formulario</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for f in formularios %}
+                <tr style="{{ 'opacity: 0.5;' if f.activo != 1 }}">
+                    <td>{{ f.id }}</td>
+                    <td>
+                        <form method="POST" action="{{ url_for('archivador_formulario_editar', id=f.id) }}" style="display:flex; gap:6px;">
+                            <input type="text" name="nombre" value="{{ f.nombre }}" style="padding:4px 8px; border:1px solid #cbd5e1; border-radius:4px; font-size:12px; width:100%;" required>
+                            <button type="submit" style="background:#1e6fbf; color:white; border:none; border-radius:4px; padding:4px 8px; font-size:11px; cursor:pointer;">Guardar</button>
+                        </form>
+                    </td>
+                    <td>
+                        {% if f.activo == 1 %}
+                            <span class="status-active">● Activo</span>
+                        {% else %}
+                            <span class="status-inactive">● Inactivo</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div style="display:flex; gap:4px; justify-content:center;">
+                            <form method="POST" action="{{ url_for('archivador_formulario_toggle', id=f.id) }}" style="margin:0; display:inline;">
+                                <button type="submit" class="action-btn btn-toggle">
+                                    {% if f.activo == 1 %}
+                                        <i class="ph ph-eye-slash"></i> Desactivar
+                                    {% else %}
+                                        <i class="ph ph-eye"></i> Activar
+                                    {% endif %}
+                                </button>
+                            </form>
+                            <form method="POST" action="{{ url_for('archivador_formulario_eliminar', id=f.id) }}" style="margin:0; display:inline;" onsubmit="return confirm('¿Estás seguro de eliminar el formulario «{{ f.nombre }}»?');">
+                                <button type="submit" class="action-btn btn-delete">
+                                    <i class="ph ph-trash"></i> Eliminar
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="4" class="text-center text-muted py-4">
+                        No hay formularios registrados.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <p style="font-size:12px; color:#64748b; margin: 8px 0 0;">
+        <i class="ph ph-info"></i> Los formularios nuevos también se agregan automáticamente al usar la opción «Otro» al subir un documento.
+    </p>
+</div>
+
+{% endblock %}

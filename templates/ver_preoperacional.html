@@ -1,0 +1,406 @@
+{% extends "base.html" %}
+{% block title %}Preoperacional #{{ record.id }}{% endblock %}
+{% block content %}
+
+<style>
+.detail-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; padding-bottom: 14px; border-bottom: 2px solid #dbeafe; flex-wrap: wrap; gap: 10px; }
+.info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 20px; }
+.info-item { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; }
+.info-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: #64748b; font-weight: 700; margin-bottom: 4px; }
+.info-value { font-size: 14px; font-weight: 600; color: #1e3a5f; }
+
+.result-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+.result-table th { background: linear-gradient(135deg, #ebf4ff, #dbeafe); font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: #1e40af; padding: 10px 14px; border: 1px solid #e2e8f0; text-align: left; }
+.result-table td { padding: 10px 14px; border: 1px solid #f1f5f9; font-size: 13px; }
+.result-table tr:hover td { background: #fafcff; }
+
+.val-si { background: #d1fae5; color: #065f46; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; display: inline-block; text-align: center; line-height: 1.2; }
+.val-no { background: #fee2e2; color: #991b1b; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; display: inline-block; text-align: center; line-height: 1.2; }
+.val-na { background: #f1f5f9; color: #64748b; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; display: inline-block; text-align: center; line-height: 1.2; }
+.val-empty { color: #cbd5e1; font-size: 12px; }
+
+/* ── Split columns checklist ── */
+.col-split-table td { padding: 5px 8px; font-size: 11px; line-height: 1.2; }
+.col-split-table th { padding: 6px 8px; font-size: 9px; text-transform: uppercase; letter-spacing: 0.5px; }
+.col-split-table .val-si, .col-split-table .val-no, .col-split-table .val-na { padding: 4px 6px; font-size: 9px; font-weight: 700; border-radius: 8px; }
+
+.cat-title { font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #1e40af; margin: 20px 0 10px; display: flex; align-items: center; gap: 8px; }
+.cat-title::after { content: ''; flex: 1; height: 1px; background: #dbeafe; }
+
+.obs-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 14px; font-size: 13px; color: #92400e; }
+.obs-empty { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 14px; font-size: 13px; color: #166534; }
+
+.firma-box { text-align: center; margin-top: 20px; padding: 16px; border-top: 2px solid #e2e8f0; }
+.firma-box img { max-height: 80px; margin-bottom: 6px; }
+.firma-box .firma-name { font-weight: 700; font-size: 13px; color: #1e3a5f; }
+.firma-box .firma-meta { font-size: 11px; color: #64748b; }
+
+/* Header */
+.doc-header { display: flex; align-items: center; justify-content: space-between; border-bottom: 3px solid #1e6fbf; padding-bottom: 18px; margin-bottom: 24px; }
+.doc-logo img { max-height: 120px; max-width: 250px; object-fit: contain; }
+tr { page-break-inside: avoid; break-inside: avoid; }
+.doc-section-title, .cat-title { page-break-after: avoid; break-after: avoid; page-break-inside: avoid; break-inside: avoid; }
+.doc-logo-placeholder { width: 100px; height: 60px; background: #f1f5f9; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #94a3b8; font-size: 11px; }
+.doc-inst { text-align: right; }
+.doc-inst .inst-name { font-size: 15px; font-weight: 800; color: #1e3a5f; }
+.doc-inst .inst-sub { font-size: 11px; color: #64748b; margin-top: 2px; }
+
+/* Title band */
+.doc-title-band {
+    background: linear-gradient(135deg, #1e6fbf, #1e3a5f);
+    color: white; border-radius: 8px; padding: 14px 20px; margin-bottom: 22px;
+    display: flex; align-items: center; justify-content: space-between;
+}
+.doc-title-band .dt-main { font-size: 17px; font-weight: 800; letter-spacing: -0.3px; }
+.doc-title-band .dt-num { font-size: 13px; font-weight: 600; opacity: 0.8; }
+
+/* Footer */
+.doc-footer { margin-top: 30px; padding-top: 14px; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; font-size: 10px; color: #94a3b8; }
+
+.formal-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 24px;
+    border: 1.5px solid #cbd5e1;
+}
+.formal-table td {
+    padding: 10px 14px;
+    border: 1px solid #cbd5e1;
+    font-size: 12px;
+    color: #334155;
+    vertical-align: middle;
+}
+.formal-table .lbl {
+    font-weight: 700;
+    background-color: #f8fafc;
+    color: #1e293b;
+    text-transform: uppercase;
+    font-size: 10px;
+    letter-spacing: 0.5px;
+    width: 25%;
+}
+.formal-table .val {
+    width: 25%;
+    font-weight: 600;
+    color: #0f172a;
+}
+@media print {
+    .formal-table { border: 1.5px solid #000; }
+    .formal-table td { border: 1px solid #000; color: #000; }
+    .formal-table .lbl { background-color: #f1f5f9; color: #000; }
+    .formal-table .val { color: #000; }
+    .no-print { display: none !important; }
+    .container { box-shadow: none; border: none; max-width: 100%; }
+    body { background: white; }
+}
+
+@media (max-width: 700px) {
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .table-wrap table { min-width: 500px; }
+    #preoperacional-doc { padding: 12px !important; }
+}
+
+/* ── Action buttons (height-normalized) ── */
+.action-btn {
+    -webkit-appearance: none;
+    appearance: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 38px;
+    min-height: 38px;
+    max-height: 38px;
+    padding: 0 16px;
+    margin: 0;
+    border-radius: 7px;
+    font-size: 13px;
+    font-family: inherit;
+    font-weight: 600;
+    box-sizing: border-box;
+    white-space: nowrap;
+    text-decoration: none;
+    cursor: pointer;
+    line-height: 1;
+    border: none;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+.action-btn-back {
+    background: #f1f5f9;
+    color: #475569;
+    border: 1px solid #e2e8f0;
+}
+.action-btn-primary {
+    background: #1e40af;
+    color: white;
+}
+.action-btn:hover { opacity: 0.9; }
+</style>
+
+<div class="detail-header">
+    <h1 style="margin:0; padding:0; border:none; font-size:20px;">🚗 Preoperacional Conductores #{{ record.id }}</h1>
+    <div style="display:flex; gap:8px; align-items:stretch;" class="no-print">
+        <a href="javascript:history.back()" class="action-btn action-btn-back">← Volver a Registros</a>
+        {% if session.usuario.rol == 'admin' %}
+        <button onclick="descargarPDF()" id="btn-pdf" class="action-btn action-btn-primary">📥 Descargar PDF</button>
+        {% endif %}
+    </div>
+</div>
+
+<div id="preoperacional-doc" style="background: white; padding: 20px;">
+
+    <!-- ── Encabezado institucional ── -->
+    <div class="doc-header">
+        <div class="doc-logo">
+            {% if cfg.get('logo') %}
+            <img src="{{ cfg.logo }}" alt="Logo" crossorigin="anonymous">
+            {% else %}
+            <div class="doc-logo-placeholder">Sin logo</div>
+            {% endif %}
+        </div>
+        <div class="doc-inst">
+            <div class="inst-name">{{ cfg.get('nombre_institucion','Institución sin configurar') }}</div>
+            {% if cfg.get('nit') %}
+            <div class="inst-sub">NIT: {{ cfg.nit }}</div>
+            {% endif %}
+            {% if cfg.get('habilitacion') %}
+            <div class="inst-sub">{{ cfg.habilitacion|format_habilitacion }}</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- ── Título ── -->
+    <div class="doc-title-band">
+        <div>
+            <div class="dt-main">🚗 Preoperacional de Conductores</div>
+            <div class="dt-num">Registro N° {{ record.id }} · Creado: {{ record.fecha_registro or '—' }}</div>
+        </div>
+    </div>
+
+<!-- Datos del Vehículo y Conductor -->
+<div class="table-wrap">
+<table class="formal-table">
+  <tbody>
+    <tr>
+      <td class="lbl">Fecha</td>
+      <td class="val">{{ record.fecha or '—' }}</td>
+      <td class="lbl">Hora</td>
+      <td class="val">{{ record.hora or '—' }}</td>
+    </tr>
+    <tr>
+      <td class="lbl">Placa del Vehículo</td>
+      <td class="val">{{ record.placa_vehiculo or '—' }}</td>
+      <td class="lbl">Tipo de Vehículo</td>
+      <td class="val">{{ record.tipo_vehiculo or '—' }}</td>
+    </tr>
+    {% if record.tipo_vehiculo == 'Ambulancia' %}
+    <tr>
+      <td class="lbl">Tipo (Ambulancia)</td>
+      <td class="val">{{ record.tipo_ambulancia or '—' }}</td>
+      <td class="lbl">Móvil</td>
+      <td class="val">{{ record.movil or '—' }}</td>
+    </tr>
+    {% endif %}
+    <tr>
+      <td class="lbl">Marca</td>
+      <td class="val">{{ record.marca or '—' }}</td>
+      <td class="lbl">Serie</td>
+      <td class="val">{{ record.serie or '—' }}</td>
+    </tr>
+    <tr>
+      <td class="lbl">Modelo</td>
+      <td class="val">{{ record.modelo or '—' }}</td>
+      <td class="lbl">Nombre del Conductor</td>
+      <td class="val">{{ record.nombre_conductor or '—' }}</td>
+    </tr>
+    <tr>
+      <td class="lbl">Vigencia SOAT</td>
+      <td class="val">
+            {% if record.soat_vigencia and record.soat_vigencia != '—' %}
+                {% set parts = record.soat_vigencia.split('-') %}
+                {% if parts|length == 3 %}{{ parts[2] }}/{{ parts[1] }}/{{ parts[0] }}{% else %}{{ record.soat_vigencia }}{% endif %}
+            {% else %}
+                —
+            {% endif %}
+      </td>
+      <td class="lbl">Vigencia RTM</td>
+      <td class="val">
+            {% if record.rtm_vigencia and record.rtm_vigencia != '—' %}
+                {% set parts = record.rtm_vigencia.split('-') %}
+                {% if parts|length == 3 %}{{ parts[2] }}/{{ parts[1] }}/{{ parts[0] }}{% else %}{{ record.rtm_vigencia }}{% endif %}
+            {% else %}
+                —
+            {% endif %}
+      </td>
+    </tr>
+    <tr>
+      <td class="lbl">Kilometraje Actual</td>
+      <td class="val">{{ record.kilometraje or '—' }}</td>
+      <td class="lbl">Próximo Cambio de Aceite</td>
+      <td class="val">{{ record.proximo_aceite or '—' }}</td>
+    </tr>
+    <tr>
+      <td class="lbl">Registrado por</td>
+      <td class="val">{{ record.registrado_por or '—' }}</td>
+      <td class="lbl">Fecha de Registro</td>
+      <td class="val">{{ record.fecha_registro or '—' }}</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+{% for cat, items in items_por_cat.items() %}
+<div class="table-wrap">
+{% set total_items = items|length %}
+{% set rows_count = ((total_items + 1) / 2)|int %}
+<table class="result-table col-split-table">
+<thead>
+<tr>
+    <th colspan="4" style="border: none; background: none; text-align: left; padding: 0 0 10px 0;">
+        <div class="cat-title" style="margin-bottom: 0;">{% if cat == 'Mecánica' %}🔧{% elif cat == 'Médica' %}🏥{% else %}📦{% endif %} {{ cat }}</div>
+    </th>
+</tr>
+<tr>
+    <th style="width:30%;">Ítem</th>
+    <th style="width:20%; text-align:center;">Estado</th>
+    <th style="border-left: 2px solid #cbd5e1; padding-left: 10px; width:30%;">Ítem</th>
+    <th style="width:20%; text-align:center;">Estado</th>
+</tr></thead>
+<tbody>
+{% for i in range(rows_count) %}
+    {% set left_item = items[i] %}
+    {% set right_idx = i + rows_count %}
+    {% set right_item = items[right_idx] if right_idx < total_items else None %}
+<tr>
+    <td>{{ left_item.nombre }}</td>
+    <td style="text-align:center;">
+        {% set val = left_item.valor %}
+        {% if val == 'SI' %}
+            <span class="val-si">Óptimas condiciones y funcionamiento</span>
+        {% elif val == 'NO' %}
+            <span class="val-no">Se identifica novedad y/o fallo</span>
+        {% elif val == 'NA' %}
+            <span class="val-na">N/A</span>
+        {% else %}
+            <span class="val-empty">— Sin respuesta —</span>
+        {% endif %}
+    </td>
+    
+    {% if right_item %}
+    <td style="border-left: 2px solid #cbd5e1; padding-left: 10px;">{{ right_item.nombre }}</td>
+    <td style="text-align:center;">
+        {% set val = right_item.valor %}
+        {% if val == 'SI' %}
+            <span class="val-si">Óptimas condiciones y funcionamiento</span>
+        {% elif val == 'NO' %}
+            <span class="val-no">Se identifica novedad y/o fallo</span>
+        {% elif val == 'NA' %}
+            <span class="val-na">N/A</span>
+        {% else %}
+            <span class="val-empty">— Sin respuesta —</span>
+        {% endif %}
+    </td>
+    {% else %}
+    <td style="border-left: 2px solid #cbd5e1; padding-left: 10px;"></td>
+    <td></td>
+    {% endif %}
+</tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+{% endfor %}
+
+<!-- Observaciones -->
+<div class="cat-title">📝 Observaciones</div>
+{% if record.observaciones %}
+<div class="obs-box" style="white-space: pre-wrap;">{{ record.observaciones }}</div>
+{% else %}
+<div class="obs-empty">✅ Sin novedades reportadas.</div>
+{% endif %}
+
+<!-- Evidencia Fotográfica -->
+{% if record.evidencia_list %}
+<div class="cat-title">📷 Evidencia Fotográfica</div>
+<div style="text-align: center; margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 15px; justify-content: center;">
+    {% for ev in record.evidencia_list %}
+    <img src="{{ url_for('static', filename='uploads/evidencias/' ~ ev) }}" style="max-width: 100%; max-height: 400px; border-radius: 8px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);" alt="Evidencia Preoperacional">
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- Firma del Registrador -->
+{% if record.firma_registrador %}
+<div class="firma-box">
+<div class="signature-container">
+        <img src="{{ record.firma_registrador }}" alt="Firma">
+    </div>
+    <div class="firma-name">{{ record.registrado_por }}</div>
+    <div class="firma-meta">
+        {{ record.perfil_registrador or '' }}
+        {% if record.registrado_por_identificacion %} · ID: {{ record.registrado_por_identificacion }}{% endif %}
+    </div>
+</div>
+</div>
+</div>
+{% endif %}
+
+    <!-- ── Pie de página ── -->
+    <div class="doc-footer">
+        <span>{{ cfg.get('nombre_institucion','') }} · {{ cfg.get('nit','') }}</span>
+        <span>Impreso por: {{ session.usuario.nombre }} - <span class="print-datetime"></span></span>
+    </div>
+
+</div> <!-- end preoperacional-doc -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script>
+function descargarPDF() {
+    // Set print timestamp dynamically
+    const now = new Date();
+    const formattedDate = now.getFullYear() + '-' + 
+                          String(now.getMonth() + 1).padStart(2, '0') + '-' + 
+                          String(now.getDate()).padStart(2, '0') + ' ' + 
+                          String(now.getHours()).padStart(2, '0') + ':' + 
+                          String(now.getMinutes()).padStart(2, '0') + ':' + 
+                          String(now.getSeconds()).padStart(2, '0');
+    document.querySelectorAll('.print-datetime').forEach(el => el.textContent = formattedDate);
+
+    const btn = document.getElementById('btn-pdf');
+    btn.textContent = '⏳ Generando...';
+    btn.disabled = true;
+
+    const opt = {
+        margin: [8, 8, 8, 8],
+        filename: "Preoperacional_{{ record.id }}_{{ cfg.get('nombre_institucion','APH')|replace(' ','_') }}.pdf",
+        image: { type: 'jpeg', quality: 0.95 },
+        html2canvas:  { scale: 2, useCORS: true },
+        jsPDF:        { unit: 'mm', format: 'letter', orientation: 'portrait' }
+    };
+
+    const doc = document.getElementById('preoperacional-doc');
+    
+    const tempContainer = document.createElement('div');
+    tempContainer.style.position = 'absolute';
+    tempContainer.style.left = '-9999px';
+    tempContainer.style.top = window.scrollY + 'px';
+    tempContainer.style.width = '800px';
+    tempContainer.style.background = 'white';
+    
+    const clone = doc.cloneNode(true);
+    const wrappers = clone.querySelectorAll('.table-wrap, .table-responsive');
+    wrappers.forEach(w => w.style.overflowX = 'visible');
+    
+    tempContainer.appendChild(clone);
+    document.body.appendChild(tempContainer);
+
+    html2pdf().set(opt).from(clone).save()
+        .then(() => { 
+            document.body.removeChild(tempContainer);
+            btn.textContent = '📥 Descargar PDF'; 
+            btn.disabled = false; 
+        });
+}
+</script>
+
+{% endblock %}

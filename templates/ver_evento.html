@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Evento #{{ evento.id }} – {{ cfg.get('nombre_institucion','Institución') }}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Inter', 'Segoe UI', Arial, sans-serif; background: #f1f5f9; color: #0f172a; font-size: 14px; }
+
+/* ── Toolbar ── */
+.toolbar {
+    background: linear-gradient(135deg, #1a56a0, #1e3a5f);
+    color: white; padding: 10px 22px;
+    display: flex; gap: 10px; align-items: center;
+    position: sticky; top: 0; z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+.toolbar-btn {
+    -webkit-appearance: none;
+    appearance: none;
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25);
+    color: white; padding: 0 16px; border-radius: 7px;
+    font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit;
+    text-decoration: none; transition: background 0.15s; line-height: 1;
+    height: 38px; min-height: 38px; max-height: 38px; box-sizing: border-box;
+    white-space: nowrap; overflow: hidden; margin: 0; flex-shrink: 0;
+}
+.toolbar-btn:hover { background: rgba(255,255,255,0.25); }
+.toolbar-btn.primary { background: linear-gradient(135deg,#10b981,#059669); border-color:transparent; }
+.toolbar-title { font-weight: 700; font-size: 14px; margin-right: auto; }
+
+/* ── Document wrapper ── */
+.doc-wrap { max-width: 800px; margin: 24px auto; padding: 0 16px 40px; }
+
+/* ── The printable document ── */
+#evento-doc {
+    background: white; border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    padding: 36px 44px; border: 1px solid #e2e8f0;
+}
+
+/* Header */
+.doc-header { display: flex; align-items: center; justify-content: space-between; border-bottom: 3px solid #1e6fbf; padding-bottom: 18px; margin-bottom: 24px; }
+.doc-logo img { max-height: 120px; max-width: 250px; object-fit: contain; }
+tr { page-break-inside: avoid; break-inside: avoid; }
+.doc-section-title, .cat-title { page-break-after: avoid; break-after: avoid; page-break-inside: avoid; break-inside: avoid; }
+.doc-logo-placeholder { width: 100px; height: 60px; background: #f1f5f9; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #94a3b8; font-size: 11px; }
+.doc-inst { text-align: right; }
+.doc-inst .inst-name { font-size: 15px; font-weight: 800; color: #1e3a5f; }
+.doc-inst .inst-sub { font-size: 11px; color: #64748b; margin-top: 2px; }
+
+/* Title band */
+.doc-title-band {
+    background: linear-gradient(135deg, #1e6fbf, #1e3a5f);
+    color: white; border-radius: 8px; padding: 14px 20px; margin-bottom: 22px;
+    display: flex; align-items: center; justify-content: space-between;
+}
+.doc-title-band .dt-main { font-size: 17px; font-weight: 800; letter-spacing: -0.3px; }
+.doc-title-band .dt-num { font-size: 13px; font-weight: 600; opacity: 0.8; }
+
+/* Sections */
+.doc-section { margin-bottom: 20px; }
+.doc-section-title {
+    font-size: 10px; font-weight: 800; text-transform: uppercase;
+    letter-spacing: 0.6px; color: #1e6fbf; border-bottom: 1.5px solid #dbeafe;
+    padding-bottom: 5px; margin-bottom: 12px;
+}
+
+/* Info grid (reemplazado por formal-table para más formalidad) */
+.formal-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 15px;
+    border: 1.5px solid #cbd5e1;
+}
+.formal-table td {
+    padding: 6px 10px;
+    border: 1px solid #cbd5e1;
+    font-size: 11px;
+    color: #334155;
+    vertical-align: middle;
+}
+.formal-table .lbl {
+    font-weight: 700;
+    background-color: #f8fafc;
+    color: #1e293b;
+    text-transform: uppercase;
+    font-size: 9px;
+    letter-spacing: 0.5px;
+    width: 20%;
+}
+.formal-table .val {
+    width: 30%;
+    font-weight: 600;
+    color: #0f172a;
+}
+
+/* Resources table */
+.recursos-table { width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 15px; }
+.recursos-table th { background: #eff6ff; color: #1e40af; font-size: 9px; text-transform: uppercase; letter-spacing: 0.4px; padding: 5px 8px; border: 1px solid #dbeafe; }
+.recursos-table td { padding: 5px 8px; border: 1px solid #e2e8f0; }
+.recursos-table .qty-cell { text-align: center; font-weight: 700; color: #1e40af; }
+.qty-badge { display: inline-block; color: #1e40af; font-size: 11px; font-weight: 700; word-break: break-word; }
+
+/* Signatures */
+.sig-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px; }
+.sig-box { border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; }
+.sig-box-title { background: #f1f5f9; padding: 5px 10px; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #475569; border-bottom: 1px solid #e2e8f0; }
+.sig-box-body { padding: 5px 10px; min-height: 50px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.sig-box-body img { max-height: 50px; max-width: 100%; }
+.sig-name { font-size: 10px; color: #64748b; font-weight: 600; margin-top: 4px; text-align: center; }
+.sig-empty { color: #cbd5e1; font-size: 10px; font-style: italic; }
+
+/* Footer */
+.doc-footer { margin-top: 20px; padding-top: 10px; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; font-size: 9px; color: #94a3b8; }
+
+/* Duration badge */
+.dur-badge { display:inline-block; background:#eff6ff; color:#1e40af; border:1px solid #bfdbfe; padding:2px 8px; border-radius:20px; font-size:10px; font-weight:700; }
+
+@media print {
+    .toolbar { display: none !important; }
+    .doc-wrap { margin: 0; padding: 0; max-width: 100%; }
+    #evento-doc { border: none; box-shadow: none; border-radius: 0; padding: 10px 15px; }
+    .formal-table { border: 1px solid #000; margin-bottom: 10px; }
+    .formal-table td { border: 1px solid #000; color: #000; padding: 4px 6px; }
+    .formal-table .lbl { background-color: #f1f5f9; color: #000; }
+    .doc-header { padding-bottom: 10px; margin-bottom: 15px; }
+    .doc-title-band { padding: 8px 12px; margin-bottom: 15px; }
+    .doc-section-title { margin-bottom: 6px; }
+}
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+    <a href="javascript:history.back()" class="toolbar-btn">← Volver</a>
+    <span class="toolbar-title">📅 Formulario Evento #{{ evento.id }}</span>
+    {% if session.usuario.rol != 'usuario' %}
+    <button class="toolbar-btn primary" onclick="descargarPDF()" id="btn-pdf">📄 Descargar PDF</button>
+    {% endif %}
+</div>
+
+<div class="doc-wrap">
+<div id="evento-doc">
+
+    <!-- ── Encabezado institucional ── -->
+    <div class="doc-header">
+        <div class="doc-logo">
+            {% if cfg.get('logo') %}
+            <img src="{{ cfg.logo }}" alt="Logo" crossorigin="anonymous">
+            {% else %}
+            <div class="doc-logo-placeholder">Sin logo</div>
+            {% endif %}
+        </div>
+        <div class="doc-inst">
+            <div class="inst-name">{{ cfg.get('nombre_institucion','Institución sin configurar') }}</div>
+            {% if cfg.get('nit') %}
+            <div class="inst-sub">NIT: {{ cfg.nit }}</div>
+            {% endif %}
+            {% if cfg.get('habilitacion') %}
+            <div class="inst-sub">{{ cfg.habilitacion|format_habilitacion }}</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- ── Título ── -->
+    <div class="doc-title-band">
+        <div>
+            <div class="dt-main">📅 Formulario de Eventos APH</div>
+            <div class="dt-num">Evento N° {{ evento.id }} · Registrado: {{ evento.fecha_registro or '—' }}</div>
+        </div>
+    </div>
+
+    <!-- ── Datos y Tiempos del evento en tabla formal ── -->
+    <table class="formal-table">
+        <tbody>
+            <tr>
+                <td class="lbl">Tipo de Evento</td>
+                <td class="val" colspan="3">{{ evento.tipo_evento or '—' }}</td>
+            </tr>
+            <tr>
+                <td class="lbl">Fecha de Inicio</td>
+                <td class="val">{{ evento.fecha_inicio or '—' }}</td>
+                <td class="lbl">Hora de Inicio</td>
+                <td class="val">{{ evento.hora_inicio or '—' }}</td>
+            </tr>
+            <tr>
+                <td class="lbl">Fecha de Finalización</td>
+                <td class="val">{{ evento.fecha_finalizacion or '—' }}</td>
+                <td class="lbl">Hora de Finalización</td>
+                <td class="val">{{ evento.hora_finalizacion or '—' }}</td>
+            </tr>
+            <tr>
+                <td class="lbl">Dirección</td>
+                <td class="val">{{ evento.direccion or '—' }}</td>
+                <td class="lbl">Municipio</td>
+                <td class="val">{{ evento.municipio or '—' }}</td>
+            </tr>
+            <tr>
+                <td class="lbl">Afectados</td>
+                <td class="val">{{ evento.num_afectados or '0' }}</td>
+                <td class="lbl">Estado</td>
+                <td class="val">
+                    {% if evento.fecha_finalizacion %}
+                    <span class="dur-badge">✅ Finalizado</span>
+                    {% else %}
+                    <span style="color:#f59e0b; font-weight:700;">🟡 En curso</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% if evento.observaciones %}
+            <tr>
+                <td class="lbl">Observaciones</td>
+                <td class="val" colspan="3" style="font-weight:400;">{{ evento.observaciones }}</td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+
+    <!-- ── Recursos ── -->
+    {% if evento.recursos_activados and evento.recursos_activados != 'Ninguno' %}
+    <div class="doc-section">
+        <div class="doc-section-title">🚑 Recursos Prehospitalarios Activados</div>
+        <table class="recursos-table">
+            <thead><tr><th>Recurso</th><th style="text-align:center; width:100px;">Cantidad</th></tr></thead>
+            <tbody>
+            {% for item in evento.recursos_activados.split(' | ') %}
+            {% if ':' in item %}
+            {% set parts = item.split(':') %}
+            {% set recurso_nombre = parts[0].strip() %}
+            {% set recurso_valor = parts[1].strip() %}
+            {% set upper_name = recurso_nombre|upper %}
+            {% if upper_name in ['TAM', 'TAB', 'UNIDAD LOGISTICA', 'UNIDAD LOGÍSTICA', 'UNIDAD DE RESCATE', 'MOTO'] %}
+                {% if recurso_valor and recurso_valor != '0' and recurso_valor != 'Ninguno' %}
+                    {% set recurso_valor = recurso_valor.split(',')|length %}
+                {% else %}
+                    {% set recurso_valor = '0' %}
+                {% endif %}
+            {% endif %}
+            <tr>
+                <td style="font-weight:600;">{{ recurso_nombre }}</td>
+                <td class="qty-cell"><span class="qty-badge">{{ recurso_valor }}</span></td>
+            </tr>
+            {% endif %}
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    <!-- ── Firmas ── -->
+    <div class="doc-section">
+        <div class="doc-section-title">✍️ Firmas</div>
+        <div class="sig-grid">
+            <div class="sig-box">
+                <div class="sig-box-title">Coordinador Evento</div>
+                <div class="sig-box-body">
+                    {% if evento.firma_coordinador_evento %}
+                    <div class="signature-container">
+                        <img src="{{ evento.firma_coordinador_evento }}" alt="Firma Coordinador">
+                    </div>
+                    {% else %}
+                    <span class="sig-empty">Sin firma</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="sig-box">
+                <div class="sig-box-title">Coordinador Organismo de Socorro</div>
+                <div class="sig-box-body">
+                    {% if evento.firma_registrador %}
+                    <div class="signature-container">
+                        <img src="{{ evento.firma_registrador }}" alt="Firma" crossorigin="anonymous">
+                    </div>
+                    {% else %}
+                    <span class="sig-empty">Sin firma</span>
+                    {% endif %}
+                    <div class="sig-name">
+                        {{ evento.registrado_por }}
+                        {% if evento.perfil_registrador %}<br><span style="font-weight:400; color:#94a3b8;">{{ evento.perfil_registrador }}</span>{% endif %}
+                        {% if evento.registro_medico_registrador %}<br><span style="font-size:10px; color:#94a3b8;">Resolución en Salud: {{ evento.registro_medico_registrador }}</span>{% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Pie de página ── -->
+    <div class="doc-footer">
+        <span>{{ cfg.get('nombre_institucion','') }} · {{ cfg.get('nit','') }}</span>
+        <span>Impreso por: {{ session.usuario.nombre }} - <span class="print-datetime"></span></span>
+    </div>
+
+</div><!-- #evento-doc -->
+</div>
+
+{% if session.usuario.rol != 'usuario' %}
+<script>
+function descargarPDF() {
+    // Set print timestamp dynamically
+    const now = new Date();
+    const formattedDate = now.getFullYear() + '-' + 
+                          String(now.getMonth() + 1).padStart(2, '0') + '-' + 
+                          String(now.getDate()).padStart(2, '0') + ' ' + 
+                          String(now.getHours()).padStart(2, '0') + ':' + 
+                          String(now.getMinutes()).padStart(2, '0') + ':' + 
+                          String(now.getSeconds()).padStart(2, '0');
+    document.querySelectorAll('.print-datetime').forEach(el => el.textContent = formattedDate);
+
+    const btn = document.getElementById('btn-pdf');
+    btn.textContent = '⏳ Generando...';
+    btn.disabled = true;
+    const opt = {
+        margin: [8, 8, 8, 8],
+        filename: "Evento_{{ evento.id }}_{{ cfg.get('nombre_institucion','APH')|replace(' ','_') }}.pdf",
+        image: { type: 'jpeg', quality: 0.95 },
+        html2canvas: { scale: 2, useCORS: true, allowTaint: true, logging: false },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak: { mode: ['css', 'legacy'] }
+    };
+    
+    const doc = document.getElementById('evento-doc');
+    
+    const tempContainer = document.createElement('div');
+    tempContainer.style.position = 'absolute';
+    tempContainer.style.left = '-9999px';
+    tempContainer.style.top = window.scrollY + 'px';
+    tempContainer.style.width = '800px';
+    tempContainer.style.background = 'white';
+    
+    const clone = doc.cloneNode(true);
+    const wrappers = clone.querySelectorAll('.table-wrap, .table-responsive');
+    wrappers.forEach(w => w.style.overflowX = 'visible');
+    
+    tempContainer.appendChild(clone);
+    document.body.appendChild(tempContainer);
+
+    html2pdf().set(opt).from(clone).save()
+        .then(() => { 
+            document.body.removeChild(tempContainer);
+            btn.textContent = '📄 Descargar PDF'; btn.disabled = false; 
+        });
+}
+</script>
+{% endif %}
+</body>
+</html>

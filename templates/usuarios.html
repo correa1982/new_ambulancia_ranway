@@ -1,0 +1,885 @@
+{% extends "base.html" %}
+{% block title %}Gestión de Usuarios{% endblock %}
+{% block content %}
+<h1>Gestión de Usuarios</h1>
+<p>Administre los accesos, roles, perfiles y firmas digitalizadas del personal de atención médica.</p>
+
+<div class="accordion">
+
+<div class="accordion-item active">
+    <div class="accordion-header" onclick="toggleAcordeon(this)">
+        <div class="accordion-header-left">
+            <span class="accordion-icon">👤</span>
+            <span class="accordion-title">Registrar Nuevo Usuario</span>
+        </div>
+        <span class="accordion-arrow">▼</span>
+    </div>
+    <div class="accordion-body">
+        <form method="POST" id="user-form">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px; padding: 12px 16px; background: #f0f7ff; border-radius: 8px; border-left: 4px solid #3b82f6;">
+                <span style="font-size: 20px;">📋</span>
+                <span style="font-size: 13px; color: #1e40af; font-weight: 500;">Complete los datos del nuevo usuario. Los campos marcados con <span style="color: #ef4444;">*</span> son obligatorios.</span>
+            </div>
+
+            <div style="background: #fafcff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 18px 20px; margin-bottom: 16px;">
+                <div style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;"><span style="font-size: 14px;">👤</span> Datos Personales</div>
+                <div class="row">
+                    <div>
+                        <label>Nombre Completo <span style="color: #ef4444;">*</span></label>
+                        <input type="text" name="nombre" required placeholder="Ej. Juan Pérez">
+                    </div>
+                    <div>
+                        <label>Número de Identificación <span style="color: #ef4444;">*</span></label>
+                        <input type="text" name="identificacion" required placeholder="Ej. 10293847">
+                    </div>
+                </div>
+                <div class="row" style="margin-top: 4px;">
+                    <div>
+                        <label>Correo Electrónico <span style="color: #ef4444;">*</span></label>
+                        <input type="email" name="correo" required placeholder="Ej. jperez@email.com">
+                    </div>
+                    <div>
+                        <label>Resolución en Salud</label>
+                        <input type="text" name="registro_medico" id="registro-medico-input" placeholder="Ej. RES-98765">
+                    </div>
+                </div>
+            </div>
+
+            <div style="background: #fafcff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 18px 20px; margin-bottom: 16px;">
+                <div style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;"><span style="font-size: 14px;">⚙️</span> Configuración de Acceso</div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+                    <div>
+                        <label>Rol <span style="color: #ef4444;">*</span></label>
+                        <select name="rol" required>
+                            <option value="usuario">Usuario (Diligenciador)</option>
+                            <option value="admin">Administrador</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Estado Inicial <span style="color: #ef4444;">*</span></label>
+                        <select name="activo" required>
+                            <option value="1">Activo</option>
+                            <option value="0">Inactivo (Deshabilitado)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Fecha de Validez</label>
+                        <input onclick="this.showPicker()" type="date" name="fecha_validez" placeholder="Sin límite">
+                    </div>
+                </div>
+            </div>
+
+            <div style="background: #fafcff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 18px 20px; margin-bottom: 16px;">
+                <div style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;"><i class="ph ph-stethoscope" style="font-size: 14px; color: #6366f1;"></i> Perfil(es) Profesional(es)</div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 8px;">
+                    <label class="perm-toggle"><input type="checkbox" name="perfil" value="Médico"><span class="perm-label"><i class="ph ph-stethoscope perm-icon" style="color: #6366f1;"></i>Médico</span></label>
+                    <label class="perm-toggle"><input type="checkbox" name="perfil" value="Enfermero"><span class="perm-label"><i class="ph ph-syringe perm-icon" style="color: #3b82f6;"></i>Enfermero</span></label>
+                    <label class="perm-toggle"><input type="checkbox" name="perfil" value="APH"><span class="perm-label"><i class="ph ph-ambulance perm-icon" style="color: #ef4444;"></i>APH</span></label>
+                    <label class="perm-toggle"><input type="checkbox" name="perfil" value="Auxiliar en Enfermeria"><span class="perm-label"><i class="ph ph-bandaids perm-icon" style="color: #38bdf8;"></i>Auxiliar en Enfermeria</span></label>
+                    <label class="perm-toggle"><input type="checkbox" name="perfil" value="Conductor"><span class="perm-label"><i class="ph ph-car perm-icon" style="color: #ef4444;"></i>Conductor</span></label>
+                    <label class="perm-toggle"><input type="checkbox" name="perfil" value="Socorrista"><span class="perm-label"><i class="ph ph-first-aid-kit perm-icon" style="color: #ef4444;"></i>Socorrista</span></label>
+                    <label class="perm-toggle"><input type="checkbox" name="perfil" value="Administrador"><span class="perm-label"><i class="ph ph-gear-six perm-icon" style="color: #64748b;"></i>Administrador</span></label>
+                </div>
+                <p style="font-size: 11px; color: #94a3b8; margin-top: 8px; display: flex; align-items: center; gap: 4px;"><i class="ph ph-info" style="color: #3b82f6;"></i> Si el usuario tiene varios perfiles, al iniciar sesión podrá elegir con cuál operar.</p>
+            </div>
+
+            <div style="margin-bottom: 16px;" id="accesos-container">
+                <div style="background: #fafcff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 18px 20px;">
+                    <div style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px; display: flex; align-items: center; gap: 6px;"><span style="font-size: 14px;">🔐</span> Acceso a Formularios por Perfil</div>
+                    <p style="font-size: 12px; color: #64748b; margin-bottom: 12px;">Seleccione un perfil arriba para configurar sus accesos correspondientes.</p>
+                    
+                    <div id="accesos-tabs" style="display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap;"></div>
+
+                    {% set perfiles_lista = ['Médico', 'Enfermero', 'APH', 'Auxiliar en Enfermeria', 'Conductor', 'Socorrista', 'Administrador'] %}
+                    {% for p in perfiles_lista %}
+                    <div id="accesos-block-{{ p }}" class="accesos-block" style="display: none;">
+                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px 16px; margin-bottom: 8px;">
+                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+                                <label style="font-weight: 700; font-size: 14px; color: #334155;">Permisos para {{ p }}</label>
+                                <button type="button" onclick="toggleAllEnBloque('{{ p }}', this)" style="margin:0; padding: 4px 14px; font-size: 11px; background: #e2e8f0; color: #475569; border-radius: 20px; border: none; cursor: pointer; font-weight: 700; transition: background 0.15s;" onmouseover="this.style.background='#cbd5e1'" onmouseout="this.style.background='#e2e8f0';">Marcar todos</button>
+                            </div>
+
+                            <div style="margin-bottom: 8px;">
+                                <div style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px;">Atención Clínica</div>
+                                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 6px;">
+                                    <label class="perm-toggle"><input type="checkbox" name="formularios_acceso_{{ p }}" value="hc"><span class="perm-label"><span class="perm-icon">🚑</span>Historia Clínica Individual</span></label>
+                                    <label class="perm-toggle"><input type="checkbox" name="formularios_acceso_{{ p }}" value="atencion_colectiva"><span class="perm-label"><span class="perm-icon">👥</span>Atención Colectiva / MCI</span></label>
+                                    <label class="perm-toggle"><input type="checkbox" name="formularios_acceso_{{ p }}" value="eventos"><span class="perm-label"><span class="perm-icon">📅</span>Formulario de Eventos</span></label>
+                                    <label class="perm-toggle"><input type="checkbox" name="formularios_acceso_{{ p }}" value="calif_atencion"><span class="perm-label"><span class="perm-icon">📝</span>Calif. Atención</span></label>
+                                    <label class="perm-toggle"><input type="checkbox" name="formularios_acceso_{{ p }}" value="segur_paciente"><span class="perm-label"><span class="perm-icon">🛡️</span>Segur. Paciente</span></label>
+                                    <label class="perm-toggle"><input type="checkbox" name="formularios_acceso_{{ p }}" value="atencion_vehiculo"><span class="perm-label"><span class="perm-icon">🚒</span>Atención Vehículo Intervención</span></label>
+                                </div>
+                            </div>
+
+                            <div style="margin-bottom: 8px;">
+                                <div style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px;">Listas de Verificación</div>
+                                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 6px;">
+                                    <label class="perm-toggle"><input type="checkbox" name="formularios_acceso_{{ p }}" value="preoperacional"><span class="perm-label"><span class="perm-icon">🚗</span>Preoperacional Conductores</span></label>
+                                    <label class="perm-toggle"><input type="checkbox" name="formularios_acceso_{{ p }}" value="tam"><span class="perm-label"><span class="perm-icon">🏥</span>Check List TAM</span></label>
+                                    <label class="perm-toggle"><input type="checkbox" name="formularios_acceso_{{ p }}" value="tab"><span class="perm-label"><span class="perm-icon">🩺</span>Check List TAB</span></label>
+                                    <label class="perm-toggle"><input type="checkbox" name="formularios_acceso_{{ p }}" value="avanzada"><span class="perm-label"><span class="perm-icon">⚡</span>Check List Avanzada</span></label>
+                                    <label class="perm-toggle"><input type="checkbox" name="formularios_acceso_{{ p }}" value="pasb"><span class="perm-label"><span class="perm-icon">🧰</span>Check List PASB</span></label>
+                                    <label class="perm-toggle"><input type="checkbox" name="formularios_acceso_{{ p }}" value="pasm"><span class="perm-label"><span class="perm-icon">🎒</span>Check List PASM</span></label>
+                                    <label class="perm-toggle"><input type="checkbox" name="formularios_acceso_{{ p }}" value="equipos"><span class="perm-label"><span class="perm-icon">🩺</span>Preoperacional Equipos</span></label>
+                                </div>
+                            </div>
+
+                            <div>
+                                <div style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px;">Reportes</div>
+                                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 6px;">
+                                    <label class="perm-toggle"><input type="checkbox" name="formularios_acceso_{{ p }}" value="registros"><span class="perm-label"><span class="perm-icon">📁</span>Explorador de Registros</span></label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+
+                    <p style="font-size: 11px; color: #94a3b8; margin-top: 4px;">ℹ️ El rol Administrador siempre tiene acceso completo sin importar lo seleccionado.</p>
+                </div>
+            </div>
+
+            <style>
+            .perm-toggle {
+                display: flex;
+                align-items: center;
+                cursor: pointer;
+                background: #f8fafc;
+                border: 1.5px solid #e2e8f0;
+                border-radius: 8px;
+                padding: 7px 10px;
+                margin: 0;
+                font-weight: normal;
+                transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+                user-select: none;
+            }
+            .perm-toggle:hover {
+                border-color: #94a3b8;
+                background: #f1f5f9;
+            }
+            .perm-toggle input[type=checkbox] {
+                display: none;
+            }
+            .perm-toggle input[type=checkbox]:checked + .perm-label {
+                color: #1d4ed8;
+            }
+            .perm-toggle:has(input:checked) {
+                border-color: #3b82f6;
+                background: #eff6ff;
+                box-shadow: 0 0 0 3px rgba(59,130,246,0.12);
+            }
+            .perm-label {
+                display: flex;
+                align-items: center;
+                gap: 7px;
+                font-size: 13px;
+                color: #475569;
+                font-weight: 500;
+                flex: 1;
+            }
+            .perm-label::before {
+                content: '';
+                width: 15px;
+                height: 15px;
+                min-width: 15px;
+                border: 2px solid #cbd5e1;
+                border-radius: 4px;
+                background: white;
+                transition: all 0.15s;
+            }
+            .perm-toggle:has(input:checked) .perm-label::before {
+                background: #3b82f6;
+                border-color: #3b82f6;
+                background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 10'%3E%3Cpath d='M1 5l3.5 3.5L11 1' stroke='white' stroke-width='2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+                background-repeat: no-repeat;
+                background-position: center;
+                background-size: 10px;
+            }
+            .perm-icon { font-size: 15px; }
+            </style>
+
+            <div style="background: #fafcff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 18px 20px; margin-bottom: 16px;">
+                <div style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px; display: flex; align-items: center; gap: 6px;"><span style="font-size: 14px;">✍️</span> Firma Digitalizada</div>
+                <p style="font-size: 12px; color: #64748b; margin-bottom: 10px;">Requerida como soporte legal para los registros médicos.</p>
+                <div style="border: 2px dashed #cbd5e0; border-radius: 8px; padding: 15px; background: #fff; text-align: center;">
+                    <canvas id="signature-pad" width="450" height="150" style="border: 1px solid #e2e8f0; background: #ffffff; cursor: crosshair; touch-action: none; max-width: 100%; display: block; margin: 0 auto; border-radius: 4px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.04);"></canvas>
+                    <div style="margin-top: 10px; display: flex; justify-content: center; gap: 8px; align-items: center; flex-wrap: wrap;">
+                        <button type="button" id="clear-signature" style="margin-top: 0; background: #ef4444; color: white; border: none; padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; transition: background 0.15s;" onmouseover="this.style.background='#dc2626'" onmouseout="this.style.background='#ef4444';">🗑️ Limpiar</button>
+                        <label for="signature-file" style="margin-top: 0; background: #64748b; color: white; border: none; padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; transition: background 0.15s;" onmouseover="this.style.background='#475569'" onmouseout="this.style.background='#64748b';">📁 Subir Imagen</label>
+                        <input type="file" id="signature-file" accept="image/*" style="display: none;">
+                    </div>
+                    <div id="signature-preview-text" style="font-size: 12px; color: #94a3b8; margin-top: 8px;">Dibuje su firma en el recuadro o suba una imagen PNG/JPG.</div>
+                </div>
+                <input type="hidden" name="firma" id="firma-data">
+            </div>
+
+            <script>
+            function toggleAllEnBloque(perfil, btn) {
+                const boxes = document.querySelectorAll(`input[name="formularios_acceso_${perfil}"]`);
+                const allChecked = Array.from(boxes).every(b => b.checked);
+                boxes.forEach(b => b.checked = !allChecked);
+                btn.textContent = allChecked ? 'Marcar todos' : 'Desmarcar todos';
+            }
+            
+            document.addEventListener('DOMContentLoaded', function() {
+                const perfilCheckboxes = document.querySelectorAll('input[name="perfil"]');
+                const rmInput = document.getElementById('registro-medico-input');
+                
+                const tabsContainer = document.getElementById('accesos-tabs');
+                let activeTabPerfil = null;
+
+                function toggleAccesos() {
+                    const checkedProfiles = Array.from(perfilCheckboxes).filter(cb => cb.checked).map(cb => cb.value);
+                    tabsContainer.innerHTML = '';
+                    
+                    if (checkedProfiles.length === 0) {
+                        activeTabPerfil = null;
+                    } else if (!checkedProfiles.includes(activeTabPerfil)) {
+                        activeTabPerfil = checkedProfiles[0];
+                    }
+
+                    checkedProfiles.forEach(perfil => {
+                        const btn = document.createElement('button');
+                        btn.type = 'button';
+                        btn.textContent = perfil;
+                        const isActive = perfil === activeTabPerfil;
+                        btn.style.cssText = `
+                            padding: 8px 16px; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer;
+                            background: ${isActive ? '#3b82f6' : '#e2e8f0'};
+                            color: ${isActive ? 'white' : '#475569'}; transition: all 0.2s;
+                        `;
+                        btn.onclick = () => { activeTabPerfil = perfil; toggleAccesos(); };
+                        tabsContainer.appendChild(btn);
+                    });
+
+                    document.querySelectorAll('.accesos-block').forEach(block => block.style.display = 'none');
+                    
+                    if (activeTabPerfil) {
+                        const activeBlock = document.getElementById('accesos-block-' + activeTabPerfil);
+                        if (activeBlock) activeBlock.style.display = 'block';
+                    }
+                }
+                
+                // Configurar auto-marcado
+                const defaultPermissions = {
+                    'Conductor': ['preoperacional', 'hc', 'equipos', 'atencion_vehiculo'],
+                    'Socorrista': ['equipos', 'atencion_vehiculo'],
+                    'Enfermero': ['hc', 'atencion_colectiva', 'eventos', 'calif_atencion', 'segur_paciente', 'tam', 'tab', 'pasb', 'pasm'],
+                    'Auxiliar en Enfermeria': ['hc', 'atencion_colectiva', 'eventos', 'calif_atencion', 'segur_paciente', 'tam', 'tab', 'pasb', 'pasm'],
+                    'APH': ['hc', 'atencion_colectiva', 'eventos', 'calif_atencion', 'segur_paciente', 'tam', 'tab', 'pasb', 'pasm'],
+                    'Médico': ['hc', 'atencion_colectiva']
+                };
+
+                function handleProfileSelect(e) {
+                    const perfil = e.target.value;
+                    const isChecked = e.target.checked;
+                    if (isChecked && defaultPermissions[perfil]) {
+                        const block = document.getElementById('accesos-block-' + perfil);
+                        if (block) {
+                            const checkboxes = block.querySelectorAll('input[type="checkbox"]');
+                            checkboxes.forEach(cb => {
+                                cb.checked = defaultPermissions[perfil].includes(cb.value);
+                            });
+                        }
+                    }
+                }
+                
+                function toggleRM() {
+                    const medico = document.querySelector('input[name="perfil"][value="Médico"]');
+                    const enfermero = document.querySelector('input[name="perfil"][value="Enfermero"]');
+                    const aph = document.querySelector('input[name="perfil"][value="APH"]');
+                    const auxEnf = document.querySelector('input[name="perfil"][value="Auxiliar en Enfermeria"]');
+                    
+                    const requiresRM = (medico && medico.checked) || 
+                                       (enfermero && enfermero.checked) || 
+                                       (aph && aph.checked) ||
+                                       (auxEnf && auxEnf.checked);
+                    
+                    if (requiresRM) {
+                        rmInput.required = true;
+                        rmInput.placeholder = "Ej. RES-98765 (Obligatorio)";
+                        const label = rmInput.previousElementSibling;
+                        if (label && label.tagName === 'LABEL' && !label.querySelector('.req-ast')) {
+                            label.innerHTML = 'Resolución en Salud <span class="req-ast" style="color: #ef4444;">*</span>';
+                        }
+                    } else {
+                        rmInput.required = false;
+                        rmInput.placeholder = "Ej. RES-98765 (Opcional)";
+                        const label = rmInput.previousElementSibling;
+                        if (label && label.tagName === 'LABEL') {
+                            const ast = label.querySelector('.req-ast');
+                            if (ast) ast.remove();
+                        }
+                    }
+                }
+                
+                perfilCheckboxes.forEach(cb => {
+                    cb.addEventListener('change', toggleRM);
+                    cb.addEventListener('change', toggleAccesos);
+                    cb.addEventListener('change', handleProfileSelect);
+                });
+                toggleRM();
+                toggleAccesos();
+            });
+            </script>
+
+            <div style="display: flex; gap: 10px; margin-top: 22px; padding-top: 18px; border-top: 1px solid #e2e8f0;">
+                <a href="javascript:history.back()" style="display: inline-flex; align-items: center; gap: 6px; background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; padding: 10px 22px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px; transition: all 0.15s;" onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9';">← Volver</a>
+                <button type="submit" style="display: inline-flex; align-items: center; gap: 6px; margin-top: 0; margin-left: auto; background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; border: none; padding: 10px 28px; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; box-shadow: 0 2px 8px rgba(59,130,246,0.3); transition: all 0.15s;" onmouseover="this.style.transform='translateY(-1px)';this.style.boxShadow='0 4px 14px rgba(59,130,246,0.4)'" onmouseout="this.style.transform='';this.style.boxShadow='0 2px 8px rgba(59,130,246,0.3)'">➕ Crear Usuario</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="accordion-item">
+    <div class="accordion-header" onclick="toggleAcordeon(this)">
+        <div class="accordion-header-left">
+            <span class="accordion-icon">📥</span>
+            <span class="accordion-title">Importar Usuarios desde Excel</span>
+        </div>
+        <span class="accordion-arrow">▼</span>
+    </div>
+    <div class="accordion-body">
+        <div style="display: grid; grid-template-columns: auto 1fr; gap: 22px; align-items: start;">
+            <div style="width: 72px; height: 72px; background: linear-gradient(135deg, #dbeafe, #bfdbfe); border-radius: 16px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="#2563eb" viewBox="0 0 256 256"><path d="M216,40H40A16,16,0,0,0,24,56V200a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40ZM96,120a8,8,0,0,1,8-8h48a8,8,0,0,1,0,16H104A8,8,0,0,1,96,120Zm96,64H64a8,8,0,0,1,0-16H192a8,8,0,0,1,0,16Zm0-32H64a8,8,0,0,1,0-16H192a8,8,0,0,1,0,16Z"></path></svg>
+            </div>
+            <div>
+                <p style="font-size: 14px; color: #1e293b; font-weight: 600; margin-bottom: 2px;">Carga masiva de usuarios</p>
+                <p style="font-size: 13px; color: #64748b; margin-bottom: 14px;">
+                    Seleccione un archivo <strong>.xlsx</strong> o <strong>.xls</strong> con los usuarios a crear.
+                    <a href="{{ url_for('plantilla_excel') }}?_sw_bypass=1" style="color: var(--primary); font-weight: 600;" download>Descargar plantilla</a>
+                    para ver el formato esperado.
+                </p>
+                <form method="POST" action="{{ url_for('importar_usuarios_excel') }}" enctype="multipart/form-data" id="import-form">
+                    <div id="drop-zone" style="border: 2px dashed #93c5fd; border-radius: 10px; padding: 22px 20px; text-align: center; background: #fafcff; cursor: pointer; transition: all 0.2s ease; position: relative;">
+                        <div style="font-size: 38px; margin-bottom: 6px; opacity: 0.7;">📄</div>
+                        <div style="font-weight: 600; color: #1e40af; font-size: 14px;">Arrastre el archivo aquí o <span style="text-decoration: underline; cursor: pointer;">haga clic para seleccionar</span></div>
+                        <div style="font-size: 12px; color: #94a3b8; margin-top: 4px;">Solo archivos .xlsx y .xls</div>
+                        <input type="file" name="archivo_excel" id="archivo_excel" accept=".xlsx,.xls" required style="display: none;">
+                        <div id="file-name" style="margin-top: 8px; font-size: 13px; font-weight: 600; color: #059669; display: none;"></div>
+                    </div>
+                    <div style="display: flex; gap: 10px; margin-top: 14px; justify-content: flex-end;">
+                        <button type="submit" id="import-btn" disabled style="display: inline-flex; align-items: center; gap: 6px; margin-top: 0; opacity: 0.5; cursor: not-allowed;">
+                            <span>⬆</span> Importar Usuarios
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% set ir = session.get('import_result') %}
+{% if ir %}
+<div id="import-result" style="margin-top: 20px; border-radius: 12px; overflow: hidden; border: 1px solid {{ '#fecaca' if ir.errores else '#bbf7d0' }}; box-shadow: 0 2px 8px rgba(0,0,0,0.04); animation: slideDown 0.3s ease-out;">
+    <style>
+    @keyframes slideDown { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+    <div style="padding: 14px 18px; background: {{ '#fef2f2' if ir.errores else '#f0fdf4' }}; display: flex; align-items: center; justify-content: space-between;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 22px;">{{ '⚠️' if ir.errores else '✅' }}</span>
+            <div>
+                <div style="font-weight: 700; font-size: 15px; color: {{ '#991b1b' if ir.errores else '#166534' }};">
+                    {%- if ir.creados > 0 %}{{ ir.creados }} usuario(s) creado(s){% endif -%}
+                    {%- if ir.creados > 0 and ir.errores %} — {% endif -%}
+                    {%- if ir.errores %}{{ ir.errores|length }} error(es){% endif -%}
+                </div>
+                <div style="font-size: 12px; color: {{ '#b91c1c' if ir.errores else '#15803d' }}; margin-top: 1px;">
+                    Procesadas {{ ir.total_rows }} fila(s)
+                </div>
+            </div>
+        </div>
+        <button type="button" onclick="dismissImportResult()" style="background: transparent; border: none; cursor: pointer; font-size: 18px; color: {{ '#991b1b' if ir.errores else '#166534' }}; padding: 4px 8px; border-radius: 6px; transition: background 0.15s;" onmouseover="this.style.background='rgba(0,0,0,0.06)'" onmouseout="this.style.background='transparent'">✕</button>
+    </div>
+    <div style="display: grid; grid-template-columns: {% if ir.creados_list and ir.errores %}1fr 1fr{% else %}1fr{% endif %}; gap: 0;">
+        {% if ir.creados_list %}
+        <div style="border-right: {% if ir.errores %}1px solid #e2e8f0{% else %}none{% endif %};">
+            <div style="padding: 10px 14px; background: #f0fdf4; font-weight: 700; font-size: 13px; color: #166534; display: flex; align-items: center; gap: 6px; border-bottom: 1px solid #bbf7d0;">✅ Creados ({{ ir.creados_list|length }})</div>
+            <div style="max-height: 260px; overflow-y: auto;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+                    {% for u in ir.creados_list %}
+                    <tr>
+                        <td style="padding: 6px 14px; border-bottom: 1px solid #dcfce7; color: #065f46; background: {{ '#f7fdf9' if loop.index % 2 == 0 else '#fff' }};">{{ u.nombre }}</td>
+                        <td style="padding: 6px 14px; border-bottom: 1px solid #dcfce7; color: #166534; background: {{ '#f7fdf9' if loop.index % 2 == 0 else '#fff' }}; font-weight: 600;">{{ u.identificacion }}</td>
+                    </tr>
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
+        {% endif %}
+        {% if ir.errores %}
+        <div>
+            <div style="padding: 10px 14px; background: #fef2f2; font-weight: 700; font-size: 13px; color: #991b1b; display: flex; align-items: center; gap: 6px; border-bottom: 1px solid #fecaca;">✕ Errores ({{ ir.errores|length }})</div>
+            <div style="max-height: 260px; overflow-y: auto;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+                    {% for e in ir.errores %}
+                    <tr>
+                        <td style="padding: 6px 14px; border-bottom: 1px solid #fee2e2; color: #7f1d1d; background: {{ '#fff5f5' if loop.index % 2 == 0 else '#fff' }};"><span style="color: #ef4444; margin-right: 6px;">✕</span>{{ e }}</td>
+                    </tr>
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+<script>
+function dismissImportResult() {
+    var el = document.getElementById('import-result');
+    if (el) { el.style.transition = 'opacity 0.3s, transform 0.3s'; el.style.opacity = '0'; el.style.transform = 'translateY(-8px)'; setTimeout(function() { el.style.display = 'none'; }, 300); }
+    fetch('{{ url_for("clear_import_result") }}');
+}
+setTimeout(function() {
+    var el = document.getElementById('import-result');
+    if (el) {
+        el.style.transition = 'opacity 0.6s, transform 0.3s';
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(-8px)';
+        setTimeout(function() { el.style.display = 'none'; }, 600);
+    }
+    fetch('{{ url_for("clear_import_result") }}');
+}, {{ '15000' if not ir.errores else '30000' }});
+</script>
+{% endif %}
+
+<div class="accordion-item">
+    <div class="accordion-header" onclick="toggleAcordeon(this)">
+        <div class="accordion-header-left">
+            <span class="accordion-icon">📋</span>
+            <span class="accordion-title">Listado de Usuarios Registrados</span>
+            <span class="accordion-badge">{{ usuarios|length }}</span>
+        </div>
+        <span class="accordion-arrow">▼</span>
+    </div>
+    <div class="accordion-body">
+        <div style="margin-bottom: 14px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+            <div style="flex: 1; min-width: 200px; position: relative;">
+                <input type="text" id="search-usuario" placeholder="Buscar por nombre, identificación, correo..." style="padding-left: 32px;">
+                <span style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 14px;">🔍</span>
+            </div>
+            <div style="display: flex; gap: 6px; flex-wrap: wrap;" id="filter-pills">
+                <span class="filter-pill active" data-filter="todos" onclick="filtrarUsuarios('todos', this)">Todos</span>
+                <span class="filter-pill" data-filter="activos" onclick="filtrarUsuarios('activos', this)">🟢 Activos</span>
+                <span class="filter-pill" data-filter="inactivos" onclick="filtrarUsuarios('inactivos', this)">🔴 Inactivos</span>
+                <span class="filter-pill" data-filter="admin" onclick="filtrarUsuarios('admin', this)">Admin</span>
+            </div>
+        </div>
+        <div style="overflow-x:auto;">
+            <table id="tabla-usuarios">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Identificación</th>
+                        <th>Correo</th>
+                        <th>Resolución en Salud</th>
+                        <th>Rol</th>
+                        <th>Perfil</th>
+                        <th>Estado</th>
+                        <th>Fecha Validez</th>
+                        <th>Firma</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for u in usuarios %}
+                <tr class="user-row {% if not u.activo %}inactivo{% endif %}" data-nombre="{{ u.nombre|lower }}" data-identificacion="{{ u.identificacion|lower }}" data-correo="{{ (u.correo or '')|lower }}" data-rol="{{ u.rol }}" data-activo="{{ u.activo }}">
+                    <td><strong>{{ u.nombre }}</strong></td>
+                    <td><span style="font-family: monospace; font-size: 13px;">{{ u.identificacion }}</span></td>
+                    <td>{% if u.correo %}{{ u.correo }}{% else %}<span style="color: #94a3b8; font-style: italic;">—</span>{% endif %}</td>
+                    <td>{% if u.registro_medico %}<span style="font-family: monospace; font-size: 12px; background: #f1f5f9; padding: 1px 6px; border-radius: 4px;">{{ u.registro_medico }}</span>{% else %}<span style="color: #94a3b8; font-style: italic;">—</span>{% endif %}</td>
+                    <td>
+                        {% if u.rol == 'admin' %}
+                        <span style="background: #e2e8f0; color: #4a5568; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; letter-spacing: 0.3px;">ADMIN</span>
+                        {% else %}
+                        <span style="background: #eff6ff; color: #1d4ed8; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">Usuario</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% set perfiles_usuario = [] %}
+                        {% if u.perfil and u.perfil != '[]' %}
+                            {% set perfiles_usuario = json.loads(u.perfil) %}
+                        {% endif %}
+                        <div style="display: flex; gap: 4px; flex-wrap: wrap;">
+                        {% for p_name in perfiles_usuario %}
+                            {% if p_name %}
+                            <span style="background: #f0f9ff; color: #0369a1; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; white-space: nowrap;">{{ p_name }}</span>
+                            {% endif %}
+                        {% else %}
+                            <span style="color: #94a3b8; font-style: italic; font-size: 12px;">No asignado</span>
+                        {% endfor %}
+                        </div>
+                    </td>
+                    <td>
+                        {% if u.activo %}
+                        <span style="display: inline-flex; align-items: center; gap: 4px; color: #16a34a; font-weight: 600; font-size: 12px;"><span style="width: 8px; height: 8px; background: #16a34a; border-radius: 50%; display: inline-block;"></span>Activo</span>
+                        {% else %}
+                        <span style="display: inline-flex; align-items: center; gap: 4px; color: #dc2626; font-weight: 600; font-size: 12px;"><span style="width: 8px; height: 8px; background: #dc2626; border-radius: 50%; display: inline-block;"></span>Inactivo</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if u.fecha_validez %}
+                        <span style="font-family: monospace; font-size: 12px; background: #fffdbf; padding: 2px 6px; border-radius: 4px; color: #7f5f00; font-weight: 600;">{{ u.fecha_validez }}</span>
+                        {% else %}
+                        <span style="color: #94a3b8; font-style: italic; font-size: 12px;">Sin límite</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if u.firma %}
+                        <img src="{{ u.firma }}" alt="Firma" style="max-height: 36px; background: white; border: 1px solid #e2e8f0; padding: 2px; border-radius: 4px;">
+                        {% else %}
+                        <span style="color: #94a3b8; font-size: 16px;">—</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="acciones-usuario">
+                            <a href="{{ url_for('editar_usuario', user_id=u.id) }}" class="btn-accion editar" title="Editar usuario">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+                                Editar
+                            </a>
+                            {% if u.identificacion != 'admin' %}
+                            <a href="{{ url_for('reset_usuario_contrasena', user_id=u.id) }}" class="btn-accion restablecer" title="Restablecer contraseña" onclick="return confirm('¿Restablecer contraseña de {{ u.nombre }}? Será su número de identificación y deberá cambiarla al ingresar.');">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="m8 12 2 2 4-4"/></svg>
+                                Rest. Clave
+                            </a>
+                            <a href="{{ url_for('toggle_usuario', user_id=u.id) }}" class="btn-accion {% if u.activo %}desactivar{% else %}activar{% endif %}" title="{% if u.activo %}Desactivar usuario{% else %}Activar usuario{% endif %}" onclick="return confirm('¿Está seguro de {% if u.activo %}desactivar{% else %}activar{% endif %} al usuario {{ u.nombre }}?');">
+                                {% if u.activo %}
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.68 13.31a6 6 0 0 0 0 0"/><path d="M18 8h2a3 3 0 0 1 0 6h-2"/><path d="M4 8h2a3 3 0 0 1 0 6H4"/><path d="M8 14v-3a4 4 0 0 1 8 0v3"/></svg>
+                                Desactivar
+                                {% else %}
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="m9 12 2 2 4-4"/></svg>
+                                Activar
+                                {% endif %}
+                            </a>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            {% if not usuarios %}
+            <div style="text-align: center; padding: 50px 20px; color: #94a3b8;">
+                <div style="font-size: 48px; margin-bottom: 12px; opacity: 0.4;">👤</div>
+                <div style="font-weight: 600; font-size: 16px; color: #64748b;">No hay usuarios registrados</div>
+                <div style="font-size: 13px; margin-top: 4px;">Cree el primer usuario usando el formulario de registro.</div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+<script>
+(function() {
+    var searchInput = document.getElementById('search-usuario');
+    var rows = document.querySelectorAll('#tabla-usuarios tbody .user-row');
+    if (!searchInput || !rows.length) return;
+    var filterActual = 'todos';
+
+    window.filtrarUsuarios = function(filtro, el) {
+        filterActual = filtro;
+        document.querySelectorAll('.filter-pill').forEach(function(p) { p.classList.remove('active'); });
+        if (el) el.classList.add('active');
+        aplicarFiltros();
+    };
+
+    function aplicarFiltros() {
+        var q = searchInput.value.toLowerCase().trim();
+        rows.forEach(function(row) {
+            var nombre = row.getAttribute('data-nombre') || '';
+            var id = row.getAttribute('data-identificacion') || '';
+            var correo = row.getAttribute('data-correo') || '';
+            var rol = row.getAttribute('data-rol') || '';
+            var activo = row.getAttribute('data-activo') || '1';
+
+            var matchBusqueda = !q || nombre.indexOf(q) !== -1 || id.indexOf(q) !== -1 || correo.indexOf(q) !== -1;
+
+            var matchFiltro = true;
+            if (filterActual === 'activos') matchFiltro = activo === '1';
+            else if (filterActual === 'inactivos') matchFiltro = activo === '0';
+            else if (filterActual === 'admin') matchFiltro = rol === 'admin';
+
+            row.style.display = (matchBusqueda && matchFiltro) ? '' : 'none';
+        });
+    }
+
+    searchInput.addEventListener('input', aplicarFiltros);
+})();
+</script>
+<style>
+.filter-pill {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 5px 12px; border-radius: 999px; font-size: 12px; font-weight: 600;
+    cursor: pointer; border: 1.5px solid #e2e8f0; background: #fff; color: #64748b;
+    transition: all 0.15s; user-select: none;
+}
+.filter-pill:hover { border-color: #94a3b8; background: #f8fafc; }
+.filter-pill.active { border-color: #3b82f6; background: #eff6ff; color: #1d4ed8; }
+.user-row { transition: background 0.12s; }
+.user-row:hover td { background: #f8faff !important; }
+.user-row.inactivo td { background: #fef2f2; }
+.user-row.inactivo:hover td { background: #fef2f2 !important; }
+#tabla-usuarios thead { position: sticky; top: 0; z-index: 1; }
+.acciones-usuario { display: flex; gap: 4px; flex-wrap: wrap; }
+.btn-accion {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 5px 10px; border-radius: 6px; text-decoration: none;
+    font-size: 11px; font-weight: 600; white-space: nowrap;
+    transition: all 0.15s ease; border: none; cursor: pointer;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+.btn-accion:hover { transform: translateY(-1px); box-shadow: 0 3px 8px rgba(0,0,0,0.12); }
+.btn-accion:active { transform: translateY(0); }
+.btn-accion.editar { background: #3b82f6; color: white; }
+.btn-accion.editar:hover { background: #2563eb; }
+.btn-accion.restablecer { background: #f59e0b; color: white; }
+.btn-accion.restablecer:hover { background: #d97706; }
+.btn-accion.desactivar { background: #ef4444; color: white; }
+.btn-accion.desactivar:hover { background: #dc2626; }
+.btn-accion.activar { background: #22c55e; color: white; }
+.btn-accion.activar:hover { background: #16a34a; }
+</style>
+</div>
+
+</div> <!-- /accordion -->
+
+<style>
+.accordion { display: flex; flex-direction: column; gap: 8px; margin-top: 18px; }
+.accordion-item { border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+.accordion-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 18px; cursor: pointer; user-select: none;
+    background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+    transition: background 0.15s; gap: 12px;
+}
+.accordion-header:hover { background: linear-gradient(135deg, #f1f5f9, #e2e8f0); }
+.accordion-item.active .accordion-header { background: linear-gradient(135deg, #eff6ff, #dbeafe); border-bottom: 1px solid #bfdbfe; }
+.accordion-header-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.accordion-icon { font-size: 18px; flex-shrink: 0; }
+.accordion-title { font-weight: 700; font-size: 14px; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.accordion-item.active .accordion-title { color: #1e40af; }
+.accordion-badge {
+    background: #cbd5e1; color: #1e293b; font-size: 11px; font-weight: 700;
+    padding: 1px 8px; border-radius: 999px; margin-left: auto;
+}
+.accordion-arrow { font-size: 12px; color: #94a3b8; transition: transform 0.25s ease; flex-shrink: 0; }
+.accordion-item.active .accordion-arrow { transform: rotate(180deg); color: #3b82f6; }
+.accordion-body { overflow: hidden; max-height: 0; transition: max-height 0.35s ease, padding 0.35s ease; padding: 0 22px; }
+.accordion-item.active .accordion-body { max-height: 8000px; padding: 20px 22px; }
+@media (max-width: 700px) { .accordion-body { padding: 0 14px; } .accordion-item.active .accordion-body { padding: 14px; } }
+</style>
+
+<script>
+function toggleAcordeon(header) {
+    var item = header.parentElement;
+    var wasActive = item.classList.contains('active');
+    var container = item.parentElement;
+    var items = container.querySelectorAll('.accordion-item');
+    for (var i = 0; i < items.length; i++) { items[i].classList.remove('active'); }
+    if (!wasActive) { item.classList.add('active'); }
+    guardarEstadoAcordeon();
+}
+function guardarEstadoAcordeon() {
+    var items = document.querySelectorAll('.accordion-item');
+    for (var i = 0; i < items.length; i++) {
+        if (items[i].classList.contains('active')) {
+            try { localStorage.setItem('acordeon_usuarios', i); } catch(e) {}
+            return;
+        }
+    }
+    try { localStorage.removeItem('acordeon_usuarios'); } catch(e) {}
+}
+function restaurarEstadoAcordeon() {
+    try {
+        var idx = localStorage.getItem('acordeon_usuarios');
+        if (idx !== null) {
+            var items = document.querySelectorAll('.accordion-item');
+            idx = parseInt(idx, 10);
+            if (!isNaN(idx) && idx >= 0 && idx < items.length) {
+                for (var i = 0; i < items.length; i++) { items[i].classList.remove('active'); }
+                items[idx].classList.add('active');
+            }
+        }
+    } catch(e) {}
+}
+document.addEventListener('DOMContentLoaded', restaurarEstadoAcordeon);
+</script>
+
+<script>
+// --- Drag & Drop Import ---
+(function() {
+    var dropZone = document.getElementById('drop-zone');
+    var fileInput = document.getElementById('archivo_excel');
+    var fileName = document.getElementById('file-name');
+    var importBtn = document.getElementById('import-btn');
+    if (!dropZone || !fileInput || !importBtn) return;
+
+    function showFile(name) {
+        fileName.textContent = '📎 ' + name;
+        fileName.style.display = 'block';
+        dropZone.style.borderColor = '#34d399';
+        dropZone.style.background = '#f0fdf4';
+        importBtn.disabled = false;
+        importBtn.style.opacity = '1';
+        importBtn.style.cursor = 'pointer';
+    }
+
+    function resetDropZone() {
+        fileName.style.display = 'none';
+        dropZone.style.borderColor = '#93c5fd';
+        dropZone.style.background = '#fafcff';
+        importBtn.disabled = true;
+        importBtn.style.opacity = '0.5';
+        importBtn.style.cursor = 'not-allowed';
+    }
+
+    dropZone.addEventListener('click', function() { fileInput.click(); });
+
+    dropZone.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        dropZone.style.borderColor = '#3b82f6';
+        dropZone.style.background = '#eff6ff';
+        dropZone.style.borderStyle = 'solid';
+    });
+
+    dropZone.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        if (!fileInput.files.length) {
+            dropZone.style.borderColor = '#93c5fd';
+            dropZone.style.background = '#fafcff';
+            dropZone.style.borderStyle = 'dashed';
+        }
+    });
+
+    dropZone.addEventListener('drop', function(e) {
+        e.preventDefault();
+        dropZone.style.borderStyle = 'dashed';
+        if (e.dataTransfer.files.length) {
+            var dt = new DataTransfer();
+            dt.items.add(e.dataTransfer.files[0]);
+            fileInput.files = dt.files;
+            showFile(e.dataTransfer.files[0].name);
+        }
+    });
+
+    fileInput.addEventListener('change', function() {
+        if (this.files.length) showFile(this.files[0].name);
+        else resetDropZone();
+    });
+
+    document.getElementById('import-form').addEventListener('submit', function(e) {
+        if (!fileInput.files.length) { e.preventDefault(); return; }
+        importBtn.disabled = true;
+        importBtn.innerHTML = '<span class="spinner" style="display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;animation:spin 0.6s linear infinite;"></span> Importando...';
+    });
+})();
+</script>
+
+<style>
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+
+<script>
+// --- Firma Canvas Logic ---
+const canvas = document.getElementById('signature-pad');
+const ctx = canvas.getContext('2d');
+const clearBtn = document.getElementById('clear-signature');
+const fileInput = document.getElementById('signature-file');
+const firmaInput = document.getElementById('firma-data');
+const previewText = document.getElementById('signature-preview-text');
+
+let drawing = false;
+
+// Configure canvas line style
+ctx.strokeStyle = "#1a202c";
+ctx.lineWidth = 2.5;
+ctx.lineCap = "round";
+ctx.lineJoin = "round";
+
+// Get pointer coordinate relative to canvas
+function getPointerPos(canvasDom, e) {
+    const rect = canvasDom.getBoundingClientRect();
+    const scaleX = canvasDom.width / rect.width;
+    const scaleY = canvasDom.height / rect.height;
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    return {
+        x: (clientX - rect.left) * scaleX,
+        y: (clientY - rect.top) * scaleY
+    };
+}
+
+// Start drawing
+function startDrawing(e) {
+    drawing = true;
+    const pos = getPointerPos(canvas, e);
+    ctx.beginPath();
+    ctx.moveTo(pos.x, pos.y);
+    e.preventDefault();
+}
+
+// Draw line
+function draw(e) {
+    if (!drawing) return;
+    const pos = getPointerPos(canvas, e);
+    ctx.lineTo(pos.x, pos.y);
+    ctx.stroke();
+    updateHiddenInput();
+    e.preventDefault();
+}
+
+// Stop drawing
+function stopDrawing() {
+    drawing = false;
+}
+
+// Mouse events
+canvas.addEventListener('mousedown', startDrawing);
+canvas.addEventListener('mousemove', draw);
+canvas.addEventListener('mouseup', stopDrawing);
+canvas.addEventListener('mouseleave', stopDrawing);
+
+// Touch events for mobile screens
+canvas.addEventListener('touchstart', startDrawing);
+canvas.addEventListener('touchmove', draw);
+canvas.addEventListener('touchend', stopDrawing);
+
+function updateHiddenInput() {
+    firmaInput.value = canvas.toDataURL('image/png');
+    previewText.textContent = "Firma registrada desde el lienzo interactivo.";
+    previewText.style.color = "#38a169";
+}
+
+// Clear canvas
+clearBtn.addEventListener('click', () => {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    firmaInput.value = '';
+    previewText.textContent = "Dibuje su firma en el recuadro blanco o suba una imagen PNG/JPG.";
+    previewText.style.color = "#718096";
+});
+
+// File upload option
+fileInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            const img = new Image();
+            img.onload = function() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                // Draw uploaded image centered and scaled
+                const hRatio = canvas.width / img.width;
+                const vRatio = canvas.height / img.height;
+                const ratio = Math.min(hRatio, vRatio);
+                const shiftX = (canvas.width - img.width * ratio) / 2;
+                const shiftY = (canvas.height - img.height * ratio) / 2;
+                ctx.drawImage(img, 0, 0, img.width, img.height, shiftX, shiftY, img.width * ratio, img.height * ratio);
+                
+                updateHiddenInput();
+            };
+            img.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+});
+
+</script>
+{% endblock %}

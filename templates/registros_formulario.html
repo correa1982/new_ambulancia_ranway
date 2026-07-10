@@ -1,0 +1,383 @@
+{% extends "base.html" %}
+{% block title %}Registros – {{ titulo }}{% endblock %}
+{% block content %}
+
+<div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:20px; padding-bottom:14px; border-bottom:2px solid #dbeafe;">
+    <div style="display:flex; align-items:center; gap:15px;">
+        {% if tipo == "atencion_vehiculo" %}
+        <a href="{{ url_for('form_atencion_vehiculo') }}" style="display:inline-flex; align-items:center; gap:5px; background:#f1f5f9; color:#475569; border:1px solid #e2e8f0; padding:6px 12px; border-radius:6px; text-decoration:none; font-weight:600; font-size:13px;">
+        {% elif tipo == "preoperacional" %}
+        <a href="{{ url_for('form_preoperacional') }}" style="display:inline-flex; align-items:center; gap:5px; background:#f1f5f9; color:#475569; border:1px solid #e2e8f0; padding:6px 12px; border-radius:6px; text-decoration:none; font-weight:600; font-size:13px;">
+        {% elif tipo == "eventos" %}
+        <a href="{{ url_for('form_eventos') }}" style="display:inline-flex; align-items:center; gap:5px; background:#f1f5f9; color:#475569; border:1px solid #e2e8f0; padding:6px 12px; border-radius:6px; text-decoration:none; font-weight:600; font-size:13px;">
+        {% elif tipo == "atencion_colectiva" %}
+        <a href="{{ url_for('form_atencion_colectiva') }}" style="display:inline-flex; align-items:center; gap:5px; background:#f1f5f9; color:#475569; border:1px solid #e2e8f0; padding:6px 12px; border-radius:6px; text-decoration:none; font-weight:600; font-size:13px;">
+        {% elif tipo in ["tam", "tab", "pasb", "pasm", "equipos", "calif_atencion", "segur_paciente", "avanzada"] %}
+        <a href="{{ url_for('form_checklist', tipo=tipo) }}" style="display:inline-flex; align-items:center; gap:5px; background:#f1f5f9; color:#475569; border:1px solid #e2e8f0; padding:6px 12px; border-radius:6px; text-decoration:none; font-weight:600; font-size:13px;">
+        {% else %}
+        <a href="javascript:history.back()" style="display:inline-flex; align-items:center; gap:5px; background:#f1f5f9; color:#475569; border:1px solid #e2e8f0; padding:6px 12px; border-radius:6px; text-decoration:none; font-weight:600; font-size:13px;">
+        {% endif %}
+            ← Volver
+        </a>
+        <h1 style="margin:0; padding:0; border:none; font-size:20px;">📁 Registros: {{ titulo }}</h1>
+    </div>
+    
+    <form method="GET" action="{{ request.path }}" style="display:flex; align-items:center; gap:8px; background:#f8fafc; padding:6px 12px; border-radius:8px; border:1px solid #e2e8f0;">
+        <label for="fecha" style="font-size:13px; font-weight:600; color:#475569; margin:0;">Fecha:</label>
+        <input onclick="this.showPicker()" type="date" id="fecha" name="fecha" value="{{ fecha_filtro }}" style="padding:4px 8px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px;">
+        <button type="submit" class="btn-primary" style="padding:5px 12px; font-size:12px; border-radius:6px; margin:0;">Filtrar</button>
+        <a href="{{ request.path }}?fecha=" style="font-size:12px; color:#ef4444; text-decoration:none; font-weight:600; margin-left:5px;" title="Ver todos">Todos</a>
+    </form>
+    
+    <div style="display:flex; gap:10px;">
+        {% if tipo == 'eventos' %}
+        <a href="{{ url_for('form_eventos') }}" class="btn-primary" style="font-size:13px; padding:8px 18px;">+ Nuevo Evento</a>
+        {% elif tipo == 'atencion_colectiva' %}
+        <a href="{{ url_for('form_atencion_colectiva') }}" class="btn-primary" style="font-size:13px; padding:8px 18px;">+ Nuevo Registro</a>
+        {% elif tipo == 'preoperacional' %}
+        <a href="{{ url_for('form_preoperacional') }}" class="btn-primary" style="font-size:13px; padding:8px 18px;">+ Nuevo Preoperacional</a>
+        {% elif tipo in ['tam','tab','pasb','pasm','equipos','calif_atencion','segur_paciente', 'avanzada'] %}
+        <a href="{{ url_for('form_checklist', tipo=tipo) }}" class="btn-primary" style="font-size:13px; padding:8px 18px;">+ Nuevo Check List</a>
+        {% elif tipo == 'atencion_vehiculo' %}
+        <a href="{{ url_for('form_atencion_vehiculo') }}" class="btn-primary" style="font-size:13px; padding:8px 18px;">+ Nueva Atención Vehículo</a>
+        {% endif %}
+    </div>
+</div>
+
+{% if items %}
+<div style="overflow-x:auto;">
+<table>
+<thead>
+<tr>
+    <th>#</th>
+    {% if tipo == 'eventos' %}
+        <th>Fecha Evento</th><th>Tipo</th><th>Municipio</th>
+        <th>Afectados</th><th>Recursos</th><th>Registrado por</th><th>Fecha Registro</th><th style="text-align:center;">Detalle</th>
+    {% elif tipo == 'atencion_colectiva' %}
+        <th>Inicio</th><th>Finalización</th><th>Lugar</th><th>Tipo Incidente</th>
+        <th>Coordinador</th><th>Recursos</th><th style="text-align:center;">Pacientes</th><th>Registrado por</th><th>Fecha Registro</th><th style="text-align:center;">Acciones</th>
+    {% elif tipo == 'preoperacional' %}
+        <th>Fecha</th><th>Hora</th><th>Placa</th><th>Conductor</th>
+        <th>Km</th><th>Estado</th><th>Registrado por</th><th>Fecha Registro</th><th style="text-align:center;">Detalle</th>
+    {% elif tipo in ['tam','tab'] %}
+        <th>Fecha</th><th>Hora</th><th>Placa</th><th>Turno</th><th>Estado</th>
+        <th>Registrado por</th><th>Fecha Registro</th><th style="text-align:center;">Detalle</th>
+    {% elif tipo == 'avanzada' %}
+        <th>Fecha</th><th>Hora</th><th>Evento</th><th>Botiquín</th><th>Estado</th>
+        <th>Registrado por</th><th>Fecha Registro</th><th style="text-align:center;">Detalle</th>
+    {% elif tipo in ['pasb','pasm'] %}
+        <th>Fecha</th><th>Hora</th><th>Ubicación</th><th>Estado Puesto</th><th>Estado Form.</th>
+        <th>Registrado por</th><th>Fecha Registro</th><th style="text-align:center;">Detalle</th>
+    {% elif tipo == 'equipos' %}
+        <th>Fecha</th><th>Hora</th><th>Grupo Equipos</th><th>Estado</th>
+        <th>Registrado por</th><th>Fecha Registro</th><th style="text-align:center;">Detalle</th>
+    {% elif tipo in ['calif_atencion', 'segur_paciente'] %}
+        <th>Fecha</th><th>Hora</th><th>Paciente</th><th>Documento</th><th>Estado</th>
+        <th>Registrado por</th><th>Fecha Registro</th><th style="text-align:center;">Detalle</th>
+    {% elif tipo == 'atencion_vehiculo' %}
+        <th>Consecutivo</th><th>Despacho</th><th>Comandante</th><th>Tipo / Subtipo</th><th>Dirección</th><th>Estado</th>
+        <th>Registrado por</th><th>Fecha Registro</th><th style="text-align:center; min-width: 220px;">Acciones</th>
+    {% endif %}
+</tr>
+</thead>
+<tbody>
+{% for item in items %}
+<tr>
+    <td>
+        {% if item.is_archivador %}
+        <span style="background:#fef08a; color:#854d0e; padding:2px 8px; border-radius:20px; font-size:11px; font-weight:700;" title="Consecutivo del Archivador">
+            #{{ item.consecutivo }}
+        </span>
+        {% else %}
+        <span style="background:#dbeafe; color:#1e40af; padding:2px 8px; border-radius:20px; font-size:11px; font-weight:700;">
+            #{{ item.id }}
+        </span>
+        {% endif %}
+    </td>
+    {% if tipo == 'eventos' %}
+        <td>{{ item.fecha_inicio }}</td>
+        <td><strong>{{ item.tipo_evento or '—' }}</strong></td>
+        <td>{{ item.municipio or '—' }}</td>
+        <td style="text-align:center; font-weight:700; color:#1e40af;">{{ item.num_afectados or '0' }}</td>
+        <td style="font-size:12px; max-width:150px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+            {{ item.recursos_activados or '—' }}</td>
+        <td style="font-size:12px;"><strong>{{ item.registrado_por }}</strong>
+            <span style="display:block; font-size:10px; color:#64748b;">{{ item.perfil_registrador or '' }}</span></td>
+        <td style="font-size:11px; color:#64748b; white-space:nowrap;">{{ item.fecha_registro }}</td>
+        <td style="text-align:center;">
+            <a href="{{ url_for('ver_evento', evento_id=item.id) }}"
+               style="background:#1e6fbf; color:white; padding:4px 10px; border-radius:6px; text-decoration:none; font-size:11px; font-weight:700;">
+                👁 Ver / PDF
+            </a>
+        </td>
+
+    {% elif tipo == 'atencion_colectiva' %}
+        <td style="white-space:nowrap;">
+            <strong>{{ item.fecha_inicio or '—' }}</strong>
+            {% if item.hora_inicio %}<span style="font-size:11px; color:#64748b; display:block;">{{ item.hora_inicio }}</span>{% endif %}
+        </td>
+        <td style="white-space:nowrap;">
+            <strong>{{ item.fecha_finalizacion or '—' }}</strong>
+            {% if item.hora_finalizacion %}<span style="font-size:11px; color:#64748b; display:block;">{{ item.hora_finalizacion }}</span>{% endif %}
+        </td>
+        <td style="max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ item.lugar or '—' }}</td>
+        <td style="font-size:12px;">{{ item.tipo_incidente or '—' }}</td>
+        <td style="font-size:12px; font-weight:600; color:#1e40af;">{{ item.coordinador or '—' }}</td>
+        <td style="font-size:11px; max-width:130px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:#64748b;">{{ item.recursos_desplegados or '—' }}</td>
+        <td style="text-align:center;">
+            <span style="background: #e0f2fe; color: #0369a1; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 700; display:inline-block;">
+                {{ item.num_pacientes }} pac.
+            </span>
+        </td>
+        <td style="font-size:12px;"><strong>{{ item.registrado_por }}</strong></td>
+        <td style="font-size:11px; color:#64748b; white-space:nowrap;">{{ item.fecha_registro }}</td>
+        <td style="white-space:nowrap; text-align:center;">
+            <a href="{{ url_for('formulario_mci', atencion_colectiva_id=item.id) }}"
+               style="background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 5px 10px; border-radius: 6px; text-decoration: none; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 2px 6px rgba(16,185,129,0.3); margin-bottom: 4px;"
+               title="Registrar nuevos pacientes o editar borradores de este evento">
+                ➕ Registrar
+            </a>
+            <a href="{{ url_for('registros', atencion_colectiva_id=item.id) }}"
+               style="background: #1e6fbf; color: white; padding: 5px 8px; border-radius: 6px; text-decoration: none; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; gap: 3px; margin-left: 4px; margin-bottom: 4px;"
+               title="Ver todos los pacientes atendidos en este evento">
+                👁 Pacientes
+            </a>
+            <a href="{{ url_for('ver_atencion_colectiva', id=item.id) }}"
+               style="background: #f59e0b; color: white; padding: 5px 8px; border-radius: 6px; text-decoration: none; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; gap: 3px; margin-left: 4px; margin-bottom: 4px;"
+               title="Generar informe del evento">
+                📄 Informe
+            </a>
+        </td>
+
+    {% elif tipo == 'preoperacional' %}
+        <td>{{ item.fecha }}</td>
+        <td>{{ item.hora or '—' }}</td>
+        <td><strong>{{ item.placa_vehiculo or '—' }}</strong></td>
+        <td>{{ item.nombre_conductor or '—' }}</td>
+        <td style="font-size:12px; color:#64748b;">{{ item.kilometraje or '—' }}</td>
+        <td>
+            {% if item.finalizado == 0 %}
+            <span style="background:#fffbeb; color:#d97706; border:1px solid #fde68a; padding:2px 8px; border-radius:20px; font-size:11px; font-weight:700;">⏳ Borrador</span>
+            {% else %}
+            <span style="background:#d1fae5; color:#065f46; padding:2px 8px; border-radius:20px; font-size:11px; font-weight:700;">🟢 Finalizado</span>
+            {% endif %}
+        </td>
+        <td style="font-size:12px;"><strong>{{ item.registrado_por }}</strong></td>
+        <td style="font-size:11px; color:#64748b; white-space:nowrap;">{{ item.fecha_registro }}</td>
+        <td style="text-align:center; white-space:nowrap;">
+            {% if item.finalizado == 0 %}
+            <a href="{{ url_for('form_preoperacional', id=item.id) }}"
+               style="background: linear-gradient(135deg, #f59e0b, #d97706); color:white; padding:5px 10px; border-radius:6px; text-decoration:none; font-size:11px; font-weight:700;">
+                ✏️ Completar
+            </a>
+            {% else %}
+            <a href="{{ url_for('ver_preoperacional', record_id=item.id) }}"
+               style="background:#1e6fbf; color:white; padding:5px 10px; border-radius:6px; text-decoration:none; font-size:11px; font-weight:700;">
+                👁 Ver / PDF
+            </a>
+            {% endif %}
+        </td>
+
+    {% elif tipo in ['tam','tab'] %}
+        <td>{{ item.fecha }}</td>
+        <td>{{ item.hora or '—' }}</td>
+        <td><strong>{{ item.placa or '—' }}</strong></td>
+        <td style="font-size:12px;">{{ item.turno or '—' }}</td>
+        <td>
+            {% if item.finalizado == 0 %}
+            <span style="background:#fffbeb; color:#d97706; border:1px solid #fde68a; padding:2px 8px; border-radius:20px; font-size:11px; font-weight:700;">⏳ Borrador</span>
+            {% else %}
+            <span style="background:#d1fae5; color:#065f46; padding:2px 8px; border-radius:20px; font-size:11px; font-weight:700;">🟢 Finalizado</span>
+            {% endif %}
+        </td>
+        <td style="font-size:12px;"><strong>{{ item.registrado_por }}</strong>
+            <span style="display:block; font-size:10px; color:#64748b;">{{ item.perfil_registrador or '' }}</span></td>
+        <td style="font-size:11px; color:#64748b; white-space:nowrap;">{{ item.fecha_registro }}</td>
+        <td style="text-align:center; white-space:nowrap;">
+            {% if item.finalizado == 0 %}
+            <a href="{{ url_for('form_checklist', tipo=tipo, id=item.id) }}"
+               style="background: linear-gradient(135deg, #f59e0b, #d97706); color:white; padding:5px 10px; border-radius:6px; text-decoration:none; font-size:11px; font-weight:700;">
+                ✏️ Completar
+            </a>
+            {% else %}
+            <a href="{{ url_for('ver_checklist', tipo=tipo, record_id=item.id) }}"
+               style="background:#1e6fbf; color:white; padding:5px 10px; border-radius:6px; text-decoration:none; font-size:11px; font-weight:700;">
+                👁 Ver
+            </a>
+            {% endif %}
+        </td>
+    {% elif tipo == 'avanzada' %}
+        <td>{{ item.fecha }}</td>
+        <td>{{ item.hora or '—' }}</td>
+        <td><strong>{{ item.evento or '—' }}</strong></td>
+        <td style="font-size:12px;">{{ item.botiquin or '—' }}</td>
+        <td>
+            {% if item.finalizado == 0 %}
+            <span style="background:#fffbeb; color:#d97706; border:1px solid #fde68a; padding:2px 8px; border-radius:20px; font-size:11px; font-weight:700;">⏳ Borrador</span>
+            {% else %}
+            <span style="background:#d1fae5; color:#065f46; padding:2px 8px; border-radius:20px; font-size:11px; font-weight:700;">🟢 Finalizado</span>
+            {% endif %}
+        </td>
+        <td style="font-size:12px;"><strong>{{ item.registrado_por }}</strong>
+            <span style="display:block; font-size:10px; color:#64748b;">{{ item.perfil_registrador or '' }}</span></td>
+        <td style="font-size:11px; color:#64748b; white-space:nowrap;">{{ item.fecha_registro }}</td>
+        <td style="text-align:center; white-space:nowrap;">
+            {% if item.finalizado == 0 %}
+            <a href="{{ url_for('form_checklist', tipo=tipo, id=item.id) }}"
+               style="background: linear-gradient(135deg, #f59e0b, #d97706); color:white; padding:5px 10px; border-radius:6px; text-decoration:none; font-size:11px; font-weight:700;">
+                ✏️ Completar
+            </a>
+            {% else %}
+            <a href="{{ url_for('ver_checklist', tipo=tipo, record_id=item.id) }}"
+               style="background:#1e6fbf; color:white; padding:5px 10px; border-radius:6px; text-decoration:none; font-size:11px; font-weight:700;">
+                👁 Ver
+            </a>
+            {% endif %}
+        </td>
+
+    {% elif tipo in ['pasb','pasm'] %}
+        <td>{{ item.fecha }}</td>
+        <td>{{ item.hora or '—' }}</td>
+        <td style="max-width:130px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ item.ubicacion or '—' }}</td>
+        <td>
+            {% if item.estado_operativo == 'Operativo' %}
+            <span style="background:#d1fae5; color:#065f46; padding:2px 8px; border-radius:20px; font-size:11px; font-weight:700;">🟢 Operativo</span>
+            {% elif item.estado_operativo == 'Operativo con novedades' %}
+            <span style="background:#fef3c7; color:#92400e; padding:2px 8px; border-radius:20px; font-size:11px; font-weight:700;">🟡 Con novedades</span>
+            {% elif item.estado_operativo %}
+            <span style="background:#fee2e2; color:#991b1b; padding:2px 8px; border-radius:20px; font-size:11px; font-weight:700;">🔴 No operativo</span>
+            {% else %}
+            <span style="color:#94a3b8; font-size:11px;">—</span>
+            {% endif %}
+        </td>
+        <td>
+            {% if item.finalizado == 0 %}
+            <span style="background:#fffbeb; color:#d97706; border:1px solid #fde68a; padding:2px 8px; border-radius:20px; font-size:11px; font-weight:700;">⏳ Borrador</span>
+            {% else %}
+            <span style="background:#d1fae5; color:#065f46; padding:2px 8px; border-radius:20px; font-size:11px; font-weight:700;">🟢 Finalizado</span>
+            {% endif %}
+        </td>
+        <td style="font-size:12px;"><strong>{{ item.registrado_por }}</strong>
+            <span style="display:block; font-size:10px; color:#64748b;">{{ item.perfil_registrador or '' }}</span></td>
+        <td style="font-size:11px; color:#64748b; white-space:nowrap;">{{ item.fecha_registro }}</td>
+        <td style="text-align:center; white-space:nowrap;">
+            {% if item.finalizado == 0 %}
+            <a href="{{ url_for('form_checklist', tipo=tipo, id=item.id) }}"
+               style="background: linear-gradient(135deg, #f59e0b, #d97706); color:white; padding:5px 10px; border-radius:6px; text-decoration:none; font-size:11px; font-weight:700;">
+                ✏️ Completar
+            </a>
+            {% else %}
+            <a href="{{ url_for('ver_checklist', tipo=tipo, record_id=item.id) }}"
+               style="background:#1e6fbf; color:white; padding:5px 10px; border-radius:6px; text-decoration:none; font-size:11px; font-weight:700;">
+                👁 Ver
+            </a>
+            {% endif %}
+        </td>
+    {% elif tipo == 'equipos' %}
+        <td>{{ item.fecha }}</td>
+        <td>{{ item.hora or '—' }}</td>
+        <td><strong>{{ item.grupo_equipos or '—' }}</strong></td>
+        <td>
+            {% if item.finalizado == 0 %}
+            <span style="background:#fffbeb; color:#d97706; border:1px solid #fde68a; padding:2px 8px; border-radius:20px; font-size:11px; font-weight:700;">⏳ Borrador</span>
+            {% else %}
+            <span style="background:#d1fae5; color:#065f46; padding:2px 8px; border-radius:20px; font-size:11px; font-weight:700;">🟢 Finalizado</span>
+            {% endif %}
+        </td>
+        <td style="font-size:12px;"><strong>{{ item.registrado_por }}</strong>
+            <span style="display:block; font-size:10px; color:#64748b;">{{ item.perfil_registrador or '' }}</span></td>
+        <td style="font-size:11px; color:#64748b; white-space:nowrap;">{{ item.fecha_registro }}</td>
+        <td style="text-align:center; white-space:nowrap;">
+            {% if item.finalizado == 0 %}
+            <a href="{{ url_for('form_checklist', tipo=tipo, id=item.id) }}"
+               style="background: linear-gradient(135deg, #f59e0b, #d97706); color:white; padding:5px 10px; border-radius:6px; text-decoration:none; font-size:11px; font-weight:700;">
+                ✏️ Completar
+            </a>
+            {% else %}
+            <a href="{{ url_for('ver_checklist', tipo=tipo, record_id=item.id) }}"
+               style="background:#1e6fbf; color:white; padding:5px 10px; border-radius:6px; text-decoration:none; font-size:11px; font-weight:700;">
+                👁 Ver
+            </a>
+            {% endif %}
+        </td>
+    {% elif tipo in ['calif_atencion', 'segur_paciente'] %}
+        <td>{{ item.fecha }}</td>
+        <td>{{ item.hora or '—' }}</td>
+        <td><strong>{{ item.primer_nombre }} {{ item.primer_apellido }}</strong></td>
+        <td>{{ item.tipo_documento }} {{ item.identificacion }}</td>
+        <td>
+            {% if item.finalizado == 0 %}
+            <span style="background:#fffbeb; color:#d97706; border:1px solid #fde68a; padding:2px 8px; border-radius:20px; font-size:11px; font-weight:700;">⏳ Borrador</span>
+            {% else %}
+            <span style="background:#d1fae5; color:#065f46; padding:2px 8px; border-radius:20px; font-size:11px; font-weight:700;">🟢 Finalizado</span>
+            {% endif %}
+        </td>
+        <td style="font-size:12px;"><strong>{{ item.registrado_por }}</strong>
+            <span style="display:block; font-size:10px; color:#64748b;">{{ item.perfil_registrador or '' }}</span></td>
+        <td style="font-size:11px; color:#64748b; white-space:nowrap;">{{ item.fecha_registro }}</td>
+        <td style="text-align:center; white-space:nowrap;">
+            {% if item.finalizado == 0 %}
+            <a href="{{ url_for('form_checklist', tipo=tipo, id=item.id) }}"
+               style="background: linear-gradient(135deg, #f59e0b, #d97706); color:white; padding:5px 10px; border-radius:6px; text-decoration:none; font-size:11px; font-weight:700;">
+                ✏️ Completar
+            </a>
+            {% else %}
+            <a href="{{ url_for('ver_checklist', tipo=tipo, record_id=item.id) }}"
+               style="background:#1e6fbf; color:white; padding:5px 10px; border-radius:6px; text-decoration:none; font-size:11px; font-weight:700;">
+                👁 Ver
+            </a>
+            {% endif %}
+        </td>
+    {% elif tipo == 'atencion_vehiculo' %}
+        <td><strong>#{{ item.consecutivo }}</strong></td>
+        <td>{{ item.fecha_hora_despacho }}</td>
+        <td>{{ item.comandante_incidente or '—' }}</td>
+        <td><strong>{{ item.tipo }}</strong><span style="display:block; font-size:10px; color:#64748b;">{{ item.subtipo or '—' }}</span></td>
+        <td>{{ item.direccion }} ({{ item.municipio or '—' }})</td>
+        <td>
+            {% if item.finalizado == 0 %}
+            <span style="background:#fffbeb; color:#d97706; border:1px solid #fde68a; padding:2px 8px; border-radius:20px; font-size:11px; font-weight:700; white-space:nowrap;">⏳ Borrador</span>
+            {% else %}
+            <span style="background:#d1fae5; color:#065f46; padding:2px 8px; border-radius:20px; font-size:11px; font-weight:700; white-space:nowrap;">🟢 Finalizado</span>
+            {% endif %}
+        </td>
+        <td style="font-size:12px;"><strong>{{ item.registrado_por }}</strong>
+            <span style="display:block; font-size:10px; color:#64748b;">{{ item.perfil_registrador or '' }}</span></td>
+        <td style="font-size:11px; color:#64748b; white-space:nowrap;">{{ item.fecha_registro }}</td>
+        <td style="text-align:center; white-space:nowrap;">
+            <a href="{{ url_for('ver_atencion_vehiculo', id=item.id) }}"
+               style="background:#1e6fbf; color:white; padding:5px 10px; border-radius:6px; text-decoration:none; font-size:11px; font-weight:700;">
+                👁 Ver
+            </a>
+            {% if item.finalizado == 0 %}
+            <a href="{{ url_for('editar_atencion_vehiculo', id=item.id) }}"
+               style="background:#f59e0b; color:white; padding:5px 10px; border-radius:6px; text-decoration:none; font-size:11px; font-weight:700; margin-left: 4px;">
+                ✏️ Editar
+            </a>
+            <a href="{{ url_for('eliminar_atencion_vehiculo', id=item.id) }}"
+               onclick="return confirm('¿Está seguro de eliminar este registro permanentemente?');"
+               style="background:#ef4444; color:white; padding:5px 10px; border-radius:6px; text-decoration:none; font-size:11px; font-weight:700; margin-left: 4px;">
+                🗑 Eliminar
+            </a>
+            {% endif %}
+        </td>
+    {% endif %}
+</tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+
+<div style="margin-top:12px; font-size:12px; color:#94a3b8;">
+    Total: <strong style="color:#1e40af;">{{ items|length }}</strong> registro(s)
+</div>
+
+{% else %}
+<div style="text-align:center; padding:60px 20px; color:#94a3b8;">
+    <div style="font-size:48px; margin-bottom:16px;">📋</div>
+    <h3 style="color:#64748b; font-size:16px; font-weight:600; margin-bottom:8px;">No hay registros aún</h3>
+    <p style="font-size:14px;">Comience creando el primer registro para {{ titulo }}.</p>
+</div>
+{% endif %}
+
+{% endblock %}

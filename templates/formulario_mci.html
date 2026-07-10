@@ -1,0 +1,1604 @@
+{% extends "base.html" %}
+{% block title %}Formulario MCI / Atención Colectiva
+<script>
+// Hacer que los acordeones sean exclusivos (solo uno abierto a la vez)
+document.addEventListener('DOMContentLoaded', function() {
+    const details = document.querySelectorAll('details.accordion-step');
+    details.forEach(targetDetail => {
+        targetDetail.addEventListener('toggle', () => {
+            if (targetDetail.open) {
+                details.forEach(detail => {
+                    if (detail !== targetDetail) {
+                        detail.removeAttribute('open');
+                    }
+                });
+            }
+        });
+    });
+});
+</script>
+
+{% endblock %}
+{% block content %}
+<style>
+/* CIE10 dropdown */
+#cie10-results .cie10-item { padding: 9px 14px; cursor: pointer; border-bottom: 1px solid #f1f5f9; font-size: 13px; transition: background 0.1s; }
+#cie10-results .cie10-item:hover { background: #eff6ff; }
+#cie10-results .cie10-item:last-child { border-bottom: none; }
+
+/* Vital signs grid inside fieldset */
+.vs-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
+.vs-grid .vs-cell { position: relative; display: flex; flex-direction: column; justify-content: flex-start; }
+.vs-grid label { line-height: 1.2; margin-bottom: 6px; font-size: 11px; min-height: 28px; display: flex; align-items: flex-end; }
+
+/* Vital Signs Alert Badges */
+.vs-badge { display: none; margin-top: 5px; padding: 3px 8px; border-radius: 6px; font-size: 10px; font-weight: 700; letter-spacing: 0.3px; text-align: center; animation: vsAlertIn 0.25s ease-out; }
+.vs-badge.normal { display: block; background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
+.vs-badge.warning { display: block; background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+.vs-badge.critical { display: block; background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; animation: vsAlertPulse 1.5s ease-in-out infinite; }
+@keyframes vsAlertIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes vsAlertPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+
+/* Vital Signs Summary Alert */
+#vs-alerta-resumen { display: none; margin-top: 12px; padding: 12px 16px; border-radius: 10px; font-size: 12px; line-height: 1.6; animation: vsAlertIn 0.3s ease-out; }
+#vs-alerta-resumen.has-warning { display: block; background: #fffbeb; border: 1.5px solid #fde68a; color: #92400e; }
+#vs-alerta-resumen.has-critical { display: block; background: #fef2f2; border: 1.5px solid #fca5a5; color: #991b1b; }
+
+/* Dictation Button */
+.btn-dictar { background: #eff6ff; border: 1px solid #bfdbfe; color: #3b82f6; border-radius: 50%; width: 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; padding: 0; }
+.btn-dictar:hover { background: #dbeafe; }
+.btn-dictar.recording { background: #fee2e2; border-color: #fca5a5; color: #ef4444; animation: pulse-record 1.5s infinite; }
+@keyframes pulse-record { 0% { box-shadow: 0 0 0 0 rgba(239,68,68,0.4); } 70% { box-shadow: 0 0 0 6px rgba(239,68,68,0); } 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); } }
+details.accordion-step {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+details.accordion-step > summary {
+    background: #f8fafc;
+    padding: 14px 18px;
+    font-weight: 700;
+    font-size: 13px;
+    color: #1e3a8a;
+    cursor: pointer;
+    list-style: none;
+    border-radius: 8px;
+    transition: background 0.2s;
+    position: relative;
+    border: none;
+    margin: 0;
+    text-transform: uppercase;
+}
+details.accordion-step > summary::-webkit-details-marker {
+    display: none;
+}
+details.accordion-step > summary:hover {
+    background: #f1f5f9;
+}
+details.accordion-step > summary::after {
+    content: "▼";
+    position: absolute;
+    right: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 12px;
+    color: #64748b;
+    transition: transform 0.2s;
+}
+details.accordion-step[open] > summary {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    border-bottom: 1px solid #e2e8f0;
+}
+details.accordion-step[open] > summary::after {
+    transform: translateY(-50%) rotate(180deg);
+}
+.accordion-content {
+    padding: 16px 18px;
+}
+</style>
+
+<!-- Header -->
+<div style="background: linear-gradient(135deg, #1e40af, #1e3a5f); color: white; padding: 15px 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+    <h1 style="margin: 0; font-size: 20px; display: flex; align-items: center; gap: 8px; color: white;">
+        <i class="ph ph-first-aid"></i> Historia Clínica MCI / Atención Colectiva
+    </h1>
+</div>
+
+{% if atencion_colectiva %}
+<div style="background: {% if atencion_colectiva.finalizado %}#f0fdf4{% else %}#eff6ff{% endif %}; border: 1.5px solid {% if atencion_colectiva.finalizado %}#bbf7d0{% else %}#bfdbfe{% endif %}; border-radius: 8px; padding: 14px 18px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; gap: 16px; box-shadow: 0 4px 6px -1px rgba(30,111,191,0.05); flex-wrap: wrap;">
+    <div>
+        <div style="font-weight: 700; color: {% if atencion_colectiva.finalizado %}#15803d{% else %}#1e40af{% endif %}; font-size: 14px; display: flex; align-items: center; gap: 6px;">
+            {% if atencion_colectiva.finalizado %}
+            <span>✅ Atención Colectiva FINALIZADA</span>
+            {% else %}
+            <span>👥 Vinculado a Atención Colectiva / MCI</span>
+            {% endif %}
+        </div>
+        <p style="font-size: 13px; color: {% if atencion_colectiva.finalizado %}#15803d{% else %}#1e40af{% endif %}; margin-top: 4px; line-height: 1.4;">
+            <strong>Lugar:</strong> {{ atencion_colectiva.lugar }} |
+            <strong>Incidente:</strong> {{ atencion_colectiva.tipo_incidente }} |
+            <strong>Inicio:</strong> {{ atencion_colectiva.fecha_inicio }} {{ atencion_colectiva.hora_inicio }}
+        </p>
+    </div>
+    {% if not atencion_colectiva.finalizado %}
+    <button type="button" id="btn-finalizar-masivo"
+        data-ac-id="{{ atencion_colectiva.id }}"
+        style="background: linear-gradient(135deg, #ef4444, #dc2626); color: white; border: none; padding: 9px 18px; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; display:inline-flex; align-items:center; gap:6px; box-shadow: 0 4px 12px rgba(239,68,68,0.3); font-family: inherit; transition: all 0.15s; white-space: nowrap;">
+        🔒 Finalizar Registro Masivo
+    </button>
+    {% else %}
+    <span style="background:#d1fae5; color:#065f46; padding:6px 14px; border-radius:8px; font-size:12px; font-weight:700;">🟢 EVENTO FINALIZADO</span>
+    {% endif %}
+</div>
+{% endif %}
+
+<div style="display: flex; gap: 24px; align-items: flex-start; flex-wrap: wrap; width: 100%;">
+    <div style="flex: 3; min-width: 320px;">
+        <form method="POST" id="form-mci">
+    <input type="hidden" name="atencion_colectiva_id" value="{{ atencion_colectiva_id or '' }}">
+    <input type="hidden" name="fecha_inicio_atencion" value="{{ fecha_inicio_atencion or hoy }}">
+    {% if paciente and paciente.id %}
+    <input type="hidden" name="id" value="{{ paciente.id|encode_id }}">
+    {% endif %}
+    <input type="hidden" id="offline_id_input" name="_offline_id_update" value="">
+
+    <!-- ── Identificación del Paciente ── -->
+    <details class="accordion-step" name="mci-accordion" open>
+        <summary><i class="ph ph-identification-card"></i> Identificación del Paciente</summary>
+        <div class="accordion-content">
+        <div class="row">
+            <div>
+                <label>Tipo Documento</label>
+                <select name="tipo_documento" id="tipo_documento" required>
+                    {% for td in tipos_documento %}
+                    <option value="{{ td }}" {% if (paciente and paciente.tipo_documento and paciente.tipo_documento|trim == td) or (not paciente and td == 'CC') %}selected{% endif %}>{{ td }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label>N° Identificación</label>
+                <input type="text" name="identificacion_paciente" required id="ident_mci" value="{{ paciente.identificacion_paciente or '' if paciente else '' }}" placeholder="Ej.12345678" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+            </div>
+        </div>
+        <div class="row" style="margin-top:12px;">
+            <div>
+                <label>Primer Apellido</label>
+                <input type="text" name="primer_apellido" required value="{{ paciente.primer_apellido or '' if paciente else '' }}" placeholder="Primer apellido" oninput="this.value = this.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ ]/g, '')">
+            </div>
+            <div>
+                <label>Segundo Apellido</label>
+                <input type="text" name="segundo_apellido" value="{{ paciente.segundo_apellido or '' if paciente else '' }}" placeholder="Segundo apellido (opcional)" oninput="this.value = this.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ ]/g, '')">
+            </div>
+        </div>
+        <div class="row" style="margin-top:12px;">
+            <div>
+                <label>Primer Nombre</label>
+                <input type="text" name="primer_nombre" required value="{{ paciente.primer_nombre or '' if paciente else '' }}" placeholder="Primer Nombre" oninput="this.value = this.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ ]/g, '')">
+            </div>
+            <div>
+                <label>Segundo Nombre</label>
+                <input type="text" name="segundo_nombre" value="{{ paciente.segundo_nombre or '' if paciente else '' }}" placeholder="Segundo nombre (opcional)" oninput="this.value = this.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ ]/g, '')">
+            </div>
+        </div>
+        <div class="row" style="margin-top:12px;">
+            <div>
+                <label>Fecha de Nacimiento</label>
+                <input onclick="this.showPicker()" type="date" id="fecha_nacimiento_mci" name="fecha_nacimiento" required max="{{ hoy }}" value="{{ paciente.fecha_nacimiento or '' if paciente else '' }}">
+            </div>
+            <div>
+                <label>Edad</label>
+                <input type="text" id="edad_mci" name="edad" readonly placeholder="Se calcula automáticamente" value="{{ paciente.edad or '' if paciente else '' }}" style="background:#eff6ff; border-color:#bfdbfe; color:#1e40af; font-weight:700; text-align:center;">
+            </div>
+        </div>
+        <div class="row" style="margin-top:12px;">
+            <div>
+                <label>Sexo Biológico</label>
+                <select name="sexo_biologico" required id="sexo_biologico_mci">
+                    <option value="">— Seleccione —</option>
+                    <option value="Masculino" {% if paciente and paciente.sexo_biologico == 'Masculino' %}selected{% endif %}>Masculino</option>
+                    <option value="Femenino" {% if paciente and paciente.sexo_biologico == 'Femenino' %}selected{% endif %}>Femenino</option>
+                    <option value="Intersexual" {% if paciente and paciente.sexo_biologico == 'Intersexual' %}selected{% endif %}>Intersexual</option>
+                </select>
+            </div>
+            <div>
+                <label>Identidad de Género</label>
+                <select name="identidad_genero">
+                    <option value="">— Seleccione —</option>
+                    {% for opt in ['Masculino', 'Femenino', 'Transgénero', 'No binario', 'Otro', 'Prefiere no decirlo'] %}
+                    <option value="{{ opt }}" {% if paciente and paciente.identidad_genero == opt %}selected{% endif %}>{{ opt }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="row" style="margin-top:12px;">
+            <div>
+                <label>Estado Civil</label>
+                <select name="estado_civil">
+                    <option value="">— Seleccione —</option>
+                    {% for opt in ['Soltero/a', 'Casado/a', 'Unión Libre', 'Separado/a', 'Divorciado/a', 'Viudo/a'] %}
+                    <option value="{{ opt }}" {% if paciente and paciente.estado_civil == opt %}selected{% endif %}>{{ opt }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label>Ocupación</label>
+                <input type="text" name="ocupacion" id="ocupacion_mci" list="ocupaciones_list_mci" placeholder="Ej. Estudiante, Empleado..." value="{{ paciente.ocupacion or '' if paciente else '' }}" autocomplete="off">
+                <datalist id="ocupaciones_list_mci"></datalist>
+            </div>
+        </div>
+        <div class="row" style="margin-top:12px;">
+            <div>
+                <label>Nacionalidad</label>
+                <input type="text" name="nacionalidad" placeholder="Ej. Colombiana" value="{{ paciente.nacionalidad or '' if paciente else '' }}">
+            </div>
+
+        </div>
+        <div class="row" style="margin-top:12px;">
+            <div>
+                <label>Pertenencia Étnica</label>
+                <select name="pertenencia_etnica">
+                    <option value="">— Seleccione —</option>
+                    {% for opt in ["Indígena", "ROM (Gitano)", "Raizal (Archipiélago de San Andrés y Providencia)", "Palanquero de San Basilio", "Negro(a), mulato(a), afrocolombiano(a) o afrodescendiente", "Ninguno de los anteriores / Sin pertenencia étnica"] %}
+                    <option value="{{ opt }}" {% if paciente and paciente.pertenencia_etnica == opt %}selected{% endif %}>{{ opt }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label>Discapacidad</label>
+                <select name="discapacidad">
+                    <option value="">— Seleccione —</option>
+                    {% for opt in ["Auditiva", "Física", "Intelectual", "Visual", "Sordoceguera", "Psicosocial", "Múltiple", "Sin discapacidad"] %}
+                    <option value="{{ opt }}" {% if paciente and paciente.discapacidad == opt %}selected{% endif %}>{{ opt }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+            </div>
+    </details>
+
+    <!-- ── Datos de Contacto y Residencia ── -->
+    <details class="accordion-step" name="mci-accordion">
+        <summary><i class="ph ph-address-book"></i> Datos de Contacto y Residencia</summary>
+        <div class="accordion-content">
+        <div class="row">
+            <div>
+                <label>Número de Contacto</label>
+                <input type="tel" name="telefono" placeholder="Ej. 3001234567" value="{{ paciente.telefono or '' if paciente else '' }}">
+            </div>
+            <div>
+                <label>Correo Electrónico</label>
+                <input type="text" name="correo_electronico" placeholder="Ej. usuario@correo.com o N/A" value="{{ paciente.correo_electronico or '' if paciente else '' }}">
+            </div>
+        </div>
+        <div class="row" style="margin-top:12px;">
+            <div>
+                <label>Departamento de Residencia</label>
+                <input type="text" name="departamento_residencia" id="departamento_residencia_mci" list="departamentos_list_mci" placeholder="Escriba o seleccione un departamento" value="{{ paciente.departamento_residencia or '' if paciente else '' }}" autocomplete="off">
+                <datalist id="departamentos_list_mci"></datalist>
+            </div>
+            <div>
+                <label>Municipio de Residencia</label>
+                <input type="text" name="municipio_residencia" id="municipio_residencia_mci" list="municipios_list_mci" placeholder="Escriba o seleccione un municipio" value="{{ paciente.municipio_residencia or '' if paciente else '' }}" autocomplete="off" disabled>
+                <datalist id="municipios_list_mci"></datalist>
+            </div>
+        </div>
+        <div class="row" style="margin-top:12px;" id="fila_barrio_mci" style="display: none;">
+            <div>
+                <label>Barrio de Residencia</label>
+                <input type="text" name="barrio_residencia" id="barrio_residencia_mci" list="barrios_list_mci" placeholder="Escriba o seleccione un barrio" value="{{ paciente.barrio_residencia or '' if paciente else '' }}" autocomplete="off">
+                <datalist id="barrios_list_mci"></datalist>
+            </div>
+            <div></div>
+        </div>
+        <div class="row" style="margin-top:12px;">
+            <div style="grid-column: 1 / -1;">
+                <label>Dirección de Residencia</label>
+                <input type="text" name="direccion" placeholder="Ej. Calle 45 # 23-10" value="{{ paciente.direccion or '' if paciente else '' }}">
+            </div>
+        </div>
+            </div>
+    </details>
+
+    <!-- ── Seguridad Social ── -->
+    <details class="accordion-step" name="mci-accordion">
+        <summary><i class="ph ph-shield-check"></i> Seguridad Social</summary>
+        <div class="accordion-content">
+        <div class="row">
+            <div>
+                <label>Tipo de Aseguramiento</label>
+                <select name="tipo_afiliacion" required>
+                    <option value="">— Seleccione —</option>
+                    {% for t in tipos_afiliacion %}
+                    <option value="{{ t }}" {% if paciente and paciente.tipo_afiliacion == t %}selected{% endif %}>{{ t }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label>Entidad Promotora de Salud (EPS)</label>
+                <select name="aseguradora" required>
+                    <option value="">— Seleccione —</option>
+                    {% for a in aseguradoras %}
+                    <option value="{{ a }}" {% if paciente and paciente.aseguradora == a %}selected{% endif %}>{{ a }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+            </div>
+    </details>
+
+    <!-- ── Signos Vitales ── -->
+    <details class="accordion-step" name="mci-accordion">
+        <summary><i class="ph ph-heartbeat"></i> Signos Vitales</summary>
+        <div class="accordion-content">
+        <div class="vs-grid">
+            <div class="vs-cell">
+                <label>Presión Arterial (mmHg)</label>
+                <input type="text" name="presion_arterial" id="vs-pa" inputmode="numeric" placeholder="120/80" pattern="^\d{2,3}/\d{2,3}$" title="Debe ser: 2-3 dígitos / 2-3 dígitos (Ej: 120/80)" maxlength="7" value="{{ paciente.presion_arterial or '' if paciente else '' }}">
+                <div class="vs-badge" id="vs-badge-pa"></div>
+            </div>
+            <div class="vs-cell">
+                <label>Sat. O₂ (%)</label>
+                <input type="number" name="saturacion_oxigeno" id="vs-spo2" min="1" max="100" inputmode="numeric" placeholder="98" oninput="if(this.value > 100) this.value = 100; if(this.value.length > 3) this.value = this.value.slice(0, 3);" value="{{ paciente.saturacion_oxigeno or '' if paciente else '' }}">
+                <div class="vs-badge" id="vs-badge-spo2"></div>
+            </div>
+            <div class="vs-cell">
+                <label>Frec. Cardíaca (lpm)</label>
+                <input type="number" name="frecuencia_cardiaca" id="vs-fc" min="0" max="999" inputmode="numeric" placeholder="80" oninput="if(this.value > 999) this.value = 999; if(this.value.length > 3) this.value = this.value.slice(0, 3);" value="{{ paciente.frecuencia_cardiaca or '' if paciente else '' }}">
+                <div class="vs-badge" id="vs-badge-fc"></div>
+            </div>
+            <div class="vs-cell">
+                <label>Frec. Respiratoria (rpm)</label>
+                <input type="number" name="frecuencia_respiratoria" id="vs-fr" min="0" max="99" inputmode="numeric" placeholder="16" oninput="if(this.value > 99) this.value = 99; if(this.value.length > 2) this.value = this.value.slice(0, 2);" value="{{ paciente.frecuencia_respiratoria or '' if paciente else '' }}">
+                <div class="vs-badge" id="vs-badge-fr"></div>
+            </div>
+            <div class="vs-cell">
+                <label>Glicemia (mg/dl)</label>
+                <input type="number" name="glicemia" id="vs-glic" min="0" max="999" inputmode="numeric" placeholder="100" oninput="if(this.value > 999) this.value = 999; if(this.value.length > 3) this.value = this.value.slice(0, 3);" value="{{ paciente.glicemia or '' if paciente else '' }}">
+                <div class="vs-badge" id="vs-badge-glic"></div>
+            </div>
+        </div>
+        <div id="vs-alerta-resumen"></div>
+            </div>
+    </details>
+
+    <!-- ── Antecedentes Médicos ── -->
+    <details class="accordion-step" name="mci-accordion">
+        <summary>📋 Antecedentes Médicos</summary>
+        <div class="accordion-content">
+        <div class="row">
+            <div>
+                <label>Antecedentes Patológicos</label>
+                <textarea name="antecedentes_personales" placeholder="Ej. Hipertensión arterial, Diabetes, Asma...">{{ paciente.antecedentes_personales or '' if paciente else '' }}</textarea>
+            </div>
+            <div>
+                <label>Antecedentes Quirúrgicos</label>
+                <textarea name="antecedentes_quirurgicos" placeholder="Ej. Apendicectomía 2018, Colecistectomía...">{{ paciente.antecedentes_quirurgicos or '' if paciente else '' }}</textarea>
+            </div>
+        </div>
+        <div class="row" style="margin-top: 12px;">
+            <div>
+                <label>Antecedentes Toxicológicos</label>
+                <textarea name="antecedentes_toxicologicos" placeholder="Ej. Tabaquismo, Alcoholismo, Sustancias psicoactivas...">{{ paciente.antecedentes_toxicologicos or '' if paciente else '' }}</textarea>
+            </div>
+            <div>
+                <label>Antecedentes Alérgicos</label>
+                <textarea name="antecedentes_alergicos" placeholder="Ej. Alergia a penicilina, Latex, Mariscos...">{{ paciente.antecedentes_alergicos or '' if paciente else '' }}</textarea>
+            </div>
+        </div>
+        <div class="row" style="margin-top: 12px;">
+            <div id="div_antecedentes_gineco_mci">
+                <label style="display:flex; align-items:center; gap:6px;">
+                    Antecedentes Ginecobstétricos
+                    <span id="gineco_badge_mci" style="display:none; font-size:10px; background:#f1f5f9; color:#64748b; border:1px solid #cbd5e1; border-radius:4px; padding:2px 6px; font-weight:500;">Solo aplica para Femenino</span>
+                </label>
+                <textarea name="antecedentes_ginecobstetricos" id="antecedentes_ginecobstetricos_mci" placeholder="Ej. G2P2, FUM, Método anticonceptivo...">{{ paciente.antecedentes_ginecobstetricos or '' if paciente else '' }}</textarea>
+            </div>
+            <div>
+                <label>Medicamentos Actuales</label>
+                <textarea name="medicamentos_actuales" placeholder="Ej. Metformina 850mg c/12h, Losartán 50mg c/día...">{{ paciente.medicamentos_actuales or '' if paciente else '' }}</textarea>
+            </div>
+        </div>
+        <div style="margin-top: 12px;">
+            <label>Otros Antecedentes</label>
+            <textarea name="otros_antecedentes" placeholder="Otros antecedentes relevantes...">{{ paciente.otros_antecedentes or '' if paciente else '' }}</textarea>
+        </div>
+        <div style="margin-top: 12px;">
+            <label>Antecedentes Familiares</label>
+            <textarea name="antecedentes_familiares" placeholder="Ej. Diabetes tipo 2 en madre, Enfermedad coronaria en padre...">{{ paciente.antecedentes_familiares or '' if paciente else '' }}</textarea>
+        </div>
+            </div>
+    </details>
+
+    <!-- ── Evolución de Atención Clínica ── -->
+    <details class="accordion-step" name="mci-accordion">
+        <summary><i class="ph ph-activity"></i> Evolución de Atención Clínica</summary>
+        <div class="accordion-content">
+        <div style="margin-bottom: 12px; position: relative;">
+            <label style="display: flex; justify-content: space-between; align-items: center;">Motivo de Consulta / Lesión Principal <button type="button" class="btn-dictar" tabindex="-1" title="Dictar por voz" onclick="startDictation(this, this.parentElement.nextElementSibling)"><i class="ph ph-microphone"></i></button></label>
+            <textarea name="motivo_consulta" required placeholder="Ej. Trauma craneoencefálico, herida abierta..." rows="3">{{ paciente.motivo_consulta or '' if paciente else '' }}</textarea>
+        </div>
+        <div style="margin-bottom: 12px; position: relative;">
+            <label style="display: flex; justify-content: space-between; align-items: center;">Enfermedad Actual <button type="button" class="btn-dictar" tabindex="-1" title="Dictar por voz" onclick="startDictation(this, this.parentElement.nextElementSibling)"><i class="ph ph-microphone"></i></button></label>
+            <textarea name="enfermedad_actual" required placeholder="Ej. Paciente inconsciente, sangrado activo en pierna derecha, se aplica torniquete..." rows="3">{{ paciente.enfermedad_actual or '' if paciente else '' }}</textarea>
+        </div>
+        <div style="margin-bottom: 12px; position: relative;">
+            <label style="display: flex; justify-content: space-between; align-items: center;">Análisis Clínico <button type="button" class="btn-dictar" tabindex="-1" title="Dictar por voz" onclick="startDictation(this, this.parentElement.nextElementSibling)"><i class="ph ph-microphone"></i></button></label>
+            <textarea name="analisis" placeholder="Describa el análisis clínico del paciente..." rows="3">{{ paciente.analisis or '' if paciente else '' }}</textarea>
+        </div>
+        <div style="position: relative;">
+            <label style="display: flex; justify-content: space-between; align-items: center;">Plan de Manejo y Conducta <button type="button" class="btn-dictar" tabindex="-1" title="Dictar por voz" onclick="startDictation(this, this.parentElement.nextElementSibling)"><i class="ph ph-microphone"></i></button></label>
+            <textarea name="plan" placeholder="Describa el plan de manejo y conducta a seguir..." rows="3">{{ paciente.plan or '' if paciente else '' }}</textarea>
+        </div>
+            </div>
+    </details>
+
+    <!-- ── Impresión Diagnóstica ── -->
+    <details class="accordion-step" name="mci-accordion">
+        <summary>🩺 Impresión Diagnóstica</summary>
+        <div class="accordion-content">
+        <label>Diagnóstico CIE10</label>
+        <div style="position: relative;">
+            <input type="text" id="cie10-search-mci" autocomplete="off"
+                   placeholder="Buscar por código o nombre (ej: A90 o Dengue)..."
+                   value="{{ paciente.diagnostico_cie10 or '' if paciente else '' }}"
+                   style="width:100%; padding-right:36px;">
+            <input type="hidden" id="cie10-value-mci" name="diagnostico_cie10"
+                   value="{{ paciente.diagnostico_cie10 or '' if paciente else '' }}">
+            <div id="cie10-results" style="display:none; position:absolute; top:100%; left:0; right:0; background:white;
+                 border:1.5px solid #bfdbfe; border-radius:0 0 8px 8px; max-height:200px; overflow-y:auto;
+                 z-index:200; box-shadow:0 8px 20px rgba(0,0,0,0.1);"></div>
+        </div>
+            </div>
+    </details>
+
+    <!-- ── Botones de Acción ── -->
+    <div class="submit-row" style="display:flex; flex-wrap:wrap; gap:12px; justify-content: flex-end; margin-top:20px; align-items:center;">
+        <a href="{{ url_for('registros', atencion_colectiva_id=atencion_colectiva_id) }}" style="margin:0; box-sizing: border-box; height: 44px; font-family: inherit; background:#6b7280; color:white; text-decoration:none; border:none; padding:0 24px; border-radius:10px; font-weight:600; font-size:14px; display:inline-flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(107,114,128,0.2);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(107,114,128,0.3)'" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 6px -1px rgba(107,114,128,0.2)'">
+            <i class="ph ph-arrow-left" style="font-size:18px;"></i> Volver
+        </a>
+        <button type="button" id="btn-cancelar-offline" onclick="cancelarEdicionOffline()" style="display:none; margin:0; box-sizing: border-box; height: 44px; font-family: inherit; background:linear-gradient(135deg,#ef4444,#dc2626); color:white; border:none; padding:0 24px; border-radius:10px; font-weight:600; font-size:14px; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(239,68,68,0.2);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(239,68,68,0.3)'" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 6px -1px rgba(239,68,68,0.2)'">
+            <i class="ph ph-x-circle" style="font-size:18px;"></i> Cancelar Edición
+        </button>
+        <button type="submit" name="accion" value="guardar_continuar" formnovalidate style="margin:0; box-sizing: border-box; height: 44px; font-family: inherit; background:linear-gradient(135deg,#3b82f6,#1d4ed8); color:white; border:none; padding:0 24px; border-radius:10px; font-weight:600; font-size:14px; display:inline-flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(59,130,246,0.2);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(59,130,246,0.3)'" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 6px -1px rgba(59,130,246,0.2)'">
+            <i class="ph ph-plus-circle" style="font-size:18px;"></i> Guardar y Registrar Otro
+        </button>
+        <button type="submit" name="accion" value="finalizar" style="margin:0; box-sizing: border-box; height: 44px; font-family: inherit; background:linear-gradient(135deg,#10b981,#059669); color:white; border:none; padding:0 24px; border-radius:10px; font-weight:600; font-size:14px; display:inline-flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(16,185,129,0.2);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(16,185,129,0.3)'" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 6px -1px rgba(16,185,129,0.2)'" onclick="return confirm('¿Está seguro de finalizar este registro? Una vez finalizado no podrá ser editado.');">
+            <i class="ph ph-check-circle" style="font-size:18px;"></i> Guardar y Finalizar
+        </button>
+    </div>
+
+</form>
+    </div>
+
+    <!-- Panel de Pacientes Vinculados (Atención Colectiva) -->
+    {% if atencion_colectiva %}
+    <div style="flex: 1.2; min-width: 290px; background: white; border: 1.5px solid #bfdbfe; border-radius: 12px; padding: 20px; box-shadow: 0 10px 15px -3px rgba(30,111,191,0.08);">
+
+        <!-- Resumen del evento -->
+        <div style="background: #eff6ff; border-radius: 8px; padding: 10px 13px; margin-bottom: 16px; font-size: 12px; color: #1e40af; line-height: 1.7;">
+            <div style="font-weight: 700; font-size: 13px; margin-bottom: 4px;">📋 Evento Activo</div>
+            <div><strong>Lugar:</strong> {{ atencion_colectiva.lugar or '—' }}</div>
+            <div><strong>Incidente:</strong> {{ atencion_colectiva.tipo_incidente or '—' }}</div>
+            <div><strong>Inicio:</strong> {{ atencion_colectiva.fecha_inicio }} {{ atencion_colectiva.hora_inicio }}</div>
+        </div>
+
+        <!-- Contadores -->
+        {% set total = evento_pacientes|length %}
+        {% set finalizados = evento_pacientes|selectattr('finalizado', 'equalto', 1)|list|length %}
+        {% set borradores = total - finalizados %}
+        <div style="display: flex; gap: 8px; margin-bottom: 14px;">
+            <div style="flex:1; text-align:center; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; padding:8px 4px;">
+                <div id="count-finalizados" style="font-size:18px; font-weight:800; color:#15803d;">{{ finalizados }}</div>
+                <div style="font-size:10px; color:#166534; font-weight:600;">Finalizados</div>
+            </div>
+            <div style="flex:1; text-align:center; background:#fffbeb; border:1px solid #fde68a; border-radius:8px; padding:8px 4px;">
+                <div id="count-borradores" data-base="{{ borradores }}" style="font-size:18px; font-weight:800; color:#b45309;">{{ borradores }}</div>
+                <div style="font-size:10px; color:#92400e; font-weight:600;">Borradores</div>
+            </div>
+            <div style="flex:1; text-align:center; background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px; padding:8px 4px;">
+                <div id="count-total" data-base="{{ total }}" style="font-size:18px; font-weight:800; color:#1e40af;">{{ total }}</div>
+                <div style="font-size:10px; color:#1e40af; font-weight:600;">Total</div>
+            </div>
+        </div>
+
+        <h3 style="margin-top: 0; margin-bottom: 12px; font-size: 13px; color: #1e3a8a; border-bottom: 2px solid #eff6ff; padding-bottom: 8px; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+            <span>👥 Listado de Pacientes</span>
+        </h3>
+
+        <div id="lista-pacientes-container" style="display: flex; flex-direction: column; gap: 10px; max-height: 460px; overflow-y: auto; padding-right: 4px;">
+            {% if evento_pacientes %}
+            {% for ep in evento_pacientes %}
+            <div style="
+                background: {% if paciente and paciente.id == ep.id %}#fffbeb{% elif ep.finalizado == 1 %}#f0fdf4{% else %}#f8fafc{% endif %};
+                border: 1.5px solid {% if paciente and paciente.id == ep.id %}#fde68a{% elif ep.finalizado == 1 %}#bbf7d0{% else %}#e2e8f0{% endif %};
+                border-radius: 8px; padding: 10px 12px; display: flex; flex-direction: column; gap: 5px; transition: all 0.15s;"
+                class="paciente-card">
+
+                <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 6px;">
+                    <span style="font-weight: 700; font-size: 12px; color: #1e293b; line-height: 1.3; flex: 1;">
+                        {% if (ep.primer_nombre and ep.primer_nombre != 'NN') or ep.primer_apellido %}
+                            {{ ep.primer_nombre if ep.primer_nombre != 'NN' else '' }} {{ ep.primer_apellido or '' }}
+                        {% else %}
+                            <span style="color:#94a3b8; font-style:italic;">Paciente sin identificar</span>
+                        {% endif %}
+                    </span>
+                    {% if ep.finalizado == 1 %}
+                    <span style="background: #d1fae5; color: #065f46; font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 12px; white-space: nowrap; flex-shrink:0;">🟢 FINAL</span>
+                    {% else %}
+                    <span style="background: #fef3c7; color: #92400e; font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 12px; white-space: nowrap; flex-shrink:0;">🟡 BORRADOR</span>
+                    {% endif %}
+                </div>
+
+                <div style="font-size: 10px; color: #64748b; display:flex; gap:8px; flex-wrap:wrap;">
+                    <span>📋 {{ ep.tipo_documento or '' }} {{ ep.identificacion_paciente or 'Sin ID' }}</span>
+                    {% if ep.edad %}<span>🎂 {{ ep.edad }}</span>{% endif %}
+                    {% if ep.diagnostico_cie10 %}<span style="color:#7c3aed;">🔬 {{ ep.diagnostico_cie10[:25] }}{% if ep.diagnostico_cie10|length > 25 %}…{% endif %}</span>{% endif %}
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 6px; margin-top: 4px; border-top: 1px solid #f1f5f9; padding-top: 6px;">
+                    {% if ep.finalizado == 0 %}
+                    <a href="{{ url_for('formulario_mci', id=ep.id | encode_id, atencion_colectiva_id=atencion_colectiva_id) }}"
+                       style="display: inline-flex; align-items: center; gap: 3px; background: #fffbeb; border: 1px solid #fde68a; color: #b45309; padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: 600; text-decoration: none;"
+                       title="Continuar completando este borrador">
+                        ✏️ Completar
+                    </a>
+                    {% else %}
+                    <a href="{{ url_for('ver_hc', token=ep.id | encode_id) }}"
+                       style="display: inline-flex; align-items: center; gap: 3px; background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: 600; text-decoration: none;"
+                       title="Ver la historia clínica completa">
+                        👁️ Ver HC
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+            {% endif %}
+        </div>
+
+        <div id="no-pacientes-msg" style="text-align: center; padding: 24px 12px; color: #94a3b8; {% if evento_pacientes %}display: none;{% endif %}">
+            <div style="font-size: 32px; margin-bottom: 8px;">📋</div>
+            <p style="font-size: 12px; font-style: italic; margin: 0;">Aún no hay pacientes registrados.<br>Complete el formulario y haga clic en<br><strong style="color:#3b82f6;">Guardar y Registrar Otro</strong>.</p>
+        </div>
+
+        <!-- Botón para agregar nuevo paciente si ya hay registros -->
+        {% if evento_pacientes %}
+        <div style="margin-top: 14px; padding-top: 12px; border-top: 2px dashed #e2e8f0;">
+            <a href="{{ url_for('formulario_mci', atencion_colectiva_id=atencion_colectiva_id) }}"
+               style="display: flex; align-items: center; justify-content: center; gap: 6px; background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; padding: 10px 16px; border-radius: 8px; text-decoration: none; font-weight: 700; font-size: 12px; box-shadow: 0 4px 10px rgba(59,130,246,0.3); transition: all 0.15s;">
+                ➕ Agregar Otro Paciente
+            </a>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+<script>
+// ── Cálculo de Edad ──
+(function() {
+    const fechaInput = document.getElementById('fecha_nacimiento_mci');
+    const edadInput = document.getElementById('edad_mci');
+    if (!fechaInput || !edadInput) return;
+
+    function calcularEdadMCI() {
+        if (!fechaInput.value) { edadInput.value = ''; return; }
+        const nacimiento = new Date(fechaInput.value + 'T00:00:00');
+        const hoy = new Date();
+        const diffTime = hoy - nacimiento;
+        if (diffTime < 0) { edadInput.value = '0 días'; return; }
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+        let years = hoy.getFullYear() - nacimiento.getFullYear();
+        let m = hoy.getMonth() - nacimiento.getMonth();
+        if (m < 0 || (m === 0 && hoy.getDate() < nacimiento.getDate())) years--;
+        if (years >= 1) { edadInput.value = years + (years === 1 ? ' año' : ' años'); return; }
+        let months = (hoy.getFullYear() - nacimiento.getFullYear()) * 12 + hoy.getMonth() - nacimiento.getMonth();
+        if (hoy.getDate() < nacimiento.getDate()) months--;
+        if (months >= 1) { edadInput.value = months + (months === 1 ? ' mes' : ' meses'); return; }
+        edadInput.value = diffDays + (diffDays === 1 ? ' día' : ' días');
+    }
+
+    fechaInput.addEventListener('change', calcularEdadMCI);
+    // Calcular al cargar por si hay valor por defecto
+    document.addEventListener('DOMContentLoaded', calcularEdadMCI);
+})();
+
+// ── Control de campo Ginecobstétricos ──
+(function() {
+    function actualizarGineco() {
+        const sexo = document.getElementById('sexo_biologico_mci');
+        const textarea = document.getElementById('antecedentes_ginecobstetricos_mci');
+        const badge = document.getElementById('gineco_badge_mci');
+        if (!sexo || !textarea) return;
+        const esFemenino = sexo.value === 'Femenino';
+        textarea.disabled = !esFemenino;
+        textarea.style.opacity = esFemenino ? '1' : '0.4';
+        textarea.style.background = esFemenino ? '' : '#f1f5f9';
+        textarea.style.cursor = esFemenino ? '' : 'not-allowed';
+        if (badge) badge.style.display = esFemenino ? 'none' : 'inline-block';
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+        const sexoSelect = document.getElementById('sexo_biologico_mci');
+        if (sexoSelect) {
+            sexoSelect.addEventListener('change', actualizarGineco);
+            actualizarGineco();
+        }
+    });
+})();
+
+// ── CIE10 Autocompletar ──
+(function() {
+    let cie10FullCatalog = null;
+    const searchInput = document.getElementById('cie10-search-mci');
+    const hiddenInput = document.getElementById('cie10-value-mci');
+    const resultsDiv = document.getElementById('cie10-results');
+    if (!searchInput || !hiddenInput || !resultsDiv) return;
+
+    // Load the full CIE10 catalog for fast offline search
+    fetch('/api/cie10_full')
+        .then(r => r.json())
+        .then(data => { cie10FullCatalog = data; })
+        .catch(err => console.warn('[MCI] No se pudo cargar catálogo CIE10', err));
+
+    let cie10Timeout;
+
+    function renderResults(data) {
+        if (data.length === 0) {
+            resultsDiv.innerHTML = '<div style="padding:10px 14px; color:#94a3b8; font-size:13px; font-style:italic;">Sin coincidencia exacta — se guardará como texto personalizado</div>';
+            resultsDiv.style.display = 'block';
+            return;
+        }
+        resultsDiv.innerHTML = data.map(item =>
+            `<div class="cie10-item" data-code="${item.codigo}" data-desc="${item.nombre}">
+                <strong style="color:#1e40af;">${item.codigo}</strong>
+                <span style="color:#374151;"> — ${item.nombre}</span>
+            </div>`
+        ).join('');
+        resultsDiv.style.display = 'block';
+        resultsDiv.querySelectorAll('.cie10-item').forEach(el => {
+            el.addEventListener('click', () => {
+                const val = `${el.dataset.code} - ${el.dataset.desc}`;
+                searchInput.value = val;
+                hiddenInput.value = val;
+                resultsDiv.style.display = 'none';
+            });
+        });
+    }
+
+    searchInput.addEventListener('input', function() {
+        clearTimeout(cie10Timeout);
+        const query = this.value.trim();
+        hiddenInput.value = this.value;
+        if (query.length < 2) { resultsDiv.style.display = 'none'; resultsDiv.innerHTML = ''; return; }
+        cie10Timeout = setTimeout(() => {
+            if (cie10FullCatalog) {
+                const q = query.toUpperCase();
+                const results = cie10FullCatalog.filter(item =>
+                    item.codigo.toUpperCase().includes(q) ||
+                    item.nombre.toUpperCase().includes(q)
+                ).slice(0, 30);
+                renderResults(results);
+            }
+        }, 200);
+    });
+
+    searchInput.addEventListener('change', function() {
+        hiddenInput.value = this.value;
+    });
+
+    document.addEventListener('click', function(e) {
+        if (!searchInput.contains(e.target) && !resultsDiv.contains(e.target)) {
+            resultsDiv.style.display = 'none';
+        }
+    });
+})();
+
+// ── Alertas de Signos Vitales ─────────────────────────────
+(function() {
+    const fields = {
+        pa:    { input: document.getElementById('vs-pa'),    badge: document.getElementById('vs-badge-pa') },
+        spo2:  { input: document.getElementById('vs-spo2'),  badge: document.getElementById('vs-badge-spo2') },
+        fc:    { input: document.getElementById('vs-fc'),    badge: document.getElementById('vs-badge-fc') },
+        fr:    { input: document.getElementById('vs-fr'),    badge: document.getElementById('vs-badge-fr') },
+        glic:  { input: document.getElementById('vs-glic'),  badge: document.getElementById('vs-badge-glic') }
+    };
+    const resumen = document.getElementById('vs-alerta-resumen');
+
+    function setBadge(badge, level, text) {
+        if(!badge) return;
+        badge.className = 'vs-badge ' + level;
+        badge.textContent = text;
+        badge.style.display = level ? 'block' : 'none';
+    }
+
+    function evaluarPA() {
+        const val = fields.pa.input.value.trim();
+        const badge = fields.pa.badge;
+        if (!val) { setBadge(badge, '', ''); return null; }
+        const parts = val.match(/^(\d+)\s*\/\s*(\d+)$/);
+        if (!parts) { setBadge(badge, '', ''); return null; }
+        const sys = parseInt(parts[1]), dia = parseInt(parts[2]);
+
+        if (sys < 80 || dia < 50) {
+            setBadge(badge, 'critical', '⚠ HIPOTENSIÓN SEVERA');
+            return { level: 'critical', msg: `Presión Arterial ${sys}/${dia} — Hipotensión severa` };
+        } else if (sys < 90 || dia < 60) {
+            setBadge(badge, 'warning', '↓ Hipotensión');
+            return { level: 'warning', msg: `Presión Arterial ${sys}/${dia} — Hipotensión` };
+        } else if (sys > 180 || dia > 120) {
+            setBadge(badge, 'critical', '⚠ CRISIS HIPERTENSIVA');
+            return { level: 'critical', msg: `Presión Arterial ${sys}/${dia} — Crisis hipertensiva` };
+        } else if (sys > 140 || dia > 90) {
+            setBadge(badge, 'warning', '↑ Hipertensión');
+            return { level: 'warning', msg: `Presión Arterial ${sys}/${dia} — Hipertensión` };
+        } else {
+            setBadge(badge, 'normal', '✓ Normal');
+            return null;
+        }
+    }
+
+    function evaluarSpO2() {
+        const val = parseInt(fields.spo2.input.value);
+        const badge = fields.spo2.badge;
+        if (isNaN(val)) { setBadge(badge, '', ''); return null; }
+
+        if (val < 90) {
+            setBadge(badge, 'critical', '⚠ HIPOXEMIA SEVERA');
+            return { level: 'critical', msg: `SpO₂ ${val}% — Hipoxemia severa, requiere oxígeno inmediato` };
+        } else if (val < 95) {
+            setBadge(badge, 'warning', '↓ Hipoxemia leve');
+            return { level: 'warning', msg: `SpO₂ ${val}% — Hipoxemia leve, monitorizar` };
+        } else {
+            setBadge(badge, 'normal', '✓ Normal');
+            return null;
+        }
+    }
+
+    function evaluarFC() {
+        const val = parseInt(fields.fc.input.value);
+        const badge = fields.fc.badge;
+        if (isNaN(val)) { setBadge(badge, '', ''); return null; }
+
+        if (val < 40) {
+            setBadge(badge, 'critical', '⚠ BRADICARDIA SEVERA');
+            return { level: 'critical', msg: `FC ${val} lpm — Bradicardia severa` };
+        } else if (val < 60) {
+            setBadge(badge, 'warning', '↓ Bradicardia');
+            return { level: 'warning', msg: `FC ${val} lpm — Bradicardia` };
+        } else if (val > 150) {
+            setBadge(badge, 'critical', '⚠ TAQUICARDIA SEVERA');
+            return { level: 'critical', msg: `FC ${val} lpm — Taquicardia severa` };
+        } else if (val > 100) {
+            setBadge(badge, 'warning', '↑ Taquicardia');
+            return { level: 'warning', msg: `FC ${val} lpm — Taquicardia` };
+        } else {
+            setBadge(badge, 'normal', '✓ Normal');
+            return null;
+        }
+    }
+
+    function evaluarFR() {
+        const val = parseInt(fields.fr.input.value);
+        const badge = fields.fr.badge;
+        if (isNaN(val)) { setBadge(badge, '', ''); return null; }
+
+        if (val < 8) {
+            setBadge(badge, 'critical', '⚠ BRADIPNEA SEVERA');
+            return { level: 'critical', msg: `FR ${val} rpm — Bradipnea severa` };
+        } else if (val < 12) {
+            setBadge(badge, 'warning', '↓ Bradipnea');
+            return { level: 'warning', msg: `FR ${val} rpm — Bradipnea` };
+        } else if (val > 30) {
+            setBadge(badge, 'critical', '⚠ TAQUIPNEA SEVERA');
+            return { level: 'critical', msg: `FR ${val} rpm — Taquipnea severa` };
+        } else if (val > 20) {
+            setBadge(badge, 'warning', '↑ Taquipnea');
+            return { level: 'warning', msg: `FR ${val} rpm — Taquipnea` };
+        } else {
+            setBadge(badge, 'normal', '✓ Normal');
+            return null;
+        }
+    }
+
+    function evaluarGlicemia() {
+        const val = parseInt(fields.glic.input.value);
+        const badge = fields.glic.badge;
+        if (isNaN(val)) { setBadge(badge, '', ''); return null; }
+
+        if (val < 54) {
+            setBadge(badge, 'critical', '⚠ HIPOGLICEMIA SEVERA');
+            return { level: 'critical', msg: `Glicemia ${val} mg/dl — Hipoglicemia severa` };
+        } else if (val < 70) {
+            setBadge(badge, 'warning', '↓ Hipoglicemia');
+            return { level: 'warning', msg: `Glicemia ${val} mg/dl — Hipoglicemia` };
+        } else if (val > 300) {
+            setBadge(badge, 'critical', '⚠ HIPERGLICEMIA SEVERA');
+            return { level: 'critical', msg: `Glicemia ${val} mg/dl — Hiperglicemia severa` };
+        } else if (val > 140) {
+            setBadge(badge, 'warning', '↑ Hiperglicemia');
+            return { level: 'warning', msg: `Glicemia ${val} mg/dl — Hiperglicemia` };
+        } else {
+            setBadge(badge, 'normal', '✓ Normal');
+            return null;
+        }
+    }
+
+    function evaluarTodos() {
+        const alertas = [
+            evaluarPA(),
+            evaluarSpO2(),
+            evaluarFC(),
+            evaluarFR(),
+            evaluarGlicemia()
+        ].filter(Boolean);
+
+        if(!resumen) return;
+
+        if (alertas.length === 0) {
+            resumen.className = '';
+            resumen.id = 'vs-alerta-resumen';
+            resumen.style.display = 'none';
+            return;
+        }
+
+        const hasCritical = alertas.some(a => a.level === 'critical');
+        resumen.className = '';
+        resumen.id = 'vs-alerta-resumen';
+        resumen.className = hasCritical ? 'has-critical' : 'has-warning';
+        resumen.style.display = 'block';
+
+        const icon = hasCritical ? '🚨' : '⚠️';
+        const titulo = hasCritical
+            ? 'ALERTA CRÍTICA — Valores fuera de rango seguro'
+            : 'Atención — Valores fuera de rango normal';
+
+        resumen.innerHTML = `
+            <div style="font-weight:700; font-size:13px; margin-bottom:6px; display:flex; align-items:center; gap:6px;">
+                ${icon} ${titulo}
+            </div>
+            <ul style="margin:0; padding-left:18px;">
+                ${alertas.map(a => `<li style="${a.level === 'critical' ? 'font-weight:700;' : ''}">${a.msg}</li>`).join('')}
+            </ul>`;
+    }
+
+    // Auto-format and restrict PA input
+    if (fields.pa.input) {
+        fields.pa.input.addEventListener('input', function(e) {
+            let start = this.selectionStart;
+            let val = this.value.replace(/[.,\-]/g, '/');
+            val = val.replace(/[^\d/]/g, '');
+            let parts = val.split('/');
+            if (parts.length > 2) {
+                val = parts[0] + '/' + parts.slice(1).join('');
+                parts = val.split('/');
+            }
+            if (parts[0].length > 3) parts[0] = parts[0].substring(0, 3);
+            if (parts.length > 1 && parts[1].length > 3) parts[1] = parts[1].substring(0, 3);
+            const newVal = parts.join('/');
+            
+            if (this.value !== newVal) {
+                this.value = newVal;
+                try { this.setSelectionRange(start, start); } catch(err){}
+            }
+        });
+    }
+
+    // Listen on all vital sign inputs
+    Object.values(fields).forEach(f => {
+        if (f.input) f.input.addEventListener('input', evaluarTodos);
+    });
+
+    // Evaluate on page load
+    document.addEventListener('DOMContentLoaded', evaluarTodos);
+})();
+
+// ── Enter → saltar al siguiente campo ─────────────────────
+(function() {
+    const form = document.getElementById('form-mci');
+    if (!form) return;
+
+    form.addEventListener('keydown', function(e) {
+        if (e.key !== 'Enter') return;
+        const el = e.target;
+        // Allow Enter in textareas (for new lines) and submit buttons
+        if (el.tagName === 'TEXTAREA' || el.tagName === 'BUTTON') return;
+
+        e.preventDefault();
+
+        // Build ordered list of visible, enabled form fields
+        const fields = Array.from(form.querySelectorAll(
+            'input:not([type="hidden"]):not([readonly]), select, textarea'
+        )).filter(f => !f.disabled && f.offsetParent !== null);
+
+        const idx = fields.indexOf(el);
+        if (idx > -1 && idx < fields.length - 1) {
+            fields[idx + 1].focus();
+        }
+    });
+})();
+
+// Autoguardado local
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('form-mci');
+    if (!form) return;
+
+    const acId = '{{ atencion_colectiva_id or "0" }}';
+    const pacienteId = '{{ paciente.id if paciente else "nuevo" }}';
+    const userProfile = '{{ session.usuario.perfil }}'.replace(/\s+/g, '_');
+    const storageKey = `autosave_mci_${acId}_${pacienteId}_${userProfile}`;
+
+    // Cargar datos
+    const savedDataStr = localStorage.getItem(storageKey);
+    if (savedDataStr) {
+        try {
+            const data = JSON.parse(savedDataStr);
+            for (const key in data) {
+                if (key === 'accion') continue;
+                const element = form.elements[key];
+                if (element && data[key] !== '') {
+                    element.value = data[key];
+                    // Sincronizar el campo visible del CIE10
+                    if (key === 'diagnostico_cie10') {
+                        const cie10Search = document.getElementById('cie10-search-mci');
+                        if (cie10Search) cie10Search.value = data[key];
+                    }
+                }
+            }
+        } catch(e) {
+            console.error('Error parseando autoguardado:', e);
+        }
+    }
+
+    // Guardar datos
+    function saveToLocal() {
+        const data = {};
+        const formData = new FormData(form);
+        for (const [key, value] of formData.entries()) {
+            if (key !== 'accion') {
+                data[key] = value;
+            }
+        }
+        localStorage.setItem(storageKey, JSON.stringify(data));
+    }
+
+    form.addEventListener('input', saveToLocal);
+    form.addEventListener('change', saveToLocal);
+
+    // Limpiar al enviar
+    form.addEventListener('submit', function() {
+        localStorage.removeItem(storageKey);
+    });
+});
+// Autocompletar paciente al ingresar ID
+(function() {
+    const identInput = document.getElementById('ident_mci');
+    if (!identInput) return;
+
+    identInput.addEventListener('blur', function() {
+        const val = this.value.trim();
+        if (!val) return;
+
+        fetch('/api/buscar_paciente?identificacion=' + encodeURIComponent(val))
+            .then(r => r.json())
+            .then(data => {
+                if (data && !data.error) {
+                    const form = document.getElementById('form-mci');
+                    // Rellenar campos si existen en el formulario
+                    Object.keys(data).forEach(key => {
+                        const el = form.elements[key];
+                        if (el && el.tagName !== 'FIELDSET') {
+                            // No sobreescribir si ya tiene valor y no es el tipo_documento
+                            if (!el.value || key === 'tipo_documento') {
+                                el.value = data[key] || '';
+                            }
+                        }
+                    });
+                    // Trigger events for calculated fields
+                    const fnInput = document.getElementById('fecha_nacimiento_mci');
+                    if(fnInput && data['fecha_nacimiento']) {
+                        fnInput.value = data['fecha_nacimiento'];
+                        fnInput.dispatchEvent(new Event('change'));
+                    }
+                }
+            })
+            .catch(err => console.log('No se pudo autocompletar el paciente', err));
+    });
+})();
+</script>
+
+<script>
+// ── CARGAR Y MOSTRAR REGISTROS OFFLINE EN EL PANEL MCI ──
+document.addEventListener("DOMContentLoaded", () => {
+    const params = new URLSearchParams(window.location.search);
+    const acId = params.get('atencion_colectiva_id') || document.querySelector('input[name="atencion_colectiva_id"]').value;
+
+    async function cargarRegistrosOfflinePanel() {
+        if (!acId || typeof PWA === 'undefined') return;
+        try {
+            const pendientes = await PWA.obtenerRegistrosPorMCI(acId);
+            
+            // Actualizar contadores
+            const countBorradores = document.getElementById('count-borradores');
+            const countTotal = document.getElementById('count-total');
+            if (countBorradores && countTotal) {
+                const baseB = parseInt(countBorradores.dataset.base || 0);
+                const baseT = parseInt(countTotal.dataset.base || 0);
+                countBorradores.textContent = baseB + pendientes.length;
+                countTotal.textContent = baseT + pendientes.length;
+            }
+
+            const container = document.getElementById('lista-pacientes-container');
+            const msgNoPacientes = document.getElementById('no-pacientes-msg');
+            
+            if (!container) return;
+
+            // Limpiar tarjetas previas inyectadas por JS (las de la BD ya vienen por Jinja)
+            container.querySelectorAll('.offline-injected').forEach(e => e.remove());
+
+            if (pendientes.length > 0) {
+                if (msgNoPacientes) msgNoPacientes.style.display = 'none';
+                
+                // Ordenar para que el último guardado/actualizado quede de primero
+                pendientes.sort((a, b) => {
+                    const tA = new Date(a.fecha_actualizacion || a.fecha_creacion).getTime();
+                    const tB = new Date(b.fecha_actualizacion || b.fecha_creacion).getTime();
+                    return tB - tA;
+                });
+                
+                let htmlToInsert = '';
+                pendientes.forEach(r => {
+                    const d = r.datos;
+                    const nombre = (d.primer_nombre || d.primer_apellido) 
+                        ? `${d.primer_nombre || ''} ${d.primer_apellido || ''}`
+                        : '<span style="color:#94a3b8; font-style:italic;">Paciente sin identificar</span>';
+                    
+                    const diag = d.diagnostico_cie10 ? `<span style="color:#7c3aed;">🔬 ${d.diagnostico_cie10.substring(0,25)}...</span>` : '';
+                    const edadStr = d.edad_visual ? `<span>🎂 ${d.edad_visual}</span>` : (d.edad ? `<span>🎂 ${d.edad}</span>` : '');
+                    
+                    const isFinalizado = (d.accion === 'finalizar');
+                    const badgeStatus = isFinalizado 
+                        ? '<span style="background:#d1fae5; color:#065f46; font-size:9px; font-weight:700; padding:2px 6px; border-radius:12px; white-space:nowrap; flex-shrink:0;">🟢 FINAL (Offline)</span>'
+                        : '<span style="background:#fef3c7; color:#92400e; font-size:9px; font-weight:700; padding:2px 6px; border-radius:12px; white-space:nowrap; flex-shrink:0;">🟡 BORRADOR (Offline)</span>';
+
+                    const cardHTML = `
+                    <div class="paciente-card offline-injected" style="background:${isFinalizado ? '#f0fdf4' : '#fffbeb'}; border:1.5px dashed ${isFinalizado ? '#bbf7d0' : '#f59e0b'}; border-radius:8px; padding:10px 12px; display:flex; flex-direction:column; gap:5px; transition:all 0.15s;">
+                        <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:6px;">
+                            <span style="font-weight:700; font-size:12px; color:#1e293b; line-height:1.3; flex:1;">
+                                ${nombre}
+                            </span>
+                            ${badgeStatus}
+                        </div>
+                        <div style="font-size:10px; color:#64748b; display:flex; gap:8px; flex-wrap:wrap;">
+                            <span>📋 ${d.tipo_documento || ''} ${d.identificacion_paciente || 'Sin ID'}</span>
+                            ${edadStr}
+                            ${diag}
+                        </div>
+                        ${!isFinalizado ? `
+                        <div style="display:flex; justify-content:flex-end; gap:6px; margin-top:4px; border-top:1px dashed #fde68a; padding-top:6px;">
+                            <button type="button" onclick="editarRegistroOffline(${r.id})" style="display:inline-flex; align-items:center; gap:3px; background:#fffbeb; border:1px solid #fde68a; color:#b45309; padding:3px 8px; border-radius:4px; font-size:10px; font-weight:600; cursor:pointer;">
+                                ✏️ Completar
+                            </button>
+                        </div>` : ''}
+                    </div>`;
+                    htmlToInsert += cardHTML;
+                });
+                container.insertAdjacentHTML('afterbegin', htmlToInsert);
+            } else {
+                if (container.children.length === 0 && msgNoPacientes) {
+                    msgNoPacientes.style.display = 'block';
+                }
+            }
+        } catch (e) {
+            console.error("Error cargando registros offline para panel:", e);
+        }
+    }
+
+    cargarRegistrosOfflinePanel();
+    window.cargarRegistrosOfflinePanel = cargarRegistrosOfflinePanel;
+});
+
+// FUNCIONES GLOBALES PARA EDICION OFFLINE 
+window.cancelarEdicionOffline = function(showToast = true) {
+    const form = document.getElementById('form-mci');
+    if (form) form.reset();
+    document.getElementById('offline_id_input').value = '';
+    
+    const btnCancelar = document.getElementById('btn-cancelar-offline');
+    if (btnCancelar) btnCancelar.style.display = 'none';
+
+    const cie10 = document.getElementById('cie10-search-mci');
+    if (cie10) cie10.value = '';
+    const cie10_val = document.getElementById('cie10-value-mci');
+    if (cie10_val) cie10_val.value = '';
+    const edad = document.getElementById('edad_mci');
+    if (edad) edad.value = '';
+    
+    if (showToast) mostrarToast('Edición cancelada.', 'info');
+};
+
+window.editarRegistroOffline = async function(id) {
+    if (typeof PWA === 'undefined') return;
+    try {
+        const registro = await PWA.obtenerRegistroPorId(id);
+        if (!registro) return;
+
+        const form = document.getElementById('form-mci');
+        if (!form) return;
+
+        const d = registro.datos;
+        for (const key in d) {
+            // Ignorar accion y metadatos internos
+            if (key === 'accion' || key.startsWith('_')) continue;
+            
+            const el = form.elements[key];
+            if (el) {
+                // Si es un NodeList de elementos con el mismo name (ej. radios)
+                if (el.length !== undefined && el.tagName !== 'SELECT') {
+                    for(let i=0; i<el.length; i++) {
+                        if (el[i].type === 'radio' || el[i].type === 'checkbox') {
+                            el[i].checked = (el[i].value === d[key]);
+                        }
+                    }
+                } else {
+                    el.value = d[key];
+                }
+            }
+        }
+
+        document.getElementById('offline_id_input').value = id;
+        
+        const cie10Search = document.getElementById('cie10-search-mci');
+        if (cie10Search && d.diagnostico_cie10) {
+            cie10Search.value = d.diagnostico_cie10;
+        }
+
+        const btnCancelar = document.getElementById('btn-cancelar-offline');
+        if (btnCancelar) btnCancelar.style.display = 'inline-flex';
+
+        form.scrollIntoView({ behavior: 'smooth' });
+        mostrarToast(`Editando borrador offline #${id}`, 'info');
+        
+    } catch (e) {
+        console.error("Error al cargar registro offline para edición:", e);
+        mostrarToast("No se pudo cargar el registro para edición", "error");
+    }
+};
+
+// Cargar Departamentos y Municipios para Formulario MCI
+document.addEventListener('DOMContentLoaded', async function() {
+    const depSelect = document.getElementById('departamento_residencia_mci');
+    const munSelect = document.getElementById('municipio_residencia_mci');
+    const depList = document.getElementById('departamentos_list_mci');
+    const munList = document.getElementById('municipios_list_mci');
+    const rowBarrio = document.getElementById('fila_barrio_mci');
+    const barrioInput = document.getElementById('barrio_residencia_mci');
+    const barriosList = document.getElementById('barrios_list_mci');
+
+    if (!depSelect) return;
+
+    let deptMunMap = {}; 
+
+    const prefillDep = "{{ paciente.departamento_residencia or '' if paciente else '' }}";
+    const prefillMun = "{{ paciente.municipio_residencia or '' if paciente else '' }}";
+    const prefillBarrio = "{{ paciente.barrio_residencia or '' if paciente else '' }}";
+
+    let activeDep = prefillDep;
+    let activeMun = prefillMun;
+    let activeBarrio = prefillBarrio;
+
+    // Intentar recuperar del autosave local
+    const acId = '{{ atencion_colectiva_id or "0" }}';
+    const pacienteId = '{{ paciente.id if paciente else "nuevo" }}';
+    const userProfile = '{{ session.usuario.perfil }}'.replace(/\s+/g, '_');
+    const storageKey = `autosave_mci_${acId}_${pacienteId}_${userProfile}`;
+    const savedDataStr = localStorage.getItem(storageKey);
+    if (savedDataStr) {
+        try {
+            const data = JSON.parse(savedDataStr);
+            if (data['departamento_residencia']) activeDep = data['departamento_residencia'];
+            if (data['municipio_residencia']) activeMun = data['municipio_residencia'];
+            if (data['barrio_residencia']) activeBarrio = data['barrio_residencia'];
+        } catch(e) {}
+    }
+
+    // 1. Cargar Departamentos y Municipios
+    try {
+        const res = await fetch('/static/data/Departamentos_Municipios.json');
+        if (res.ok) {
+            const rawData = await res.json();
+            rawData.forEach(item => {
+                const dep = item["Nombre Departamento"];
+                const mun = item["Nombre Municipio"];
+                if (!deptMunMap[dep]) deptMunMap[dep] = [];
+                deptMunMap[dep].push(mun);
+            });
+            Object.keys(deptMunMap).sort().forEach(dep => {
+                const opt = document.createElement('option');
+                opt.value = dep;
+                depList.appendChild(opt);
+            });
+            if (activeDep) {
+                depSelect.value = activeDep;
+            }
+        }
+    } catch (e) { console.error('Error cargando Departamentos', e); }
+
+    // 2. Cargar Barrios de Medellín
+    try {
+        const resB = await fetch('/static/data/barrios_medellin.json');
+        if (resB.ok) {
+            const data = await resB.json();
+            const comunas = data.comunas || [];
+            let allBarrios = [];
+            comunas.forEach(c => {
+                if (c.barrios) {
+                    allBarrios = allBarrios.concat(c.barrios);
+                }
+            });
+            allBarrios.sort().forEach(b => {
+                const opt = document.createElement('option');
+                opt.value = b;
+                barriosList.appendChild(opt);
+            });
+        }
+    } catch (e) { console.error('Error cargando Barrios', e); }
+
+    // 2.5 Cargar Ocupaciones
+    try {
+        const resOc = await fetch('/static/data/Ocupaciones.json');
+        if (resOc.ok) {
+            const dataOc = await resOc.json();
+            const ocupacionesList = document.getElementById('ocupaciones_list_mci');
+            if (dataOc.Hoja1 && ocupacionesList) {
+                dataOc.Hoja1.forEach(item => {
+                    if (item["Nombre de la Ocupación"]) {
+                        const opt = document.createElement('option');
+                        opt.value = item["Nombre de la Ocupación"];
+                        ocupacionesList.appendChild(opt);
+                    }
+                });
+            }
+        }
+    } catch (e) { console.error('Error cargando Ocupaciones', e); }
+
+    // 3. Manejar cambio de Departamento
+    function actualizarMunicipios() {
+        munList.innerHTML = '';
+        munSelect.disabled = true;
+        const dep = depSelect.value;
+        if (dep && deptMunMap[dep]) {
+            const muns = [...new Set(deptMunMap[dep])].sort();
+            muns.forEach(m => {
+                const opt = document.createElement('option');
+                opt.value = m;
+                munList.appendChild(opt);
+            });
+            munSelect.disabled = false;
+        }
+    }
+
+    depSelect.addEventListener('input', function() {
+        actualizarMunicipios();
+        munSelect.dispatchEvent(new Event('change'));
+    });
+
+    // 4. Manejar cambio de Municipio (mostrar/ocultar Barrio)
+    munSelect.addEventListener('input', function() {
+        if (this.value.toUpperCase() === 'MEDELLIN' || this.value.toUpperCase() === 'MEDELLÍN') {
+            rowBarrio.style.display = 'flex';
+        } else {
+            rowBarrio.style.display = 'none';
+            barrioInput.value = '';
+        }
+    });
+
+    // 5. Inicializar pre-llenado si es edición o hay autoguardado
+    if (activeDep) {
+        actualizarMunicipios();
+        if (activeMun) {
+            munSelect.value = activeMun;
+            munSelect.dispatchEvent(new Event('change'));
+        }
+        if (activeBarrio) {
+            barrioInput.value = activeBarrio;
+        }
+    }
+});
+
+// Auto-llenado para paciente NN
+document.addEventListener('DOMContentLoaded', function() {
+    const tipoDocSelect = document.getElementById('tipo_documento');
+    if (tipoDocSelect) {
+        let previousTipoDoc = tipoDocSelect.value;
+        tipoDocSelect.addEventListener('change', function() {
+            if (this.value === 'NN') {
+                const now = new Date();
+                const timestamp = now.getFullYear().toString() + 
+                                  (now.getMonth() + 1).toString().padStart(2, '0') + 
+                                  now.getDate().toString().padStart(2, '0') + 
+                                  now.getHours().toString().padStart(2, '0') + 
+                                  now.getMinutes().toString().padStart(2, '0') + 
+                                  now.getSeconds().toString().padStart(2, '0');
+                
+                const identInput = document.getElementById('ident_mci');
+                if (identInput) identInput.value = timestamp;
+                
+                const pNombre = document.querySelector('input[name="primer_nombre" required]');
+                const sNombre = document.querySelector('input[name="segundo_nombre"]');
+                const pApellido = document.querySelector('input[name="primer_apellido" required]');
+                const sApellido = document.querySelector('input[name="segundo_apellido"]');
+                
+                if (pNombre) pNombre.value = 'No Dato';
+                if (sNombre) sNombre.value = 'No Dato';
+                if (pApellido) pApellido.value = 'No Dato';
+                if (sApellido) sApellido.value = 'No Dato';
+            } else if (previousTipoDoc === 'NN') {
+                const identInput = document.getElementById('ident_mci');
+                if (identInput) identInput.value = '';
+                
+                const pNombre = document.querySelector('input[name="primer_nombre" required]');
+                const sNombre = document.querySelector('input[name="segundo_nombre"]');
+                const pApellido = document.querySelector('input[name="primer_apellido" required]');
+                const sApellido = document.querySelector('input[name="segundo_apellido"]');
+                
+                if (pNombre) pNombre.value = '';
+                if (sNombre) sNombre.value = '';
+                if (pApellido) pApellido.value = '';
+                if (sApellido) sApellido.value = '';
+            }
+            previousTipoDoc = this.value;
+        });
+    }
+});
+</script>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     MODAL: Finalizar Registro Masivo
+     ═══════════════════════════════════════════════════════════════════ -->
+{% if atencion_colectiva and not atencion_colectiva.finalizado %}
+<div id="modal-finalizar" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(15,23,42,0.6); backdrop-filter:blur(4px); align-items:center; justify-content:center; padding:20px;">
+    <div style="background:white; border-radius:16px; max-width:680px; width:100%; max-height:85vh; display:flex; flex-direction:column; box-shadow:0 25px 60px rgba(0,0,0,0.3); overflow:hidden;">
+
+        <!-- Header -->
+        <div id="modal-header" style="padding:20px 24px 16px; border-bottom:1px solid #f1f5f9; display:flex; align-items:center; gap:14px; flex-shrink:0;">
+            <div id="modal-icon" style="font-size:32px; line-height:1;">🔒</div>
+            <div>
+                <h2 id="modal-titulo" style="margin:0; font-size:17px; color:#0f172a;"></h2>
+                <p id="modal-subtitulo" style="margin:4px 0 0; font-size:13px; color:#64748b;"></p>
+            </div>
+        </div>
+
+        <!-- Body (scrollable) -->
+        <div id="modal-body" style="padding:20px 24px; overflow-y:auto; flex:1;"></div>
+
+        <!-- Footer -->
+        <div id="modal-footer" style="padding:16px 24px; border-top:1px solid #f1f5f9; display:flex; justify-content:flex-end; gap:10px; flex-shrink:0;"></div>
+    </div>
+</div>
+
+<script>
+(function() {
+    const btnFinalizar = document.getElementById('btn-finalizar-masivo');
+    if (!btnFinalizar) return;
+
+    const modal        = document.getElementById('modal-finalizar');
+    const modalHeader  = document.getElementById('modal-header');
+    const modalIcon    = document.getElementById('modal-icon');
+    const modalTitulo  = document.getElementById('modal-titulo');
+    const modalSubtitu = document.getElementById('modal-subtitulo');
+    const modalBody    = document.getElementById('modal-body');
+    const modalFooter  = document.getElementById('modal-footer');
+    const acId         = btnFinalizar.dataset.acId;
+
+    function openModal() { modal.style.display = 'flex'; document.body.style.overflow = 'hidden'; }
+    function closeModal() { modal.style.display = 'none'; document.body.style.overflow = ''; }
+
+    // Close on backdrop click
+    modal.addEventListener('click', function(e) { if (e.target === modal) closeModal(); });
+
+    function showErrorModal(errores) {
+        modalIcon.textContent = '⚠️';
+        modalHeader.style.background = '#fff7ed';
+        modalTitulo.textContent = 'Campos obligatorios incompletos';
+        modalTitulo.style.color = '#9a3412';
+        modalSubtitu.textContent = `${errores.length} paciente(s) tienen información pendiente. Corrija los campos antes de finalizar.`;
+        modalSubtitu.style.color = '#c2410c';
+
+        let html = '';
+        errores.forEach(function(err, i) {
+            html += `
+            <div style="background:#fff7ed; border:1.5px solid #fed7aa; border-radius:10px; padding:14px 16px; margin-bottom:12px;">
+                <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:10px;">
+                    <div>
+                        <span style="font-weight:700; font-size:14px; color:#9a3412;">${i+1}. ${err.nombre}</span>
+                        <span style="font-size:11px; color:#c2410c; display:block; margin-top:2px;">
+                            📋 ID: ${err.identificacion}
+                        </span>
+                    </div>
+                    <a href="/formulario_mci?id=${err.paciente_id_encoded}&atencion_colectiva_id=${acId}"
+                       style="background:#ea580c; color:white; padding:5px 12px; border-radius:6px; font-size:12px; font-weight:700; text-decoration:none; white-space:nowrap; display:inline-flex; align-items:center; gap:4px;">
+                        ✏️ Completar Ahora
+                    </a>
+                </div>
+                <div style="font-size:12px; color:#7c2d12; font-weight:600; margin-bottom:6px;">Campos faltantes:</div>
+                <div style="display:flex; flex-wrap:wrap; gap:6px;">
+                    ${err.campos_faltantes.map(c => `<span style="background:#fee2e2; color:#991b1b; border:1px solid #fca5a5; padding:2px 8px; border-radius:4px; font-size:11px; font-weight:600;">${c}</span>`).join('')}
+                </div>
+            </div>`;
+        });
+        modalBody.innerHTML = html;
+
+        modalFooter.innerHTML = `
+            <button onclick="document.getElementById('modal-finalizar').style.display='none'; document.body.style.overflow='';"
+                style="background:#f1f5f9; color:#475569; border:1px solid #cbd5e1; padding:10px 20px; border-radius:8px; font-size:14px; font-weight:600; cursor:pointer; font-family:inherit;">
+                Cerrar y Corregir
+            </button>`;
+        openModal();
+    }
+
+    function showConfirmModal(numPacientes) {
+        modalIcon.textContent = '🔒';
+        modalHeader.style.background = '#f0fdf4';
+        modalTitulo.textContent = 'Confirmar Finalización del Registro Masivo';
+        modalTitulo.style.color = '#14532d';
+        modalSubtitu.textContent = `Todos los ${numPacientes} paciente(s) tienen sus campos completos.`;
+        modalSubtitu.style.color = '#166534';
+
+        modalBody.innerHTML = `
+            <div style="background:#ecfdf5; border:1.5px solid #a7f3d0; border-radius:10px; padding:16px 18px; margin-bottom:16px;">
+                <div style="font-size:14px; color:#065f46; font-weight:700; margin-bottom:8px;">⚠️ Esta acción es irreversible</div>
+                <ul style="margin:0; padding-left:18px; font-size:13px; color:#047857; line-height:2;">
+                    <li>Se <strong>finalizarán</strong> las ${numPacientes} historias clínicas del evento.</li>
+                    <li>Las historias clínicas <strong>no podrán ser modificadas</strong> después.</li>
+                    <li>El evento quedará marcado como <strong>completado</strong>.</li>
+                </ul>
+            </div>
+            <p style="font-size:13px; color:#374151; margin:0;">¿Está seguro que desea finalizar el registro masivo?</p>`;
+
+        modalFooter.innerHTML = `
+            <button onclick="document.getElementById('modal-finalizar').style.display='none'; document.body.style.overflow='';"
+                style="background:#f1f5f9; color:#475569; border:1px solid #cbd5e1; padding:10px 20px; border-radius:8px; font-size:14px; font-weight:600; cursor:pointer; font-family:inherit;">
+                Cancelar
+            </button>
+            <button id="btn-confirmar-finalizar"
+                style="background:linear-gradient(135deg,#16a34a,#15803d); color:white; border:none; padding:10px 22px; border-radius:8px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; display:inline-flex; align-items:center; gap:6px; box-shadow:0 4px 12px rgba(22,163,74,0.3);">
+                ✅ Sí, Finalizar
+            </button>`;
+
+        document.getElementById('btn-confirmar-finalizar').addEventListener('click', function() {
+            this.innerHTML = '⏳ Finalizando...';
+            this.disabled = true;
+            doFinalize();
+        });
+
+        openModal();
+    }
+
+    function doFinalize() {
+        fetch(`/formularios/atencion-colectiva/${acId}/finalizar`, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': '', 'Content-Type': 'application/json' }
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.ok) {
+                closeModal();
+                window.location.href = data.redirect;
+            } else {
+                closeModal();
+                alert('Error: ' + (data.error || 'Error desconocido.'));
+            }
+        })
+        .catch(() => { closeModal(); alert('Error de red. Intente nuevamente.'); });
+    }
+
+    btnFinalizar.addEventListener('click', function() {
+        this.innerHTML = '⏳ Validando...';
+        this.disabled = true;
+
+        // First call the API to get validation result (but don't finalize yet)
+        fetch(`/formularios/atencion-colectiva/${acId}/finalizar`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-Validate-Only': '1' }
+        })
+        .then(r => r.json().then(data => ({ status: r.status, data })))
+        .then(({ status, data }) => {
+            this.innerHTML = '🔒 Finalizar Registro Masivo';
+            this.disabled = false;
+
+            if (status === 422 && data.errores) {
+                showErrorModal(data.errores);
+            } else if (data.ok) {
+                // Already finalized or we need confirm step
+                showConfirmModal(data.num_pacientes || '?');
+            } else {
+                alert(data.error || 'Error inesperado.');
+            }
+        })
+        .catch(() => {
+            this.innerHTML = '🔒 Finalizar Registro Masivo';
+            this.disabled = false;
+            alert('Error de red. Intente nuevamente.');
+        });
+    });
+})();
+</script>
+</script>
+{% endif %}
+
+<script>
+// ── Dictado por Voz ──
+let currentRecognition = null;
+function startDictation(btn, targetTextarea) {
+    if (currentRecognition) {
+        currentRecognition.stop();
+        currentRecognition = null;
+        document.querySelectorAll('.btn-dictar').forEach(b => b.classList.remove('recording'));
+        return;
+    }
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+        alert("El dictado por voz no está soportado en este navegador. Intente usar Chrome o Safari.");
+        return;
+    }
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    
+    recognition.lang = 'es-ES';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onstart = function() {
+        btn.classList.add('recording');
+        currentRecognition = recognition;
+    };
+    recognition.onresult = function(event) {
+        const transcript = event.results[0][0].transcript;
+        if (targetTextarea.value) {
+            targetTextarea.value += " " + transcript;
+        } else {
+            targetTextarea.value = transcript.charAt(0).toUpperCase() + transcript.slice(1);
+        }
+        targetTextarea.dispatchEvent(new Event('input', { bubbles: true }));
+    };
+    recognition.onerror = function(event) {
+        if (event.error !== 'no-speech') {
+            alert("Error en el dictado de voz: " + event.error);
+        }
+    };
+    recognition.onend = function() {
+        btn.classList.remove('recording');
+        currentRecognition = null;
+    };
+    recognition.start();
+}
+</script>
+
+
+<script>
+// Hacer que los acordeones sean exclusivos (solo uno abierto a la vez)
+document.addEventListener('DOMContentLoaded', function() {
+    const details = document.querySelectorAll('details.accordion-step');
+    details.forEach(targetDetail => {
+        targetDetail.addEventListener('toggle', () => {
+            if (targetDetail.open) {
+                details.forEach(detail => {
+                    if (detail !== targetDetail) {
+                        detail.removeAttribute('open');
+                    }
+                });
+            }
+        });
+    });
+});
+
+// Prevenir que el navegador restaure el formulario lleno usando el caché Atrás/Adelante (BF-Cache)
+window.addEventListener('pageshow', function(event) {
+    if (event.persisted) {
+        window.location.reload();
+    }
+});
+</script>
+
+{% endblock %}
