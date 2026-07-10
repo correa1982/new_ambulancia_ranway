@@ -107,25 +107,25 @@ details.accordion-step[open] > summary::after {
     </h1>
 </div>
 
-{% if atencion_colectiva %}
-<div style="background: {% if atencion_colectiva.finalizado %}#f0fdf4{% else %}#eff6ff{% endif %}; border: 1.5px solid {% if atencion_colectiva.finalizado %}#bbf7d0{% else %}#bfdbfe{% endif %}; border-radius: 8px; padding: 14px 18px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; gap: 16px; box-shadow: 0 4px 6px -1px rgba(30,111,191,0.05); flex-wrap: wrap;">
+{% if True %}
+<div id="mci-header" style="background: {% if atencion_colectiva and atencion_colectiva.finalizado %}#f0fdf4{% else %}#eff6ff{% endif %}; border: 1.5px solid {% if atencion_colectiva and atencion_colectiva.finalizado %}#bbf7d0{% else %}#bfdbfe{% endif %}; border-radius: 8px; padding: 14px 18px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; gap: 16px; box-shadow: 0 4px 6px -1px rgba(30,111,191,0.05); flex-wrap: wrap;">
     <div>
-        <div style="font-weight: 700; color: {% if atencion_colectiva.finalizado %}#15803d{% else %}#1e40af{% endif %}; font-size: 14px; display: flex; align-items: center; gap: 6px;">
-            {% if atencion_colectiva.finalizado %}
+        <div style="font-weight: 700; color: {% if atencion_colectiva and atencion_colectiva.finalizado %}#15803d{% else %}#1e40af{% endif %}; font-size: 14px; display: flex; align-items: center; gap: 6px;">
+            {% if atencion_colectiva and atencion_colectiva.finalizado %}
             <span>✅ Atención Colectiva FINALIZADA</span>
             {% else %}
             <span>👥 Vinculado a Atención Colectiva / MCI</span>
             {% endif %}
         </div>
-        <p style="font-size: 13px; color: {% if atencion_colectiva.finalizado %}#15803d{% else %}#1e40af{% endif %}; margin-top: 4px; line-height: 1.4;">
-            <strong>Lugar:</strong> {{ atencion_colectiva.lugar }} |
-            <strong>Incidente:</strong> {{ atencion_colectiva.tipo_incidente }} |
-            <strong>Inicio:</strong> {{ atencion_colectiva.fecha_inicio }} {{ atencion_colectiva.hora_inicio }}
+        <p style="font-size: 13px; color: {% if atencion_colectiva and atencion_colectiva.finalizado %}#15803d{% else %}#1e40af{% endif %}; margin-top: 4px; line-height: 1.4;">
+            <strong>Lugar:</strong> {{ atencion_colectiva.lugar if atencion_colectiva else '—' }} |
+            <strong>Incidente:</strong> {{ atencion_colectiva.tipo_incidente if atencion_colectiva else '—' }} |
+            <strong>Inicio:</strong> {{ atencion_colectiva.fecha_inicio if atencion_colectiva else '' }} {{ atencion_colectiva.hora_inicio if atencion_colectiva else '' }}
         </p>
     </div>
-    {% if not atencion_colectiva.finalizado %}
+    {% if not atencion_colectiva or not atencion_colectiva.finalizado %}
     <button type="button" id="btn-finalizar-masivo"
-        data-ac-id="{{ atencion_colectiva.id }}"
+        data-ac-id="{{ atencion_colectiva.id if atencion_colectiva else '' }}"
         style="background: linear-gradient(135deg, #ef4444, #dc2626); color: white; border: none; padding: 9px 18px; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; display:inline-flex; align-items:center; gap:6px; box-shadow: 0 4px 12px rgba(239,68,68,0.3); font-family: inherit; transition: all 0.15s; white-space: nowrap;">
         🔒 Finalizar Registro Masivo
     </button>
@@ -138,7 +138,7 @@ details.accordion-step[open] > summary::after {
 <div style="display: flex; gap: 24px; align-items: flex-start; flex-wrap: wrap; width: 100%;">
     <div style="flex: 3; min-width: 320px;">
         <form method="POST" id="form-mci">
-    <input type="hidden" name="atencion_colectiva_id" value="{{ atencion_colectiva_id or '' }}">
+    <input type="hidden" name="atencion_colectiva_id" id="hidden_ac_id" value="{{ atencion_colectiva_id or '' }}">
     <input type="hidden" name="fecha_inicio_atencion" value="{{ fecha_inicio_atencion or hoy }}">
     {% if paciente and paciente.id %}
     <input type="hidden" name="id" value="{{ paciente.id|encode_id }}">
@@ -474,15 +474,15 @@ details.accordion-step[open] > summary::after {
     </div>
 
     <!-- Panel de Pacientes Vinculados (Atención Colectiva) -->
-    {% if atencion_colectiva %}
-    <div style="flex: 1.2; min-width: 290px; background: white; border: 1.5px solid #bfdbfe; border-radius: 12px; padding: 20px; box-shadow: 0 10px 15px -3px rgba(30,111,191,0.08);">
+    {% if True %}
+    <div id="mci-panel" style="flex: 1.2; min-width: 290px; background: white; border: 1.5px solid #bfdbfe; border-radius: 12px; padding: 20px; box-shadow: 0 10px 15px -3px rgba(30,111,191,0.08);">
 
         <!-- Resumen del evento -->
         <div style="background: #eff6ff; border-radius: 8px; padding: 10px 13px; margin-bottom: 16px; font-size: 12px; color: #1e40af; line-height: 1.7;">
             <div style="font-weight: 700; font-size: 13px; margin-bottom: 4px;">📋 Evento Activo</div>
-            <div><strong>Lugar:</strong> {{ atencion_colectiva.lugar or '—' }}</div>
-            <div><strong>Incidente:</strong> {{ atencion_colectiva.tipo_incidente or '—' }}</div>
-            <div><strong>Inicio:</strong> {{ atencion_colectiva.fecha_inicio }} {{ atencion_colectiva.hora_inicio }}</div>
+            <div><strong>Lugar:</strong> {{ atencion_colectiva.lugar if atencion_colectiva else '—' }}</div>
+            <div><strong>Incidente:</strong> {{ atencion_colectiva.tipo_incidente if atencion_colectiva else '—' }}</div>
+            <div><strong>Inicio:</strong> {{ atencion_colectiva.fecha_inicio if atencion_colectiva else '' }} {{ atencion_colectiva.hora_inicio if atencion_colectiva else '' }}</div>
         </div>
 
         <!-- Contadores -->
@@ -564,14 +564,12 @@ details.accordion-step[open] > summary::after {
         </div>
 
         <!-- Botón para agregar nuevo paciente si ya hay registros -->
-        {% if evento_pacientes %}
-        <div style="margin-top: 14px; padding-top: 12px; border-top: 2px dashed #e2e8f0;">
-            <a href="{{ url_for('formulario_mci', atencion_colectiva_id=atencion_colectiva_id) }}"
+        <div id="btn-agregar-otro-container" style="margin-top: 14px; padding-top: 12px; border-top: 2px dashed #e2e8f0; {% if not evento_pacientes %}display: none;{% endif %}">
+            <a href="javascript:void(0)" onclick="window.location.href='/formulario_mci?atencion_colectiva_id=' + document.getElementById('hidden_ac_id').value"
                style="display: flex; align-items: center; justify-content: center; gap: 6px; background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; padding: 10px 16px; border-radius: 8px; text-decoration: none; font-weight: 700; font-size: 12px; box-shadow: 0 4px 10px rgba(59,130,246,0.3); transition: all 0.15s;">
                 ➕ Agregar Otro Paciente
             </a>
         </div>
-        {% endif %}
     </div>
     {% endif %}
 </div>
@@ -1012,7 +1010,21 @@ document.addEventListener('DOMContentLoaded', function() {
 // ── CARGAR Y MOSTRAR REGISTROS OFFLINE EN EL PANEL MCI ──
 document.addEventListener("DOMContentLoaded", () => {
     const params = new URLSearchParams(window.location.search);
-    const acId = params.get('atencion_colectiva_id') || document.querySelector('input[name="atencion_colectiva_id"]').value;
+    let acId = params.get('atencion_colectiva_id');
+    const hiddenAcId = document.getElementById('hidden_ac_id');
+    
+    // Si la página se cargó desde cache offline y no tiene el ID, pero la URL sí:
+    if (acId && hiddenAcId && !hiddenAcId.value) {
+        hiddenAcId.value = acId;
+    } else if (!acId && hiddenAcId) {
+        acId = hiddenAcId.value;
+    }
+    
+    // Update data-ac-id for finalize button if offline
+    const btnFinalizar = document.getElementById('btn-finalizar-masivo');
+    if (btnFinalizar && acId && !btnFinalizar.dataset.acId) {
+        btnFinalizar.dataset.acId = acId;
+    }
 
     async function cargarRegistrosOfflinePanel() {
         if (!acId || typeof PWA === 'undefined') return;
@@ -1031,14 +1043,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const container = document.getElementById('lista-pacientes-container');
             const msgNoPacientes = document.getElementById('no-pacientes-msg');
+            const btnAgregarOtro = document.getElementById('btn-agregar-otro-container');
             
             if (!container) return;
 
-            // Limpiar tarjetas previas inyectadas por JS (las de la BD ya vienen por Jinja)
+            // Limpiar tarjetas previas inyectadas por JS
             container.querySelectorAll('.offline-injected').forEach(e => e.remove());
 
-            if (pendientes.length > 0) {
+            const totalMostrados = pendientes.length + (container.querySelectorAll('.paciente-card:not(.offline-injected)').length);
+
+            if (totalMostrados > 0) {
                 if (msgNoPacientes) msgNoPacientes.style.display = 'none';
+                if (btnAgregarOtro) btnAgregarOtro.style.display = 'block';
                 
                 // Ordenar para que el último guardado/actualizado quede de primero
                 pendientes.sort((a, b) => {
@@ -1088,6 +1104,7 @@ document.addEventListener("DOMContentLoaded", () => {
             } else {
                 if (container.children.length === 0 && msgNoPacientes) {
                     msgNoPacientes.style.display = 'block';
+                    if (btnAgregarOtro) btnAgregarOtro.style.display = 'none';
                 }
             }
         } catch (e) {

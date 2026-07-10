@@ -353,7 +353,7 @@ const PWA = (() => {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', async () => {
     try {
-      const reg = await navigator.serviceWorker.register('/sw.js?v=47', { scope: '/' });
+      const reg = await navigator.serviceWorker.register('/sw.js?v=50', { scope: '/' });
       console.log('[PWA] Service Worker registrado:', reg.scope);
 
       // Escuchar mensajes de sync del SW

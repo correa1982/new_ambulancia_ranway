@@ -3,7 +3,7 @@
 //  Versión: 1.0.5
 // ═══════════════════════════════════════════════════════════
 
-const CACHE_NAME = 'ambulacia-v49';
+const CACHE_NAME = 'ambulacia-v50';
 const OFFLINE_DB  = 'ambulacia-offline';
 
 // Recursos que se cachean al instalar (shell de la app)
@@ -19,7 +19,7 @@ const STATIC_ASSETS = [
   '/pendientes/checklists',
   '/static/manifest.json',
   '/static/offline.html?v=3',
-  '/static/pwa-offline.js?v=21',
+  '/static/pwa-offline.js?v=22',
   '/api/cie10_full',
   '/static/data/Departamentos_Municipios.json',
   '/static/data/barrios_medellin.json'
