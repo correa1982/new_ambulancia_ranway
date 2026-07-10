@@ -290,11 +290,11 @@ if __name__ == "__main__":
         print("\n" + "="*60)
         print(" Aplicación disponible en tu red local.")
         print(f" Ingresa desde otro dispositivo (celular/tablet) a:")
-        print(f"   http://{ip}:10000")
+        print(f"   http://{ip}:5000")
         print("="*60 + "\n")
     except Exception:
         pass
         
 
-    port = int(os.environ.get("PORT", 10000))
+    port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
