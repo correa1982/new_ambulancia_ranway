@@ -242,6 +242,7 @@
     <thead>
         <tr>
             <th>#</th>
+            <th>ID</th>
             <th>Tipo</th>
             <th>Fecha</th>
             <th>Hora</th>
@@ -255,6 +256,7 @@
     {% for r in results %}
     <tr>
         <td style="color:#94a3b8; font-size:11px; font-weight:700;">{{ loop.index }}</td>
+        <td style="color:#475569; font-size:12px; font-weight:700;">#{{ r.id }}</td>
         <td>
             <span class="type-badge" style="background:{{ r.tipo_color }};">
                 {{ r.tipo_icon }} {{ r.tipo_label }}
