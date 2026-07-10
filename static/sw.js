@@ -3,7 +3,7 @@
 //  Versión: 1.0.5
 // ═══════════════════════════════════════════════════════════
 
-const CACHE_NAME = 'ambulacia-v52';
+const CACHE_NAME = 'ambulacia-v53';
 const OFFLINE_DB  = 'ambulacia-offline';
 
 // Recursos que se cachean al instalar (shell de la app)
@@ -61,7 +61,7 @@ self.addEventListener('fetch', event => {
   // No interceptar peticiones de ping (para detectar conexión real)
   if (url.searchParams.has('_sw_bypass')) return;
 
-  if (url.pathname.startsWith('/api/') ||
+  if ((url.pathname.startsWith('/api/') && !url.pathname.includes('/cie10_full')) ||
       url.pathname.startsWith('/checklist/')) return;
 
   // Para el formulario y recursos estáticos: Network first → Cache fallback
