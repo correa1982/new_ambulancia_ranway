@@ -298,8 +298,30 @@
 </table>
 </div>
 
-<div style="margin-top:14px; font-size:12px; color:#94a3b8; text-align:right;">
-    Mostrando <strong style="color:#1e40af;">{{ total }}</strong> registro(s) — máx. 200 por tipo
+<div style="margin-top:20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px;">
+    <div style="font-size:12px; color:#94a3b8;">
+        Mostrando <strong style="color:#1e40af;">{{ results|length }}</strong> de <strong style="color:#1e40af;">{{ total }}</strong> registro(s) (Página {{ page }} de {{ total_pages }})
+    </div>
+    
+    {% if total_pages > 1 %}
+    <div style="display:flex; gap:6px;">
+        {% if page > 1 %}
+        <a href="{{ url_for('registros_global', page=page-1, tipo=tipo_filtro, fecha_desde=fecha_desde, fecha_hasta=fecha_hasta, search=search_query) }}"
+           style="background:white; border:1px solid #cbd5e1; color:#475569; padding:6px 12px; border-radius:6px; text-decoration:none; font-size:12px; font-weight:600; transition:all 0.15s;"
+           onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='white'">
+           « Anterior
+        </a>
+        {% endif %}
+        
+        {% if page < total_pages %}
+        <a href="{{ url_for('registros_global', page=page+1, tipo=tipo_filtro, fecha_desde=fecha_desde, fecha_hasta=fecha_hasta, search=search_query) }}"
+           style="background:white; border:1px solid #cbd5e1; color:#475569; padding:6px 12px; border-radius:6px; text-decoration:none; font-size:12px; font-weight:600; transition:all 0.15s;"
+           onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='white'">
+           Siguiente »
+        </a>
+        {% endif %}
+    </div>
+    {% endif %}
 </div>
 
 {% else %}

@@ -406,10 +406,28 @@ def register_routes(app, serializer):
         # Sort all results by fecha_registro descending
         results.sort(key=lambda x: x.get("fecha_registro") or "", reverse=True)
 
+        # Pagination
+        try:
+            page = int(request.args.get("page", 1))
+            if page < 1:
+                page = 1
+        except ValueError:
+            page = 1
+            
+        per_page = 20
+        total_records = len(results)
+        total_pages = (total_records + per_page - 1) // per_page if total_records > 0 else 1
+        
+        start_idx = (page - 1) * per_page
+        end_idx = start_idx + per_page
+        paginated_results = results[start_idx:end_idx]
+
         return render_template(
             "registros_global.html",
-            results=results,
-            total=len(results),
+            results=paginated_results,
+            total=total_records,
+            page=page,
+            total_pages=total_pages,
             form_types=FORM_TYPES,
             tipo_filtro=tipo_filtro,
             fecha_desde=fecha_desde,
