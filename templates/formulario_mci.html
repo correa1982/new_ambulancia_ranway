@@ -1195,7 +1195,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     if (!depSelect) return;
 
-    let deptMunMap = {}; 
+    let colombiaData = [];
 
     const prefillDep = "{{ paciente.departamento_residencia or '' if paciente else '' }}";
     const prefillMun = "{{ paciente.municipio_residencia or '' if paciente else '' }}";
@@ -1220,49 +1220,24 @@ document.addEventListener('DOMContentLoaded', async function() {
         } catch(e) {}
     }
 
-    // 1. Cargar Departamentos y Municipios
+    // 1. Cargar Datos Geográficos de Colombia JSON
     try {
-        const res = await fetch('/static/data/Departamentos_Municipios.json');
+        const res = await fetch('/static/data/colombia_completo.json');
         if (res.ok) {
-            const rawData = await res.json();
-            rawData.forEach(item => {
-                const dep = item["Nombre Departamento"];
-                const mun = item["Nombre Municipio"];
-                if (!deptMunMap[dep]) deptMunMap[dep] = [];
-                deptMunMap[dep].push(mun);
-            });
-            Object.keys(deptMunMap).sort().forEach(dep => {
+            const data = await res.json();
+            colombiaData = data.departamentos || [];
+            colombiaData.sort((a, b) => a.nombre.localeCompare(b.nombre)).forEach(dep => {
                 const opt = document.createElement('option');
-                opt.value = dep;
+                opt.value = dep.nombre;
                 depList.appendChild(opt);
             });
             if (activeDep) {
                 depSelect.value = activeDep;
             }
         }
-    } catch (e) { console.error('Error cargando Departamentos', e); }
+    } catch (e) { console.error('Error cargando Colombia JSON', e); }
 
-    // 2. Cargar Barrios de Medellín
-    try {
-        const resB = await fetch('/static/data/barrios_medellin.json');
-        if (resB.ok) {
-            const data = await resB.json();
-            const comunas = data.comunas || [];
-            let allBarrios = [];
-            comunas.forEach(c => {
-                if (c.barrios) {
-                    allBarrios = allBarrios.concat(c.barrios);
-                }
-            });
-            allBarrios.sort().forEach(b => {
-                const opt = document.createElement('option');
-                opt.value = b;
-                barriosList.appendChild(opt);
-            });
-        }
-    } catch (e) { console.error('Error cargando Barrios', e); }
-
-    // 2.5 Cargar Ocupaciones
+    // 2. Cargar Ocupaciones
     try {
         const resOc = await fetch('/static/data/Ocupaciones.json');
         if (resOc.ok) {
@@ -1280,47 +1255,79 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
     } catch (e) { console.error('Error cargando Ocupaciones', e); }
 
-    // 3. Manejar cambio de Departamento
+    // 3. Función auxiliar para actualizar Municipios
     function actualizarMunicipios() {
         munList.innerHTML = '';
         munSelect.disabled = true;
-        const dep = depSelect.value;
-        if (dep && deptMunMap[dep]) {
-            const muns = [...new Set(deptMunMap[dep])].sort();
-            muns.forEach(m => {
+        const depName = depSelect.value;
+        const depObj = colombiaData.find(d => d.nombre === depName);
+        if (depObj && depObj.municipios) {
+            depObj.municipios.sort((a, b) => a.nombre.localeCompare(b.nombre)).forEach(mun => {
                 const opt = document.createElement('option');
-                opt.value = m;
+                opt.value = mun.nombre;
                 munList.appendChild(opt);
             });
             munSelect.disabled = false;
         }
     }
 
+    // 4. Manejar cambio de Departamento
     depSelect.addEventListener('input', function() {
+        munSelect.value = '';
+        barrioInput.value = '';
+        barriosList.innerHTML = '';
         actualizarMunicipios();
         munSelect.dispatchEvent(new Event('change'));
     });
 
-    // 4. Manejar cambio de Municipio (mostrar/ocultar Barrio)
+    // 5. Manejar cambio de Municipio
     munSelect.addEventListener('input', function() {
-        if (this.value.toUpperCase() === 'MEDELLIN' || this.value.toUpperCase() === 'MEDELLÍN') {
+        const depName = depSelect.value;
+        const munName = munSelect.value;
+        barrioInput.value = '';
+        barriosList.innerHTML = '';
+        
+        if (munName) {
             rowBarrio.style.display = 'flex';
         } else {
             rowBarrio.style.display = 'none';
-            barrioInput.value = '';
+        }
+
+        const depObj = colombiaData.find(d => d.nombre === depName);
+        if (depObj && depObj.municipios) {
+            const munObj = depObj.municipios.find(m => m.nombre === munName);
+            if (munObj && munObj.barrios) {
+                munObj.barrios.sort().forEach(b => {
+                    const opt = document.createElement('option');
+                    opt.value = b;
+                    barriosList.appendChild(opt);
+                });
+            }
         }
     });
 
-    // 5. Inicializar pre-llenado si es edición o hay autoguardado
-    if (activeDep) {
+    // 6. Inicializar pre-llenado si es edición o hay autoguardado
+    if (activeDep && colombiaData.length > 0) {
         actualizarMunicipios();
         if (activeMun) {
             munSelect.value = activeMun;
-            munSelect.dispatchEvent(new Event('change'));
+            munSelect.dispatchEvent(new Event('input'));
         }
         if (activeBarrio) {
             barrioInput.value = activeBarrio;
         }
+    } else if (activeDep) {
+        // En caso de que se ejecute antes de que termine el fetch, delegamos un pequeño delay
+        setTimeout(() => {
+            actualizarMunicipios();
+            if (activeMun) {
+                munSelect.value = activeMun;
+                munSelect.dispatchEvent(new Event('input'));
+            }
+            if (activeBarrio) {
+                barrioInput.value = activeBarrio;
+            }
+        }, 300);
     }
 });
 
