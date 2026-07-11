@@ -822,20 +822,22 @@ function startDictation(btn, targetTextarea) {
             todosUsuarios.forEach(u => {
                 let match = false;
                 if (u.perfil) {
+                    // Si es Comandante, forzamos a buscar solo perfiles "Socorrista"
+                    let searchProfile = isComandante ? 'Socorrista' : perfil;
+                    
                     try {
                         let parsed = JSON.parse(u.perfil);
                         if (Array.isArray(parsed)) {
-                            match = parsed.some(p => p.includes(perfil));
+                            match = parsed.some(p => p.toLowerCase().includes(searchProfile.toLowerCase()));
                         } else {
-                            match = u.perfil.includes(perfil);
+                            match = u.perfil.toLowerCase().includes(searchProfile.toLowerCase());
                         }
                     } catch(e) {
-                        match = u.perfil.includes(perfil);
+                        match = u.perfil.toLowerCase().includes(searchProfile.toLowerCase());
                     }
                 }
                 
-                // Allow Comandantes to see everyone just in case, or match their actual profiles. We match.
-                if (match || isComandante) {
+                if (match) {
                     const option = document.createElement('option');
                     option.value = u.nombre;
                     datalist.appendChild(option);
