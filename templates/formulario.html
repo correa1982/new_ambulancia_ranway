@@ -300,20 +300,19 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (!depSelect) return;
 
-    let colombiaData = [];
+    let divipolaData = [];
 
     try {
-        const res = await fetch('/static/data/colombia_completo.json');
+        const res = await fetch('/static/data/divipola_estructurado.json');
         if (res.ok) {
-            const data = await res.json();
-            colombiaData = data.departamentos || [];
-            colombiaData.sort((a, b) => a.nombre.localeCompare(b.nombre)).forEach(dep => {
+            divipolaData = await res.json();
+            divipolaData.forEach(dep => {
                 const opt = document.createElement('option');
-                opt.value = dep.nombre;
+                opt.value = `${dep.codigo} - ${dep.nombre}`;
                 depList.appendChild(opt);
             });
         }
-    } catch (e) { console.error('Error cargando Colombia JSON', e); }
+    } catch (e) { console.error('Error cargando DIVIPOLA', e); }
 
     depSelect.addEventListener('change', () => {
         const depName = depSelect.value;
@@ -322,11 +321,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         barrioSelect.value = '';
         barrioList.innerHTML = '';
         
-        const depObj = colombiaData.find(d => d.nombre === depName);
+        const depObj = divipolaData.find(d => `${d.codigo} - ${d.nombre}` === depName);
         if (depObj && depObj.municipios) {
-            depObj.municipios.sort((a, b) => a.nombre.localeCompare(b.nombre)).forEach(mun => {
+            depObj.municipios.forEach(mun => {
                 const opt = document.createElement('option');
-                opt.value = mun.nombre;
+                opt.value = `${mun.codigo} - ${mun.nombre}`;
                 munList.appendChild(opt);
             });
         }
@@ -338,13 +337,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         barrioSelect.value = '';
         barrioList.innerHTML = '';
         
-        const depObj = colombiaData.find(d => d.nombre === depName);
+        const depObj = divipolaData.find(d => `${d.codigo} - ${d.nombre}` === depName);
         if (depObj && depObj.municipios) {
-            const munObj = depObj.municipios.find(m => m.nombre === munName);
+            const munObj = depObj.municipios.find(m => `${m.codigo} - ${m.nombre}` === munName);
             if (munObj && munObj.barrios) {
-                munObj.barrios.sort().forEach(b => {
+                munObj.barrios.forEach(b => {
                     const opt = document.createElement('option');
-                    opt.value = b;
+                    opt.value = `${b.codigo} - ${b.nombre}`;
                     barrioList.appendChild(opt);
                 });
             }
@@ -3215,16 +3214,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     const prefillMun = "{{ paciente.municipio_residencia or '' if paciente else '' }}";
     const prefillBarrio = "{{ paciente.barrio_residencia or '' if paciente else '' }}";
 
-    let colombiaData = [];
+    let divipolaData = [];
 
     try {
-        const res = await fetch('/static/data/colombia_completo.json');
+        const res = await fetch('/static/data/divipola_estructurado.json');
         if (res.ok) {
-            const data = await res.json();
-            colombiaData = data.departamentos || [];
-            colombiaData.sort((a, b) => a.nombre.localeCompare(b.nombre)).forEach(dep => {
+            divipolaData = await res.json();
+            divipolaData.forEach(dep => {
                 const opt = document.createElement('option');
-                opt.value = dep.nombre;
+                opt.value = `${dep.codigo} - ${dep.nombre}`;
                 depList.appendChild(opt);
             });
             if (prefillDep) {
@@ -3232,7 +3230,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 depSelect.dispatchEvent(new Event('change'));
             }
         }
-    } catch (e) { console.error('Error cargando Colombia JSON', e); }
+    } catch (e) { console.error('Error cargando DIVIPOLA JSON', e); }
 
     depSelect.addEventListener('change', () => {
         const depName = depSelect.value;
@@ -3240,12 +3238,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         munList.innerHTML = '';
         barriosList.innerHTML = '';
         
-        const depObj = colombiaData.find(d => d.nombre === depName);
+        const depObj = divipolaData.find(d => `${d.codigo} - ${d.nombre}` === depName);
         if (depObj && depObj.municipios) {
             munSelect.disabled = false;
-            depObj.municipios.sort((a, b) => a.nombre.localeCompare(b.nombre)).forEach(mun => {
+            depObj.municipios.forEach(mun => {
                 const opt = document.createElement('option');
-                opt.value = mun.nombre;
+                opt.value = `${mun.codigo} - ${mun.nombre}`;
                 munList.appendChild(opt);
             });
             if (prefillMun && depSelect.value === prefillDep) {
@@ -3269,13 +3267,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             rowBarrio.style.display = 'none';
         }
 
-        const depObj = colombiaData.find(d => d.nombre === depName);
+        const depObj = divipolaData.find(d => `${d.codigo} - ${d.nombre}` === depName);
         if (depObj && depObj.municipios) {
-            const munObj = depObj.municipios.find(m => m.nombre === munName);
+            const munObj = depObj.municipios.find(m => `${m.codigo} - ${m.nombre}` === munName);
             if (munObj && munObj.barrios) {
-                munObj.barrios.sort().forEach(b => {
+                munObj.barrios.forEach(b => {
                     const opt = document.createElement('option');
-                    opt.value = b;
+                    opt.value = `${b.codigo} - ${b.nombre}`;
                     barriosList.appendChild(opt);
                 });
                 if (prefillBarrio && munSelect.value === prefillMun) {
