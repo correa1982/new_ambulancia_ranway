@@ -17,6 +17,32 @@ def register_routes(app):
             finalizado = 0 if accion == "borrador" else 1
             conn = get_db()
             firma, perfil, rm = get_user_info(conn, session["usuario"]["identificacion"])
+            comandantes_perfil = data.getlist("comandante_perfil[]")
+            comandantes_nombre = data.getlist("comandante_nombre[]")
+            comandantes_doc = data.getlist("comandante_doc[]")
+            comandante_list = []
+            for i in range(len(comandantes_perfil)):
+                if comandantes_nombre[i].strip():
+                    comandante_list.append({
+                        "perfil": comandantes_perfil[i],
+                        "nombre": comandantes_nombre[i],
+                        "identificacion": comandantes_doc[i] if i < len(comandantes_doc) else ""
+                    })
+            comandante_json = json.dumps(comandante_list) if comandante_list else "[]"
+            
+            integrantes_perfil = data.getlist("integrante_perfil[]")
+            integrantes_nombre = data.getlist("integrante_nombre[]")
+            integrantes_doc = data.getlist("integrante_doc[]")
+            integrantes_list = []
+            for i in range(len(integrantes_perfil)):
+                if integrantes_nombre[i].strip():
+                    integrantes_list.append({
+                        "perfil": integrantes_perfil[i],
+                        "nombre": integrantes_nombre[i],
+                        "identificacion": integrantes_doc[i] if i < len(integrantes_doc) else ""
+                    })
+            integrantes_json = json.dumps(integrantes_list) if integrantes_list else "[]"
+
             try:
                 conn.execute("""
                     INSERT INTO atencion_vehiculo (
@@ -37,8 +63,8 @@ def register_routes(app):
                     data.get("fecha_hora_despacho"),
                     data.get("fecha_hora_salida"),
                     data.get("fecha_hora_llegada"),
-                    data.get("comandante_incidente"),
-                    data.get("integrantes_tripulacion"),
+                    comandante_json,
+                    integrantes_json,
                     data.get("tipo"),
                     data.get("subtipo"),
                     data.get("descripcion"),
@@ -70,8 +96,13 @@ def register_routes(app):
             "SELECT nombre FROM checklist_categorias WHERE tipo_checklist = 'equipos' AND activo = 1 ORDER BY nombre"
         ).fetchall()
         grupos_equipos = [row["nombre"] for row in grupos_equipos_db]
+        
+        # Cargar todos los usuarios para el datalist
+        usuarios = conn.execute("SELECT nombre, identificacion, perfil FROM usuarios ORDER BY nombre ASC").fetchall()
+        todos_usuarios = [dict(u) for u in usuarios]
+        
         conn.close()
-        return render_template("atencion_vehiculo.html", usuario=session["usuario"], firma_usuario=firma, item=None, grupos_equipos=grupos_equipos)
+        return render_template("atencion_vehiculo.html", usuario=session["usuario"], firma_usuario=firma, item=None, grupos_equipos=grupos_equipos, todos_usuarios=todos_usuarios)
 
     @app.route("/formularios/atencion_vehiculo/registros")
     @login_required
@@ -114,7 +145,17 @@ def register_routes(app):
             flash("Registro no encontrado.", "error")
             return redirect(url_for("registros_atencion_vehiculo"))
             
-        return render_template("ver_atencion_vehiculo.html", item=item, cfg=cfg)
+        try:
+            comandante_list = json.loads(item["comandante_incidente"]) if item["comandante_incidente"] else []
+        except:
+            comandante_list = []
+            
+        try:
+            integrantes_list = json.loads(item["integrantes_tripulacion"]) if item["integrantes_tripulacion"] else []
+        except:
+            integrantes_list = []
+            
+        return render_template("ver_atencion_vehiculo.html", item=item, cfg=cfg, comandante_list=comandante_list, integrantes_list=integrantes_list)
 
     @app.route("/formularios/atencion_vehiculo/editar/<int:id>", methods=["GET", "POST"])
     @login_required
@@ -135,6 +176,32 @@ def register_routes(app):
             data = request.form
             accion = request.form.get("accion", "finalizar")
             finalizado = 0 if accion == "borrador" else 1
+            comandantes_perfil = data.getlist("comandante_perfil[]")
+            comandantes_nombre = data.getlist("comandante_nombre[]")
+            comandantes_doc = data.getlist("comandante_doc[]")
+            comandante_list = []
+            for i in range(len(comandantes_perfil)):
+                if comandantes_nombre[i].strip():
+                    comandante_list.append({
+                        "perfil": comandantes_perfil[i],
+                        "nombre": comandantes_nombre[i],
+                        "identificacion": comandantes_doc[i] if i < len(comandantes_doc) else ""
+                    })
+            comandante_json = json.dumps(comandante_list) if comandante_list else "[]"
+            
+            integrantes_perfil = data.getlist("integrante_perfil[]")
+            integrantes_nombre = data.getlist("integrante_nombre[]")
+            integrantes_doc = data.getlist("integrante_doc[]")
+            integrantes_list = []
+            for i in range(len(integrantes_perfil)):
+                if integrantes_nombre[i].strip():
+                    integrantes_list.append({
+                        "perfil": integrantes_perfil[i],
+                        "nombre": integrantes_nombre[i],
+                        "identificacion": integrantes_doc[i] if i < len(integrantes_doc) else ""
+                    })
+            integrantes_json = json.dumps(integrantes_list) if integrantes_list else "[]"
+
             try:
                 conn.execute("""
                     UPDATE atencion_vehiculo SET
@@ -153,8 +220,8 @@ def register_routes(app):
                     data.get("fecha_hora_despacho"),
                     data.get("fecha_hora_salida"),
                     data.get("fecha_hora_llegada"),
-                    data.get("comandante_incidente"),
-                    data.get("integrantes_tripulacion"),
+                    comandante_json,
+                    integrantes_json,
                     data.get("tipo"),
                     data.get("subtipo"),
                     data.get("descripcion"),
@@ -178,8 +245,24 @@ def register_routes(app):
             "SELECT nombre FROM checklist_categorias WHERE tipo_checklist = 'equipos' AND activo = 1 ORDER BY nombre"
         ).fetchall()
         grupos_equipos = [row["nombre"] for row in grupos_equipos_db]
+        
+        # Cargar todos los usuarios para el datalist
+        usuarios = conn.execute("SELECT nombre, identificacion, perfil FROM usuarios ORDER BY nombre ASC").fetchall()
+        todos_usuarios = [dict(u) for u in usuarios]
+        
         conn.close()
-        return render_template("atencion_vehiculo.html", usuario=session["usuario"], item=item, grupos_equipos=grupos_equipos)
+        
+        try:
+            comandante_list = json.loads(item["comandante_incidente"]) if item["comandante_incidente"] else []
+        except:
+            comandante_list = []
+            
+        try:
+            integrantes_list = json.loads(item["integrantes_tripulacion"]) if item["integrantes_tripulacion"] else []
+        except:
+            integrantes_list = []
+            
+        return render_template("atencion_vehiculo.html", usuario=session["usuario"], item=item, grupos_equipos=grupos_equipos, comandante_list=comandante_list, integrantes_list=integrantes_list, todos_usuarios=todos_usuarios)
 
     @app.route("/formularios/atencion_vehiculo/eliminar/<int:id>")
     @login_required

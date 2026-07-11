@@ -126,15 +126,109 @@
     <!-- ── Personal y Tripulación ── -->
     <fieldset style="margin-top:20px;">
         <legend>👥 Tripulación e Incidentes</legend>
-        <div class="row row-2">
-            <div>
-                <label>Comandante de Incidente <span style="color:#ef4444">*</span></label>
-                <input type="text" name="comandante_incidente" required value="{{ item.comandante_incidente or '' }}" placeholder="Nombre del Comandante">
-            </div>
-            <div>
-                <label>Integrantes de la Tripulación <span style="color:#ef4444">*</span></label>
-                <input type="text" name="integrantes_tripulacion" required value="{{ item.integrantes_tripulacion or '' }}" placeholder="Integrantes separados por comas">
-            </div>
+        
+        <h4 style="margin-top: 10px; margin-bottom: 5px; font-size: 14px; color: #1e3a5f;">Comandante de Incidente <span style="color:#ef4444">*</span></h4>
+        <table class="check-table" id="tabla-comandante" style="width: 100%; border-collapse: collapse; margin-top: 8px;">
+            <thead>
+                <tr>
+                    <th style="width: 25%; background: linear-gradient(135deg,#ebf4ff,#dbeafe); font-size:10px; text-transform:uppercase; letter-spacing:0.5px; color:#1e40af; padding:8px 14px; border: 1px solid #e2e8f0; text-align: left;">CARGO</th>
+                    <th style="width: 40%; background: linear-gradient(135deg,#ebf4ff,#dbeafe); font-size:10px; text-transform:uppercase; letter-spacing:0.5px; color:#1e40af; padding:8px 14px; border: 1px solid #e2e8f0; text-align: left;">NOMBRE COMPLETO</th>
+                    <th style="width: 35%; background: linear-gradient(135deg,#ebf4ff,#dbeafe); font-size:10px; text-transform:uppercase; letter-spacing:0.5px; color:#1e40af; padding:8px 14px; border: 1px solid #e2e8f0; text-align: left;">DOCUMENTO DE IDENTIDAD</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="comandante-row">
+                    <td style="padding: 6px 14px; border: 1px solid #f1f5f9;">
+                        <select name="comandante_perfil[]" class="form-control select-perfil comandante" required style="width: 100%; border: 1px solid #cbd5e1; border-radius: 5px; padding: 6px; font-size: 13px; box-sizing: border-box; background: white;">
+                            {% set cmd_perfil = comandante_list[0].perfil if comandante_list else '' %}
+                            <option value="">— Cargo —</option>
+                            <option value="Comandante" {% if cmd_perfil == 'Comandante' %}selected{% endif %}>Comandante</option>
+                            <option value="Jefe de Operaciones" {% if cmd_perfil == 'Jefe de Operaciones' %}selected{% endif %}>Jefe de Operaciones</option>
+                            <option value="Coordinador" {% if cmd_perfil == 'Coordinador' %}selected{% endif %}>Coordinador</option>
+                        </select>
+                    </td>
+                    <td style="padding: 6px 14px; border: 1px solid #f1f5f9;">
+                        {% set cmd_nombre = comandante_list[0].nombre if comandante_list else '' %}
+                        <div class="nombre-container comandante" data-val="{{ cmd_nombre }}">
+                            <input type="text" name="comandante_nombre[]" class="form-control input-nombre" required placeholder="Nombre completo" value="{{ cmd_nombre }}" style="width: 100%; border: 1px solid #cbd5e1; border-radius: 5px; padding: 6px; font-size: 13px; box-sizing: border-box;">
+                        </div>
+                    </td>
+                    <td style="padding: 6px 14px; border: 1px solid #f1f5f9;">
+                        {% set cmd_doc = comandante_list[0].identificacion if comandante_list else '' %}
+                        <input type="text" name="comandante_doc[]" class="form-control input-doc" placeholder="Cédula / ID" value="{{ cmd_doc }}" style="width: 100%; border: 1px solid #cbd5e1; border-radius: 5px; padding: 6px; font-size: 13px; box-sizing: border-box;">
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h4 style="margin-top: 25px; margin-bottom: 5px; font-size: 14px; color: #1e3a5f;">Integrantes de la Tripulación <span style="color:#ef4444">*</span></h4>
+        <table class="check-table" id="tabla-integrantes" style="width: 100%; border-collapse: collapse; margin-top: 8px;">
+            <thead>
+                <tr>
+                    <th style="width: 25%; background: linear-gradient(135deg,#ebf4ff,#dbeafe); font-size:10px; text-transform:uppercase; letter-spacing:0.5px; color:#1e40af; padding:8px 14px; border: 1px solid #e2e8f0; text-align: left;">CARGO</th>
+                    <th style="width: 40%; background: linear-gradient(135deg,#ebf4ff,#dbeafe); font-size:10px; text-transform:uppercase; letter-spacing:0.5px; color:#1e40af; padding:8px 14px; border: 1px solid #e2e8f0; text-align: left;">INTEGRANTES</th>
+                    <th style="width: 30%; background: linear-gradient(135deg,#ebf4ff,#dbeafe); font-size:10px; text-transform:uppercase; letter-spacing:0.5px; color:#1e40af; padding:8px 14px; border: 1px solid #e2e8f0; text-align: left;">IDENTIFICACION</th>
+                    <th style="width: 5%; background: linear-gradient(135deg,#ebf4ff,#dbeafe); font-size:10px; text-transform:uppercase; letter-spacing:0.5px; color:#1e40af; padding:8px 14px; border: 1px solid #e2e8f0; text-align: center;"></th>
+                </tr>
+            </thead>
+            <tbody id="tbody-integrantes">
+                {% if integrantes_list %}
+                    {% for member in integrantes_list %}
+                    <tr class="integrante-row">
+                        <td style="padding: 6px 14px; border: 1px solid #f1f5f9;">
+                            <select name="integrante_perfil[]" class="form-control select-perfil tripulacion" required style="width: 100%; border: 1px solid #cbd5e1; border-radius: 5px; padding: 6px; font-size: 13px; box-sizing: border-box; background: white;">
+                                <option value="">— Cargo —</option>
+                                <option value="Enfermero" {% if member.perfil == 'Enfermero' %}selected{% endif %}>Enfermero</option>
+                                <option value="APH" {% if member.perfil == 'APH' %}selected{% endif %}>APH</option>
+                                <option value="Auxiliar en Enfermeria" {% if member.perfil == 'Auxiliar en Enfermeria' %}selected{% endif %}>Auxiliar en Enfermeria</option>
+                                <option value="Socorrista" {% if member.perfil == 'Socorrista' %}selected{% endif %}>Socorrista</option>
+                                <option value="Estudiante" {% if member.perfil == 'Estudiante' %}selected{% endif %}>Estudiante</option>
+                            </select>
+                        </td>
+                        <td style="padding: 6px 14px; border: 1px solid #f1f5f9;">
+                            <div class="nombre-container tripulacion" data-val="{{ member.nombre }}">
+                                <input type="text" name="integrante_nombre[]" class="form-control input-nombre" required placeholder="Nombre completo" value="{{ member.nombre }}" style="width: 100%; border: 1px solid #cbd5e1; border-radius: 5px; padding: 6px; font-size: 13px; box-sizing: border-box;">
+                            </div>
+                        </td>
+                        <td style="padding: 6px 14px; border: 1px solid #f1f5f9;"><input type="text" name="integrante_doc[]" class="form-control input-doc" placeholder="Cédula / ID" value="{{ member.identificacion }}" style="width: 100%; border: 1px solid #cbd5e1; border-radius: 5px; padding: 6px; font-size: 13px; box-sizing: border-box;"></td>
+                        <td style="text-align: center; vertical-align: middle; padding: 6px 14px; border: 1px solid #f1f5f9;">
+                            <button type="button" class="btn-remove-integrante" style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 18px;" onclick="removeRow(this)">
+                                <i class="ph ph-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr class="integrante-row">
+                        <td style="padding: 6px 14px; border: 1px solid #f1f5f9;">
+                            <select name="integrante_perfil[]" class="form-control select-perfil tripulacion" required style="width: 100%; border: 1px solid #cbd5e1; border-radius: 5px; padding: 6px; font-size: 13px; box-sizing: border-box; background: white;">
+                                <option value="">— Cargo —</option>
+                                <option value="Enfermero">Enfermero</option>
+                                <option value="APH">APH</option>
+                                <option value="Auxiliar en Enfermeria">Auxiliar en Enfermeria</option>
+                                <option value="Socorrista">Socorrista</option>
+                                <option value="Estudiante">Estudiante</option>
+                            </select>
+                        </td>
+                        <td style="padding: 6px 14px; border: 1px solid #f1f5f9;">
+                            <div class="nombre-container tripulacion">
+                                <input type="text" name="integrante_nombre[]" class="form-control input-nombre" required placeholder="Nombre completo" style="width: 100%; border: 1px solid #cbd5e1; border-radius: 5px; padding: 6px; font-size: 13px; box-sizing: border-box;">
+                            </div>
+                        </td>
+                        <td style="padding: 6px 14px; border: 1px solid #f1f5f9;"><input type="text" name="integrante_doc[]" class="form-control input-doc" placeholder="Cédula / ID" style="width: 100%; border: 1px solid #cbd5e1; border-radius: 5px; padding: 6px; font-size: 13px; box-sizing: border-box;"></td>
+                        <td style="text-align: center; vertical-align: middle; padding: 6px 14px; border: 1px solid #f1f5f9;">
+                            <button type="button" class="btn-remove-integrante" style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 18px;" onclick="removeRow(this)">
+                                <i class="ph ph-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+        <div style="margin-top: 10px;">
+            <button type="button" class="action-btn" id="btn-add-integrante" style="font-size: 12px; padding: 6px 14px; display: inline-flex; align-items: center; gap: 4px; border-radius: 6px; cursor: pointer; border: none; background: linear-gradient(135deg,#10b981,#059669); color: white; font-weight: 700; height: 32px; min-height: 32px;">
+                <i class="ph ph-plus" style="font-size: 14px;"></i> Agregar Integrante
+            </button>
         </div>
     </fieldset>
 
@@ -673,6 +767,159 @@ function startDictation(btn, targetTextarea) {
     };
     recognition.start();
 }
+</script>
+
+<script>
+(function() {
+    const todosUsuarios = {{ todos_usuarios | tojson }};
+    
+    function updateNombreInput(row, isComandante) {
+        const perfilSelect = row.querySelector('.select-perfil');
+        const container = row.querySelector('.nombre-container');
+        if (!perfilSelect || !container) return;
+        
+        const perfil = perfilSelect.value;
+        const currentVal = container.getAttribute('data-val') || '';
+        const nameAttr = isComandante ? 'comandante_nombre[]' : 'integrante_nombre[]';
+
+        container.innerHTML = ''; // Clear container
+
+        if (perfil === 'Estudiante' || !perfil) {
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.name = nameAttr;
+            input.className = 'form-control input-nombre';
+            input.required = true;
+            input.placeholder = 'Nombre completo';
+            input.style.cssText = 'width: 100%; border: 1px solid #cbd5e1; border-radius: 5px; padding: 6px; font-size: 13px; box-sizing: border-box;';
+            input.value = currentVal;
+            input.addEventListener('input', function() {
+                container.setAttribute('data-val', this.value);
+            });
+            container.appendChild(input);
+        } else {
+            const datalistId = 'dl_' + Math.random().toString(36).substring(2, 9);
+            
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.name = nameAttr;
+            input.className = 'form-control input-nombre';
+            input.setAttribute('list', datalistId);
+            input.required = true;
+            input.placeholder = 'Seleccione o escriba un usuario';
+            input.style.cssText = 'width: 100%; border: 1px solid #cbd5e1; border-radius: 5px; padding: 6px; font-size: 13px; box-sizing: border-box; background: white;';
+            input.value = currentVal;
+            
+            const datalist = document.createElement('datalist');
+            datalist.id = datalistId;
+
+            let docMap = {};
+
+            todosUsuarios.forEach(u => {
+                let match = false;
+                if (u.perfil) {
+                    try {
+                        let parsed = JSON.parse(u.perfil);
+                        if (Array.isArray(parsed)) {
+                            match = parsed.some(p => p.includes(perfil));
+                        } else {
+                            match = u.perfil.includes(perfil);
+                        }
+                    } catch(e) {
+                        match = u.perfil.includes(perfil);
+                    }
+                }
+                
+                // Allow Comandantes to see everyone just in case, or match their actual profiles. We match.
+                if (match || isComandante) {
+                    const option = document.createElement('option');
+                    option.value = u.nombre;
+                    datalist.appendChild(option);
+                    docMap[u.nombre] = u.identificacion;
+                }
+            });
+
+            input.addEventListener('input', function() {
+                container.setAttribute('data-val', this.value);
+                const docInput = row.querySelector('.input-doc');
+                if (docInput && docMap[this.value]) {
+                    docInput.value = docMap[this.value];
+                }
+            });
+
+            container.appendChild(input);
+            container.appendChild(datalist);
+        }
+    }
+
+    // Initialize existing rows
+    document.querySelectorAll('.comandante-row, .integrante-row').forEach(row => {
+        const selectPerfil = row.querySelector('.select-perfil');
+        const isComandante = row.classList.contains('comandante-row');
+        if (selectPerfil) {
+            updateNombreInput(row, isComandante);
+            selectPerfil.addEventListener('change', () => updateNombreInput(row, isComandante));
+        }
+    });
+
+    // Tripulación dinámica
+    const tbody = document.getElementById('tbody-integrantes');
+    const btnAdd = document.getElementById('btn-add-integrante');
+
+    if (btnAdd && tbody) {
+        btnAdd.addEventListener('click', function() {
+            const tr = document.createElement('tr');
+            tr.className = 'integrante-row';
+            tr.innerHTML = `
+                <td style="padding: 6px 14px; border: 1px solid #f1f5f9;">
+                    <select name="integrante_perfil[]" class="form-control select-perfil tripulacion" required style="width: 100%; border: 1px solid #cbd5e1; border-radius: 5px; padding: 6px; font-size: 13px; box-sizing: border-box; background: white;">
+                        <option value="">— Cargo —</option>
+                        <option value="Enfermero">Enfermero</option>
+                        <option value="APH">APH</option>
+                        <option value="Auxiliar en Enfermeria">Auxiliar en Enfermeria</option>
+                        <option value="Socorrista">Socorrista</option>
+                        <option value="Estudiante">Estudiante</option>
+                    </select>
+                </td>
+                <td style="padding: 6px 14px; border: 1px solid #f1f5f9;">
+                    <div class="nombre-container tripulacion" data-val=""></div>
+                </td>
+                <td style="padding: 6px 14px; border: 1px solid #f1f5f9;"><input type="text" name="integrante_doc[]" class="form-control input-doc" placeholder="Cédula / ID" style="width: 100%; border: 1px solid #cbd5e1; border-radius: 5px; padding: 6px; font-size: 13px; box-sizing: border-box;"></td>
+                <td style="text-align: center; vertical-align: middle; padding: 6px 14px; border: 1px solid #f1f5f9;">
+                    <button type="button" class="btn-remove-integrante" style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 18px;" onclick="removeRow(this)">
+                        <i class="ph ph-trash"></i>
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+            
+            // Initialize new row
+            const selectPerfil = tr.querySelector('.select-perfil');
+            updateNombreInput(tr, false);
+            selectPerfil.addEventListener('change', () => updateNombreInput(tr, false));
+        });
+    }
+
+    window.removeRow = function(btn) {
+        const row = btn.closest('tr');
+        if (row) {
+            if (document.querySelectorAll('.integrante-row').length > 1) {
+                row.remove();
+            } else {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Atención',
+                    text: 'Debe tener al menos un integrante.',
+                    customClass: {
+                        popup: 'swal2-custom-popup',
+                        title: 'swal2-custom-title',
+                        confirmButton: 'swal2-custom-confirm'
+                    }
+                });
+            }
+        }
+    };
+})();
 </script>
 
 {% endblock %}

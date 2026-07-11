@@ -225,7 +225,30 @@ tr { page-break-inside: avoid; break-inside: avoid; }
                 </tr>
                 <tr>
                     <td class="lbl">Comandante de Incidente</td>
-                    <td class="val" colspan="3">{{ item.comandante_incidente or '—' }}</td>
+                    <td class="val" colspan="3" style="padding: 0;">
+                        {% if comandante_list %}
+                            <table style="width: 100%; border-collapse: collapse; margin: 0;">
+                                <thead>
+                                    <tr>
+                                        <th style="font-size: 9px; text-transform: uppercase; color: #64748b; padding: 4px; border-bottom: 1px solid #e2e8f0; text-align: left; width: 30%;">Cargo</th>
+                                        <th style="font-size: 9px; text-transform: uppercase; color: #64748b; padding: 4px; border-bottom: 1px solid #e2e8f0; text-align: left; width: 45%;">Nombre Completo</th>
+                                        <th style="font-size: 9px; text-transform: uppercase; color: #64748b; padding: 4px; border-bottom: 1px solid #e2e8f0; text-align: left; width: 25%;">Identificación</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for c in comandante_list %}
+                                    <tr>
+                                        <td style="padding: 4px; font-size: 11px; border-bottom: 1px solid #f1f5f9;">{{ c.perfil or '—' }}</td>
+                                        <td style="padding: 4px; font-size: 11px; border-bottom: 1px solid #f1f5f9;">{{ c.nombre or '—' }}</td>
+                                        <td style="padding: 4px; font-size: 11px; border-bottom: 1px solid #f1f5f9;">{{ c.identificacion or '—' }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        {% else %}
+                            <span style="padding: 8px; display: inline-block;">{{ item.comandante_incidente or '—' }}</span>
+                        {% endif %}
+                    </td>
                 </tr>
                 <tr>
                     <td class="lbl" style="background-color: #f8fafc; color: #1e3a5f;">Reacción (Despacho → Salida)</td>
@@ -250,7 +273,30 @@ tr { page-break-inside: avoid; break-inside: avoid; }
             <tbody>
                 <tr>
                     <td class="lbl">Integrantes de la Tripulación</td>
-                    <td class="val" colspan="3">{{ item.integrantes_tripulacion or '—' }}</td>
+                    <td class="val" colspan="3" style="padding: 0;">
+                        {% if integrantes_list %}
+                            <table style="width: 100%; border-collapse: collapse; margin: 0;">
+                                <thead>
+                                    <tr>
+                                        <th style="font-size: 9px; text-transform: uppercase; color: #64748b; padding: 4px; border-bottom: 1px solid #e2e8f0; text-align: left; width: 30%;">Cargo</th>
+                                        <th style="font-size: 9px; text-transform: uppercase; color: #64748b; padding: 4px; border-bottom: 1px solid #e2e8f0; text-align: left; width: 45%;">Nombre Completo</th>
+                                        <th style="font-size: 9px; text-transform: uppercase; color: #64748b; padding: 4px; border-bottom: 1px solid #e2e8f0; text-align: left; width: 25%;">Identificación</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for member in integrantes_list %}
+                                    <tr>
+                                        <td style="padding: 4px; font-size: 11px; border-bottom: 1px solid #f1f5f9;">{{ member.perfil or '—' }}</td>
+                                        <td style="padding: 4px; font-size: 11px; border-bottom: 1px solid #f1f5f9;">{{ member.nombre or '—' }}</td>
+                                        <td style="padding: 4px; font-size: 11px; border-bottom: 1px solid #f1f5f9;">{{ member.identificacion or '—' }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        {% else %}
+                            <span style="padding: 8px; display: inline-block;">{{ item.integrantes_tripulacion or '—' }}</span>
+                        {% endif %}
+                    </td>
                 </tr>
                 <tr>
                     <td class="lbl">Tipo Servicio</td>
