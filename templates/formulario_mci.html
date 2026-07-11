@@ -318,12 +318,12 @@ details.accordion-step[open] > summary::after {
             </div>
             <div>
                 <label>Entidad Promotora de Salud (EPS)</label>
-                <select name="aseguradora" required>
-                    <option value="">— Seleccione —</option>
+                <input type="text" name="aseguradora" id="aseguradora_mci" list="aseguradoras_list_mci" placeholder="Escriba o seleccione una EPS" value="{{ paciente.aseguradora or '' if paciente else '' }}" autocomplete="off" required>
+                <datalist id="aseguradoras_list_mci">
                     {% for a in aseguradoras %}
-                    <option value="{{ a }}" {% if paciente and paciente.aseguradora == a %}selected{% endif %}>{{ a }}</option>
+                    <option value="{{ a }}"></option>
                     {% endfor %}
-                </select>
+                </datalist>
             </div>
         </div>
             </div>

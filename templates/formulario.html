@@ -605,12 +605,12 @@ document.getElementById('departamento').addEventListener('input', function() {
                 </div>
                 <div>
                     <label>Entidad Promotora de Salud (EPS)</label>
-                    <select name="aseguradora" required>
-                        <option value="">— Seleccione —</option>
+                    <input type="text" name="aseguradora" id="aseguradora" list="aseguradoras_list" placeholder="Escriba o seleccione una EPS" value="{{ paciente.aseguradora or '' if paciente else '' }}" autocomplete="off" required>
+                    <datalist id="aseguradoras_list">
                         {% for a in aseguradoras %}
-                        <option value="{{ a }}" {% if paciente and paciente.aseguradora == a %}selected{% endif %}>{{ a }}</option>
+                        <option value="{{ a }}"></option>
                         {% endfor %}
-                    </select>
+                    </datalist>
                 </div>
             </div>
 
@@ -618,14 +618,14 @@ document.getElementById('departamento').addEventListener('input', function() {
             <div id="soat_fields_row" class="row" style="display:none; margin-top: 12px; background: #f0fdf4; border: 1.5px solid #bbf7d0; border-radius: 8px; padding: 14px 16px;">
                 <div>
                     <label style="color: #166534;">🚗 Póliza de SOAT</label>
-                    <select name="soat_aseguradora" id="soat_aseguradora">
-                        <option value="">— Seleccione —</option>
+                    <input type="text" name="soat_aseguradora" id="soat_aseguradora" list="soat_aseguradoras_list" placeholder="Escriba o seleccione la póliza" value="{{ paciente.soat_aseguradora or '' if paciente else '' }}" autocomplete="off">
+                    <datalist id="soat_aseguradoras_list">
                         {% if aseguradoras_soat is defined %}
                         {% for s in aseguradoras_soat %}
-                        <option value="{{ s }}" {% if paciente and paciente.soat_aseguradora == s %}selected{% endif %}>{{ s }}</option>
+                        <option value="{{ s }}"></option>
                         {% endfor %}
                         {% endif %}
-                    </select>
+                    </datalist>
                 </div>
                 <div>
                     <label style="color: #166534;">📅 Vigencia del SOAT</label>
@@ -741,17 +741,13 @@ document.getElementById('departamento').addEventListener('input', function() {
                 </div>
                 <div>
                     <label>Departamento de residencia</label>
-                    <select name="departamento_residencia" id="departamento_residencia">
-                        <option value="">— Seleccione —</option>
-                        <!-- Se llenará dinámicamente con JS -->
-                    </select>
+                    <input type="text" name="departamento_residencia" id="departamento_residencia" list="departamentos_list" placeholder="Escriba o seleccione un departamento" value="{{ paciente.departamento_residencia or '' }}" autocomplete="off">
+                    <datalist id="departamentos_list"></datalist>
                 </div>
                 <div>
                     <label>Municipio de residencia</label>
-                    <select name="municipio_residencia" id="municipio_residencia" disabled>
-                        <option value="">— Seleccione —</option>
-                        <!-- Se llenará dinámicamente con JS -->
-                    </select>
+                    <input type="text" name="municipio_residencia" id="municipio_residencia" list="municipios_list" placeholder="Escriba o seleccione un municipio" value="{{ paciente.municipio_residencia or '' }}" autocomplete="off" disabled>
+                    <datalist id="municipios_list"></datalist>
                 </div>
             </div>
 
@@ -3189,6 +3185,8 @@ if (tipoDocSelect && identInput) {
 document.addEventListener('DOMContentLoaded', async () => {
     const depSelect = document.getElementById('departamento_residencia');
     const munSelect = document.getElementById('municipio_residencia');
+    const depList = document.getElementById('departamentos_list');
+    const munList = document.getElementById('municipios_list');
     const rowBarrio = document.getElementById('fila_barrio');
     const barrioInput = document.getElementById('barrio_residencia');
     const barriosList = document.getElementById('barrios_list');
@@ -3215,8 +3213,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             Object.keys(deptMunMap).sort().forEach(dep => {
                 const opt = document.createElement('option');
                 opt.value = dep;
-                opt.textContent = dep;
-                depSelect.appendChild(opt);
+                depList.appendChild(opt);
             });
             if (prefillDep) {
                 depSelect.value = prefillDep;
@@ -3246,14 +3243,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 3. Al cambiar Departamento → cargar Municipios
     depSelect.addEventListener('change', () => {
         const dep = depSelect.value;
-        munSelect.innerHTML = '<option value="">— Seleccione —</option>';
+        munSelect.value = '';
+        munList.innerHTML = '';
         if (dep && deptMunMap[dep]) {
             munSelect.disabled = false;
             deptMunMap[dep].sort().forEach(mun => {
                 const opt = document.createElement('option');
                 opt.value = mun;
-                opt.textContent = mun;
-                munSelect.appendChild(opt);
+                munList.appendChild(opt);
             });
             if (prefillMun && depSelect.value === prefillDep) {
                 munSelect.value = prefillMun;
