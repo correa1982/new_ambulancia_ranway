@@ -1,0 +1,254 @@
+{
+  "pais": "Colombia",
+  "total_departamentos": 33,
+  "departamentos": [
+    {
+      "nombre": "Amazonas", "codigo_dane": "91",
+      "municipios": [
+        {"nombre": "Leticia", "codigo_dane": "91001", "barrios": ["Centro", "Porvenir", "San Antonio", "La Esperanza", "Gaitán", "Manguaré", "Punta Brava", "Urbana", "Otro Barrio"]},
+        {"nombre": "Puerto Nariño", "codigo_dane": "91540", "barrios": ["Central", "San Francisco", "Paraíso", "Otro Barrio"]}
+      ]
+    },
+    {
+      "nombre": "Antioquia", "codigo_dane": "05",
+      "municipios": [
+        {"nombre": "Medellín", "codigo_dane": "05001", "barrios": ["El Poblado", "Laureles", "Belén", "Robledo", "Aranjuez", "Manrique", "Guayabal", "Buenos Aires", "La Candelaria", "Castilla", "Doce de Octubre", "Popular", "Santa Cruz", "Villa Hermosa", "San Javier", "La América", "Trinidad", "Campo Valdés", "Prado", "Boston", "Perpetuo Socorro", "San Benito", "Otro Barrio"]},
+        {"nombre": "Envigado", "codigo_dane": "05266", "barrios": ["Alcalá", "El Dorado", "La Sebastiana", "San Marcos", "Uribe Ángel", "Mesa", "Bucarest", "La Magnolia", "Las Vegas", "Otraparte", "Loma del Esmeraldal", "Zuñiga", "Otro Barrio"]},
+        {"nombre": "Bello", "codigo_dane": "05088", "barrios": ["Niquía", "Cabañas", "Cabañitas", "El Trapiche", "La Florida", "Zamora", "Santa Ana", "Barrio Nuevo", "Cumbre", "Suárez", "Otro Barrio"]},
+        {"nombre": "Itagüí", "codigo_dane": "05360", "barrios": ["Santa María", "Simón Bolívar", "El Rosario", "La Gloria", "La Esmeralda", "Las Acacias", "San Pío X", "Las Asturias", "Viviendas del Sur", "Otro Barrio"]},
+        {"nombre": "Rionegro", "codigo_dane": "05615", "barrios": ["El Porvenir", "San Antonio de Pereira", "Centro", "Cuatro Esquinas", "La Pola", "Gualanday", "Otro Barrio"]},
+        {"nombre": "Apartadó", "codigo_dane": "05045", "barrios": ["Ortiz", "Vélez", "La Chinita", "Fundadores", "Policarpa", "Serranía", "Otro Barrio"]},
+        {"nombre": "Caucasia", "codigo_dane": "05154", "barrios": ["Centro", "El Retorno", "La Inmaculada", "Aures", "Villa Dual", "Pueblo Nuevo", "Otro Barrio"]},
+        {"nombre": "Turbo", "codigo_dane": "05837", "barrios": ["Baltazar", "Centro", "La Lucila", "Buenos Aires", "Mis Esfuerzos", "Otro Barrio"]}
+      ]
+    },
+    {
+      "nombre": "Arauca", "codigo_dane": "81",
+      "municipios": [
+        {"nombre": "Arauca", "codigo_dane": "81001", "barrios": ["Centro", "San Luis", "La Esperanza", "Cordillera", "Meridiano 70", "Los Fundadores", "Otro Barrio"]},
+        {"nombre": "Arauquita", "codigo_dane": "81065", "barrios": ["Centro", "Las Palmeras", "San Isidro", "Otro Barrio"]},
+        {"nombre": "Saravena", "codigo_dane": "81736", "barrios": ["Centro", "Modelia", "Chiriri", "San José", "Otro Barrio"]}
+      ]
+    },
+    {
+      "nombre": "Atlántico", "codigo_dane": "08",
+      "municipios": [
+        {"nombre": "Barranquilla", "codigo_dane": "08001", "barrios": ["El Prado", "Alto Prado", "Boston", "Recreo", "Las Delicias", "Ciudad Jardín", "Riomar", "Miramar", "Villa Santos", "Chiquinquirá", "San Roque", "Abajo", "San José", "La Victoria", "Las Nieves", "Simón Bolívar", "La Playa", "Paraíso", "Bellavista", "Otro Barrio"]},
+        {"nombre": "Soledad", "codigo_dane": "08758", "barrios": ["El Centenario", "Las Gaviotas", "Villa Muvdi", "Los Almendros", "Costa Hermosa", "La Floresta", "Salamanca", "Hipódromo", "El Parque", "San Antonio", "Otro Barrio"]},
+        {"nombre": "Malambo", "codigo_dane": "08433", "barrios": ["Centro", "Bellavista", "El Concorde", "La Milagrosa", "Villa Campo", "Otro Barrio"]},
+        {"nombre": "Sabanalarga", "codigo_dane": "08638", "barrios": ["Centro", "Sabanitas", "El Recreo", "La Fuente", "San Carlos", "Otro Barrio"]}
+      ]
+    },
+    {
+      "nombre": "Bogotá D.C.", "codigo_dane": "11",
+      "municipios": [
+        {"nombre": "Bogotá D.C.", "codigo_dane": "11001", "barrios": ["Cedritos", "Chicó Reservado", "Chapinero Alto", "Teusaquillo", "Ciudad Salitre", "Modelia", "Suba Compartir", "Santa Bárbara", "La Candelaria", "Galerías", "Colina Campestre", "Quinta Paredes", "Niza", "Kennedy Central", "Bosa Centro", "Fontibón Centro", "Engativá Pueblo", "Restrepo", "San Diego", "Usaquén Centro", "Las Cruces", "Patios", "Timiza", "Venecia", "Madalena", "Lucero", "Meissen", "Tunal", "Olaya", "Quiroga", "Minuto de Dios", "Quirigua", "Pontevedra", "La Castellana", "Rosales", "Otro Barrio"]}
+      ]
+    },
+    {
+      "nombre": "Bolívar", "codigo_dane": "13",
+      "municipios": [
+        {"nombre": "Cartagena", "codigo_dane": "13001", "barrios": ["Centro Histórico", "Getsemaní", "Bocagrande", "Castillogrande", "El Laguito", "Manga", "Pie de la Popa", "Crespo", "El Cabrero", "San Diego", "Ternera", "Los Caracoles", "Blas de Lezo", "El Socorro", "San Fernando", "Olaya Herrera", "La Boquilla", "Torices", "Otro Barrio"]},
+        {"nombre": "Magangué", "codigo_dane": "13430", "barrios": ["Centro", "Olaya", "San Martín", "Barrio Sur", "El Prado", "Otro Barrio"]},
+        {"nombre": "Turbaco", "codigo_dane": "13836", "barrios": ["Centro", "La Granja", "El Bosque", "San Pedro", "Paraíso", "Otro Barrio"]}
+      ]
+    },
+    {
+      "nombre": "Boyacá", "codigo_dane": "15",
+      "municipios": [
+        {"nombre": "Tunja", "codigo_dane": "15001", "barrios": ["Centro Histórico", "Muiscas", "Suamox", "Cooservicios", "Las Quintas", "La Fuente", "San Antonio", "Otro Barrio"]},
+        {"nombre": "Duitama", "codigo_dane": "15238", "barrios": ["Centro", "Camilo Torres", "La Pradera", "San José", "La Milagrosa", "Otro Barrio"]},
+        {"nombre": "Sogamoso", "codigo_dane": "15759", "barrios": ["Centro", "Valdés Tavera", "El Sol", "Magdalena", "Monquirá", "Otro Barrio"]},
+        {"nombre": "Chiquinquirá", "codigo_dane": "15175", "barrios": ["Centro", "La Pola", "Sucre", "Boyacá", "La Estación", "Otro Barrio"]}
+      ]
+    },
+    {
+      "nombre": "Caldas", "codigo_dane": "17",
+      "municipios": [
+        {"nombre": "Manizales", "codigo_dane": "17001", "barrios": ["Centro", "Palermo", "El Cable", "La Enea", "Chipre", "Milan", "San Jorge", "Alta Suiza", "Villamaría Urbana", "Campohermoso", "Otro Barrio"]},
+        {"nombre": "La Dorada", "codigo_dane": "17380", "barrios": ["Centro", "Las Ferias", "El Renacer", "Magdalena", "Victoria", "Otro Barrio"]},
+        {"nombre": "Chinchiná", "codigo_dane": "17174", "barrios": ["Centro", "Vistas del Café", "La 40", "El Túnel", "Otro Barrio"]}
+      ]
+    },
+    {
+      "nombre": "Caquetá", "codigo_dane": "18",
+      "municipios": [
+        {"nombre": "Florencia", "codigo_dane": "18001", "barrios": ["Centro", "El Curiplaya", "La Consolata", "Juan XXIII", "La Vega", "Amazonas", "Transportadores", "Otro Barrio"]},
+        {"nombre": "San Vicente del Caguán", "codigo_dane": "18753", "barrios": ["Centro", "La Granja", "El Portal", "Vergel", "Otro Barrio"]}
+      ]
+    },
+    {
+      "nombre": "Casanare", "codigo_dane": "85",
+      "municipios": [
+        {"nombre": "Yopal", "codigo_dane": "85001", "barrios": ["Centro", "El Hobo", "Los Helechos", "La Decision", "San Martín", "Villa David", "Otro Barrio"]},
+        {"nombre": "Aguazul", "codigo_dane": "85010", "barrios": ["Centro", "Sevilla", "El Porvenir", "Camoruco", "Otro Barrio"]}
+      ]
+    },
+    {
+      "nombre": "Cauca", "codigo_dane": "19",
+      "municipios": [
+        {"nombre": "Popayán", "codigo_dane": "19001", "barrios": ["Centro Histórico", "Ciudad Jardín", "Calclis", "La Esmeralda", "El Ortigal", "Bello Horizonte", "Fucha", "Otro Barrio"]},
+        {"nombre": "Santander de Quilichao", "codigo_dane": "19698", "barrios": ["Centro", "El Rosario", "Nariño", "Corona", "Morales", "Otro Barrio"]}
+      ]
+    },
+    {
+      "nombre": "Cesar", "codigo_dane": "20",
+      "municipios": [
+        {"nombre": "Valledupar", "codigo_dane": "20001", "barrios": ["Centro", "Novalar", "Los Cortijos", "La Nevada", "Ciudadela Comfacesar", "Fundadores", "San Joaquín", "Primero de Mayo", "Otro Barrio"]},
+        {"nombre": "Aguachica", "codigo_dane": "20011", "barrios": ["Centro", "El Sol", "San Vicente", "La Sabana", "Paraguay", "Otro Barrio"]}
+      ]
+    },
+    {
+      "nombre": "Chocó", "codigo_dane": "27",
+      "municipios": [
+        {"nombre": "Quibdó", "codigo_dane": "27001", "barrios": ["Centro", "Medrano", "El Jardín", "La Esmeralda", "Tomas Pérez", "Yuto", "Zona Minera", "Otro Barrio"]},
+        {"nombre": "Istmina", "codigo_dane": "27361", "barrios": ["Centro", "Comercio", "San Francisco", "Cubis", "Otro Barrio"]}
+      ]
+    },
+    {
+      "nombre": "Córdoba", "codigo_dane": "23",
+      "municipios": [
+        {"nombre": "Montería", "codigo_dane": "23001", "barrios": ["Centro", "El Recreo", "Pasatiempo", "La Granja", "Mocarí", "Cantaclaro", "Castellana", "Rancho Grande", "Otro Barrio"]},
+        {"nombre": "Cereté", "codigo_dane": "23162", "barrios": ["Centro", "Santa Teresa", "Venus", "El Prado", "Otro Barrio"]}
+      ]
+    },
+    {
+      "nombre": "Cundinamarca", "codigo_dane": "25",
+      "municipios": [
+        {"nombre": "Soacha", "codigo_dane": "25754", "barrios": ["Compartir", "San Humberto", "Ciudad Verde", "Quintanar", "Loma Linda", "Centro", "Ducales", "Otro Barrio"]},
+        {"nombre": "Chía", "codigo_dane": "25175", "barrios": ["Centro", "Fagua", "Fonquetá", "Mercedes de Calahorra", "Bojacá", "La Lorena", "Otro Barrio"]},
+        {"nombre": "Zipaquirá", "codigo_dane": "25899", "barrios": ["Centro", "San Carlos", "Algarras", "La Concepción", "Barandillas", "Otro Barrio"]},
+        {"nombre": "Girardot", "codigo_dane": "25307", "barrios": ["Centro", "Blanco", "La Esmeralda", "Gaitán", "Kennedy", "Diamante", "Otro Barrio"]},
+        {"nombre": "Fusagasugá", "codigo_dane": "25290", "barrios": ["Centro", "Pekin", "Balmoral", "Comuneros", "La Venta", "Otro Barrio"]}
+      ]
+    },
+    {
+      "nombre": "Guainía", "codigo_dane": "94",
+      "municipios": [
+        {"nombre": "Inírida", "codigo_dane": "94001", "barrios": ["Centro", "La Primavera", "Los Comuneros", "Galán", "El Paujil", "Otro Barrio"]}
+      ]
+    },
+    {
+      "nombre": "Guaviare", "codigo_dane": "95",
+      "municipios": [
+        {"nombre": "San José del Guaviare", "codigo_dane": "95001", "barrios": ["Centro", "El Modelo", "La Esperanza", "Porvenir", "Bello Horizonte", "Otro Barrio"]}
+      ]
+    },
+    {
+      "nombre": "Huila", "codigo_dane": "41",
+      "municipios": [
+        {"nombre": "Neiva", "codigo_dane": "41001", "barrios": ["Centro", "Cándido Leguízamo", "Las Granjas", "Ipanema", "El Vergel", "Calixto", "Chicalá", "Otro Barrio"]},
+        {"nombre": "Pitalito", "codigo_dane": "41551", "barrios": ["Centro", "Paraíso", "La Pradera", "Leon de Greiff", "Cálamo", "Otro Barrio"]}
+      ]
+    },
+    {
+      "nombre": "La Guajira", "codigo_dane": "44",
+      "municipios": [
+        {"nombre": "Riohacha", "codigo_dane": "44001", "barrios": ["Centro", "El Cooperativo", "Arriba", "Abajo", "Luis Eduardo Cuéllar", "Mano de Dios", "Otro Barrio"]},
+        {"nombre": "Maicao", "codigo_dane": "44430", "barrios": ["Centro", "San José", "El Carmen", "Santander", "La Esmeralda", "Otro Barrio"]}
+      ]
+    },
+    {
+      "nombre": "Magdalena", "codigo_dane": "47",
+      "municipios": [
+        {"nombre": "Santa Marta", "codigo_dane": "47001", "barrios": ["Centro Histórico", "El Rodadero", "Pozos Colorados", "Bonda", "Mamatoco", "Pescaíto", "Taganga", "Ciudadela 29 de Julio", "Bavaria", "Otro Barrio"]},
+        {"nombre": "Ciénaga", "codigo_dane": "47189", "barrios": ["Centro", "Mar de Plata", "Abajo", "La Victoria", "Otro Barrio"]}
+      ]
+    },
+    {
+      "nombre": "Meta", "codigo_dane": "50",
+      "municipios": [
+        {"nombre": "Villavicencio", "codigo_dane": "50001", "barrios": ["Centro", "El Buque", "San Benito", "La Grama", "Porfía", "Esperanza", "Barzal", "Canaán", "Otro Barrio"]},
+        {"nombre": "Acacías", "codigo_dane": "50006", "barrios": ["Centro", "La Independencia", "El Cooperativo", "Mancera", "Otro Barrio"]}
+      ]
+    },
+    {
+      "nombre": "Nariño", "codigo_dane": "52",
+      "municipios": [
+        {"nombre": "Pasto", "codigo_dane": "52001", "barrios": ["Centro", "La Carolina", "Maridíaz", "Pandiaco", "Anganoy", "Lorenzo de Aldana", "Catambuco Urbana", "Otro Barrio"]},
+        {"nombre": "Tumaco", "codigo_dane": "52835", "barrios": ["Centro", "La Ciudadela", "El Bajito", "Exun", "Viento Libre", "Otro Barrio"]},
+        {"nombre": "Ipiales", "codigo_dane": "52356", "barrios": ["Centro", "San Felipe", "El Charco", "Puenes", "La Floresta", "Otro Barrio"]}
+      ]
+    },
+    {
+      "nombre": "Norte de Santander", "codigo_dane": "54",
+      "municipios": [
+        {"nombre": "Cúcuta", "codigo_dane": "54001", "barrios": ["Centro", "Caobos", "La Riviera", "Atalaya", "San Luis", "Aeropuerto", "El Salado", "Quinta Oriental", "Otro Barrio"]},
+        {"nombre": "Ocaña", "codigo_dane": "54498", "barrios": ["Centro", "El Dulce Nombre", "Villanueva", "San Agustín", "La Piñuela", "Otro Barrio"]},
+        {"nombre": "Villa del Rosario", "codigo_dane": "54874", "barrios": ["Centro", "Lomitas", "Gramalote", "La Parada", "Otro Barrio"]}
+      ]
+    },
+    {
+      "nombre": "Putumayo", "codigo_dane": "86",
+      "municipios": [
+        {"nombre": "Mocoa", "codigo_dane": "86001", "barrios": ["Centro", "San Agustín", "La Esmeralda", "El Progreso", "Olimpico", "Otro Barrio"]},
+        {"nombre": "Puerto Asís", "codigo_dane": "86568", "barrios": ["Centro", "Metropolitano", "La Montañita", "San Martín", "Otro Barrio"]}
+      ]
+    },
+    {
+      "nombre": "Quindío", "codigo_dane": "63",
+      "municipios": [
+        {"nombre": "Armenia", "codigo_dane": "63001", "barrios": ["Centro", "Norte", "La Castellana", "Granada", "San Diego", "El Placer", "Ciudad Dorada", "La Clarita", "Otro Barrio"]},
+        {"nombre": "Calarcá", "codigo_dane": "63130", "barrios": ["Centro", "Balcones", "Las Valencia", "El Llanito", "Otro Barrio"]}
+      ]
+    },
+    {
+      "nombre": "Risaralda", "codigo_dane": "66",
+      "municipios": [
+        {"nombre": "Pereira", "codigo_dane": "66001", "barrios": ["Centro", "Circunvalar", "Cuba", "Dosquebradas Conurbado", "Cerritos", "Alamos", "Providenza", "Villa Verde", "Otro Barrio"]},
+        {"nombre": "Dosquebradas", "codigo_dane": "66170", "barrios": ["El Japòn", "La Pradera", "Santa Monica", "Valher", "Campestre", "Otro Barrio"]}
+      ]
+    },
+    {
+      "nombre": "San Andrés, Providencia y Santa Catalina", "codigo_dane": "88",
+      "municipios": [
+        {"nombre": "San Andrés", "codigo_dane": "88001", "barrios": ["North End", "San Luis", "La Loma", "Sound Bay", "Sarie Bay", "Otro Barrio"]},
+        {"nombre": "Providencia", "codigo_dane": "88564", "barrios": ["Santa Isabel", "Bottom House", "Smooth Water", "Otro Barrio"]}
+      ]
+    },
+    {
+      "nombre": "Santander", "codigo_dane": "68",
+      "municipios": [
+        {"nombre": "Bucaramanga", "codigo_dane": "68001", "barrios": ["Cabecera del Llano", "Sotomayor", "Real de Minas", "Provenza", "San Francisco", "Alarcón", "La Concordia", "Mutis", "La Victoria", "El Prado", "Morrorrico", "Otro Barrio"]},
+        {"nombre": "Floridablanca", "codigo_dane": "68276", "barrios": ["Cañaveral", "Ruitoque", "El Bosque", "La Cumbre", "Niza", "Molinos", "Villabel", "Santa Ana", "Otro Barrio"]},
+        {"nombre": "Girón", "codigo_dane": "68307", "barrios": ["Poblado", "El Rincón", "Centro Histórico", "Villamil", "Santa Cruz", "Otro Barrio"]},
+        {"nombre": "Barrancabermeja", "codigo_dane": "68081", "barrios": ["Centro", "Galán", "Parnaso", "Aguas Claras", "La Esperanza", "Torcoroma", "Otro Barrio"]}
+      ]
+    },
+    {
+      "nombre": "Sucre", "codigo_dane": "70",
+      "municipios": [
+        {"nombre": "Sincelejo", "codigo_dane": "70001", "barrios": ["Centro", "La Ford", "Venecia", "El Bosque", "Mochila", "Majagual", "La Selva", "Otro Barrio"]},
+        {"nombre": "Corozal", "codigo_dane": "70215", "barrios": ["Centro", "San Juan", "La Macarena", "El Recreo", "Otro Barrio"]}
+      ]
+    },
+    {
+      "nombre": "Tolima", "codigo_dane": "73",
+      "municipios": [
+        {"nombre": "Ibagué", "codigo_dane": "73001", "barrios": ["Centro", "Cádiz", "Interlaken", "Piedrapintada", "El Salado", "Jordan", "La Pola", "Ricaurte", "Arka", "Otro Barrio"]},
+        {"nombre": "Espinal", "codigo_dane": "73268", "barrios": ["Centro", "Balkanes", "La Estación", "Caballero y Góngora", "Otro Barrio"]}
+      ]
+    },
+    {
+      "nombre": "Valle del Cauca", "codigo_dane": "76",
+      "municipios": [
+        {"nombre": "Cali", "codigo_dane": "76001", "barrios": ["San Antonio", "El Peñón", "Granada", "Ciudad Jardín", "Versalles", "Pance", "Lido", "La Flora", "San Fernando", "Tequendama", "Menga", "Terrón Colorado", "Siloé", "Chiminangos", "Aguablanca", "El Limonar", "Caney", "Capri", "Prados del Norte", "Otro Barrio"]},
+        {"nombre": "Palmira", "codigo_dane": "76520", "barrios": ["El Recreo", "Las Mercedes", "La Emilia", "Zamorano", "Bosques de Maracaibo", "La Italia", "Llano Grande", "Parque Agronómico", "Otro Barrio"]},
+        {"nombre": "Buenaventura", "codigo_dane": "76109", "barrios": ["Centro", "Cascajal", "Pueblo Nuevo", "Bellavista", "Juan XXIII", "El Jorge", "Otro Barrio"]},
+        {"nombre": "Tuluá", "codigo_dane": "76834", "barrios": ["Centro", "Alvernia", "Victoria", "Fátima", "El Príncipe", "Salesianos", "Otro Barrio"]},
+        {"nombre": "Cartago", "codigo_dane": "76147", "barrios": ["Centro", "El Recreo", "San Jerónimo", "Santa Ana", "Zaragoza Urbana", "Otro Barrio"]}
+      ]
+    },
+    {
+      "nombre": "Vaupés", "codigo_dane": "97",
+      "municipios": [
+        {"nombre": "Mitú", "codigo_dane": "97001", "barrios": ["Centro", "Inurbe", "La Playita", "Bello Horizonte", "Alfonso López", "Otro Barrio"]}
+      ]
+    },
+    {
+      "nombre": "Vichada", "codigo_dane": "99",
+      "municipios": [
+        {"nombre": "Puerto Carreño", "codigo_dane": "99001", "barrios": ["Centro", "Calarcá", "La Virgen", "Simón Bolívar", "El Trébol", "Otro Barrio"]}
+      ]
+    }
+  ]

@@ -289,50 +289,68 @@ details.accordion-step[open] > summary::after {
         </div>
 
 <script>
-// ── Cargar datalist de departamentos ──
-(function loadDeptList() {
-    fetch('/static/data/Departamentos_Municipios.json')
-        .then(r => r.json())
-        .then(data => {
-            const list = document.getElementById('dept_list');
-            if (!list) return;
-            const depts = [...new Set(data.map(item => item["Nombre Departamento"]))].sort();
-            depts.forEach(d => { const o = document.createElement('option'); o.value = d; list.appendChild(o); });
-        })
-        .catch(err => console.error('Error loading departamentos:', err));
-})();
+// ── Lógica Geográfica Eventos ──
+document.addEventListener('DOMContentLoaded', async () => {
+    const depSelect = document.getElementById('departamento');
+    const munSelect = document.getElementById('municipio');
+    const barrioSelect = document.getElementById('barrio');
+    const depList = document.getElementById('dept_list');
+    const munList = document.getElementById('mun_list');
+    const barrioList = document.getElementById('barrio_list');
 
-// ── Cargar municipios segun departamento ──
-document.getElementById('departamento').addEventListener('input', function() {
-    const dept = this.value.trim();
-    fetch('/static/data/Departamentos_Municipios.json')
-        .then(r => r.json())
-        .then(data => {
-            const list = document.getElementById('mun_list');
-            list.innerHTML = '';
-            if (!dept) return;
-            const municipios = data.filter(item => item["Nombre Departamento"] === dept)
-                                  .map(item => item["Nombre Municipio"]);
-            const unique = [...new Set(municipios)].sort();
-            unique.forEach(m => { const o = document.createElement('option'); o.value = m; list.appendChild(o); });
-        })
-        .catch(() => {});
+    if (!depSelect) return;
+
+    let colombiaData = [];
+
+    try {
+        const res = await fetch('/static/data/colombia_completo.json');
+        if (res.ok) {
+            const data = await res.json();
+            colombiaData = data.departamentos || [];
+            colombiaData.sort((a, b) => a.nombre.localeCompare(b.nombre)).forEach(dep => {
+                const opt = document.createElement('option');
+                opt.value = dep.nombre;
+                depList.appendChild(opt);
+            });
+        }
+    } catch (e) { console.error('Error cargando Colombia JSON', e); }
+
+    depSelect.addEventListener('change', () => {
+        const depName = depSelect.value;
+        munSelect.value = '';
+        munList.innerHTML = '';
+        barrioSelect.value = '';
+        barrioList.innerHTML = '';
+        
+        const depObj = colombiaData.find(d => d.nombre === depName);
+        if (depObj && depObj.municipios) {
+            depObj.municipios.sort((a, b) => a.nombre.localeCompare(b.nombre)).forEach(mun => {
+                const opt = document.createElement('option');
+                opt.value = mun.nombre;
+                munList.appendChild(opt);
+            });
+        }
+    });
+
+    munSelect.addEventListener('change', () => {
+        const depName = depSelect.value;
+        const munName = munSelect.value;
+        barrioSelect.value = '';
+        barrioList.innerHTML = '';
+        
+        const depObj = colombiaData.find(d => d.nombre === depName);
+        if (depObj && depObj.municipios) {
+            const munObj = depObj.municipios.find(m => m.nombre === munName);
+            if (munObj && munObj.barrios) {
+                munObj.barrios.sort().forEach(b => {
+                    const opt = document.createElement('option');
+                    opt.value = b;
+                    barrioList.appendChild(opt);
+                });
+            }
+        }
+    });
 });
-
-// ── Cargar barrios (Medellín) ──
-(function loadBarrioList() {
-    fetch('/static/data/barrios_medellin.json')
-        .then(r => r.json())
-        .then(data => {
-            const list = document.getElementById('barrio_list');
-            if (!list) return;
-            let barrios = [];
-            data.comunas.forEach(c => { barrios = barrios.concat(c.barrios); });
-            barrios.sort();
-            barrios.forEach(b => { const o = document.createElement('option'); o.value = b; list.appendChild(o); });
-        })
-        .catch(err => console.error('Error loading barrios:', err));
-})();
 
 // ── Ocupaciones ──
 (function loadOcupaciones() {
@@ -3181,103 +3199,91 @@ if (tipoDocSelect && identInput) {
 {% endif %}
 
 <script>
-// ── Lógica Geográfica Cascada ──
+// ── Lógica Geográfica Cascada Residencia ──
 document.addEventListener('DOMContentLoaded', async () => {
     const depSelect = document.getElementById('departamento_residencia');
     const munSelect = document.getElementById('municipio_residencia');
+    const barrioInput = document.getElementById('barrio_residencia');
     const depList = document.getElementById('departamentos_list');
     const munList = document.getElementById('municipios_list');
-    const rowBarrio = document.getElementById('fila_barrio');
-    const barrioInput = document.getElementById('barrio_residencia');
     const barriosList = document.getElementById('barrios_list');
+    const rowBarrio = document.getElementById('fila_barrio');
 
-    if (!depSelect) return; // No estamos en el paso 2 aún
-
-    let deptMunMap = {}; // { "ANTIOQUIA": ["MEDELLIN", "BELLO", ...], ... }
+    if (!depSelect) return;
 
     const prefillDep = "{{ paciente.departamento_residencia or '' if paciente else '' }}";
     const prefillMun = "{{ paciente.municipio_residencia or '' if paciente else '' }}";
     const prefillBarrio = "{{ paciente.barrio_residencia or '' if paciente else '' }}";
 
-    // 1. Cargar Departamentos y Municipios
+    let colombiaData = [];
+
     try {
-        const res = await fetch('/static/data/Departamentos_Municipios.json');
+        const res = await fetch('/static/data/colombia_completo.json');
         if (res.ok) {
-            const rawData = await res.json(); // Array de {Nombre Departamento, Nombre Municipio}
-            rawData.forEach(item => {
-                const dep = item["Nombre Departamento"];
-                const mun = item["Nombre Municipio"];
-                if (!deptMunMap[dep]) deptMunMap[dep] = [];
-                deptMunMap[dep].push(mun);
-            });
-            Object.keys(deptMunMap).sort().forEach(dep => {
+            const data = await res.json();
+            colombiaData = data.departamentos || [];
+            colombiaData.sort((a, b) => a.nombre.localeCompare(b.nombre)).forEach(dep => {
                 const opt = document.createElement('option');
-                opt.value = dep;
+                opt.value = dep.nombre;
                 depList.appendChild(opt);
             });
             if (prefillDep) {
                 depSelect.value = prefillDep;
+                depSelect.dispatchEvent(new Event('change'));
             }
         }
-    } catch (e) { console.error('Error cargando Departamentos', e); }
+    } catch (e) { console.error('Error cargando Colombia JSON', e); }
 
-    // 2. Cargar Barrios de Medellín
-    try {
-        const resB = await fetch('/static/data/barrios_medellin.json');
-        if (resB.ok) {
-            const data = await resB.json();
-            const comunas = data.comunas || [];
-            let todosLosBarrios = [];
-            comunas.forEach(c => {
-                if (c.barrios) todosLosBarrios.push(...c.barrios);
-            });
-            todosLosBarrios = [...new Set(todosLosBarrios)].sort();
-            todosLosBarrios.forEach(b => {
-                const opt = document.createElement('option');
-                opt.value = b;
-                barriosList.appendChild(opt);
-            });
-        }
-    } catch (e) { console.error('Error cargando barrios', e); }
-
-    // 3. Al cambiar Departamento → cargar Municipios
     depSelect.addEventListener('change', () => {
-        const dep = depSelect.value;
+        const depName = depSelect.value;
         munSelect.value = '';
         munList.innerHTML = '';
-        if (dep && deptMunMap[dep]) {
+        barriosList.innerHTML = '';
+        
+        const depObj = colombiaData.find(d => d.nombre === depName);
+        if (depObj && depObj.municipios) {
             munSelect.disabled = false;
-            deptMunMap[dep].sort().forEach(mun => {
+            depObj.municipios.sort((a, b) => a.nombre.localeCompare(b.nombre)).forEach(mun => {
                 const opt = document.createElement('option');
-                opt.value = mun;
+                opt.value = mun.nombre;
                 munList.appendChild(opt);
             });
             if (prefillMun && depSelect.value === prefillDep) {
                 munSelect.value = prefillMun;
+                munSelect.dispatchEvent(new Event('change'));
             }
         } else {
             munSelect.disabled = true;
         }
-        munSelect.dispatchEvent(new Event('change'));
     });
 
-    // 4. Al cambiar Municipio → mostrar/ocultar barrios
     munSelect.addEventListener('change', () => {
-        const mun = munSelect.value;
-        if (mun) {
+        const depName = depSelect.value;
+        const munName = munSelect.value;
+        barrioInput.value = '';
+        barriosList.innerHTML = '';
+        
+        if (munName) {
             rowBarrio.style.display = 'flex';
         } else {
             rowBarrio.style.display = 'none';
         }
-        if (prefillBarrio && munSelect.value === prefillMun) {
-            barrioInput.value = prefillBarrio;
+
+        const depObj = colombiaData.find(d => d.nombre === depName);
+        if (depObj && depObj.municipios) {
+            const munObj = depObj.municipios.find(m => m.nombre === munName);
+            if (munObj && munObj.barrios) {
+                munObj.barrios.sort().forEach(b => {
+                    const opt = document.createElement('option');
+                    opt.value = b;
+                    barriosList.appendChild(opt);
+                });
+                if (prefillBarrio && munSelect.value === prefillMun) {
+                    barrioInput.value = prefillBarrio;
+                }
+            }
         }
     });
-
-    // 5. Pre-fill si hay datos guardados
-    if (prefillDep) {
-        depSelect.dispatchEvent(new Event('change'));
-    }
 });
 </script>
 
