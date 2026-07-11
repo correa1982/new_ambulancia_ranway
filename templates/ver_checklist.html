@@ -20,6 +20,8 @@
 .val-na { background: #f1f5f9; color: #64748b; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; display: inline-block; }
 .val-empty { color: #cbd5e1; font-size: 12px; }
 
+.badge-cargo { background: #e0f2fe; color: #0369a1; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; display: inline-block; }
+.doc-section { margin-top: 20px; }
 /* ── Split columns checklist (TAM, TAB, PASM, PASB) ── */
 .col-split-table td { padding: 5px 8px; font-size: 11px; line-height: 1.2; }
 .col-split-table th { padding: 6px 8px; font-size: 9px; text-transform: uppercase; letter-spacing: 0.5px; }
@@ -86,34 +88,64 @@ tr { page-break-inside: avoid; break-inside: avoid; }
 }
 @media print {
     .no-print { display: none !important; }
+    @page { margin: 10mm; }
     .container { box-shadow: none; border: none; max-width: 100%; margin: 0; padding: 0; }
-    body { background: white; font-size: 10px; }
+    body { background: white; font-size: 9px; line-height: 1.1; }
     #checklist-doc { padding: 0 !important; margin: 0 !important; }
     
-    .doc-header { margin-bottom: 10px; padding-bottom: 5px; border-bottom-width: 1.5px; }
-    .doc-logo img { max-height: 60px; max-width: 150px; }
-    .doc-inst .inst-name { font-size: 12px; }
-    .doc-inst .inst-sub { font-size: 9px; }
+    .doc-header { margin-bottom: 5px; padding-bottom: 3px; border-bottom-width: 1px; }
+    .doc-logo img { max-height: 45px; max-width: 120px; }
+    .doc-inst .inst-name { font-size: 10px; }
+    .doc-inst .inst-sub { font-size: 8px; }
     
-    .doc-title-band { padding: 6px 10px; margin-bottom: 10px; border-radius: 4px; }
-    .doc-title-band .dt-main { font-size: 13px; }
-    .doc-title-band .dt-num { font-size: 10px; }
+    .doc-title-band { padding: 4px 8px; margin-bottom: 5px; border-radius: 4px; }
+    .doc-title-band .dt-main { font-size: 11px; }
+    .doc-title-band .dt-num { font-size: 9px; }
     
-    .formal-table, .result-table, .col-split-table { margin-bottom: 8px; }
-    .formal-table td { padding: 3px 6px; font-size: 10px; border: 1px solid #000; color: #000; }
-    .formal-table .lbl { background-color: #f1f5f9; color: #000; font-size: 9px; }
-    .formal-table { border: 1.5px solid #000; }
+    .formal-table, .result-table, .col-split-table { margin-bottom: 5px; }
+    .formal-table td { padding: 1px 3px !important; font-size: 8.5px !important; border: 1px solid #000; color: #000; line-height: 1.05; }
+    .formal-table .lbl { background-color: #f1f5f9; color: #000; font-size: 8px; width: auto; }
+    .formal-table { border: 1px solid #000; }
     
-    .result-table th, .col-split-table th { padding: 3px 6px; font-size: 9px; }
-    .result-table td, .col-split-table td { padding: 3px 6px; font-size: 10px; }
+    .result-table th, .col-split-table th { padding: 1px 3px !important; font-size: 8px !important; line-height: 1.05; border: 1px solid #000; }
+    .result-table td, .col-split-table td { padding: 1px 3px !important; font-size: 8.5px !important; line-height: 1.05; border: 1px solid #000; }
     
-    .cat-title { font-size: 11px; margin: 10px 0 5px; }
+    .cat-title { font-size: 9px; margin: 4px 0 2px; }
     
-    .firma-box { margin-top: 5px; padding: 5px; border-top-width: 1px; }
-    .firma-box img { max-height: 50px; margin-bottom: 2px; }
+    .firma-box { margin-top: 5px; padding: 2px; border-top-width: 1px; }
+    .firma-box img { max-height: 35px; margin-bottom: 1px; }
+    .firma-box .firma-name { font-size: 9px; }
+    .firma-box .firma-meta { font-size: 8px; }
     
-    .val-si, .val-no, .val-na { padding: 2px 4px; font-size: 9px; }
+    .val-si, .val-no, .val-na { padding: 1px 3px; font-size: 7.5px; border-radius: 2px; }
 }
+
+.pdf-mode .no-print { display: none !important; }
+.pdf-mode { background: white !important; font-size: 9px !important; line-height: 1.1 !important; }
+.pdf-mode #checklist-doc { padding: 10px !important; margin: 0 !important; }
+.pdf-mode .doc-header { margin-bottom: 2px !important; padding-bottom: 2px !important; border-bottom-width: 1px !important; }
+.pdf-mode .doc-logo img { max-height: 40px !important; max-width: 120px !important; }
+.pdf-mode .doc-inst .inst-name { font-size: 9px !important; }
+.pdf-mode .doc-inst .inst-sub { font-size: 7px !important; }
+.pdf-mode .doc-title-band { padding: 2px 4px !important; margin-bottom: 2px !important; border-radius: 2px !important; }
+.pdf-mode .doc-title-band .dt-main { font-size: 10px !important; }
+.pdf-mode .doc-title-band .dt-num { font-size: 8px !important; }
+.pdf-mode .formal-table, .pdf-mode .result-table, .pdf-mode .col-split-table { margin-bottom: 2px !important; }
+.pdf-mode .formal-table td { padding: 1px 2px !important; font-size: 8px !important; border: 1px solid #000 !important; color: #000 !important; line-height: 1.0 !important; }
+.pdf-mode .formal-table .lbl { background-color: #f1f5f9 !important; color: #000 !important; font-size: 7.5px !important; width: auto !important; }
+.pdf-mode .formal-table { border: 1px solid #000 !important; }
+.pdf-mode .result-table th, .pdf-mode .col-split-table th { padding: 1px 2px !important; font-size: 7.5px !important; line-height: 1.0 !important; border: 1px solid #000 !important; }
+.pdf-mode .result-table td, .pdf-mode .col-split-table td { padding: 1px 2px !important; font-size: 8px !important; line-height: 1.0 !important; border: 1px solid #000 !important; }
+.pdf-mode .result-table td span, .pdf-mode .col-split-table td span, .pdf-mode .result-table td strong, .pdf-mode .col-split-table td strong { font-size: 8px !important; }
+.pdf-mode .cat-title { font-size: 9px !important; margin: 4px 0 2px !important; }
+.pdf-mode .firma-box { margin-top: 5px !important; padding: 2px !important; border-top-width: 1px !important; }
+.pdf-mode .firma-box img { max-height: 35px !important; margin-bottom: 1px !important; }
+.pdf-mode .firma-box .firma-name { font-size: 9px !important; }
+.pdf-mode .firma-box .firma-meta { font-size: 8px !important; }
+.pdf-mode .val-si, .pdf-mode .val-no, .pdf-mode .val-na { padding: 1px 3px !important; font-size: 7.5px !important; border-radius: 2px !important; }
+.pdf-mode .badge-cargo { background: transparent !important; color: inherit !important; padding: 0 !important; font-size: inherit !important; font-weight: normal !important; display: inline !important; border-radius: 0 !important; }
+.pdf-mode .doc-section { margin-top: 2px !important; }
+
 
 @media (max-width: 700px) {
     .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
@@ -259,7 +291,7 @@ tr { page-break-inside: avoid; break-inside: avoid; }
 </div>
 
 {% if tipo in ('avanzada', 'tam', 'tab', 'pasm', 'pasb') and datos.get('_integrantes') %}
-<div style="margin-top: 20px;">
+<div class="doc-section">
     <div class="cat-title">👥 Integrantes de la Tripulación / Personal</div>
     <div class="table-wrap">
     <table class="result-table">
@@ -276,7 +308,7 @@ tr { page-break-inside: avoid; break-inside: avoid; }
                 <td><strong>{{ member.nombre }}</strong></td>
                 <td>{{ member.identificacion or '—' }}</td>
                 <td>
-                    <span style="background: #e0f2fe; color: #0369a1; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 700;">
+                    <span class="badge-cargo">
                         {{ member.perfil }}
                     </span>
                 </td>
@@ -289,7 +321,7 @@ tr { page-break-inside: avoid; break-inside: avoid; }
 {% endif %}
 
 {% if tipo in ('calif_atencion', 'segur_paciente') and record.responsable_nombre %}
-<div style="margin-top: 20px;">
+<div class="doc-section">
     <div class="cat-title">👤 Datos de la persona responsable (paciente menor de edad)</div>
     <div class="table-wrap">
     <table class="formal-table" style="margin-bottom: 0;">
@@ -307,7 +339,7 @@ tr { page-break-inside: avoid; break-inside: avoid; }
 {% endif %}
 
 {% if tipo == 'segur_paciente' %}
-<div style="margin-top: 20px;">
+<div class="doc-section">
     <div class="cat-title">📝 Detalles del Reporte</div>
     <div style="background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 15px; margin-bottom: 15px;">
         <div class="info-label" style="font-size: 12px; color: #64748b; font-weight: 700; text-transform: uppercase; margin-bottom: 5px;">Nombre del Reporte</div>
@@ -513,7 +545,7 @@ tr { page-break-inside: avoid; break-inside: avoid; }
 {% endif %}
 
 <!-- Firma del Registrador -->
-<div style="display:flex; justify-content:space-around; align-items:flex-end; flex-wrap:wrap; margin-top:20px; border-top:2px solid #e2e8f0; padding-top:20px;">
+<div class="doc-section" style="display:flex; justify-content:space-around; align-items:flex-end; flex-wrap:wrap; border-top:2px solid #e2e8f0; padding-top:20px;">
     {% if record.firma_registrador %}
     <div class="firma-box" style="border-top:none; margin-top:0;">
     <div class="signature-container">
@@ -597,8 +629,11 @@ function descargarPDF() {
     tempContainer.style.top = window.scrollY + 'px';
     tempContainer.style.width = '800px';
     tempContainer.style.background = 'white';
+    tempContainer.classList.add('pdf-mode');
     
     const clone = doc.cloneNode(true);
+    clone.classList.add('pdf-mode');
+    
     const wrappers = clone.querySelectorAll('.table-wrap, .table-responsive');
     wrappers.forEach(w => w.style.overflowX = 'visible');
     
