@@ -1552,51 +1552,10 @@ document.addEventListener('DOMContentLoaded', function() {
 {% endif %}
 
 <script>
-// ── Dictado por Voz ──
-let currentRecognition = null;
-function startDictation(btn, targetTextarea) {
-    if (currentRecognition) {
-        currentRecognition.stop();
-        currentRecognition = null;
-        document.querySelectorAll('.btn-dictar').forEach(b => b.classList.remove('recording'));
-        return;
-    }
-    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-        alert("El dictado por voz no está soportado en este navegador. Intente usar Chrome o Safari.");
-        return;
-    }
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    const recognition = new SpeechRecognition();
-    
-    recognition.lang = 'es-ES';
-    recognition.interimResults = false;
-    recognition.maxAlternatives = 1;
-
-    recognition.onstart = function() {
-        btn.classList.add('recording');
-        currentRecognition = recognition;
-    };
-    recognition.onresult = function(event) {
-        const transcript = event.results[0][0].transcript;
-        if (targetTextarea.value) {
-            targetTextarea.value += " " + transcript;
-        } else {
-            targetTextarea.value = transcript.charAt(0).toUpperCase() + transcript.slice(1);
-        }
-        targetTextarea.dispatchEvent(new Event('input', { bubbles: true }));
-    };
-    recognition.onerror = function(event) {
-        if (event.error !== 'no-speech') {
-            alert("Error en el dictado de voz: " + event.error);
-        }
-    };
-    recognition.onend = function() {
-        btn.classList.remove('recording');
-        currentRecognition = null;
-    };
-    recognition.start();
-}
+// ── Dictado por Voz Offline ──
 </script>
+<script src="{{ url_for('static', filename='js/dictation.js') }}"></script>
+<script>
 
 
 <script>

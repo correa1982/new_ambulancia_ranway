@@ -43,23 +43,20 @@
             </div>
             <div>
                 <label>Departamento <span style="color:#ef4444">*</span></label>
-                <select name="departamento" id="select_departamento" required>
-                    <option value="">— Seleccione —</option>
-                </select>
+                <input type="text" name="departamento" id="input_departamento" list="list_departamento" required autocomplete="off" placeholder="— Seleccione —" value="{{ item.departamento or '' }}">
+                <datalist id="list_departamento"></datalist>
             </div>
         </div>
         <div class="row row-3" style="margin-top:12px;">
             <div>
                 <label>Municipio <span style="color:#ef4444">*</span></label>
-                <select name="municipio" id="select_municipio" required>
-                    <option value="">— Seleccione —</option>
-                </select>
+                <input type="text" name="municipio" id="input_municipio" list="list_municipio" required autocomplete="off" placeholder="— Seleccione —" value="{{ item.municipio or '' }}">
+                <datalist id="list_municipio"></datalist>
             </div>
             <div>
                 <label>Barrio</label>
-                <select name="barrio" id="select_barrio">
-                    <option value="">— Seleccione —</option>
-                </select>
+                <input type="text" name="barrio" id="input_barrio" list="list_barrio" autocomplete="off" placeholder="— Seleccione —" value="{{ item.barrio or '' }}">
+                <datalist id="list_barrio"></datalist>
             </div>
             <div>
                 <label>Dirección <span style="color:#ef4444">*</span></label>
@@ -482,94 +479,69 @@
     }
 
     // --- JSON Loading for Location (Departamento, Municipio, Barrio) ---
-    const selectDept = document.getElementById("select_departamento");
-    const selectMuni = document.getElementById("select_municipio");
-    const selectBarrio = document.getElementById("select_barrio");
+    const inputDept = document.getElementById("input_departamento");
+    const inputMuni = document.getElementById("input_municipio");
+    const inputBarrio = document.getElementById("input_barrio");
+    const listDept = document.getElementById("list_departamento");
+    const listMuni = document.getElementById("list_municipio");
+    const listBarrio = document.getElementById("list_barrio");
 
-    const prefilledDept = "{{ item.departamento or 'Antioquia' }}";
-    const prefilledMuni = "{{ item.municipio or '' }}";
-    const prefilledBarrio = "{{ item.barrio or '' }}";
+    let divipolaData = [];
 
-    let geoData = [];
-
-    // Load Departamentos & Municipios
-    fetch('/static/data/Departamentos_Municipios.json')
-        .then(r => r.json())
-        .then(data => {
-            geoData = data;
-            const depts = [...new Set(data.map(item => item["Nombre Departamento"]))].sort();
-            
-            // Clear and populate Departamento select
-            selectDept.innerHTML = '<option value="">— Seleccione Departamento —</option>';
-            depts.forEach(d => {
-                const opt = document.createElement("option");
-                opt.value = d;
-                opt.textContent = d;
-                selectDept.appendChild(opt);
-            });
-
-            // Set prefilled department and update municipalities
-            if (prefilledDept) {
-                selectDept.value = prefilledDept;
-                updateMunicipios(prefilledDept, prefilledMuni);
+    async function cargarDivipola() {
+        try {
+            const res = await fetch('/static/data/divipola_estructurado.json');
+            if (res.ok) {
+                divipolaData = await res.json();
+                divipolaData.forEach(dep => {
+                    const opt = document.createElement("option");
+                    opt.value = `${dep.codigo} - ${dep.nombre}`;
+                    listDept.appendChild(opt);
+                });
             }
-        })
-        .catch(err => console.error("Error loading Departamentos_Municipios.json:", err));
-
-    function updateMunicipios(deptName, valueToSelect = "") {
-        selectMuni.innerHTML = '<option value="">— Seleccione Municipio —</option>';
-        selectBarrio.innerHTML = '<option value="">— Seleccione Barrio —</option>';
-        if (!deptName) return;
-
-        const munis = geoData.filter(item => item["Nombre Departamento"] === deptName)
-                             .map(item => item["Nombre Municipio"]);
-        const uniqueMunis = [...new Set(munis)].sort();
-
-        uniqueMunis.forEach(m => {
-            const opt = document.createElement("option");
-            opt.value = m;
-            opt.textContent = m;
-            if (m === valueToSelect) {
-                opt.selected = true;
-            }
-            selectMuni.appendChild(opt);
-        });
-
-        if (valueToSelect) {
-            updateBarrios(valueToSelect, prefilledBarrio);
+        } catch (e) {
+            console.error("Error cargando DIVIPOLA JSON", e);
         }
     }
 
-    function updateBarrios(muniName, valueToSelect = "") {
-        selectBarrio.innerHTML = '<option value="">— Seleccione Barrio —</option>';
-        // Only load Medellin barrios for now, matching the standard
-        fetch('/static/data/barrios_medellin.json')
-            .then(r => r.json())
-            .then(data => {
-                let barrios = [];
-                data.comunas.forEach(c => {
-                    barrios = barrios.concat(c.barrios);
-                });
-                barrios.sort();
-                barrios.forEach(b => {
-                    const opt = document.createElement("option");
-                    opt.value = b;
-                    opt.textContent = b;
-                    if (b === valueToSelect) {
-                        opt.selected = true;
-                    }
-                    selectBarrio.appendChild(opt);
-                });
-            })
-            .catch(err => console.error("Error loading barrios_medellin.json:", err));
-    }
+    cargarDivipola();
 
-    selectDept.addEventListener("change", function () {
-        updateMunicipios(this.value);
+    inputDept.addEventListener("change", function () {
+        listMuni.innerHTML = '';
+        inputMuni.value = '';
+        listBarrio.innerHTML = '';
+        inputBarrio.value = '';
+        
+        const depName = this.value;
+        const depObj = divipolaData.find(d => `${d.codigo} - ${d.nombre}` === depName);
+        
+        if (depObj && depObj.municipios) {
+            Object.values(depObj.municipios).forEach(mun => {
+                const opt = document.createElement("option");
+                opt.value = `${mun.codigo} - ${mun.nombre}`;
+                listMuni.appendChild(opt);
+            });
+        }
     });
 
-    selectMuni.addEventListener("change", function () {
-        updateBarrios(this.value);
+    inputMuni.addEventListener("change", function () {
+        listBarrio.innerHTML = '';
+        inputBarrio.value = '';
+        
+        const depName = inputDept.value;
+        const munName = this.value;
+        const depObj = divipolaData.find(d => `${d.codigo} - ${d.nombre}` === depName);
+        
+        if (depObj && depObj.municipios) {
+            const munObj = Object.values(depObj.municipios).find(m => `${m.codigo} - ${m.nombre}` === munName);
+            if (munObj && munObj.barrios) {
+                Object.values(munObj.barrios).forEach(bar => {
+                    const opt = document.createElement("option");
+                    opt.value = `${bar.codigo} - ${bar.nombre}`;
+                    listBarrio.appendChild(opt);
+                });
+            }
+        }
     });
 
     // --- Lógica de Equipos Seleccionados y Observaciones ---
@@ -726,52 +698,8 @@
     renderEquiposRows();
 })();
 </script>
-<script>
-// ── Dictado por Voz ──
-let currentRecognition = null;
-function startDictation(btn, targetTextarea) {
-    if (currentRecognition) {
-        currentRecognition.stop();
-        currentRecognition = null;
-        document.querySelectorAll('.btn-dictar').forEach(b => b.classList.remove('recording'));
-        return;
-    }
-    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-        alert("El dictado por voz no está soportado en este navegador. Intente usar Chrome o Safari.");
-        return;
-    }
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    const recognition = new SpeechRecognition();
-    
-    recognition.lang = 'es-ES';
-    recognition.interimResults = false;
-    recognition.maxAlternatives = 1;
-
-    recognition.onstart = function() {
-        btn.classList.add('recording');
-        currentRecognition = recognition;
-    };
-    recognition.onresult = function(event) {
-        const transcript = event.results[0][0].transcript;
-        if (targetTextarea.value) {
-            targetTextarea.value += " " + transcript;
-        } else {
-            targetTextarea.value = transcript.charAt(0).toUpperCase() + transcript.slice(1);
-        }
-        targetTextarea.dispatchEvent(new Event('input', { bubbles: true }));
-    };
-    recognition.onerror = function(event) {
-        if (event.error !== 'no-speech') {
-            alert("Error en el dictado de voz: " + event.error);
-        }
-    };
-    recognition.onend = function() {
-        btn.classList.remove('recording');
-        currentRecognition = null;
-    };
-    recognition.start();
-}
-</script>
+<!-- ── Dictado por Voz Offline ── -->
+<script src="{{ url_for('static', filename='js/dictation.js') }}"></script>
 
 <script>
 (function() {
