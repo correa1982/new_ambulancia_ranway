@@ -86,13 +86,14 @@
 <!-- Tabla dinámica de integrantes -->
 <fieldset style="margin-top: 15px;">
 <legend>👥 Integrantes de la Tripulación / Personal</legend>
+<div style="overflow-x: auto; width: 100%;">
 <table class="check-table" id="tabla-integrantes" style="width: 100%; border-collapse: collapse; margin-top: 8px;">
     <thead>
         <tr>
-            <th style="width: 25%; background: linear-gradient(135deg,#ebf4ff,#dbeafe); font-size:10px; text-transform:uppercase; letter-spacing:0.5px; color:#1e40af; padding:8px 14px; border: 1px solid #e2e8f0; text-align: left;">CARGO</th>
-            <th style="width: 40%; background: linear-gradient(135deg,#ebf4ff,#dbeafe); font-size:10px; text-transform:uppercase; letter-spacing:0.5px; color:#1e40af; padding:8px 14px; border: 1px solid #e2e8f0; text-align: left;">INTEGRANTES</th>
-            <th style="width: 30%; background: linear-gradient(135deg,#ebf4ff,#dbeafe); font-size:10px; text-transform:uppercase; letter-spacing:0.5px; color:#1e40af; padding:8px 14px; border: 1px solid #e2e8f0; text-align: left;">IDENTIFICACION</th>
-            <th style="width: 5%; background: linear-gradient(135deg,#ebf4ff,#dbeafe); font-size:10px; text-transform:uppercase; letter-spacing:0.5px; color:#1e40af; padding:8px 14px; border: 1px solid #e2e8f0; text-align: center;"></th>
+            <th style="width: 25%; min-width: 150px; background: linear-gradient(135deg,#ebf4ff,#dbeafe); font-size:10px; text-transform:uppercase; letter-spacing:0.5px; color:#1e40af; padding:8px 14px; border: 1px solid #e2e8f0; text-align: left;">CARGO</th>
+            <th style="width: 40%; min-width: 200px; background: linear-gradient(135deg,#ebf4ff,#dbeafe); font-size:10px; text-transform:uppercase; letter-spacing:0.5px; color:#1e40af; padding:8px 14px; border: 1px solid #e2e8f0; text-align: left;">INTEGRANTES</th>
+            <th style="width: 30%; min-width: 150px; background: linear-gradient(135deg,#ebf4ff,#dbeafe); font-size:10px; text-transform:uppercase; letter-spacing:0.5px; color:#1e40af; padding:8px 14px; border: 1px solid #e2e8f0; text-align: left;">IDENTIFICACION</th>
+            <th style="width: 5%; min-width: 50px; background: linear-gradient(135deg,#ebf4ff,#dbeafe); font-size:10px; text-transform:uppercase; letter-spacing:0.5px; color:#1e40af; padding:8px 14px; border: 1px solid #e2e8f0; text-align: center;"></th>
         </tr>
     </thead>
     <tbody id="tbody-integrantes">
@@ -149,6 +150,7 @@
         {% endif %}
     </tbody>
 </table>
+</div>
 <div style="margin-top: 10px;">
     <button type="button" class="action-btn" id="btn-add-integrante" style="font-size: 12px; padding: 6px 14px; display: inline-flex; align-items: center; gap: 4px; border-radius: 6px; cursor: pointer; border: none; background: linear-gradient(135deg,#10b981,#059669); color: white; font-weight: 700; height: 32px; min-height: 32px;">
         <i class="ph ph-plus" style="font-size: 14px;"></i> Agregar Integrante

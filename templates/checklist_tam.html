@@ -150,12 +150,13 @@
 <!-- Integrantes de la tripulación -->
 <fieldset>
 <legend>👥 Integrantes de la Tripulación</legend>
+<div style="overflow-x: auto; width: 100%;">
 <table class="check-table" id="tabla-integrantes-tam" style="width: 100%; border-collapse: collapse; margin-top: 8px;">
     <thead><tr>
-        <th style="width: 25%;">Cargo</th>
-        <th style="width: 40%;">Nombre Completo</th>
-        <th style="width: 25%;">Documento de Identidad</th>
-        <th style="width: 10%; text-align: center;">Quitar</th>
+        <th style="width: 25%; min-width: 150px;">Cargo</th>
+        <th style="width: 40%; min-width: 200px;">Nombre Completo</th>
+        <th style="width: 25%; min-width: 150px;">Documento de Identidad</th>
+        <th style="width: 10%; min-width: 50px; text-align: center;">Quitar</th>
     </tr></thead>
     <tbody id="tbody-integrantes-tam">
         {% if datos and datos.get('_integrantes') %}
@@ -199,6 +200,7 @@
         {% endif %}
     </tbody>
 </table>
+</div>
 <div style="margin-top: 10px;">
     <button type="button" id="btn-add-integrante-tam" style="font-size: 12px; padding: 6px 14px; display: inline-flex; align-items: center; gap: 4px; border-radius: 6px; cursor: pointer; border: none; background: linear-gradient(135deg,#10b981,#059669); color: white; font-weight: 700; height: 32px; min-height: 32px;">
         + Agregar Integrante
