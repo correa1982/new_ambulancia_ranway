@@ -85,16 +85,34 @@ tr { page-break-inside: avoid; break-inside: avoid; }
     color: #0f172a;
 }
 @media print {
-    .formal-table { border: 1.5px solid #000; }
-    .formal-table td { border: 1px solid #000; color: #000; }
-    .formal-table .lbl { background-color: #f1f5f9; color: #000; }
-    .formal-table .val { color: #000; }
-}
-
-@media print {
     .no-print { display: none !important; }
-    .container { box-shadow: none; border: none; max-width: 100%; }
-    body { background: white; }
+    .container { box-shadow: none; border: none; max-width: 100%; margin: 0; padding: 0; }
+    body { background: white; font-size: 10px; }
+    #checklist-doc { padding: 0 !important; margin: 0 !important; }
+    
+    .doc-header { margin-bottom: 10px; padding-bottom: 5px; border-bottom-width: 1.5px; }
+    .doc-logo img { max-height: 60px; max-width: 150px; }
+    .doc-inst .inst-name { font-size: 12px; }
+    .doc-inst .inst-sub { font-size: 9px; }
+    
+    .doc-title-band { padding: 6px 10px; margin-bottom: 10px; border-radius: 4px; }
+    .doc-title-band .dt-main { font-size: 13px; }
+    .doc-title-band .dt-num { font-size: 10px; }
+    
+    .formal-table, .result-table, .col-split-table { margin-bottom: 8px; }
+    .formal-table td { padding: 3px 6px; font-size: 10px; border: 1px solid #000; color: #000; }
+    .formal-table .lbl { background-color: #f1f5f9; color: #000; font-size: 9px; }
+    .formal-table { border: 1.5px solid #000; }
+    
+    .result-table th, .col-split-table th { padding: 3px 6px; font-size: 9px; }
+    .result-table td, .col-split-table td { padding: 3px 6px; font-size: 10px; }
+    
+    .cat-title { font-size: 11px; margin: 10px 0 5px; }
+    
+    .firma-box { margin-top: 5px; padding: 5px; border-top-width: 1px; }
+    .firma-box img { max-height: 50px; margin-bottom: 2px; }
+    
+    .val-si, .val-no, .val-na { padding: 2px 4px; font-size: 9px; }
 }
 
 @media (max-width: 700px) {
