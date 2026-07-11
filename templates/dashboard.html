@@ -368,6 +368,11 @@ document.addEventListener("DOMContentLoaded", function() {
         <div class="card-title">Gestión de Usuarios</div>
         <div class="card-desc">Crear y administrar el personal médico y contraseñas.</div>
     </a>
+    <a href="{{ url_for('exportar_rips') }}" class="dash-card" style="border-color: #e2e8f0;">
+        <div class="card-icon" style="background: #fee2e2;"><i class="ph ph-file-code" style="color: #dc2626;"></i></div>
+        <div class="card-title">Exportar RIPS JSON</div>
+        <div class="card-desc">Generar y descargar RIPS según la Resolución 2275.</div>
+    </a>
     <a href="{{ url_for('admin_checklists') }}" class="dash-card" style="border-color: #e2e8f0;">
         <div class="card-icon" style="background: #fae8ff;"><i class="ph ph-list-dashes" style="color: #c026d3;"></i></div>
         <div class="card-title">Gestión de Ítems</div>

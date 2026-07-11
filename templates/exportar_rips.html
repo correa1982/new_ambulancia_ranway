@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Exportar RIPS JSON{% endblock %}
+{% block content %}
+<div class="content-header">
+    <div class="header-title">
+        <h1>Exportar RIPS JSON (Res. 2275)</h1>
+        <p>Genera el archivo JSON requerido por el Ministerio de Salud para reportar facturación.</p>
+    </div>
+    <div class="header-actions">
+        <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">
+            <i class="ph ph-arrow-left"></i> Volver
+        </a>
+    </div>
+</div>
+
+<div class="card" style="max-width: 600px; margin: 0 auto; margin-top: 2rem;">
+    <form action="{{ url_for('api_generar_rips') }}" method="POST" id="form-rips">
+        
+        <div class="form-group">
+            <label for="fecha_inicio">Fecha de Inicio <span style="color:#ef4444;">*</span></label>
+            <input type="date" id="fecha_inicio" name="fecha_inicio" required value="{{ date_hoy }}">
+        </div>
+
+        <div class="form-group">
+            <label for="fecha_fin">Fecha de Fin <span style="color:#ef4444;">*</span></label>
+            <input type="date" id="fecha_fin" name="fecha_fin" required value="{{ date_hoy }}">
+        </div>
+
+        <div class="form-group">
+            <label for="num_factura">Número de Factura Electrónica (FEV) <span style="color:#ef4444;">*</span></label>
+            <input type="text" id="num_factura" name="num_factura" required placeholder="Ej: SETT1234" autocomplete="off">
+            <small>Este número debe coincidir exactamente con la factura emitida por la DIAN.</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="codigo_prestador">Código de Habilitación del Prestador <span style="color:#ef4444;">*</span></label>
+            <input type="text" id="codigo_prestador" name="codigo_prestador" required placeholder="12 dígitos" value="123456789012" maxlength="12" pattern="\d{10,12}">
+        </div>
+
+        <div style="margin-top: 2rem; display: flex; justify-content: flex-end;">
+            <button type="submit" class="btn btn-primary">
+                <i class="ph ph-download-simple"></i> Generar y Descargar JSON
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+document.getElementById('form-rips').addEventListener('submit', function(e) {
+    const btn = this.querySelector('button[type="submit"]');
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> Generando...';
+    
+    // Habilitar de nuevo después de unos segundos, ya que la descarga no recarga la página
+    setTimeout(() => {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    }, 3000);
+});
+</script>
+{% endblock %}

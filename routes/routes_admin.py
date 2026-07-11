@@ -599,3 +599,116 @@ def register_routes(app):
             flash("Aseguradora SOAT no encontrada.", "error")
         conn.close()
         return redirect(url_for("admin_checklists", tipo="aseguradoras_soat"))
+    @app.route("/admin/exportar_rips")
+    @login_required
+    @admin_required
+    def exportar_rips():
+        return render_template("exportar_rips.html", usuario=session.get("usuario"), date_hoy=hoy())
+
+    @app.route("/api/generar_rips", methods=["POST"])
+    @login_required
+    @admin_required
+    def api_generar_rips():
+        fecha_inicio = request.form.get("fecha_inicio")
+        fecha_fin = request.form.get("fecha_fin")
+        num_factura = request.form.get("num_factura")
+        codigo_prestador = request.form.get("codigo_prestador")
+        
+        conn = get_db()
+        # Traer pacientes en ese rango de fechas
+        pacientes = conn.execute(
+            "SELECT * FROM pacientes WHERE DATE(fecha_registro) >= %s AND DATE(fecha_registro) <= %s", 
+            (fecha_inicio, fecha_fin)
+        ).fetchall()
+        
+        if not pacientes:
+            conn.close()
+            flash("No se encontraron pacientes registrados en el rango de fechas seleccionado.", "warning")
+            return redirect(url_for("exportar_rips"))
+            
+        # Diccionario CUPS quemado para tipos de servicio basicos
+        cups_map = {
+            "TAB": "890201",
+            "TAM": "890202",
+            "PAS-B": "890101",
+            "PAS-M": "890102"
+        }
+        
+        usuarios = []
+        procedimientos = []
+        urgencias = []
+        
+        for p in pacientes:
+            # Construir Nodo Usuario
+            cod_divipola = str(p.get("municipio_residencia", "")).split(" - ")[0].strip() if p.get("municipio_residencia") else ""
+            usuario = {
+                "tipoDocumentoIdentificacion": p.get("tipo_documento", "CC"),
+                "numDocumentoIdentificacion": p.get("documento", ""),
+                "tipoUsuario": "01",
+                "fechaNacimiento": p.get("fecha_nacimiento", ""),
+                "sexo": "M" if str(p.get("sexo")).upper().startswith("M") else "F" if str(p.get("sexo")).upper().startswith("F") else "I",
+                "codMunicipioResidencia": cod_divipola,
+                "codZonaTerritorialResidencia": "01",
+                "incapacidad": "02",
+                "consecutivo": len(usuarios) + 1
+            }
+            usuarios.append(usuario)
+            
+            # Procedimiento (el traslado)
+            tipo_servicio = str(p.get("tipo_servicio", "")).upper()
+            cod_cups = cups_map.get(tipo_servicio, "890201")
+            diag_prin = str(p.get("diagnostico_cie10", "")).split(" - ")[0].strip() if p.get("diagnostico_cie10") else ""
+            if not diag_prin:
+                diag_prin = "R69X" # Diagnostico por defecto (Causa desconocida)
+                
+            procedimiento = {
+                "feInicioAtencion": p.get("fecha_inicio_atencion") or p.get("fecha_registro", ""),
+                "numAutorizacion": "",
+                "codProcedimiento": cod_cups,
+                "viaIngresoServicioSalud": "02",
+                "modalidadGrupoServicioTecSal": "01",
+                "grupoServicios": "01",
+                "codServicio": "314",
+                "finalidadTecnologiaSalud": "44",
+                "tipoDocumentoIdentificacion": p.get("tipo_documento", "CC"),
+                "numDocumentoIdentificacion": p.get("documento", ""),
+                "codDiagnosticoPrincipal": diag_prin,
+                "codDiagnosticoRelacionado": "",
+                "codComplicacion": "",
+                "vrServicio": 0,
+                "conceptoRecaudo": "05",
+                "valorPagoModerador": 0,
+                "numFEVPagoModerador": "",
+                "consecutivo": len(procedimientos) + 1
+            }
+            procedimientos.append(procedimiento)
+            
+        conn.close()
+        
+        # Ensamblar JSON Final Res 2275
+        rips = {
+            "numDocumentoIdObligado": codigo_prestador,
+            "numFactura": num_factura,
+            "tipoNota": "",
+            "numNota": "",
+            "usuarios": usuarios,
+            "procedimientos": procedimientos,
+            "urgencias": urgencias,
+            "transaccion": {
+                "numDocumentoIdObligado": codigo_prestador,
+                "numFactura": num_factura,
+                "tipoNota": "",
+                "numNota": ""
+            }
+        }
+        
+        import json
+        from flask import Response
+        
+        response = Response(
+            json.dumps(rips, ensure_ascii=False, indent=2), 
+            mimetype='application/json',
+            headers={"Content-disposition": f"attachment; filename=RIPS_{num_factura}.json"}
+        )
+        return response
+
