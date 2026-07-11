@@ -1017,9 +1017,11 @@ def init_db():
         ('Médica', 'inmovilizadores', 'Inmovilizadores (collarín, tabla espinal)'),
         ('Médica', 'desfibrilador', 'Desfibrilador / DEA (cargado)')
     ]
-    for cat, ident, name in seed_preop:
-        exists = conn.execute("SELECT id FROM checklist_items WHERE tipo_checklist = 'preoperacional' AND identificador = ?", (ident,)).fetchone()
-        if not exists:
+    
+    # Solo insertar items por defecto si no existe ningún item de este tipo (para no sobreescribir si el usuario los ha borrado)
+    has_preop = conn.execute("SELECT 1 FROM checklist_items WHERE tipo_checklist = 'preoperacional' LIMIT 1").fetchone()
+    if not has_preop:
+        for cat, ident, name in seed_preop:
             conn.execute(
                 "INSERT INTO checklist_items (tipo_checklist, categoria, identificador, nombre, activo) VALUES ('preoperacional', ?, ?, ?, 1)",
                 (cat, ident, name)
@@ -1053,9 +1055,10 @@ def init_db():
         ('Glucómetro', 'gluc_tiras', 'Tiras reactivas vigentes y disponibles en el stock'),
         ('Glucómetro', 'gluc_lancetas', 'Lancetas y dispositivo punzón listos para uso')
     ]
-    for cat, ident, name in seed_equipos:
-        exists = conn.execute("SELECT id FROM checklist_items WHERE tipo_checklist = 'equipos' AND identificador = ?", (ident,)).fetchone()
-        if not exists:
+    
+    has_equipos = conn.execute("SELECT 1 FROM checklist_items WHERE tipo_checklist = 'equipos' LIMIT 1").fetchone()
+    if not has_equipos:
+        for cat, ident, name in seed_equipos:
             conn.execute(
                 "INSERT INTO checklist_items (tipo_checklist, categoria, identificador, nombre, activo) VALUES ('equipos', ?, ?, ?, 1)",
                 (cat, ident, name)
