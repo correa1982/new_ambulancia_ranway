@@ -315,14 +315,22 @@ async function onCargoCambioTam(selectEl) {
             return;
         }
 
-        const opts = '<option value="">— Seleccionar —</option>' +
-            users.map(u => `<option value="${u.nombre}" data-doc="${u.identificacion}">${u.nombre}</option>`).join('');
-        tdNom.innerHTML = `<select name="integrante_nombre[]" class="form-control integrante-nombre" required style="${SELECT_STYLE}">${opts}</select>`;
+        const datalistId = 'dl_' + Math.random().toString(36).substring(2, 9);
+        const opts = users.map(u => `<option value="${u.nombre}"></option>`).join('');
+        tdNom.innerHTML = `
+            <input type="text" name="integrante_nombre[]" class="form-control integrante-nombre" list="${datalistId}" required placeholder="Seleccione o escriba un usuario" style="${INPUT_STYLE}">
+            <datalist id="${datalistId}">${opts}</datalist>
+        `;
         tdDoc.innerHTML = buildDocInput('');
 
-        tdNom.querySelector('select').addEventListener('change', function() {
-            const opt = this.options[this.selectedIndex];
-            tdDoc.querySelector('input').value = opt.dataset.doc || '';
+        let docMap = {};
+        users.forEach(u => docMap[u.nombre] = u.identificacion);
+
+        tdNom.querySelector('input').addEventListener('input', function() {
+            const docInput = row.querySelector('.integrante-doc');
+            if (docInput && docMap[this.value]) {
+                docInput.value = docMap[this.value];
+            }
         });
     } catch(e) {
         tdNom.innerHTML = buildNombreInput('');

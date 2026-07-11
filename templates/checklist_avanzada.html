@@ -89,9 +89,9 @@
 <table class="check-table" id="tabla-integrantes" style="width: 100%; border-collapse: collapse; margin-top: 8px;">
     <thead>
         <tr>
+            <th style="width: 25%; background: linear-gradient(135deg,#ebf4ff,#dbeafe); font-size:10px; text-transform:uppercase; letter-spacing:0.5px; color:#1e40af; padding:8px 14px; border: 1px solid #e2e8f0; text-align: left;">CARGO</th>
             <th style="width: 40%; background: linear-gradient(135deg,#ebf4ff,#dbeafe); font-size:10px; text-transform:uppercase; letter-spacing:0.5px; color:#1e40af; padding:8px 14px; border: 1px solid #e2e8f0; text-align: left;">INTEGRANTES</th>
             <th style="width: 30%; background: linear-gradient(135deg,#ebf4ff,#dbeafe); font-size:10px; text-transform:uppercase; letter-spacing:0.5px; color:#1e40af; padding:8px 14px; border: 1px solid #e2e8f0; text-align: left;">IDENTIFICACION</th>
-            <th style="width: 25%; background: linear-gradient(135deg,#ebf4ff,#dbeafe); font-size:10px; text-transform:uppercase; letter-spacing:0.5px; color:#1e40af; padding:8px 14px; border: 1px solid #e2e8f0; text-align: left;">PERFIL</th>
             <th style="width: 5%; background: linear-gradient(135deg,#ebf4ff,#dbeafe); font-size:10px; text-transform:uppercase; letter-spacing:0.5px; color:#1e40af; padding:8px 14px; border: 1px solid #e2e8f0; text-align: center;"></th>
         </tr>
     </thead>
@@ -100,13 +100,8 @@
             {% for member in datos['_integrantes'] %}
             <tr class="integrante-row">
                 <td style="padding: 6px 14px; border: 1px solid #f1f5f9;">
-                    <div class="nombre-container" data-val="{{ member.nombre }}">
-                        <input type="text" name="integrante_nombre[]" class="form-control input-nombre" required placeholder="Nombre completo" value="{{ member.nombre }}" style="width: 100%; border: 1px solid #cbd5e1; border-radius: 5px; padding: 6px; font-size: 13px; box-sizing: border-box;">
-                    </div>
-                </td>
-                <td style="padding: 6px 14px; border: 1px solid #f1f5f9;"><input type="text" name="integrante_doc[]" class="form-control input-doc" placeholder="Cédula / ID" value="{{ member.identificacion }}" style="width: 100%; border: 1px solid #cbd5e1; border-radius: 5px; padding: 6px; font-size: 13px; box-sizing: border-box;"></td>
-                <td style="padding: 6px 14px; border: 1px solid #f1f5f9;">
                     <select name="integrante_perfil[]" class="form-control select-perfil" required style="width: 100%; border: 1px solid #cbd5e1; border-radius: 5px; padding: 6px; font-size: 13px; box-sizing: border-box; background: white;">
+                        <option value="">— Cargo —</option>
                         <option value="Enfermero" {% if member.perfil == 'Enfermero' %}selected{% endif %}>Enfermero</option>
                         <option value="APH" {% if member.perfil == 'APH' %}selected{% endif %}>APH</option>
                         <option value="Auxiliar en Enfermeria" {% if member.perfil == 'Auxiliar en Enfermeria' %}selected{% endif %}>Auxiliar en Enfermeria</option>
@@ -114,6 +109,12 @@
                         <option value="Estudiante" {% if member.perfil == 'Estudiante' %}selected{% endif %}>Estudiante</option>
                     </select>
                 </td>
+                <td style="padding: 6px 14px; border: 1px solid #f1f5f9;">
+                    <div class="nombre-container" data-val="{{ member.nombre }}">
+                        <input type="text" name="integrante_nombre[]" class="form-control input-nombre" required placeholder="Nombre completo" value="{{ member.nombre }}" style="width: 100%; border: 1px solid #cbd5e1; border-radius: 5px; padding: 6px; font-size: 13px; box-sizing: border-box;">
+                    </div>
+                </td>
+                <td style="padding: 6px 14px; border: 1px solid #f1f5f9;"><input type="text" name="integrante_doc[]" class="form-control input-doc" placeholder="Cédula / ID" value="{{ member.identificacion }}" style="width: 100%; border: 1px solid #cbd5e1; border-radius: 5px; padding: 6px; font-size: 13px; box-sizing: border-box;"></td>
                 <td style="text-align: center; vertical-align: middle; padding: 6px 14px; border: 1px solid #f1f5f9;">
                     <button type="button" class="btn-remove-integrante" style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 18px;" onclick="removeRow(this)">
                         <i class="ph ph-trash"></i>
@@ -124,13 +125,8 @@
         {% else %}
             <tr class="integrante-row">
                 <td style="padding: 6px 14px; border: 1px solid #f1f5f9;">
-                    <div class="nombre-container">
-                        <input type="text" name="integrante_nombre[]" class="form-control input-nombre" required placeholder="Nombre completo" style="width: 100%; border: 1px solid #cbd5e1; border-radius: 5px; padding: 6px; font-size: 13px; box-sizing: border-box;">
-                    </div>
-                </td>
-                <td style="padding: 6px 14px; border: 1px solid #f1f5f9;"><input type="text" name="integrante_doc[]" class="form-control input-doc" placeholder="Cédula / ID" style="width: 100%; border: 1px solid #cbd5e1; border-radius: 5px; padding: 6px; font-size: 13px; box-sizing: border-box;"></td>
-                <td style="padding: 6px 14px; border: 1px solid #f1f5f9;">
                     <select name="integrante_perfil[]" class="form-control select-perfil" required style="width: 100%; border: 1px solid #cbd5e1; border-radius: 5px; padding: 6px; font-size: 13px; box-sizing: border-box; background: white;">
+                        <option value="">— Cargo —</option>
                         <option value="Enfermero">Enfermero</option>
                         <option value="APH">APH</option>
                         <option value="Auxiliar en Enfermeria">Auxiliar en Enfermeria</option>
@@ -138,6 +134,12 @@
                         <option value="Estudiante">Estudiante</option>
                     </select>
                 </td>
+                <td style="padding: 6px 14px; border: 1px solid #f1f5f9;">
+                    <div class="nombre-container">
+                        <input type="text" name="integrante_nombre[]" class="form-control input-nombre" required placeholder="Nombre completo" style="width: 100%; border: 1px solid #cbd5e1; border-radius: 5px; padding: 6px; font-size: 13px; box-sizing: border-box;">
+                    </div>
+                </td>
+                <td style="padding: 6px 14px; border: 1px solid #f1f5f9;"><input type="text" name="integrante_doc[]" class="form-control input-doc" placeholder="Cédula / ID" style="width: 100%; border: 1px solid #cbd5e1; border-radius: 5px; padding: 6px; font-size: 13px; box-sizing: border-box;"></td>
                 <td style="text-align: center; vertical-align: middle; padding: 6px 14px; border: 1px solid #f1f5f9;">
                     <button type="button" class="btn-remove-integrante" style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 18px;" onclick="removeRow(this)">
                         <i class="ph ph-trash"></i>
@@ -298,19 +300,23 @@
             });
             container.appendChild(input);
         } else {
-            const select = document.createElement('select');
-            select.name = 'integrante_nombre[]';
-            select.className = 'form-control input-nombre';
-            select.required = true;
-            select.style.cssText = 'width: 100%; border: 1px solid #cbd5e1; border-radius: 5px; padding: 6px; font-size: 13px; box-sizing: border-box; background: white;';
+            const datalistId = 'dl_' + Math.random().toString(36).substring(2, 9);
             
-            const defOption = document.createElement('option');
-            defOption.value = '';
-            defOption.textContent = 'Seleccione un usuario';
-            select.appendChild(defOption);
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.name = 'integrante_nombre[]';
+            input.className = 'form-control input-nombre';
+            input.setAttribute('list', datalistId);
+            input.required = true;
+            input.placeholder = 'Seleccione o escriba un usuario';
+            input.style.cssText = 'width: 100%; border: 1px solid #cbd5e1; border-radius: 5px; padding: 6px; font-size: 13px; box-sizing: border-box; background: white;';
+            input.value = currentVal;
+            
+            const datalist = document.createElement('datalist');
+            datalist.id = datalistId;
 
-            // Filter users based on profile containing the word
-            // Note: DB profile is a stringified JSON array or plain text
+            let docMap = {};
+
             todosUsuarios.forEach(u => {
                 let match = false;
                 if (u.perfil) {
@@ -329,24 +335,21 @@
                 if (match) {
                     const option = document.createElement('option');
                     option.value = u.nombre;
-                    option.textContent = u.nombre;
-                    option.dataset.doc = u.identificacion;
-                    if (u.nombre === currentVal) {
-                        option.selected = true;
-                    }
-                    select.appendChild(option);
+                    datalist.appendChild(option);
+                    docMap[u.nombre] = u.identificacion;
                 }
             });
 
-            select.addEventListener('change', function() {
+            input.addEventListener('input', function() {
                 container.setAttribute('data-val', this.value);
-                const selectedOpt = this.options[this.selectedIndex];
                 const docInput = row.querySelector('.input-doc');
-                if (docInput && selectedOpt && selectedOpt.dataset.doc) {
-                    docInput.value = selectedOpt.dataset.doc;
+                if (docInput && docMap[this.value]) {
+                    docInput.value = docMap[this.value];
                 }
             });
-            container.appendChild(select);
+
+            container.appendChild(input);
+            container.appendChild(datalist);
         }
     }
 
@@ -369,11 +372,8 @@
             tr.className = 'integrante-row';
             tr.innerHTML = `
                 <td style="padding: 6px 14px; border: 1px solid #f1f5f9;">
-                    <div class="nombre-container" data-val=""></div>
-                </td>
-                <td style="padding: 6px 14px; border: 1px solid #f1f5f9;"><input type="text" name="integrante_doc[]" class="form-control input-doc" placeholder="Cédula / ID" style="width: 100%; border: 1px solid #cbd5e1; border-radius: 5px; padding: 6px; font-size: 13px; box-sizing: border-box;"></td>
-                <td style="padding: 6px 14px; border: 1px solid #f1f5f9;">
                     <select name="integrante_perfil[]" class="form-control select-perfil" required style="width: 100%; border: 1px solid #cbd5e1; border-radius: 5px; padding: 6px; font-size: 13px; box-sizing: border-box; background: white;">
+                        <option value="">— Cargo —</option>
                         <option value="Enfermero">Enfermero</option>
                         <option value="APH">APH</option>
                         <option value="Auxiliar en Enfermeria">Auxiliar en Enfermeria</option>
@@ -381,6 +381,10 @@
                         <option value="Estudiante">Estudiante</option>
                     </select>
                 </td>
+                <td style="padding: 6px 14px; border: 1px solid #f1f5f9;">
+                    <div class="nombre-container" data-val=""></div>
+                </td>
+                <td style="padding: 6px 14px; border: 1px solid #f1f5f9;"><input type="text" name="integrante_doc[]" class="form-control input-doc" placeholder="Cédula / ID" style="width: 100%; border: 1px solid #cbd5e1; border-radius: 5px; padding: 6px; font-size: 13px; box-sizing: border-box;"></td>
                 <td style="text-align: center; vertical-align: middle; padding: 6px 14px; border: 1px solid #f1f5f9;">
                     <button type="button" class="btn-remove-integrante" style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 18px;" onclick="removeRow(this)">
                         <i class="ph ph-trash"></i>
