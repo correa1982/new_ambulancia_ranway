@@ -292,7 +292,7 @@ tr { page-break-inside: avoid; break-inside: avoid; }
 
 {% if tipo in ('avanzada', 'tam', 'tab', 'pasm', 'pasb') and datos.get('_integrantes') %}
 <div class="doc-section">
-    <div class="cat-title">👥 Integrantes de la Tripulación / Personal</div>
+    <div class="cat-title">👥 {% if tipo == 'avanzada' %}Integrantes de la Avanzada{% else %}Integrantes de la Tripulación{% endif %}</div>
     <div class="table-wrap">
     <table class="result-table">
         <thead>
