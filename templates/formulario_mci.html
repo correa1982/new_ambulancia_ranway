@@ -1078,8 +1078,29 @@ document.addEventListener("DOMContentLoaded", () => {
                         ? '<span style="background:#d1fae5; color:#065f46; font-size:9px; font-weight:700; padding:2px 6px; border-radius:12px; white-space:nowrap; flex-shrink:0;">🟢 FINAL (Offline)</span>'
                         : '<span style="background:#fef3c7; color:#92400e; font-size:9px; font-weight:700; padding:2px 6px; border-radius:12px; white-space:nowrap; flex-shrink:0;">🟡 BORRADOR (Offline)</span>';
 
+                    const activeInput = document.getElementById('offline_id_input');
+                    const isActive = activeInput && activeInput.value === String(r.id);
+                    
+                    let bgColor, borderColor, borderStyle, shadow;
+                    if (isActive) {
+                        bgColor = '#fffbeb';
+                        borderColor = '#f59e0b';
+                        borderStyle = 'solid';
+                        shadow = 'box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.4);';
+                    } else if (isFinalizado) {
+                        bgColor = '#f0fdf4';
+                        borderColor = '#bbf7d0';
+                        borderStyle = 'dashed';
+                        shadow = '';
+                    } else {
+                        bgColor = '#f8fafc';
+                        borderColor = '#e2e8f0';
+                        borderStyle = 'dashed';
+                        shadow = '';
+                    }
+
                     const cardHTML = `
-                    <div class="paciente-card offline-injected" style="background:${isFinalizado ? '#f0fdf4' : '#fffbeb'}; border:1.5px dashed ${isFinalizado ? '#bbf7d0' : '#f59e0b'}; border-radius:8px; padding:10px 12px; display:flex; flex-direction:column; gap:5px; transition:all 0.15s;">
+                    <div class="paciente-card offline-injected" style="background:${bgColor}; border:1.5px ${borderStyle} ${borderColor}; ${shadow} border-radius:8px; padding:10px 12px; display:flex; flex-direction:column; gap:5px; transition:all 0.15s;">
                         <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:6px;">
                             <span style="font-weight:700; font-size:12px; color:#1e293b; line-height:1.3; flex:1;">
                                 ${nombre}
@@ -1133,6 +1154,7 @@ window.cancelarEdicionOffline = function(showToast = true) {
     if (edad) edad.value = '';
     
     if (showToast) mostrarToast('Edición cancelada.', 'info');
+    if (window.cargarRegistrosOfflinePanel) window.cargarRegistrosOfflinePanel();
 };
 
 window.editarRegistroOffline = async function(id) {
@@ -1176,6 +1198,7 @@ window.editarRegistroOffline = async function(id) {
 
         form.scrollIntoView({ behavior: 'smooth' });
         mostrarToast(`Editando borrador offline #${id}`, 'info');
+        if (window.cargarRegistrosOfflinePanel) window.cargarRegistrosOfflinePanel();
         
     } catch (e) {
         console.error("Error al cargar registro offline para edición:", e);
