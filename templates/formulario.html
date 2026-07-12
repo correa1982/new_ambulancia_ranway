@@ -2905,65 +2905,60 @@ const allSubmitBtns = ['borrador-btn', 'guardar-continuar-btn']
     .map(id => document.getElementById(id))
     .filter(Boolean);
 
-// Required fields for finalization (matching server-side validation)
-const camposObligatorios = [
-    { name: 'identificacion_paciente', label: 'Número de identificación' },
-    { name: 'tipo_documento',          label: 'Tipo de documento' },
-    { name: 'primer_nombre',           label: 'Primer nombre' },
-    { name: 'primer_apellido',         label: 'Primer apellido' },
-    { name: 'fecha_nacimiento',        label: 'Fecha de nacimiento' },
-    { name: 'sexo_biologico',          label: 'Sexo Biológico' },
-    { name: 'tipo_afiliacion',         label: 'Tipo de afiliación' },
-    { name: 'aseguradora',             label: 'Aseguradora (EPS)' },
-    { name: 'motivo_consulta',         label: 'Motivo de consulta' },
-    { name: 'enfermedad_actual',       label: 'Enfermedad actual' },
-];
-// CIE10 uses a hidden field, check it separately
-const cie10Hidden = document.getElementById('cie10-value');
+// CIE10 uses a hidden field, checked inside the validation loop above
 
 if (finalizarBtn) {
     finalizarBtn.addEventListener('click', function() {
-        // Ejecutar validación HTML5 de todos los campos 'required'
-        if (!formMedico.checkValidity()) {
-            // Encontrar el primer campo que falla la validación
-            const invalidField = formMedico.querySelector(':invalid');
-            if (invalidField) {
-                // Determinar en qué paso está ese campo y abrirlo si es un acordeón
-                const step = invalidField.closest('details.accordion-step');
-                if (step && !step.open) {
-                    step.open = true;
-                }
-                
-                // Hacer scroll hacia el campo inválido y enfocarlo
-                invalidField.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                
-                // Mostrar el globo de error nativo
-                setTimeout(() => {
-                    invalidField.focus();
-                    invalidField.reportValidity();
+        var camposReq = [
+            { id: 'nombre_evento' },
+            { id: 'tipo_servicio' },
+            { id: 'departamento' },
+            { id: 'municipio' },
+            { id: 'barrio' },
+            { id: 'direccion_atencion' },
+            { id: 'hora_despacho' },
+            { id: 'hora_arribo' },
+            { id: 'ambito_territorial' },
+            { id: 'entorno_atencion' },
+            { id: 'clasificacion' },
+            { id: 'causa_motiva_atencion' },
+            { id: 'tipo_traslado' },
+            { name: 'identificacion_paciente', id: 'identificacion_paciente' },
+            { name: 'tipo_documento',          id: 'tipo_documento' },
+            { name: 'primer_nombre',           id: 'primer_nombre' },
+            { name: 'primer_apellido',         id: 'primer_apellido' },
+            { name: 'fecha_nacimiento',        id: 'fecha_nacimiento' },
+            { name: 'sexo_biologico' },
+            { name: 'tipo_afiliacion' },
+            { name: 'aseguradora',             id: 'aseguradora' },
+            { name: 'motivo_consulta' },
+            { name: 'enfermedad_actual' },
+            { name: 'diagnostico_cie10',       id: 'cie10-value', focusId: 'cie10-search' }
+        ];
+
+        for (var i = 0; i < camposReq.length; i++) {
+            var campo = camposReq[i];
+            var el = campo.id ? document.getElementById(campo.id) : formMedico.querySelector('[name="' + campo.name + '"]');
+            if (!el) continue;
+            if ((el.value || '').trim()) continue;
+
+            var target = campo.focusId ? document.getElementById(campo.focusId) : el;
+            var step = (target || el).closest('details.accordion-step');
+            if (step && !step.open) step.open = true;
+
+            (function(t) {
+                setTimeout(function() {
+                    t.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    t.focus();
+                    t.style.boxShadow = '0 0 0 3px #fca5a5';
+                    t.style.borderColor = '#ef4444';
+                    setTimeout(function() { t.style.boxShadow = ''; t.style.borderColor = ''; }, 2000);
                 }, 100);
-            }
-            return;
-        }
-        
-        // Validación especial para CIE10 porque es un input hidden que no usa 'required' de HTML5 nativo
-        if (!cie10Hidden || !cie10Hidden.value.trim()) {
-            const searchInput = document.getElementById('cie10-search');
-            if (searchInput) {
-                const step = searchInput.closest('details.accordion-step');
-                if (step && !step.open) {
-                    step.open = true;
-                }
-                searchInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                setTimeout(() => {
-                    alert("Por favor seleccione la Impresión Diagnóstica (CIE10) antes de finalizar.");
-                    searchInput.focus();
-                }, 100);
-            }
+            })(target);
+
             return;
         }
 
-        // Todos los campos válidos → mostrar modal de confirmación
         modalConfirmar.style.display = 'flex';
         document.body.style.overflow = 'hidden';
     });
