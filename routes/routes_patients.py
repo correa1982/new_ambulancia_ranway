@@ -84,6 +84,11 @@ def register_routes(app, serializer, TIPOS_DOCUMENTO, TIPOS_AFILIACION, ASEGURAD
                 for field, label in REQUIRED_PATIENT_FIELDS:
                     if not data.get(field) or not data.get(field).strip():
                         errors.append(f"El campo '{label}' es obligatorio al finalizar.")
+                
+                # Custom validation for Cincinnati
+                if data.get("aplica_cincinnati") == "No Evaluable":
+                    if not data.get("razon_no_evaluable_cincinnati") or not data.get("razon_no_evaluable_cincinnati").strip():
+                        errors.append("Debe especificar la razón por la cual la escala de Cincinnati no es evaluable.")
 
             if errors:
                 if is_offline_sync:
@@ -169,6 +174,8 @@ def register_routes(app, serializer, TIPOS_DOCUMENTO, TIPOS_AFILIACION, ASEGURAD
                     "cincinnati_brazo": data.get("cincinnati_brazo"),
                     "cincinnati_habla": data.get("cincinnati_habla"),
                     "cincinnati_total": data.get("cincinnati_total"),
+                    "aplica_cincinnati": data.get("aplica_cincinnati"),
+                    "razon_no_evaluable_cincinnati": data.get("razon_no_evaluable_cincinnati"),
                     "rts_total": data.get("rts_total"),
                     "evaluacion_inicial": data.get("evaluacion_inicial"),
                     "examen_fisico": data.get("examen_fisico"),
@@ -264,7 +271,7 @@ def register_routes(app, serializer, TIPOS_DOCUMENTO, TIPOS_AFILIACION, ASEGURAD
                 "primer_respondiente", "es_emergencia_medica", "detalle_emergencia_medica", "es_emergencia_traumatica", "detalle_emergencia_traumatica",
                 "triage_fecha_hora", "triage_clasificacion",
                 "glasgow_ocular", "glasgow_verbal", "glasgow_motora", "glasgow_total",
-                "estado_consciencia", "cincinnati_facial", "cincinnati_brazo", "cincinnati_habla", "cincinnati_total", "rts_total",
+                "estado_consciencia", "cincinnati_facial", "cincinnati_brazo", "cincinnati_habla", "cincinnati_total", "aplica_cincinnati", "razon_no_evaluable_cincinnati", "rts_total",
                 "accion", "id", "atencion_colectiva_id", "_offline_sync", "fecha_inicio_atencion",
                 "soat_aseguradora", "soat_vigencia"
             }

@@ -58,7 +58,7 @@ PATIENT_FULL_FIELDS = PATIENT_MCI_FIELDS + [
     "triage_fecha_hora", "triage_clasificacion",
     "glasgow_ocular", "glasgow_verbal", "glasgow_motora", "glasgow_total",
     "estado_consciencia", "cincinnati_facial", "cincinnati_brazo", "cincinnati_habla",
-    "cincinnati_total", "rts_total",
+    "cincinnati_total", "aplica_cincinnati", "razon_no_evaluable_cincinnati", "rts_total",
     "examen_fisico", "datos_complementarios",
     "soat_aseguradora", "soat_vigencia",
     "hora_despacho", "hora_arribo", "nombre_evento", "tipo_servicio",

@@ -268,6 +268,8 @@ def init_db():
             cincinnati_brazo TEXT,
             cincinnati_habla TEXT,
             cincinnati_total TEXT,
+            aplica_cincinnati TEXT,
+            razon_no_evaluable_cincinnati TEXT,
             rts_total TEXT,
             evaluacion_inicial TEXT,
             examen_fisico TEXT,

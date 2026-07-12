@@ -1121,8 +1121,24 @@ document.addEventListener('DOMContentLoaded', async () => {
         </fieldset>
 
         <!-- Escala de Cincinnati (ACV) -->
-        <fieldset>
+        <fieldset id="cincinnati-wrapper">
         <legend>🧠 Escala de Cincinnati (ACV)</legend>
+        
+        <div class="form-group" style="margin-bottom: 16px;">
+            <label for="aplica_cincinnati" class="font-medium" style="display: block; margin-bottom: 8px;">Aplica Valoración Escala de Cincinnati</label>
+            <select id="aplica_cincinnati" name="aplica_cincinnati" class="form-control" onchange="toggleCincinnati()">
+                <option value="" {% if not paciente.aplica_cincinnati %}selected{% endif %}>-- Seleccionar --</option>
+                <option value="Evaluable" {% if paciente.aplica_cincinnati == 'Evaluable' %}selected{% endif %}>Evaluable</option>
+                <option value="No Evaluable" {% if paciente.aplica_cincinnati == 'No Evaluable' %}selected{% endif %}>No Evaluable</option>
+            </select>
+        </div>
+
+        <div id="razon_no_evaluable_cincinnati_container" class="form-group" style="display: none; margin-bottom: 16px;">
+            <label for="razon_no_evaluable_cincinnati" class="font-medium">Razón por la que no es evaluable <span style="color:red">*</span></label>
+            <textarea id="razon_no_evaluable_cincinnati" name="razon_no_evaluable_cincinnati" class="form-control" rows="2" placeholder="Especifique por qué no se puede evaluar la Escala de Cincinnati... (Obligatorio)">{{ paciente.razon_no_evaluable_cincinnati }}</textarea>
+        </div>
+
+        <div id="escala_cincinnati_campos" style="display: none;">
 
         <!-- Total display -->
         <div style="display:flex; align-items:center; justify-content:center; margin-bottom:16px;">
@@ -1176,6 +1192,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         <!-- Hidden field for Cincinnati total -->
         <input type="hidden" name="cincinnati_total" id="cincinnati_total" value="{{ paciente.cincinnati_total or '' if paciente else '' }}">
+        
+        </div> <!-- End of escala_cincinnati_campos -->
         </fieldset>
 
         <!-- Escala RTS (Revised Trauma Score) -->
@@ -2467,7 +2485,39 @@ function calcularGlasgow() {
     calcularRTS();
 }
 
-// ── Escala de Cincinnati ──────────────────────────────────
+// ── Escala de Cincinnati ──────────────────────────────────// 🧠 Escala de Cincinnati 🧠
+function toggleCincinnati() {
+    const aplicaCincinnati = document.getElementById('aplica_cincinnati').value;
+    const razonContainer = document.getElementById('razon_no_evaluable_cincinnati_container');
+    const razonInput = document.getElementById('razon_no_evaluable_cincinnati');
+    const camposCincinnati = document.getElementById('escala_cincinnati_campos');
+
+    if (aplicaCincinnati === 'No Evaluable') {
+        razonContainer.style.display = 'block';
+        camposCincinnati.style.display = 'none';
+        
+        // Limpiar los valores de la escala
+        document.getElementById('cincinnati_facial').value = '';
+        document.getElementById('cincinnati_brazo').value = '';
+        document.getElementById('cincinnati_habla').value = '';
+        calcularCincinnati();
+    } else if (aplicaCincinnati === 'Evaluable') {
+        razonContainer.style.display = 'none';
+        camposCincinnati.style.display = 'block';
+        razonInput.value = ''; // Limpiar la justificación
+    } else {
+        // Ninguno seleccionado
+        razonContainer.style.display = 'none';
+        camposCincinnati.style.display = 'none';
+        razonInput.value = '';
+        
+        document.getElementById('cincinnati_facial').value = '';
+        document.getElementById('cincinnati_brazo').value = '';
+        document.getElementById('cincinnati_habla').value = '';
+        calcularCincinnati();
+    }
+}
+
 function calcularCincinnati() {
     const facial = document.getElementById('cincinnati_facial')?.value;
     const brazo = document.getElementById('cincinnati_brazo')?.value;
@@ -2649,6 +2699,7 @@ function calcularRTS() {
 // Init on page load (for editing drafts)
 document.addEventListener('DOMContentLoaded', () => {
     calcularGlasgow();
+    toggleCincinnati();
     calcularCincinnati();
     calcularRTS();
 });
