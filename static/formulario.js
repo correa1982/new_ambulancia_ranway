@@ -154,7 +154,17 @@ function toggleConsentimientoType(){
     const sel = document.getElementById('consentimiento_tipo');
     const inf = document.getElementById('consentimiento-informado');
     const dif = document.getElementById('consentimiento-diferido');
+    const txtLegal = document.getElementById('texto-legal-consentimiento');
     if(!sel) return;
+    
+    if (txtLegal) {
+        if(sel.value === 'informado' || sel.value === 'diferido'){
+            txtLegal.style.display = 'block';
+        } else {
+            txtLegal.style.display = 'none';
+        }
+    }
+
     if(sel.value === 'informado'){
         if(inf) inf.style.display = '';
         if(dif) dif.style.display = 'none';

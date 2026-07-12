@@ -1741,6 +1741,16 @@ document.addEventListener('DOMContentLoaded', async () => {
                     </select>
                 </div>
 
+                <!-- Texto Legal Compartido -->
+                <div id="texto-legal-consentimiento" style="display:none; background-color: #f8fafc; border-left: 4px solid #0284c7; padding: 16px; margin-top: 12px; margin-bottom: 12px; border-radius: 6px; font-size: 13px; color: #334155; text-align: justify; line-height: 1.5; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                    <p style="margin-bottom: 8px;">Por medio del presente documento, manifiesto que he autorizado la atención, aplicación del tratamiento propuesto por personal de salud y en caso de ser necesario el traslado en ambulancia, asimismo, autorizo a que se realicen los procedimientos necesarios para la estabilización clínica.</p>
+                    <p style="margin-bottom: 8px;">Sé y acepto que la práctica de la medicina no es una ciencia exacta, no se me han prometido ni garantizado resultados esperados. Se me ha dado la oportunidad de preguntar y resolver las dudas y todas ellas han sido resueltas a satisfacción.</p>
+                    <p style="margin-bottom: 8px;">Manifiesto que he entendido sobre las condiciones y objetivos de la atención que se me va a realizar, los cuidados que debo tener, además comprendo y acepto el alcance y los riesgos justificados de posible previsión que conlleva el procedimiento.</p>
+                    <p style="margin-bottom: 8px;">Teniendo en cuenta todo lo anterior doy mi consentimiento informado libre y voluntariamente, entendiendo y aceptando todos los riesgos, reacciones, complicaciones y resultados insatisfactorios que puedan derivarse de la misma y de los procedimientos realizados en ella, los cuales reconozco que puedan presentarse a pesar de que se tomen las precauciones usuales para evitarlos.</p>
+                    <p style="margin-bottom: 8px;">Me comprometo a cumplir con las recomendaciones, instrucciones y controles después del tratamiento realizado.</p>
+                    <p style="margin:0;">Certifico que he tenido la oportunidad de hacer todas las preguntas pertinentes para aclarar mis dudas y se me han respondido de manera clara y suficiente.</p>
+                </div>
+
                 <!-- Informado -->
                 <div id="consentimiento-informado" style="display:none; margin-top:8px;">
                     <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
@@ -3821,9 +3831,37 @@ document.addEventListener('DOMContentLoaded', function() {
         console.error("Error al restaurar datos complementarios:", e);
     }
 });
+
 </script>
-<script src="{{ url_for('static', filename='formulario.js') }}"></script>
+<script src="{{ url_for('static', filename='formulario.js') }}?v=2"></script>
 <script>
+// Forzar la nueva lógica de consentimiento aquí para evadir la caché del archivo externo
+window.toggleConsentimientoType = function(){
+    const sel = document.getElementById('consentimiento_tipo');
+    const inf = document.getElementById('consentimiento-informado');
+    const dif = document.getElementById('consentimiento-diferido');
+    const txtLegal = document.getElementById('texto-legal-consentimiento');
+    if(!sel) return;
+    
+    if (txtLegal) {
+        if(sel.value === 'informado' || sel.value === 'diferido'){
+            txtLegal.style.display = 'block';
+        } else {
+            txtLegal.style.display = 'none';
+        }
+    }
+
+    if(sel.value === 'informado'){
+        if(inf) inf.style.display = '';
+        if(dif) dif.style.display = 'none';
+    } else if(sel.value === 'diferido'){
+        if(inf) inf.style.display = 'none';
+        if(dif) dif.style.display = '';
+    } else {
+        if(inf) inf.style.display = 'none';
+        if(dif) dif.style.display = 'none';
+    }
+}
 // ── Dictado por Voz Offline ──
 </script>
 <script src="{{ url_for('static', filename='js/dictation.js') }}"></script>
