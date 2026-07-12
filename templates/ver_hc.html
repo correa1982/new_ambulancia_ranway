@@ -205,6 +205,7 @@ tr { page-break-inside: avoid; break-inside: avoid; }
         </div>
     </div>
 
+    {% if not p.atencion_colectiva_id %}
     <!-- Datos del Evento -->
     <div class="hc-section">
         <div class="hc-section-title">Datos del Evento</div>
@@ -259,6 +260,8 @@ tr { page-break-inside: avoid; break-inside: avoid; }
             </div>
         </div>
     </div>
+
+    {% endif %}
 
     <!-- Identificación del Paciente -->
     <div class="hc-section">
@@ -334,6 +337,7 @@ tr { page-break-inside: avoid; break-inside: avoid; }
         </div>
     </div>
 
+    {% if not p.atencion_colectiva_id %}
     <!-- Acompañante y Responsable -->
     <div class="hc-section" id="section-acompanante">
         <div class="hc-section-title">Acompañante / Responsable</div>
@@ -374,6 +378,8 @@ tr { page-break-inside: avoid; break-inside: avoid; }
             </div>
         </div>
     </div>
+
+    {% endif %}
 
     <!-- Seguridad Social -->
     <div class="hc-section">
@@ -460,6 +466,7 @@ tr { page-break-inside: avoid; break-inside: avoid; }
         </div>
     </div>
 
+    {% if not p.atencion_colectiva_id %}
     <!-- Antecedentes Clínicos -->
     <div class="hc-section">
         <div class="hc-section-title">Antecedentes Clínicos</div>
@@ -696,7 +703,17 @@ tr { page-break-inside: avoid; break-inside: avoid; }
         </div>
     </div>
 
+    {% endif %}
+
     <!-- Examen Físico -->
+    {% if p.atencion_colectiva_id %}
+    {% if p.examen_fisico %}
+    <div class="hc-section">
+        <div class="hc-section-title">Examen Físico (Breve)</div>
+        <div class="hc-text-box">{{ p.examen_fisico }}</div>
+    </div>
+    {% endif %}
+    {% else %}
     {% set ef_items = [
         ('cabeza', 'Cabeza'), ('ojos', 'Ojos'), ('nariz', 'Nariz'), ('oidos', 'Oídos'),
         ('boca', 'Boca'), ('cuello', 'Cuello'), ('torax', 'Tórax'), ('cardio', 'Cardio'),
@@ -733,6 +750,9 @@ tr { page-break-inside: avoid; break-inside: avoid; }
         </table>
     </div>
 
+    {% endif %}
+
+    {% if not p.atencion_colectiva_id %}
     <!-- Intervenciones y Procedimientos -->
     <div class="hc-section">
         <div class="hc-section-title">Intervenciones y Procedimientos</div>
@@ -789,6 +809,8 @@ tr { page-break-inside: avoid; break-inside: avoid; }
             </div>
         </div>
     </div>
+
+    {% endif %}
 
     <!-- Evolución Clínica -->
     <div class="hc-section">
