@@ -657,10 +657,16 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       if (accionValue === 'finalizar') {
-          const params = new URLSearchParams(window.location.search);
-          const acId = params.get('atencion_colectiva_id');
-          if (acId) window.location.href = '/formulario_mci?atencion_colectiva_id=' + encodeURIComponent(acId);
-          else window.location.href = '/dashboard';
+          if (window.location.pathname.includes('formulario_mci')) {
+              if (window.cancelarEdicionOffline) window.cancelarEdicionOffline(false);
+              form.reset();
+              mostrarToast('Paciente finalizado. El formulario está listo para un nuevo registro.', 'success');
+          } else {
+              const params = new URLSearchParams(window.location.search);
+              const acId = params.get('atencion_colectiva_id');
+              if (acId) window.location.href = '/formulario_mci?atencion_colectiva_id=' + encodeURIComponent(acId);
+              else window.location.href = '/dashboard';
+          }
       }
     } catch (err) {
       console.error('[PWA] Error guardando offline:', err);

@@ -465,7 +465,7 @@ details.accordion-step[open] > summary::after {
         <button type="submit" name="accion" value="guardar_continuar" formnovalidate style="margin:0; box-sizing: border-box; height: 44px; font-family: inherit; background:linear-gradient(135deg,#3b82f6,#1d4ed8); color:white; border:none; padding:0 24px; border-radius:10px; font-weight:600; font-size:14px; display:inline-flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(59,130,246,0.2);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(59,130,246,0.3)'" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 6px -1px rgba(59,130,246,0.2)'" onclick="if(!this.dataset.originalHtml) this.dataset.originalHtml=this.innerHTML; if(this.dataset.clicked) return false; this.dataset.clicked='true'; var btn=this; btn.submitTimeoutId = setTimeout(function(){ btn.innerHTML='⏳ Guardando...'; btn.style.pointerEvents='none'; btn.style.opacity='0.7'; }, 10); return true;">
             <i class="ph ph-plus-circle" style="font-size:18px;"></i> Guardar y Registrar Otro
         </button>
-        <button type="submit" name="accion" value="finalizar" style="margin:0; box-sizing: border-box; height: 44px; font-family: inherit; background:linear-gradient(135deg,#10b981,#059669); color:white; border:none; padding:0 24px; border-radius:10px; font-weight:600; font-size:14px; display:inline-flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(16,185,129,0.2);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(16,185,129,0.3)'" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 6px -1px rgba(16,185,129,0.2)'" onclick="if(!confirm('¿Está seguro de finalizar este registro? Una vez finalizado no podrá ser editado.')) return false; if(!this.dataset.originalHtml) this.dataset.originalHtml=this.innerHTML; if(this.dataset.clicked) return false; this.dataset.clicked='true'; var btn=this; btn.submitTimeoutId = setTimeout(function(){ btn.innerHTML='⏳ Guardando...'; btn.style.pointerEvents='none'; btn.style.opacity='0.7'; }, 10); return true;">
+        <button type="submit" name="accion" value="finalizar" style="margin:0; box-sizing: border-box; height: 44px; font-family: inherit; background:linear-gradient(135deg,#10b981,#059669); color:white; border:none; padding:0 24px; border-radius:10px; font-weight:600; font-size:14px; display:inline-flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(16,185,129,0.2);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(16,185,129,0.3)'" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 6px -1px rgba(16,185,129,0.2)'" onclick="if(!confirm('¿Está seguro de finalizar este registro? Una vez finalizado no podrá ser editado.')) return false; if(!this.form.checkValidity()){ mostrarToast('Debe llenar todos los campos obligatorios marcados.', 'error'); const inv=this.form.querySelectorAll(':invalid'); inv.forEach(i=>{let d=i.closest('details'); if(d) d.open=true;}); this.form.reportValidity(); return false; } if(!this.dataset.originalHtml) this.dataset.originalHtml=this.innerHTML; if(this.dataset.clicked) return false; this.dataset.clicked='true'; var btn=this; btn.submitTimeoutId = setTimeout(function(){ btn.innerHTML='⏳ Guardando...'; btn.style.pointerEvents='none'; btn.style.opacity='0.7'; }, 10); return true;">
             <i class="ph ph-check-circle" style="font-size:18px;"></i> Guardar y Finalizar
         </button>
     </div>
@@ -1579,9 +1579,22 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 <script src="{{ url_for('static', filename='js/dictation.js') }}"></script>
 <script>
+// Prevenir que el navegador restaure el formulario lleno usando el caché Atrás/Adelante (BF-Cache)
+window.addEventListener('pageshow', function(event) {
+    if (event.persisted) {
+        window.location.reload();
+    }
+});
 
+// Forzar limpieza del formulario para pacientes nuevos
+// Evita que el navegador restaure valores después de "Guardar y Finalizar" o "Guardar y Registrar Otro"
+document.addEventListener('DOMContentLoaded', function() {
+    {% if not paciente %}
+    const formToReset = document.getElementById('form-mci');
+    if (formToReset) formToReset.reset();
+    {% endif %}
+});
 
-<script>
 // Hacer que los acordeones sean exclusivos (solo uno abierto a la vez)
 document.addEventListener('DOMContentLoaded', function() {
     const details = document.querySelectorAll('details.accordion-step');

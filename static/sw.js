@@ -3,7 +3,7 @@
 //  Versión: 1.0.6
 // ═══════════════════════════════════════════════════════════
 
-const CACHE_NAME = 'ambulacia-v71';
+const CACHE_NAME = 'ambulacia-v76';
 const OFFLINE_DB  = 'ambulacia-offline';
 const SW_FETCH_TIMEOUT = 30000;
 
