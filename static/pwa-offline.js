@@ -476,7 +476,7 @@ const PWA = (() => {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', async () => {
     try {
-      const reg = await navigator.serviceWorker.register('/sw.js?v=58', { scope: '/' });
+      const reg = await navigator.serviceWorker.register('/sw.js?v=59', { scope: '/' });
       console.log('[PWA] Service Worker registrado:', reg.scope);
 
       if (reg.installing) {
