@@ -1,4 +1,5 @@
 let recognitionActive = false;
+let isVoskReady = false;
 let voskWorker = null;
 let audioContext = null;
 let mediaStream = null;
@@ -14,9 +15,10 @@ function initVosk() {
             const data = e.data;
             if (data.action === 'ready') {
                 console.log("Vosk model is ready!");
-                if (dictationBtn) {
+                isVoskReady = true;
+                if (dictationBtn && dictationBtn.classList.contains('loading')) {
                     dictationBtn.classList.remove('loading');
-                    dictationBtn.title = "Dictado de voz listo";
+                    startRecordingActual();
                 }
             } else if (data.action === 'partial') {
                 // We could show partial text, but for now we append on result
@@ -50,10 +52,20 @@ async function startDictation(btn, targetEl) {
     }
 
     if (!voskWorker) {
-        btn.classList.add('loading');
-        btn.title = "Cargando modelo offline por primera vez (puede demorar un poco)...";
         initVosk();
     }
+
+    if (!isVoskReady) {
+        btn.classList.add('loading');
+        btn.title = "Cargando modelo offline (espera un momento)...";
+        return;
+    }
+
+    startRecordingActual();
+}
+
+async function startRecordingActual() {
+    const btn = dictationBtn;
 
     try {
         mediaStream = await navigator.mediaDevices.getUserMedia({

@@ -3,7 +3,7 @@
 //  Versión: 1.0.5
 // ═══════════════════════════════════════════════════════════
 
-const CACHE_NAME = 'ambulacia-v58';
+const CACHE_NAME = 'ambulacia-v59';
 const OFFLINE_DB  = 'ambulacia-offline';
 
 // Recursos que se cachean al instalar (shell de la app)
@@ -45,10 +45,18 @@ const STATIC_ASSETS = [
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => {
-      // Intentamos cachear cada asset; si falla alguno, continuamos
+      // Intentamos cachear cada asset con credenciales para que pasen el @login_required
       return Promise.allSettled(
         STATIC_ASSETS.map(url =>
-          cache.add(url).catch(() => console.warn('[SW] No se pudo cachear:', url))
+          fetch(new Request(url, { credentials: 'same-origin' }))
+            .then(response => {
+                if (response.ok) {
+                    return cache.put(url, response);
+                } else {
+                    console.warn('[SW] Status no-200 al cachear:', url, response.status);
+                }
+            })
+            .catch(err => console.warn('[SW] Fetch falló al cachear:', url, err))
         )
       );
     }).then(() => self.skipWaiting())
