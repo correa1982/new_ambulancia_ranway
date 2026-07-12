@@ -480,7 +480,7 @@ const PWA = (() => {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', async () => {
     try {
-      const reg = await navigator.serviceWorker.register('/sw.js?v=57', { scope: '/' });
+      const reg = await navigator.serviceWorker.register('/sw.js?v=58', { scope: '/' });
       console.log('[PWA] Service Worker registrado:', reg.scope);
 
       if (reg.installing) {
@@ -540,27 +540,6 @@ document.addEventListener('DOMContentLoaded', () => {
         fd.append(hiddenAccion.name, hiddenAccion.value);
         accionValue = hiddenAccion.value;
       }
-    }
-
-    let hasData = false;
-    const textInputs = form.querySelectorAll('input[type="text"], input[type="number"], textarea');
-    textInputs.forEach(input => {
-        if (input.name && input.value && input.value.trim() !== '' && input.id !== 'cie10-search' && input.id !== 'cie10-search-mci') {
-            hasData = true;
-        }
-    });
-
-    if (!hasData) {
-        mostrarToast('No se puede guardar. Diligencie al menos un campo de texto.', 'error');
-        const btns = form.querySelectorAll('button[type="submit"], button.btn-submit');
-        btns.forEach(btn => {
-            btn.disabled = false;
-            if (btn.value === 'guardar_continuar') btn.innerHTML = 'Guardar y Continuar';
-            else if (btn.value === 'borrador') btn.innerHTML = 'Guardar como Borrador';
-            else if (btn.value === 'guardar') btn.innerHTML = 'Guardar Historia';
-            else if (btn.id === 'guardar-continuar-btn') btn.innerHTML = 'Guardar y Continuar';
-        });
-        return;
     }
 
     if (navigator.onLine) {
@@ -654,11 +633,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const btns = form.querySelectorAll('button[type="submit"], button.btn-submit');
       btns.forEach(btn => {
+        if (btn.submitTimeoutId) clearTimeout(btn.submitTimeoutId);
         btn.disabled = false;
-        if (btn.value === 'guardar_continuar') btn.innerHTML = 'Guardar y Continuar';
-        else if (btn.value === 'borrador') btn.innerHTML = 'Guardar como Borrador';
-        else if (btn.value === 'guardar') btn.innerHTML = 'Guardar Historia';
-        else if (btn.id === 'guardar-continuar-btn') btn.innerHTML = 'Guardar y Continuar';
+        btn.style.pointerEvents = 'auto';
+        btn.style.opacity = '1';
+        if (btn.dataset) delete btn.dataset.clicked;
+        if (btn.dataset && btn.dataset.originalHtml) {
+            btn.innerHTML = btn.dataset.originalHtml;
+        } else {
+            if (btn.value === 'guardar_continuar') btn.innerHTML = 'Guardar y Continuar';
+            else if (btn.value === 'borrador') btn.innerHTML = 'Guardar como Borrador';
+            else if (btn.value === 'guardar') btn.innerHTML = 'Guardar Historia';
+            else if (btn.id === 'guardar-continuar-btn') btn.innerHTML = 'Guardar y Continuar';
+        }
       });
 
       actualizarBadgePendientes();
@@ -679,7 +666,14 @@ document.addEventListener('DOMContentLoaded', () => {
       console.error('[PWA] Error guardando offline:', err);
       mostrarToast('Error al guardar offline. Intente nuevamente.', 'error');
       const btns = form.querySelectorAll('button[type="submit"], button.btn-submit');
-      btns.forEach(btn => { btn.disabled = false; });
+      btns.forEach(btn => { 
+          if (btn.submitTimeoutId) clearTimeout(btn.submitTimeoutId);
+          btn.disabled = false; 
+          btn.style.pointerEvents = 'auto';
+          btn.style.opacity = '1';
+          if (btn.dataset) delete btn.dataset.clicked;
+          if (btn.dataset && btn.dataset.originalHtml) btn.innerHTML = btn.dataset.originalHtml;
+      });
     }
   });
 
