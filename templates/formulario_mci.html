@@ -922,51 +922,62 @@ document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('form-mci');
     if (!form) return;
 
-    const acId = '{{ atencion_colectiva_id or "0" }}';
-    const pacienteId = '{{ paciente.id if paciente else "nuevo" }}';
-    const userProfile = '{{ session.usuario.perfil }}'.replace(/\s+/g, '_');
-    const storageKey = `autosave_mci_${acId}_${pacienteId}_${userProfile}`;
+    var acId = '{{ atencion_colectiva_id or "0" }}';
+    var pacienteId = '{{ paciente.id if paciente else "nuevo" }}';
+    var userProfile = ('{{ session.usuario.perfil }}' || '').replace(/\s+/g, '_');
+    var storageKey = 'autosave_mci_' + acId + '_' + pacienteId + '_' + userProfile;
 
-    // Cargar datos
-    const savedDataStr = localStorage.getItem(storageKey);
-    if (savedDataStr) {
-        try {
-            const data = JSON.parse(savedDataStr);
-            for (const key in data) {
-                if (key === 'accion') continue;
-                const element = form.elements[key];
+    // Cargar datos guardados
+    try {
+        var savedDataStr = localStorage.getItem(storageKey);
+        if (savedDataStr) {
+            var data = JSON.parse(savedDataStr);
+            for (var key in data) {
+                if (key === 'accion' || key === '_accordion') continue;
+                var element = form.elements[key];
                 if (element && data[key] !== '') {
                     element.value = data[key];
-                    // Sincronizar el campo visible del CIE10
-                    if (key === 'diagnostico_cie10') {
-                        const cie10Search = document.getElementById('cie10-search-mci');
-                        if (cie10Search) cie10Search.value = data[key];
-                    }
                 }
             }
-        } catch(e) {
-            console.error('Error parseando autoguardado:', e);
+            // Restaurar acordeón abierto
+            if (data._accordion) {
+                var details = form.querySelectorAll('details.accordion-step');
+                details.forEach(function(d) { d.removeAttribute('open'); });
+                var target = form.querySelector('details.accordion-step[name="' + data._accordion + '"]') || details[0];
+                if (target) target.setAttribute('open', '');
+            }
         }
+    } catch(e) {
+        console.error('Error cargando autoguardado:', e);
     }
 
     // Guardar datos
     function saveToLocal() {
-        const data = {};
-        const formData = new FormData(form);
-        for (const [key, value] of formData.entries()) {
-            if (key !== 'accion') {
-                data[key] = value;
+        try {
+            var data = {};
+            var formData = new FormData(form);
+            for (var entry of formData.entries()) {
+                var key = entry[0], value = entry[1];
+                if (key !== 'accion') {
+                    data[key] = value;
+                }
             }
+            // Guardar acordeón abierto
+            var openDetails = form.querySelector('details.accordion-step[open]');
+            data._accordion = openDetails ? (openDetails.getAttribute('name') || '') : '';
+            localStorage.setItem(storageKey, JSON.stringify(data));
+        } catch(e) {
+            console.error('Error guardando autoguardado:', e);
         }
-        localStorage.setItem(storageKey, JSON.stringify(data));
     }
 
     form.addEventListener('input', saveToLocal);
     form.addEventListener('change', saveToLocal);
+    form.addEventListener('toggle', saveToLocal);
 
-    // Limpiar al enviar
+    // Limpiar al enviar el formulario (Guardar / Finalizar)
     form.addEventListener('submit', function() {
-        localStorage.removeItem(storageKey);
+        try { localStorage.removeItem(storageKey); } catch(e) {}
     });
 });
 // Autocompletar paciente al ingresar ID
@@ -1586,12 +1597,23 @@ window.addEventListener('pageshow', function(event) {
     }
 });
 
-// Forzar limpieza del formulario para pacientes nuevos
-// Evita que el navegador restaure valores después de "Guardar y Finalizar" o "Guardar y Registrar Otro"
+// Limpiar formulario solo si NO hay datos autoguardados en localStorage
 document.addEventListener('DOMContentLoaded', function() {
     {% if not paciente %}
-    const formToReset = document.getElementById('form-mci');
-    if (formToReset) formToReset.reset();
+    var formToReset = document.getElementById('form-mci');
+    if (formToReset) {
+        var _acId = '{{ atencion_colectiva_id or "0" }}';
+        var _pacId = '{{ paciente.id if paciente else "nuevo" }}';
+        var _prof = ('{{ session.usuario.perfil }}' || '').replace(/\s+/g, '_');
+        var _key = 'autosave_mci_' + _acId + '_' + _pacId + '_' + _prof;
+        try {
+            if (!localStorage.getItem(_key)) {
+                formToReset.reset();
+            }
+        } catch(e) {
+            formToReset.reset();
+        }
+    }
     {% endif %}
 });
 
@@ -1609,13 +1631,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
-});
-
-// Prevenir que el navegador restaure el formulario lleno usando el caché Atrás/Adelante (BF-Cache)
-window.addEventListener('pageshow', function(event) {
-    if (event.persisted) {
-        window.location.reload();
-    }
 });
 </script>
 
