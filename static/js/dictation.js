@@ -1,138 +1,99 @@
-let recognitionActive = false;
-let isVoskReady = false;
-let voskWorker = null;
-let audioContext = null;
-let mediaStream = null;
-let scriptProcessor = null;
+let recognition = null;
 let targetTextarea = null;
 let dictationBtn = null;
+let isRecording = false;
 
-// Ensure Vosk Worker is initialized early
-function initVosk() {
-    if (!voskWorker) {
-        voskWorker = new Worker('/static/js/vosk_worker.js');
-        voskWorker.onmessage = function(e) {
-            const data = e.data;
-            if (data.action === 'ready') {
-                console.log("Vosk model is ready!");
-                isVoskReady = true;
-                if (dictationBtn && dictationBtn.classList.contains('loading')) {
-                    dictationBtn.classList.remove('loading');
-                    startRecordingActual();
-                }
-            } else if (data.action === 'partial') {
-                // We could show partial text, but for now we append on result
-            } else if (data.action === 'result') {
-                if (data.text && data.text.trim().length > 0 && targetTextarea) {
-                    let currentVal = targetTextarea.value.trim();
-                    if (currentVal) {
-                        targetTextarea.value = currentVal + " " + data.text;
-                    } else {
-                        targetTextarea.value = data.text;
-                    }
-                    targetTextarea.dispatchEvent(new Event('input', { bubbles: true }));
-                }
-            } else if (data.action === 'error') {
-                console.error("Vosk Error:", data.error);
-                alert("Error inicializando modelo de voz offline: " + data.error);
-                stopVoskDictation();
-            }
-        };
-        voskWorker.postMessage({ action: 'init' });
+function initSpeechRecognition() {
+    // Si ya existe, no la recreamos
+    if (recognition) return true;
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    
+    if (!SpeechRecognition) {
+        alert("El dictado de voz nativo no es soportado por este navegador. Intenta usar Google Chrome.");
+        return false;
     }
+
+    recognition = new SpeechRecognition();
+    recognition.lang = 'es-ES'; // Idioma español
+    recognition.continuous = true; // Sigue escuchando aunque haya pausas
+    recognition.interimResults = false; // Solo resultados finales consolidados
+
+    recognition.onstart = function() {
+        isRecording = true;
+        if (dictationBtn) {
+            dictationBtn.classList.add('recording');
+            dictationBtn.title = "Escuchando... clic para detener";
+        }
+    };
+
+    recognition.onresult = function(event) {
+        let transcript = "";
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+            if (event.results[i].isFinal) {
+                transcript += event.results[i][0].transcript;
+            }
+        }
+
+        if (transcript.trim().length > 0 && targetTextarea) {
+            let currentVal = targetTextarea.value.trim();
+            if (currentVal) {
+                targetTextarea.value = currentVal + " " + transcript.trim();
+            } else {
+                targetTextarea.value = transcript.trim();
+            }
+            // Disparar evento input para que otros scripts (como autoguardado) lo detecten
+            targetTextarea.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+    };
+
+    recognition.onerror = function(event) {
+        console.error("Speech Recognition Error:", event.error);
+        if (event.error === 'network') {
+            alert("Error de red: El motor de voz de tu dispositivo no tiene descargado el paquete offline de idioma español.");
+        } else if (event.error === 'not-allowed') {
+            alert("Permiso denegado para usar el micrófono.");
+        }
+        stopDictation();
+    };
+
+    recognition.onend = function() {
+        // Si se detiene automáticamente por silencio largo, reseteamos el botón
+        stopDictation();
+    };
+
+    return true;
 }
 
-async function startDictation(btn, targetEl) {
+function startDictation(btn, targetEl) {
     targetTextarea = targetEl;
     dictationBtn = btn;
 
-    if (recognitionActive) {
-        stopVoskDictation();
+    if (isRecording) {
+        stopDictation();
         return;
     }
 
-    if (!voskWorker) {
-        initVosk();
-    }
-
-    if (!isVoskReady) {
-        btn.classList.add('loading');
-        btn.title = "Cargando modelo offline (espera un momento)...";
-        return;
-    }
-
-    startRecordingActual();
-}
-
-async function startRecordingActual() {
-    const btn = dictationBtn;
-
-    try {
-        mediaStream = await navigator.mediaDevices.getUserMedia({
-            video: false,
-            audio: {
-                echoCancellation: true,
-                noiseSuppression: true,
-                channelCount: 1,
-                sampleRate: 16000
-            }
-        });
-
-        audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
-        const source = audioContext.createMediaStreamSource(mediaStream);
-        
-        // Use ScriptProcessorNode for wide compatibility 
-        // (AudioWorklet is better but requires serving another file)
-        scriptProcessor = audioContext.createScriptProcessor(4096, 1, 1);
-        
-        scriptProcessor.onaudioprocess = function(event) {
-            if (!recognitionActive) return;
-            const channelData = event.inputBuffer.getChannelData(0);
-            if (voskWorker) {
-                voskWorker.postMessage({ action: 'audio', buffer: channelData }, [channelData.buffer]);
-            }
-        };
-
-        source.connect(scriptProcessor);
-        scriptProcessor.connect(audioContext.destination);
-
-        recognitionActive = true;
-        btn.classList.add('recording');
-        btn.title = "Escuchando... clic para detener";
-        
-        if (voskWorker) {
-            voskWorker.postMessage({ action: 'reset' });
+    if (initSpeechRecognition()) {
+        try {
+            recognition.start();
+        } catch (err) {
+            // Manejar caso donde ya está iniciado
+            console.warn("Recognition ya estaba corriendo", err);
         }
-
-    } catch (err) {
-        console.error("Error accessing microphone:", err);
-        alert("No se pudo acceder al micrófono. Verifique permisos y si la página usa HTTPS/Localhost.");
     }
 }
 
-function stopVoskDictation() {
-    recognitionActive = false;
+function stopDictation() {
+    isRecording = false;
+    if (recognition) {
+        try {
+            recognition.stop();
+        } catch(e) {}
+    }
     
     if (dictationBtn) {
         dictationBtn.classList.remove('recording');
         dictationBtn.title = "Dictado de voz";
     }
-
-    if (scriptProcessor) {
-        scriptProcessor.disconnect();
-        scriptProcessor = null;
-    }
-    if (audioContext) {
-        audioContext.close();
-        audioContext = null;
-    }
-    if (mediaStream) {
-        mediaStream.getTracks().forEach(track => track.stop());
-        mediaStream = null;
-    }
 }
-
-// Pre-load the model when the page starts (optional but recommended for speed)
-window.addEventListener('DOMContentLoaded', () => {
-    initVosk();
-});

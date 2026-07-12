@@ -3,7 +3,7 @@
 //  Versión: 1.0.5
 // ═══════════════════════════════════════════════════════════
 
-const CACHE_NAME = 'ambulacia-v59';
+const CACHE_NAME = 'ambulacia-v60';
 const OFFLINE_DB  = 'ambulacia-offline';
 
 // Recursos que se cachean al instalar (shell de la app)
@@ -12,7 +12,6 @@ const STATIC_ASSETS = [
   '/dashboard',
   '/formulario',
   '/formulario_mci',
-  '/formularios/eventos',
   '/formularios/atencion-colectiva',
   '/formularios/atencion-colectiva/registros',
   '/formularios/atencion_vehiculo',
@@ -25,16 +24,15 @@ const STATIC_ASSETS = [
   '/checklist/equipos',
   '/checklist/calif_atencion',
   '/checklist/segur_paciente',
+  '/formularios/eventos',
   '/registros',
   '/pendientes',
   '/pendientes/checklists',
+  '/static/css/styles.css',
   '/static/manifest.json',
   '/static/offline.html?v=3',
   '/static/pwa-offline.js?v=23',
   '/static/js/dictation.js',
-  '/static/js/vosk_worker.js',
-  '/static/vosk/vosk.js',
-  '/static/vosk/model.tar.gz',
   '/api/cie10_full',
   '/static/data/Departamentos_Municipios.json',
   '/static/data/barrios_medellin.json',
