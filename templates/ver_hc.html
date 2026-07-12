@@ -335,7 +335,7 @@ tr { page-break-inside: avoid; break-inside: avoid; }
     </div>
 
     <!-- Acompañante y Responsable -->
-    <div class="hc-section">
+    <div class="hc-section" id="section-acompanante">
         <div class="hc-section-title">Acompañante / Responsable</div>
         
         <div style="background: #fafbfc; border: 1.5px solid #edf2f7; border-radius: 8px; padding: 12px 16px; margin-bottom: 12px;">
@@ -820,6 +820,59 @@ tr { page-break-inside: avoid; break-inside: avoid; }
         </div>
     </div>
 
+    <!-- Consentimiento Informado (Oculto en vista normal, solo visible en PDF de Consentimiento) -->
+    {% if p.consentimiento_tipo %}
+    <div class="hc-section print-consent-only" id="consentimiento-section" style="display:none; margin-top:20px; page-break-before: always;">
+        <div class="hc-section-title">Consentimiento para la Atención y Traslado</div>
+        
+        <div style="background-color: #f8fafc; border-left: 4px solid #0284c7; padding: 16px; margin-bottom: 15px; border-radius: 6px; font-size: 11px; color: #334155; text-align: justify; line-height: 1.5;">
+            <p style="margin-bottom: 8px;">Por medio del presente documento, manifiesto que he autorizado la atención, aplicación del tratamiento propuesto por personal de salud y en caso de ser necesario el traslado en ambulancia, asimismo, autorizo a que se realicen los procedimientos necesarios para la estabilización clínica.</p>
+            <p style="margin-bottom: 8px;">Sé y acepto que la práctica de la medicina no es una ciencia exacta, no se me han prometido ni garantizado resultados esperados. Se me ha dado la oportunidad de preguntar y resolver las dudas y todas ellas han sido resueltas a satisfacción.</p>
+            <p style="margin-bottom: 8px;">Manifiesto que he entendido sobre las condiciones y objetivos de la atención que se me va a realizar, los cuidados que debo tener, además comprendo y acepto el alcance y los riesgos justificados de posible previsión que conlleva el procedimiento.</p>
+            <p style="margin-bottom: 8px;">Teniendo en cuenta todo lo anterior doy mi consentimiento informado libre y voluntariamente, entendiendo y aceptando todos los riesgos, reacciones, complicaciones y resultados insatisfactorios que puedan derivarse de la misma y de los procedimientos realizados en ella, los cuales reconozco que puedan presentarse a pesar de que se tomen las precauciones usuales para evitarlos.</p>
+            <p style="margin-bottom: 8px;">Me comprometo a cumplir con las recomendaciones, instrucciones y controles después del tratamiento realizado.</p>
+            <p style="margin:0;">Certifico que he tenido la oportunidad de hacer todas las preguntas pertinentes para aclarar mis dudas y se me han respondido de manera clara y suficiente.</p>
+        </div>
+
+        <div class="hc-grid-2">
+            <div class="hc-field">
+                <span>Tipo de Consentimiento</span>
+                <strong>{% if p.consentimiento_tipo == 'informado' %}Consentimiento Informado{% elif p.consentimiento_tipo == 'diferido' %}Consentimiento Diferido{% else %}{{ p.consentimiento_tipo }}{% endif %}</strong>
+            </div>
+            {% if p.consentimiento_tipo == 'informado' %}
+            <div class="hc-field">
+                <span>Nombre del Paciente</span>
+                <strong>{{ p.consentimiento_paciente_nombre or (p.primer_nombre ~ ' ' ~ p.primer_apellido) }}</strong>
+            </div>
+            <div class="hc-field">
+                <span>Documento</span>
+                <strong>{{ p.consentimiento_paciente_documento or p.identificacion_paciente }}</strong>
+            </div>
+            {% elif p.consentimiento_tipo == 'diferido' %}
+            <div class="hc-field">
+                <span>Justificación</span>
+                <strong>{{ p.consentimiento_justificacion or '—' }}</strong>
+            </div>
+            <div class="hc-field">
+                <span>Testigo (Diferido)</span>
+                <strong>{{ p.consentimiento_testigo_nombre or '—' }} ({{ p.consentimiento_testigo_documento or '—' }})</strong>
+            </div>
+            {% endif %}
+        </div>
+
+        {% if p.consentimiento_firma %}
+        <div style="margin-top:20px; border-top:1px solid #e2e8f0; padding-top:10px; width:250px; text-align:center;">
+            <img src="{{ p.consentimiento_firma }}" style="max-width:100%; max-height:80px; margin-bottom:5px;">
+            <div style="font-weight:700; font-size:12px;">Firma del Paciente/Familiar</div>
+        </div>
+        {% else %}
+        <div style="margin-top:20px; border-top:1px solid #e2e8f0; padding-top:40px; width:250px; text-align:center;">
+            <div style="font-weight:700; font-size:12px; color:#a0aec0;">Sin firma registrada</div>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
     <!-- Pie de página profesional -->
     <div class="hc-footer">
         <div class="hc-footer-left">
@@ -854,7 +907,7 @@ tr { page-break-inside: avoid; break-inside: avoid; }
 {% if session.usuario.rol != 'usuario' %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script>
-document.getElementById('download-pdf').addEventListener('click', function() {
+document.getElementById('download-pdf').addEventListener('click', async function() {
     // Set print timestamp dynamically
     const now = new Date();
     const formattedDate = now.getFullYear() + '-' + 
@@ -871,59 +924,127 @@ document.getElementById('download-pdf').addEventListener('click', function() {
 
     // Show loading state
     btn.disabled = true;
-    btn.textContent = '⏳ Generando...';
+    btn.textContent = '⏳ Generando HC...';
     loading.style.display = 'flex';
 
-    const opt = {
+    const optHC = {
         margin:       [10, 10, 10, 10],
         filename:     'HC_{{ p.id }}_{{ p.primer_apellido }}_{{ p.primer_nombre }}.pdf',
         image:        { type: 'jpeg', quality: 0.97 },
-        html2canvas:  {
-            scale: 2,
-            useCORS: true,
-            logging: false,
-            allowTaint: true,
-            backgroundColor: '#ffffff'
-        },
+        html2canvas:  { scale: 2, useCORS: true, logging: false, allowTaint: true, backgroundColor: '#ffffff' },
         jsPDF:        { unit: 'mm', format: 'letter', orientation: 'portrait' }
     };
     
-    const tempContainer = document.createElement('div');
-    tempContainer.style.position = 'absolute';
-    tempContainer.style.left = '-9999px';
-    tempContainer.style.top = window.scrollY + 'px';
-    tempContainer.style.width = '800px';
-    tempContainer.style.background = 'white';
+    // ==========================================
+    // FASE 1: Generar PDF de Historia Clínica
+    // ==========================================
+    const tempContainerHC = document.createElement('div');
+    tempContainerHC.style.position = 'absolute';
+    tempContainerHC.style.left = '-9999px';
+    tempContainerHC.style.top = window.scrollY + 'px';
+    tempContainerHC.style.width = '800px';
+    tempContainerHC.style.background = 'white';
     
-    const clone = element.cloneNode(true);
-    const wrappers = clone.querySelectorAll('.table-responsive, .table-wrap');
-    wrappers.forEach(w => w.style.overflowX = 'visible');
+    const cloneHC = element.cloneNode(true);
+    // Remover la sección de consentimiento del PDF principal
+    const consentSectionHC = cloneHC.querySelector('#consentimiento-section');
+    if (consentSectionHC) consentSectionHC.remove();
     
-    tempContainer.appendChild(clone);
-    document.body.appendChild(tempContainer);
+    const wrappersHC = cloneHC.querySelectorAll('.table-responsive, .table-wrap');
+    wrappersHC.forEach(w => w.style.overflowX = 'visible');
+    
+    tempContainerHC.appendChild(cloneHC);
+    document.body.appendChild(tempContainerHC);
 
-    html2pdf().set(opt).from(clone).outputPdf('blob').then(function(blob) {
-        document.body.removeChild(tempContainer);
+    try {
+        const blobHC = await html2pdf().set(optHC).from(cloneHC).outputPdf('blob');
+        document.body.removeChild(tempContainerHC);
+        const urlHC = URL.createObjectURL(blobHC);
+        const linkHC = document.createElement('a');
+        linkHC.href = urlHC;
+        linkHC.download = optHC.filename;
+        document.body.appendChild(linkHC);
+        linkHC.click();
+        document.body.removeChild(linkHC);
+        setTimeout(() => URL.revokeObjectURL(urlHC), 100);
         
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = 'HC_{{ p.id }}_{{ p.primer_apellido }}_{{ p.primer_nombre }}.pdf';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-    }).catch(function(err) {
+        // ==========================================
+        // FASE 2: Generar PDF de Consentimiento
+        // ==========================================
+        {% if p.consentimiento_tipo %}
+        btn.textContent = '⏳ Generando Consentimiento...';
+        // Breve pausa para asegurar que el navegador inicie la primera descarga
+        await new Promise(r => setTimeout(r, 800));
+        
+        const optConsent = {
+            margin:       [10, 10, 10, 10],
+            filename:     'Consentimiento_Informado_{{ p.id }}_{{ p.primer_apellido }}_{{ p.primer_nombre }}.pdf',
+            image:        { type: 'jpeg', quality: 0.97 },
+            html2canvas:  { scale: 2, useCORS: true, logging: false, allowTaint: true, backgroundColor: '#ffffff' },
+            jsPDF:        { unit: 'mm', format: 'letter', orientation: 'portrait' }
+        };
+        
+        const tempContainerConsent = document.createElement('div');
+        tempContainerConsent.style.position = 'absolute';
+        tempContainerConsent.style.left = '-9999px';
+        tempContainerConsent.style.top = window.scrollY + 'px';
+        tempContainerConsent.style.width = '800px';
+        tempContainerConsent.style.background = 'white';
+        
+        const cloneConsent = element.cloneNode(true);
+        
+        // Ocultar línea de tiempo
+        const timeline = cloneConsent.querySelector('.hc-timeline');
+        if (timeline) timeline.remove();
+        
+        // Eliminar todas las secciones excepto Identificación y Consentimiento
+        const allSections = cloneConsent.querySelectorAll('.hc-section');
+        allSections.forEach(section => {
+            const titleElement = section.querySelector('.hc-section-title');
+            if (titleElement) {
+                const title = titleElement.textContent.trim().toLowerCase();
+                if (title !== 'identificación del paciente' && title !== 'consentimiento para la atención y traslado') {
+                    section.remove();
+                }
+            }
+        });
+        
+        // Eliminar explícitamente Acompañante y Responsable (por si no tiene el título exacto)
+        const acompSection = cloneConsent.querySelector('#section-acompanante');
+        if (acompSection) acompSection.remove();
+        
+        // Asegurar que la sección de consentimiento se muestre
+        const consentSection = cloneConsent.querySelector('#consentimiento-section');
+        if (consentSection) {
+            consentSection.style.display = 'block';
+            consentSection.style.pageBreakBefore = 'avoid';
+            consentSection.style.marginTop = '10px';
+        }
+        
+        tempContainerConsent.appendChild(cloneConsent);
+        document.body.appendChild(tempContainerConsent);
+        
+        const blobConsent = await html2pdf().set(optConsent).from(cloneConsent).outputPdf('blob');
+        document.body.removeChild(tempContainerConsent);
+        const urlConsent = URL.createObjectURL(blobConsent);
+        const linkConsent = document.createElement('a');
+        linkConsent.href = urlConsent;
+        linkConsent.download = optConsent.filename;
+        document.body.appendChild(linkConsent);
+        linkConsent.click();
+        document.body.removeChild(linkConsent);
+        setTimeout(() => URL.revokeObjectURL(urlConsent), 100);
+        {% endif %}
+        
+    } catch (err) {
         console.error('Error generando PDF:', err);
         alert('Error al generar el PDF. Por favor intente nuevamente.');
-        if (document.body.contains(tempContainer)) {
-            document.body.removeChild(tempContainer);
-        }
-    }).finally(function() {
+        if (document.body.contains(tempContainerHC)) document.body.removeChild(tempContainerHC);
+    } finally {
         btn.disabled = false;
         btn.textContent = '📥 Descargar PDF';
         loading.style.display = 'none';
-    });
+    }
 });
 </script>
 {% endif %}
