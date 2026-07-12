@@ -3,7 +3,7 @@
 //  Versión: 1.0.5
 // ═══════════════════════════════════════════════════════════
 
-const CACHE_NAME = 'ambulacia-v55';
+const CACHE_NAME = 'ambulacia-v56';
 const OFFLINE_DB  = 'ambulacia-offline';
 
 // Recursos que se cachean al instalar (shell de la app)
@@ -94,8 +94,13 @@ self.addEventListener('fetch', event => {
           if (cachedFallback) return cachedFallback;
           
           // Si no hay cache para esta ruta, servir página offline
-          if (req.headers.get('accept')?.includes('text/html')) {
-            return caches.match('/static/offline.html', { ignoreSearch: true });
+          if (req.headers.get('accept') && req.headers.get('accept').includes('text/html')) {
+            return caches.match('/static/offline.html', { ignoreSearch: true }).then(offlinePage => {
+                if (offlinePage) return offlinePage;
+                return new Response('<html><body style="font-family:sans-serif; text-align:center; padding: 50px;"><h2>Sin conexión a Internet</h2><p>Esta página no está guardada para uso offline.</p></body></html>', { 
+                    status: 503, headers: { 'Content-Type': 'text/html; charset=utf-8' } 
+                });
+            });
           }
           return new Response('Sin conexión', { status: 503 });
         });

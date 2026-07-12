@@ -353,8 +353,29 @@ const PWA = (() => {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', async () => {
     try {
-      const reg = await navigator.serviceWorker.register('/sw.js?v=53', { scope: '/' });
+      const reg = await navigator.serviceWorker.register('/sw.js?v=56', { scope: '/' });
       console.log('[PWA] Service Worker registrado:', reg.scope);
+
+      if (reg.installing) {
+          mostrarToast('📥 Descargando plataforma para uso sin conexión...', 'info');
+      } else if (reg.active) {
+          mostrarToast('✅ Sistema Offline preparado y activo.', 'success');
+      }
+
+      reg.addEventListener('updatefound', () => {
+        const newWorker = reg.installing;
+        if (newWorker) {
+            newWorker.addEventListener('statechange', () => {
+                if (newWorker.state === 'installed') {
+                    if (navigator.serviceWorker.controller) {
+                        mostrarToast('🔄 Actualización del modo Offline lista.', 'info');
+                    } else {
+                        mostrarToast('✅ Descarga completada. Ya puedes desconectarte de internet de forma segura.', 'success');
+                    }
+                }
+            });
+        }
+      });
 
       // Escuchar mensajes de sync del SW
       navigator.serviceWorker.addEventListener('message', event => {
