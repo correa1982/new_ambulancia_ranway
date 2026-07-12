@@ -3,7 +3,7 @@
 //  Versión: 1.0.5
 // ═══════════════════════════════════════════════════════════
 
-const CACHE_NAME = 'ambulacia-v53';
+const CACHE_NAME = 'ambulacia-v55';
 const OFFLINE_DB  = 'ambulacia-offline';
 
 // Recursos que se cachean al instalar (shell de la app)
@@ -14,15 +14,26 @@ const STATIC_ASSETS = [
   '/formulario_mci',
   '/formularios/atencion-colectiva',
   '/formularios/atencion-colectiva/registros',
+  '/formularios/atencion_vehiculo',
+  '/checklist/preoperacional',
+  '/checklist/tam',
+  '/checklist/tab',
+  '/checklist/avanzada',
+  '/checklist/pasb',
+  '/checklist/pasm',
+  '/checklist/equipos',
+  '/checklist/calif_atencion',
+  '/checklist/segur_paciente',
   '/registros',
   '/pendientes',
   '/pendientes/checklists',
   '/static/manifest.json',
   '/static/offline.html?v=3',
-  '/static/pwa-offline.js?v=22',
+  '/static/pwa-offline.js?v=23',
   '/api/cie10_full',
   '/static/data/Departamentos_Municipios.json',
-  '/static/data/barrios_medellin.json'
+  '/static/data/barrios_medellin.json',
+  '/static/data/divipola_estructurado.json'
 ];
 
 // ── Instalación: cachear assets estáticos ─────────────────
@@ -61,8 +72,8 @@ self.addEventListener('fetch', event => {
   // No interceptar peticiones de ping (para detectar conexión real)
   if (url.searchParams.has('_sw_bypass')) return;
 
-  if ((url.pathname.startsWith('/api/') && !url.pathname.includes('/cie10_full')) ||
-      url.pathname.startsWith('/checklist/')) return;
+  // No interceptar llamadas al API (excepto el JSON grande de cie10)
+  if (url.pathname.startsWith('/api/') && !url.pathname.includes('/cie10_full')) return;
 
   // Para el formulario y recursos estáticos: Network first → Cache fallback
   event.respondWith(

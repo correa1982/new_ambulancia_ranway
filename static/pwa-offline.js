@@ -221,9 +221,9 @@ const PWA = (() => {
           }
         }
 
-        let urlPost = '/formulario';
+        let urlPost = registro.datos._offline_post_url || '/formulario';
         const acId = registro.datos.atencion_colectiva_id;
-        if (acId && acId !== 'None' && acId !== 'null' && acId !== 'undefined' && acId !== '') {
+        if (!registro.datos._offline_post_url && acId && acId !== 'None' && acId !== 'null' && acId !== 'undefined' && acId !== '') {
           urlPost = '/formulario_mci?atencion_colectiva_id=' + encodeURIComponent(acId);
         }
 
@@ -374,7 +374,7 @@ if ('serviceWorker' in navigator) {
 //  INTERCEPTAR EL FORMULARIO DE HISTORIA CLÍNICA
 // ═══════════════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', () => {
-  const form = document.getElementById('form-medico') || document.getElementById('form-mci');
+  const form = document.getElementById('form-medico') || document.getElementById('form-mci') || document.querySelector('.pwa-offline-form');
   if (!form) return; // Solo actuar en la página del formulario
 
   // ── Interceptar submit cuando no hay internet ────────────
@@ -454,6 +454,9 @@ document.addEventListener('DOMContentLoaded', () => {
             datos[key] = values[0];
         }
     }
+    
+    // Guardar la URL objetivo del formulario
+    datos['_offline_post_url'] = form.getAttribute('action') || (window.location.pathname + window.location.search);
 
     // Capturar campo CIE10 (es hidden con id cie10-value o cie10-value-mci)
     const cie10Hidden = document.getElementById('cie10-value') || document.getElementById('cie10-value-mci');
