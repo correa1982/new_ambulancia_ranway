@@ -771,6 +771,10 @@ def init_db():
         conn.execute("ALTER TABLE pacientes ADD COLUMN cincinnati_habla TEXT")
     if "cincinnati_total" not in pacientes_columns:
         conn.execute("ALTER TABLE pacientes ADD COLUMN cincinnati_total TEXT")
+    if "aplica_cincinnati" not in pacientes_columns:
+        conn.execute("ALTER TABLE pacientes ADD COLUMN aplica_cincinnati TEXT")
+    if "razon_no_evaluable_cincinnati" not in pacientes_columns:
+        conn.execute("ALTER TABLE pacientes ADD COLUMN razon_no_evaluable_cincinnati TEXT")
     if "rts_total" not in pacientes_columns:
         conn.execute("ALTER TABLE pacientes ADD COLUMN rts_total TEXT")
     if "evaluacion_inicial" not in pacientes_columns:

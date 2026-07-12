@@ -1,10 +1,11 @@
 // ═══════════════════════════════════════════════════════════
 //  SERVICE WORKER — Ambulacia PWA Offline
-//  Versión: 1.0.5
+//  Versión: 1.0.6
 // ═══════════════════════════════════════════════════════════
 
-const CACHE_NAME = 'ambulacia-v64';
+const CACHE_NAME = 'ambulacia-v65';
 const OFFLINE_DB  = 'ambulacia-offline';
+const SW_FETCH_TIMEOUT = 30000;
 
 // Recursos que se cachean al instalar (shell de la app)
 const STATIC_ASSETS = [
@@ -31,7 +32,7 @@ const STATIC_ASSETS = [
   '/static/css/styles.css',
   '/static/manifest.json',
   '/static/offline.html?v=3',
-  '/static/pwa-offline.js?v=23',
+  '/static/pwa-offline.js?v=24',
   '/static/js/dictation.js',
   '/api/cie10_full',
   '/static/data/Departamentos_Municipios.json',
@@ -43,7 +44,6 @@ const STATIC_ASSETS = [
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => {
-      // Intentamos cachear cada asset con credenciales para que pasen el @login_required
       return Promise.allSettled(
         STATIC_ASSETS.map(url =>
           fetch(new Request(url, { credentials: 'same-origin' }))
@@ -77,43 +77,33 @@ self.addEventListener('fetch', event => {
   const req  = event.request;
   const url  = new URL(req.url);
 
-  // Solo interceptamos peticiones al mismo origen
   if (url.origin !== location.origin) return;
-
-  // No interceptar peticiones de ping (para detectar conexión real)
   if (url.searchParams.has('_sw_bypass')) return;
-
-  // No interceptar llamadas al API (excepto el JSON grande de cie10)
   if (url.pathname.startsWith('/api/') && !url.pathname.includes('/cie10_full')) return;
 
-  // Para el formulario y recursos estáticos: Network first → Cache fallback
   event.respondWith(
     fetch(req).then(response => {
-      // Si la respuesta es válida, la guardamos en cache
       if (response && response.status === 200 && req.method === 'GET') {
         const responseClone = response.clone();
         caches.open(CACHE_NAME).then(cache => cache.put(req, responseClone));
       }
       return response;
     }).catch(() => {
-      // Sin internet: servir desde cache
       return caches.match(req).then(cached => {
         if (cached) return cached;
-        
-        // Intento 2: buscar ignorando parámetros (sirve la plantilla base de /formulario si no hay cache exacto)
+
         return caches.match(req, { ignoreSearch: true }).then(cachedFallback => {
           if (cachedFallback) return cachedFallback;
-          
-          // Si no hay cache para esta ruta, servir página offline
+
           if (req.headers.get('accept') && req.headers.get('accept').includes('text/html')) {
             return caches.match('/static/offline.html', { ignoreSearch: true }).then(offlinePage => {
                 if (offlinePage) return offlinePage;
-                return new Response('<html><body style="font-family:sans-serif; text-align:center; padding: 50px;"><h2>Sin conexión a Internet</h2><p>Esta página no está guardada para uso offline.</p></body></html>', { 
-                    status: 503, headers: { 'Content-Type': 'text/html; charset=utf-8' } 
+                return new Response('<html><body style="font-family:sans-serif; text-align:center; padding: 50px;"><h2>Sin conexion a Internet</h2><p>Esta pagina no esta guardada para uso offline.</p></body></html>', {
+                    status: 503, headers: { 'Content-Type': 'text/html; charset=utf-8' }
                 });
             });
           }
-          return new Response('Sin conexión', { status: 503 });
+          return new Response('Sin conexion', { status: 503 });
         });
       });
     })
@@ -127,23 +117,41 @@ self.addEventListener('sync', event => {
   }
 });
 
+// ── Fetch con timeout ────────────────────────────────────
+function fetchConTimeout(url, options, timeoutMs) {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal })
+    .finally(() => clearTimeout(id));
+}
+
 async function sincronizarRegistros() {
   const db = await abrirIDB();
   const pendientes = await obtenerPendientes(db);
+  const seenDedupe = new Set();
 
   for (const registro of pendientes) {
+    // Deduplicación local
+    if (registro.dedupe_key && seenDedupe.has(registro.dedupe_key)) {
+      await marcarSincronizado(db, registro.id);
+      continue;
+    }
+
     try {
       const formData = new FormData();
-      // Convertir objeto a FormData
       for (const [key, value] of Object.entries(registro.datos)) {
         if (value !== null && value !== undefined) {
-          formData.append(key, value);
+          if (key === 'accion') {
+            formData.append(key, 'borrador');
+          } else {
+            formData.append(key, value);
+          }
         }
       }
 
-      // Añadir flags indicando que es sync offline (crucial para que el backend no haga redirect)
       formData.append('_offline_sync', '1');
       formData.append('_offline_id', registro.id);
+      formData.append('_offline_dedupe_key', registro.dedupe_key || '');
 
       let urlPost = '/formulario';
       const acId = registro.datos.atencion_colectiva_id;
@@ -151,19 +159,18 @@ async function sincronizarRegistros() {
         urlPost = '/formulario_mci?atencion_colectiva_id=' + encodeURIComponent(acId);
       }
 
-      const response = await fetch(urlPost, {
+      const response = await fetchConTimeout(urlPost, {
         method: 'POST',
         body: formData,
         credentials: 'same-origin'
-      });
+      }, SW_FETCH_TIMEOUT);
 
       let responseData = {};
       try { responseData = await response.json(); } catch(e) {}
 
       if (response.ok && responseData.status === 'success') {
-        // Marcar como sincronizado
         await marcarSincronizado(db, registro.id);
-        // Notificar al cliente
+        if (registro.dedupe_key) seenDedupe.add(registro.dedupe_key);
         const clients = await self.clients.matchAll();
         clients.forEach(client => {
           client.postMessage({
@@ -182,12 +189,19 @@ async function sincronizarRegistros() {
 // ── Helpers IndexedDB ──────────────────────────────────────
 function abrirIDB() {
   return new Promise((resolve, reject) => {
-    const req = indexedDB.open(OFFLINE_DB, 1);
+    const req = indexedDB.open(OFFLINE_DB, 2);
     req.onupgradeneeded = e => {
       const db = e.target.result;
       if (!db.objectStoreNames.contains('registros')) {
         const store = db.createObjectStore('registros', { keyPath: 'id', autoIncrement: true });
         store.createIndex('sincronizado', 'sincronizado', { unique: false });
+        store.createIndex('dedupe_key', 'dedupe_key', { unique: false });
+      } else if (e.oldVersion < 2) {
+        const tx = e.target.transaction;
+        const store = tx.objectStore('registros');
+        if (!store.indexNames.contains('dedupe_key')) {
+          store.createIndex('dedupe_key', 'dedupe_key', { unique: false });
+        }
       }
       if (!db.objectStoreNames.contains('sesion')) {
         db.createObjectStore('sesion', { keyPath: 'key' });
@@ -203,7 +217,7 @@ function obtenerPendientes(db) {
     const tx    = db.transaction('registros', 'readonly');
     const store = tx.objectStore('registros');
     const index = store.index('sincronizado');
-    const req   = index.getAll(0); // 0 = no sincronizado
+    const req   = index.getAll(0);
     req.onsuccess = e => resolve(e.target.result);
     req.onerror   = e => reject(e.target.error);
   });

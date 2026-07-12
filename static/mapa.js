@@ -156,7 +156,9 @@ function reverseGeocode(lat, lng, key) {
 }
 
 function updateLocationsInfo(data) {
-    var count = data.filter(function (u) { return u.ultima_latitud && u.ultima_longitud; }).length;
+    var count = data.filter(function (u) { 
+        return u.ultima_latitud && u.ultima_longitud && getMinutesSince(u.ultima_actualizacion_gps) <= 240; 
+    }).length;
     document.getElementById('contador-unidades').textContent = count + ' activa(s)';
     document.getElementById('info-actualizacion').textContent = 'Última actualización: ' + new Date().toLocaleTimeString('es-CO');
 }
@@ -190,6 +192,8 @@ function applyFilters() {
         }
 
         var minsAgo = getMinutesSince(user.ultima_actualizacion_gps);
+        if (minsAgo > 240) return; // Hide if inactive for more than 4 hours
+
         var isActive = minsAgo < 5;
         var color = getColor(user.perfil || '');
         var icon = createIcon(color, isActive);

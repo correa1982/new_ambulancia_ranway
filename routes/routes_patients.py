@@ -77,6 +77,23 @@ def register_routes(app, serializer, TIPOS_DOCUMENTO, TIPOS_AFILIACION, ASEGURAD
 
             conn = get_db()
             is_offline_sync = (data.get("_offline_sync") == "1")
+            offline_dedupe_key = data.get("_offline_dedupe_key", "")
+
+            # Deduplicación: si es sync offline, verificar si ya existe un registro con los mismos datos clave
+            if is_offline_sync and offline_dedupe_key:
+                parts = offline_dedupe_key.split("|")
+                if len(parts) >= 5:
+                    existing = conn.execute(
+                        """SELECT id FROM pacientes
+                           WHERE tipo_documento = ? AND identificacion_paciente = ?
+                             AND primer_nombre = ? AND primer_apellido = ?
+                             AND fecha_inicio_atencion = ?
+                           LIMIT 1""",
+                        (parts[0], parts[1], parts[3], parts[4], parts[2])
+                    ).fetchone()
+                    if existing:
+                        conn.close()
+                        return jsonify({"status": "success", "deduplicated": True}), 200
 
             # Perform server-side validation only when finalizing
             errors = []
@@ -452,6 +469,7 @@ def register_routes(app, serializer, TIPOS_DOCUMENTO, TIPOS_AFILIACION, ASEGURAD
         if request.method == "POST":
             data = request.form
             is_offline_sync = (data.get("_offline_sync") == "1")
+            offline_dedupe_key = data.get("_offline_dedupe_key", "")
             fecha_nacimiento = data.get("fecha_nacimiento")
             edad = data.get("edad")
             # If fecha_nacimiento is provided, calculate age from it
@@ -475,6 +493,22 @@ def register_routes(app, serializer, TIPOS_DOCUMENTO, TIPOS_AFILIACION, ASEGURAD
                     return redirect(url_for("registros"))
 
             conn = get_db()
+
+            # Deduplicación offline para MCI
+            if is_offline_sync and offline_dedupe_key:
+                parts = offline_dedupe_key.split("|")
+                if len(parts) >= 5:
+                    existing_mci = conn.execute(
+                        """SELECT id FROM pacientes
+                           WHERE tipo_documento = ? AND identificacion_paciente = ?
+                             AND primer_nombre = ? AND primer_apellido = ?
+                             AND fecha_inicio_atencion = ?
+                           LIMIT 1""",
+                        (parts[0], parts[1], parts[3], parts[4], parts[2])
+                    ).fetchone()
+                    if existing_mci:
+                        conn.close()
+                        return jsonify({"status": "success", "deduplicated": True}), 200
             
             user_info = conn.execute(
                 "SELECT * FROM usuarios WHERE identificacion = ?",

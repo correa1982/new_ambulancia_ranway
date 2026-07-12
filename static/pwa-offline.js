@@ -1,11 +1,16 @@
 // ═══════════════════════════════════════════════════════════
 //  pwa-offline.js — Lógica offline para Ambulacia
 //  Incluir en base.html con: <script src="/static/pwa-offline.js"></script>
+//  Versión: 2.0.0
 // ═══════════════════════════════════════════════════════════
 
 const PWA = (() => {
   const DB_NAME    = 'ambulacia-offline';
-  const DB_VERSION = 1;
+  const DB_VERSION = 2;
+  const SESSION_TTL_MS      = 12 * 60 * 60 * 1000;  // 12 horas
+  const SYNCED_CLEANUP_DAYS = 7 * 24 * 60 * 60 * 1000; // 7 días
+  const FETCH_TIMEOUT_MS    = 30000; // 30 segundos
+  const MAX_RETRIES         = 3;
   let   _db        = null;
 
   // ── Abrir / inicializar IndexedDB ────────────────────────
@@ -15,15 +20,27 @@ const PWA = (() => {
       const req = indexedDB.open(DB_NAME, DB_VERSION);
       req.onupgradeneeded = e => {
         const db = e.target.result;
-        // Tabla de registros offline
         if (!db.objectStoreNames.contains('registros')) {
           const store = db.createObjectStore('registros', { keyPath: 'id', autoIncrement: true });
           store.createIndex('sincronizado', 'sincronizado', { unique: false });
           store.createIndex('fecha_creacion', 'fecha_creacion', { unique: false });
+          store.createIndex('dedupe_key', 'dedupe_key', { unique: false });
+        } else if (e.oldVersion < 2) {
+          const tx = e.target.transaction;
+          const store = tx.objectStore('registros');
+          if (!store.indexNames.contains('dedupe_key')) {
+            store.createIndex('dedupe_key', 'dedupe_key', { unique: false });
+          }
         }
-        // Sesión cacheada para login offline
         if (!db.objectStoreNames.contains('sesion')) {
-          db.createObjectStore('sesion', { keyPath: 'key' });
+          const s = db.createObjectStore('sesion', { keyPath: 'key' });
+          s.createIndex('fecha_guardado', 'fecha_guardado', { unique: false });
+        } else if (e.oldVersion < 2) {
+          const tx = e.target.transaction;
+          const s = tx.objectStore('sesion');
+          if (!s.indexNames.contains('fecha_guardado')) {
+            s.createIndex('fecha_guardado', 'fecha_guardado', { unique: false });
+          }
         }
       };
       req.onsuccess = e => { _db = e.target.result; resolve(_db); };
@@ -36,21 +53,44 @@ const PWA = (() => {
     const db = await abrirDB();
     return new Promise((resolve, reject) => {
       const tx = db.transaction('sesion', 'readwrite');
-      tx.objectStore('sesion').put({ key: 'usuario_activo', ...usuario });
+      tx.objectStore('sesion').put({ key: 'usuario_activo', fecha_guardado: Date.now(), ...usuario });
       tx.oncomplete = resolve;
       tx.onerror    = e => reject(e.target.error);
     });
   }
 
-  // ── Leer sesión cacheada ─────────────────────────────────
+  // ── Leer sesión cacheada (con expiración) ────────────────
   async function leerSesion() {
     const db = await abrirDB();
     return new Promise((resolve, reject) => {
       const req = db.transaction('sesion', 'readonly')
                     .objectStore('sesion').get('usuario_activo');
-      req.onsuccess = e => resolve(e.target.result || null);
-      req.onerror   = e => reject(e.target.error);
+      req.onsuccess = e => {
+        const sesion = e.target.result;
+        if (!sesion) return resolve(null);
+        if (sesion.fecha_guardado && (Date.now() - sesion.fecha_guardado > SESSION_TTL_MS)) {
+          const tx2 = db.transaction('sesion', 'readwrite');
+          tx2.objectStore('sesion').delete('usuario_activo');
+          tx2.oncomplete = () => resolve(null);
+          tx2.onerror    = () => resolve(null);
+          return;
+        }
+        resolve(sesion);
+      };
+      req.onerror = e => reject(e.target.error);
     });
+  }
+
+  // ── Generar clave de deduplicación ───────────────────────
+  function generarDedupeKey(datos) {
+    return [
+      datos.tipo_documento || '',
+      datos.identificacion_paciente || '',
+      datos.fecha_inicio_atencion || '',
+      datos.primer_nombre || '',
+      datos.primer_apellido || '',
+      datos.motivo_consulta || '',
+    ].join('|');
   }
 
   // ── Guardar registro offline ─────────────────────────────
@@ -66,15 +106,17 @@ const PWA = (() => {
     const registro = {
       datos,
       sincronizado:   0,
+      dedupe_key:     generarDedupeKey(datos),
       fecha_creacion: new Date().toISOString(),
       registrado_por: sesion ? sesion.nombre        : 'Desconocido',
       identificacion: sesion ? sesion.identificacion : '',
       perfil:         sesion ? sesion.perfil : '',
+      intentos_sync:  0,
     };
     return new Promise((resolve, reject) => {
       const tx  = db.transaction('registros', 'readwrite');
       const req = tx.objectStore('registros').add(registro);
-      req.onsuccess = e => resolve(e.target.result); // ID generado
+      req.onsuccess = e => resolve(e.target.result);
       tx.onerror    = e => reject(e.target.error);
     });
   }
@@ -89,18 +131,15 @@ const PWA = (() => {
     }
     const numericId = parseInt(id, 10);
     const db = await abrirDB();
-    const sesion = await leerSesion();
     return new Promise((resolve, reject) => {
       const tx = db.transaction('registros', 'readwrite');
       const store = tx.objectStore('registros');
       const req = store.get(numericId);
       req.onsuccess = e => {
         const registro = e.target.result;
-        if (!registro) {
-            reject('Registro no encontrado');
-            return;
-        }
+        if (!registro) { reject('Registro no encontrado'); return; }
         registro.datos = datos;
+        registro.dedupe_key = generarDedupeKey(datos);
         registro.fecha_actualizacion = new Date().toISOString();
         const putReq = store.put(registro);
         putReq.onsuccess = () => resolve(id);
@@ -195,64 +234,152 @@ const PWA = (() => {
     });
   }
 
+  // ── Actualizar intentos de sync ──────────────────────────
+  async function actualizarIntentosSync(id, intentos) {
+    const db = await abrirDB();
+    return new Promise((resolve, reject) => {
+      const tx    = db.transaction('registros', 'readwrite');
+      const store = tx.objectStore('registros');
+      const req   = store.get(id);
+      req.onsuccess = e => {
+        const r = e.target.result;
+        if (r) { r.intentos_sync = intentos; store.put(r); }
+      };
+      tx.oncomplete = resolve;
+      tx.onerror    = e => reject(e.target.error);
+    });
+  }
+
+  // ── Limpiar registros sincronizados antiguos ─────────────
+  async function limpiarSincronizadosViejos() {
+    const db = await abrirDB();
+    const cutoff = new Date(Date.now() - SYNCED_CLEANUP_DAYS).toISOString();
+    return new Promise((resolve, reject) => {
+      const tx    = db.transaction('registros', 'readwrite');
+      const store = tx.objectStore('registros');
+      const index = store.index('sincronizado');
+      const req   = index.getAll(1);
+      req.onsuccess = e => {
+        const sincronizados = e.target.result || [];
+        let eliminados = 0;
+        for (const r of sincronizados) {
+          if (r.fecha_sync && r.fecha_sync < cutoff) {
+            store.delete(r.id);
+            eliminados++;
+          }
+        }
+        if (eliminados > 0) console.log(`[PWA] Limpiados ${eliminados} registros sincronizados antiguos.`);
+      };
+      tx.oncomplete = () => resolve();
+      tx.onerror    = e => reject(e.target.error);
+    });
+  }
+
   let isSyncing = false;
 
-  // ── Sincronizar con el servidor ──────────────────────────
+  // ── Fetch con timeout ────────────────────────────────────
+  function fetchConTimeout(url, options, timeoutMs) {
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), timeoutMs);
+    return fetch(url, { ...options, signal: controller.signal })
+      .finally(() => clearTimeout(id));
+  }
+
+  // ── Sincronizar con el servidor (con retry + dedup) ──────
   async function sincronizar() {
-    if (isSyncing) return { ok: 0, errores: 0 };
+    if (isSyncing) return { ok: 0, errores: 0, omitidos: 0 };
     isSyncing = true;
-    
+
     try {
+      await limpiarSincronizadosViejos();
+
       const pendientes = await obtenerPendientes();
-      if (pendientes.length === 0) return { ok: 0, errores: 0 };
+      if (pendientes.length === 0) return { ok: 0, errores: 0, omitidos: 0 };
 
-      let ok = 0, errores = 0;
+      let ok = 0, errores = 0, omitidos = 0;
+      const seenDedupe = new Set();
 
-    for (const registro of pendientes) {
-      try {
-        const formData = new FormData();
-        // Marcar como proveniente de sync offline
-        formData.append('_offline_sync', '1');
-        formData.append('_offline_id',   registro.id);
-
-        for (const [key, val] of Object.entries(registro.datos)) {
-          if (val !== null && val !== undefined && val !== '') {
-            formData.append(key, val);
-          }
-        }
-
-        let urlPost = registro.datos._offline_post_url || '/formulario';
-        const acId = registro.datos.atencion_colectiva_id;
-        if (!registro.datos._offline_post_url && acId && acId !== 'None' && acId !== 'null' && acId !== 'undefined' && acId !== '') {
-          urlPost = '/formulario_mci?atencion_colectiva_id=' + encodeURIComponent(acId);
-        }
-
-        const resp = await fetch(urlPost, {
-          method: 'POST',
-          body: formData,
-          credentials: 'same-origin'
-        });
-
-        let data = {};
-        try { data = await resp.json(); } catch(e) {}
-
-        if (resp.ok && data.status === 'success') {
+      for (const registro of pendientes) {
+        if (registro.dedupe_key && seenDedupe.has(registro.dedupe_key)) {
           await marcarSincronizado(registro.id);
-          ok++;
-        } else {
+          omitidos++;
+          continue;
+        }
+
+        const intentos = registro.intentos_sync || 0;
+        if (intentos >= MAX_RETRIES) {
+          console.warn(`[PWA] Registro ${registro.id} agotó reintentos (${MAX_RETRIES}).`);
           errores++;
-          if (resp.status === 401) {
-            console.error('[PWA] Sesión expirada al sincronizar. Por favor inicie sesión nuevamente.');
-          } else {
-            console.error('[PWA] Error servidor al sincronizar', data);
+          continue;
+        }
+
+        let syncOk = false;
+        for (let intento = 0; intento <= intentos; intento++) {
+          try {
+            const formData = new FormData();
+            formData.append('_offline_sync', '1');
+            formData.append('_offline_id', registro.id);
+            formData.append('_offline_dedupe_key', registro.dedupe_key || '');
+
+            for (const [key, val] of Object.entries(registro.datos)) {
+              if (val !== null && val !== undefined && val !== '') {
+                if (key === 'accion') {
+                  formData.append(key, 'borrador');
+                } else {
+                  formData.append(key, val);
+                }
+              }
+            }
+
+            let urlPost = registro.datos._offline_post_url || '/formulario';
+            const acId = registro.datos.atencion_colectiva_id;
+            if (!registro.datos._offline_post_url && acId && acId !== 'None' && acId !== 'null' && acId !== 'undefined' && acId !== '') {
+              urlPost = '/formulario_mci?atencion_colectiva_id=' + encodeURIComponent(acId);
+            }
+
+            const resp = await fetchConTimeout(urlPost, {
+              method: 'POST',
+              body: formData,
+              credentials: 'same-origin'
+            }, FETCH_TIMEOUT_MS);
+
+            let data = {};
+            try { data = await resp.json(); } catch(e) {}
+
+            if (resp.ok && data.status === 'success') {
+              await marcarSincronizado(registro.id);
+              if (registro.dedupe_key) seenDedupe.add(registro.dedupe_key);
+              syncOk = true;
+              ok++;
+              break;
+            } else if (resp.status === 401) {
+              console.error('[PWA] Sesión expirada al sincronizar.');
+              errores++;
+              syncOk = true;
+              break;
+            } else {
+              console.error('[PWA] Error servidor sync', registro.id, data);
+            }
+          } catch (err) {
+            if (err.name === 'AbortError') {
+              console.error(`[PWA] Timeout sync registro ${registro.id} (intento ${intento + 1})`);
+            } else {
+              console.error(`[PWA] Error sync registro ${registro.id} (intento ${intento + 1}):`, err);
+            }
+          }
+
+          if (!syncOk && intento < MAX_RETRIES - 1) {
+            const delay = Math.min(1000 * Math.pow(2, intento), 15000);
+            await new Promise(r => setTimeout(r, delay));
           }
         }
-      } catch (err) {
-        errores++;
-        console.error('[PWA] Error sync registro', registro.id, err);
+
+        if (!syncOk) {
+          await actualizarIntentosSync(registro.id, intentos + 1);
+          errores++;
+        }
       }
-    }
-    return { ok, errores };
+      return { ok, errores, omitidos };
     } finally {
       isSyncing = false;
     }
@@ -266,7 +393,6 @@ const PWA = (() => {
       return;
     }
 
-    // Cabeceras — todos los campos del formulario
     const CAMPOS = [
       'id_offline','fecha_creacion','sincronizado','registrado_por',
       'tipo_documento','identificacion_paciente',
@@ -301,7 +427,7 @@ const PWA = (() => {
       const fila = [
         r.id,
         r.fecha_creacion,
-        r.sincronizado ? 'Sí' : 'No',
+        r.sincronizado ? 'Si' : 'No',
         r.registrado_por,
         ...CAMPOS.slice(4).map(c => escapar(d[c])),
       ];
@@ -342,6 +468,7 @@ const PWA = (() => {
     guardarRegistroOffline, actualizarRegistroOffline, obtenerRegistroPorId, obtenerRegistrosPorMCI,
     obtenerPendientes,
     marcarSincronizado, sincronizar,
+    limpiarSincronizadosViejos,
     exportarCSV, exportarJSON, contarPendientes,
   };
 })();
@@ -353,13 +480,13 @@ const PWA = (() => {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', async () => {
     try {
-      const reg = await navigator.serviceWorker.register('/sw.js?v=56', { scope: '/' });
+      const reg = await navigator.serviceWorker.register('/sw.js?v=57', { scope: '/' });
       console.log('[PWA] Service Worker registrado:', reg.scope);
 
       if (reg.installing) {
-          mostrarToast('📥 Descargando plataforma para uso sin conexión...', 'info');
+          mostrarToast('Descargando plataforma para uso sin conexion...', 'info');
       } else if (reg.active) {
-          mostrarToast('✅ Sistema Offline preparado y activo.', 'success');
+          mostrarToast('Sistema Offline preparado y activo.', 'success');
       }
 
       reg.addEventListener('updatefound', () => {
@@ -368,19 +495,18 @@ if ('serviceWorker' in navigator) {
             newWorker.addEventListener('statechange', () => {
                 if (newWorker.state === 'installed') {
                     if (navigator.serviceWorker.controller) {
-                        mostrarToast('🔄 Actualización del modo Offline lista.', 'info');
+                        mostrarToast('Actualizacion del modo Offline lista.', 'info');
                     } else {
-                        mostrarToast('✅ Descarga completada. Ya puedes desconectarte de internet de forma segura.', 'success');
+                        mostrarToast('Descarga completada. Ya puedes desconectarte de internet de forma segura.', 'success');
                     }
                 }
             });
         }
       });
 
-      // Escuchar mensajes de sync del SW
       navigator.serviceWorker.addEventListener('message', event => {
         if (event.data?.type === 'SYNC_SUCCESS') {
-          mostrarToast(`✅ Sincronizado: ${event.data.paciente}`, 'success');
+          mostrarToast(`Sincronizado: ${event.data.paciente}`, 'success');
           actualizarBadgePendientes();
         }
       });
@@ -392,21 +518,18 @@ if ('serviceWorker' in navigator) {
 
 
 // ═══════════════════════════════════════════════════════════
-//  INTERCEPTAR EL FORMULARIO DE HISTORIA CLÍNICA
+//  INTERCEPTAR EL FORMULARIO DE HISTORIA CLINICA
 // ═══════════════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('form-medico') || document.getElementById('form-mci') || document.querySelector('.pwa-offline-form');
-  if (!form) return; // Solo actuar en la página del formulario
+  if (!form) return;
 
-  // ── Interceptar submit cuando no hay internet ────────────
   form.addEventListener('submit', async function(e) {
-    e.preventDefault(); // Interceptamos siempre primero
+    e.preventDefault();
 
-    // Obtener los datos del formulario
     const datos = {};
     const fd    = new FormData(form);
-    
-    // Capturar el botón que se presionó (o el hidden_input inyectado)
+
     let accionValue = 'borrador';
     if (e.submitter && e.submitter.name) {
       fd.append(e.submitter.name, e.submitter.value);
@@ -419,7 +542,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    // --- VALIDACIÓN DE CAMPOS VACÍOS ---
     let hasData = false;
     const textInputs = form.querySelectorAll('input[type="text"], input[type="number"], textarea');
     textInputs.forEach(input => {
@@ -429,27 +551,23 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     if (!hasData) {
-        mostrarToast('⚠️ No se puede guardar. Diligencie al menos un campo de texto.', 'error');
+        mostrarToast('No se puede guardar. Diligencie al menos un campo de texto.', 'error');
         const btns = form.querySelectorAll('button[type="submit"], button.btn-submit');
         btns.forEach(btn => {
             btn.disabled = false;
-            if (btn.value === 'guardar_continuar') btn.innerHTML = '💾 Guardar y Continuar';
-            else if (btn.value === 'borrador') btn.innerHTML = '📝 Guardar como Borrador';
-            else if (btn.value === 'guardar') btn.innerHTML = '💾 Guardar Historia';
-            else if (btn.id === 'guardar-continuar-btn') btn.innerHTML = '💾 Guardar y Continuar';
+            if (btn.value === 'guardar_continuar') btn.innerHTML = 'Guardar y Continuar';
+            else if (btn.value === 'borrador') btn.innerHTML = 'Guardar como Borrador';
+            else if (btn.value === 'guardar') btn.innerHTML = 'Guardar Historia';
+            else if (btn.id === 'guardar-continuar-btn') btn.innerHTML = 'Guardar y Continuar';
         });
         return;
     }
-    // -----------------------------------
 
     if (navigator.onLine) {
         try {
-            // Ping rápido para verificar si el servidor Flask realmente responde
-            // Usamos un endpoint estático ligero, ignorando el SW
             const resp = await fetch('/static/manifest.json?_sw_bypass=1&t=' + Date.now(), { method: 'HEAD', cache: 'no-store' });
             if (!resp.ok) throw new Error('Servidor inaccesible (status ' + resp.status + ')');
-            
-            // Si responde, hay conexión real. Enviamos el formulario normalmente.
+
             if (e.submitter && e.submitter.name) {
                 const hidden = document.createElement('input');
                 hidden.type = 'hidden';
@@ -464,26 +582,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- MODO OFFLINE (guardado en IndexedDB) ---
-    // Extraer FormData manejando arrays (ej: checkboxes, campos dinámicos con el mismo nombre)
     for (let key of fd.keys()) {
         const values = fd.getAll(key);
-        // Si el nombre termina en [] O tiene múltiples valores, forzar a array
         if (key.endsWith('[]') || values.length > 1) {
             datos[key] = values;
         } else {
             datos[key] = values[0];
         }
     }
-    
-    // Guardar la URL objetivo del formulario
+
     datos['_offline_post_url'] = form.getAttribute('action') || (window.location.pathname + window.location.search);
 
-    // Capturar campo CIE10 (es hidden con id cie10-value o cie10-value-mci)
     const cie10Hidden = document.getElementById('cie10-value') || document.getElementById('cie10-value-mci');
     if (cie10Hidden) datos['diagnostico_cie10'] = cie10Hidden.value;
 
-    // Sanear atencion_colectiva_id para evitar strings de Jinja 'None'/'null'
     if (datos.hasOwnProperty('atencion_colectiva_id')) {
       const acVal = String(datos.atencion_colectiva_id).trim();
       if (!acVal || acVal === 'None' || acVal === 'null' || acVal === 'undefined') {
@@ -498,20 +610,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (editId) {
         id = await PWA.actualizarRegistroOffline(editId, datos);
-        mostrarToast(`💾 Registro #${id} actualizado offline.`, 'warning');
-        // Salir del modo edición sin mostrar toast de cancelación
+        mostrarToast(`Registro #${id} actualizado offline.`, 'warning');
         if (window.cancelarEdicionOffline) window.cancelarEdicionOffline(false);
       } else {
         id = await PWA.guardarRegistroOffline(datos);
         if (accionValue === 'finalizar') {
-            sessionStorage.setItem('offline_toast_success', `💾 Registro finalizado offline #${id}. Se sincronizará al tener conexión.`);
+            sessionStorage.setItem('offline_toast_success', `Registro finalizado offline #${id}. Se sincronizara al tener conexion.`);
         } else {
-            mostrarToast(`💾 Guardado offline #${id}. Se sincronizará cuando haya internet.`, 'warning');
+            mostrarToast(`Guardado offline #${id}. Se sincronizara cuando haya internet.`, 'warning');
         }
         form.reset();
       }
 
-      // Cerrar modal de finalizar si está abierto
       const modalConfirmar = document.getElementById('modal-confirmar-finalizar');
       if (modalConfirmar) {
           modalConfirmar.style.display = 'none';
@@ -520,50 +630,45 @@ document.addEventListener('DOMContentLoaded', () => {
       const modalAceptar = document.getElementById('modal-aceptar-finalizar');
       if (modalAceptar) {
           modalAceptar.disabled = false;
-          modalAceptar.innerHTML = '✅ Sí, Finalizar';
+          modalAceptar.innerHTML = 'Si, Finalizar';
       }
       const modalCancelar = document.getElementById('modal-cancelar-finalizar');
       if (modalCancelar) modalCancelar.disabled = false;
       const finalizarBtn = document.getElementById('finalizar-btn');
       if (finalizarBtn) {
           finalizarBtn.disabled = false;
-          finalizarBtn.innerHTML = '🔒 Finalizar Historia Clínica';
+          finalizarBtn.innerHTML = 'Finalizar Historia Clinica';
       }
 
-      // Resetear edad y CIE10 (por si form.reset no lo hizo bien)
       const edadEl = document.getElementById('edad');
       if (edadEl) edadEl.value = '';
       const cie10El = document.getElementById('cie10-search');
       if (cie10El) cie10El.value = '';
-      const cie10Hidden = document.getElementById('cie10-value');
-      if (cie10Hidden) cie10Hidden.value = '';
-      
-      // Volver al paso 1 del formulario (si existe la función) y hacer scroll arriba
+      const cie10Hidden2 = document.getElementById('cie10-value');
+      if (cie10Hidden2) cie10Hidden2.value = '';
+
       if (typeof window.showStep === 'function') {
           window.showStep(1);
       }
       window.scrollTo({ top: 0, behavior: 'smooth' });
-      
-      // Re-habilitar botones y restaurar texto original para poder seguir guardando offline
+
       const btns = form.querySelectorAll('button[type="submit"], button.btn-submit');
       btns.forEach(btn => {
         btn.disabled = false;
-        if (btn.value === 'guardar_continuar') btn.innerHTML = '💾 Guardar y Continuar';
-        else if (btn.value === 'borrador') btn.innerHTML = '📝 Guardar como Borrador';
-        else if (btn.value === 'guardar') btn.innerHTML = '💾 Guardar Historia';
-        else if (btn.id === 'guardar-continuar-btn') btn.innerHTML = '💾 Guardar y Continuar';
+        if (btn.value === 'guardar_continuar') btn.innerHTML = 'Guardar y Continuar';
+        else if (btn.value === 'borrador') btn.innerHTML = 'Guardar como Borrador';
+        else if (btn.value === 'guardar') btn.innerHTML = 'Guardar Historia';
+        else if (btn.id === 'guardar-continuar-btn') btn.innerHTML = 'Guardar y Continuar';
       });
 
       actualizarBadgePendientes();
       if (window.cargarRegistrosOfflinePanel) window.cargarRegistrosOfflinePanel();
 
-      // Registrar tarea de sync para cuando vuelva internet
       if ('serviceWorker' in navigator && 'SyncManager' in window) {
         const sw = await navigator.serviceWorker.ready;
         await sw.sync.register('sync-registros');
       }
 
-      // Si la acción era finalizar, redirigir igual que el comportamiento online
       if (accionValue === 'finalizar') {
           const params = new URLSearchParams(window.location.search);
           const acId = params.get('atencion_colectiva_id');
@@ -572,48 +677,45 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     } catch (err) {
       console.error('[PWA] Error guardando offline:', err);
-      mostrarToast('❌ Error al guardar offline. Intente nuevamente.', 'error');
-      // Re-habilitar botones en caso de error
+      mostrarToast('Error al guardar offline. Intente nuevamente.', 'error');
       const btns = form.querySelectorAll('button[type="submit"], button.btn-submit');
       btns.forEach(btn => { btn.disabled = false; });
     }
   });
 
-  // ── Cuando vuelve internet: sincronizar automáticamente ──
   window.addEventListener('online', async () => {
-    // Si el navegador soporta Background Sync, dejamos que el Service Worker se encargue
     if ('serviceWorker' in navigator && 'SyncManager' in window) {
-      mostrarToast('🌐 Conexión restaurada. Sincronizando en segundo plano...', 'info');
+      mostrarToast('Conexion restaurada. Sincronizando en segundo plano...', 'info');
       return;
     }
 
-    mostrarToast('🌐 Conexión restaurada. Sincronizando...', 'info');
-    await new Promise(r => setTimeout(r, 1500)); // Esperar estabilidad
+    mostrarToast('Conexion restaurada. Sincronizando...', 'info');
+    await new Promise(r => setTimeout(r, 1500));
     try {
-      const { ok, errores } = await PWA.sincronizar();
+      const { ok, errores, omitidos } = await PWA.sincronizar();
       if (ok > 0) {
-        mostrarToast(`✅ ${ok} registro(s) sincronizado(s) correctamente.`, 'success');
+        let msg = `${ok} registro(s) sincronizado(s) correctamente.`;
+        if (omitidos > 0) msg += ` (${omitidos} duplicado(s) omitido(s))`;
+        mostrarToast(msg, 'success');
       }
       if (errores > 0) {
-        mostrarToast(`⚠️ ${errores} registro(s) no pudieron sincronizarse.`, 'warning');
+        mostrarToast(`${errores} registro(s) no pudieron sincronizarse.`, 'warning');
       }
       actualizarBadgePendientes();
     } catch (err) {
-      console.error('[PWA] Error en sync automático:', err);
+      console.error('[PWA] Error en sync automatico:', err);
     }
   });
 
   window.addEventListener('offline', () => {
-    mostrarToast('📡 Sin conexión. Los registros se guardarán en el dispositivo.', 'warning');
+    mostrarToast('Sin conexion. Los registros se guardaran en el dispositivo.', 'warning');
   });
 });
 
 
 // ═══════════════════════════════════════════════════════════
-//  CACHEAR SESIÓN TRAS LOGIN (para login offline)
+//  CACHEAR SESION TRAS LOGIN (para login offline)
 // ═══════════════════════════════════════════════════════════
-// Llamar esto desde la página que renderiza al usuario logueado
-// Se llama automáticamente si existe el elemento #usuario-datos
 document.addEventListener('DOMContentLoaded', async () => {
   const el = document.getElementById('usuario-datos');
   if (!el) return;
@@ -627,7 +729,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
 // ═══════════════════════════════════════════════════════════
-//  UI — Badge de pendientes + Toast
+//  UI -- Badge de pendientes + Toast
 // ═══════════════════════════════════════════════════════════
 async function actualizarBadgePendientes() {
   const n = await PWA.contarPendientes();
@@ -678,7 +780,6 @@ function mostrarToast(mensaje, tipo = 'info') {
   toast._timeout = setTimeout(() => { toast.style.opacity = '0'; }, 5000);
 }
 
-// ── Inicializar badge al cargar cualquier página ──────────
 document.addEventListener('DOMContentLoaded', () => {
   actualizarBadgePendientes();
   const offlineToast = sessionStorage.getItem('offline_toast_success');
@@ -688,23 +789,24 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-// Exponer funciones para botones en templates
 window.PWA_exportarCSV  = () => PWA.exportarCSV();
 window.PWA_exportarJSON = () => PWA.exportarJSON();
 window.PWA_sincronizar  = async () => {
   if (!navigator.onLine) {
-    mostrarToast('❌ Sin internet. No es posible sincronizar ahora.', 'error');
+    mostrarToast('Sin internet. No es posible sincronizar ahora.', 'error');
     return;
   }
-  mostrarToast('🔄 Sincronizando...', 'info');
-  const { ok, errores } = await PWA.sincronizar();
-  mostrarToast(
-    ok > 0
-      ? `✅ ${ok} registro(s) sincronizado(s).`
-      : errores > 0
-        ? `⚠️ Hubo errores al sincronizar ${errores} registro(s).`
-        : 'No había registros pendientes.',
-    ok > 0 ? 'success' : 'warning'
-  );
+  mostrarToast('Sincronizando...', 'info');
+  const { ok, errores, omitidos } = await PWA.sincronizar();
+  let msg;
+  if (ok > 0) {
+    msg = `${ok} registro(s) sincronizado(s).`;
+    if (omitidos > 0) msg += ` (${omitidos} duplicado(s) omitido(s))`;
+  } else if (errores > 0) {
+    msg = `Hubo errores al sincronizar ${errores} registro(s).`;
+  } else {
+    msg = 'No habia registros pendientes.';
+  }
+  mostrarToast(msg, ok > 0 ? 'success' : 'warning');
   actualizarBadgePendientes();
 };
