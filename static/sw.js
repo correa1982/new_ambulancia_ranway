@@ -3,7 +3,7 @@
 //  Versión: 1.0.5
 // ═══════════════════════════════════════════════════════════
 
-const CACHE_NAME = 'ambulacia-v56';
+const CACHE_NAME = 'ambulacia-v57';
 const OFFLINE_DB  = 'ambulacia-offline';
 
 // Recursos que se cachean al instalar (shell de la app)
@@ -12,6 +12,7 @@ const STATIC_ASSETS = [
   '/dashboard',
   '/formulario',
   '/formulario_mci',
+  '/formularios/eventos',
   '/formularios/atencion-colectiva',
   '/formularios/atencion-colectiva/registros',
   '/formularios/atencion_vehiculo',
