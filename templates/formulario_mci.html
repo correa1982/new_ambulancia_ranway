@@ -1,21 +1,6 @@
 {% extends "base.html" %}
 {% block title %}Formulario MCI / Atención Colectiva
 <script>
-// Hacer que los acordeones sean exclusivos (solo uno abierto a la vez)
-document.addEventListener('DOMContentLoaded', function() {
-    const details = document.querySelectorAll('details.accordion-step');
-    details.forEach(targetDetail => {
-        targetDetail.addEventListener('toggle', () => {
-            if (targetDetail.open) {
-                details.forEach(detail => {
-                    if (detail !== targetDetail) {
-                        detail.removeAttribute('open');
-                    }
-                });
-            }
-        });
-    });
-});
 </script>
 
 {% endblock %}
@@ -1675,17 +1660,22 @@ document.addEventListener('DOMContentLoaded', function() {
     {% endif %}
 });
 
-// Hacer que los acordeones sean exclusivos (solo uno abierto a la vez)
+// Acordeones exclusivos + enfoque automático al primer campo
 document.addEventListener('DOMContentLoaded', function() {
-    const details = document.querySelectorAll('details.accordion-step');
-    details.forEach(targetDetail => {
-        targetDetail.addEventListener('toggle', () => {
+    var details = document.querySelectorAll('details.accordion-step');
+    details.forEach(function(targetDetail) {
+        targetDetail.addEventListener('toggle', function() {
             if (targetDetail.open) {
-                details.forEach(detail => {
+                details.forEach(function(detail) {
                     if (detail !== targetDetail) {
                         detail.removeAttribute('open');
                     }
                 });
+                // Enfocar el primer campo del acordeón abierto
+                var firstInput = targetDetail.querySelector('input:not([type="hidden"]):not([readonly]), select, textarea');
+                if (firstInput) {
+                    setTimeout(function() { firstInput.focus(); }, 150);
+                }
             }
         });
     });
