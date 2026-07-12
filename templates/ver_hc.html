@@ -172,20 +172,20 @@ tr { page-break-inside: avoid; break-inside: avoid; }
     {% endif %}
 
     <!-- Header institucional -->
-    <div class="hc-header">
-        <div class="hc-header-left">
+    <div class="hc-header" style="display: flex; justify-content: space-between; align-items: center; gap: 15px;">
+        <div class="hc-header-left" style="display: flex; align-items: center; gap: 14px; flex: 1; min-width: 0;">
             {% if institucion.logo %}
             <img src="{{ institucion.logo }}" alt="Logo" style="max-height: 60px; border-radius: 4px; border: 1px solid #edf2f7; padding: 2px; background: white; flex-shrink: 0;">
             {% endif %}
-            <div>
-                <h2 class="hc-inst-name">{{ institucion.nombre_institucion }}</h2>
-                <div class="hc-inst-sub">{{ institucion.subtitulo_institucion }}</div>
-                <div class="hc-inst-info">{{ institucion.nit }} &nbsp;|&nbsp; {{ institucion.habilitacion|format_habilitacion }}</div>
+            <div style="min-width: 0; word-break: break-word;">
+                <h2 class="hc-inst-name" style="margin: 0; font-size: 14px; font-weight: 700; color: #1e3a8a;">{{ institucion.nombre_institucion }}</h2>
+                <div class="hc-inst-sub" style="font-size: 11px; color: #4a5568; margin-top: 2px;">{{ institucion.subtitulo_institucion }}</div>
+                <div class="hc-inst-info" style="font-size: 10px; color: #718096; margin-top: 2px;">{{ institucion.nit }} &nbsp;|&nbsp; {{ institucion.habilitacion|format_habilitacion }}</div>
             </div>
         </div>
-        <div class="hc-badge-wrap">
-            <div class="hc-badge">HISTORIA CLÍNICA<br>N° {{ p.id }}</div>
-            <div class="hc-badge-sub">Documento Digital de Soporte</div>
+        <div class="hc-badge-wrap" style="text-align: right; min-width: 170px; flex-shrink: 0;">
+            <div class="hc-badge" style="background: #2b6cb0; color: white; padding: 6px 12px; border-radius: 6px; font-weight: 700; font-size: 12px; display: inline-block;">HISTORIA CLÍNICA<br>N° {{ p.id }}</div>
+            <div class="hc-badge-sub" style="font-size: 10px; color: #718096; margin-top: 4px;">Documento Digital de Soporte</div>
         </div>
     </div>
 
@@ -592,13 +592,14 @@ tr { page-break-inside: avoid; break-inside: avoid; }
     <!-- Estado de Consciencia (AVDI) -->
     <div class="hc-section">
         <div class="hc-section-title">Valoración de Consciencia (AVDI)</div>
-        <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:8px; padding:12px 16px; display:inline-flex; align-items:center; gap:8px;">
-            <span style="font-size: 20px;">🧠</span>
-            <span style="font-size:14px; font-weight:600; color:#334155;">Estado de Consciencia:</span>
-            <span style="background:#e2e8f0; color:#1e293b; font-weight:700; padding:4px 12px; border-radius:6px; font-size:14px;">
-                {{ p.estado_consciencia }}
-            </span>
-        </div>
+        <table style="width:100%; border-collapse:collapse; margin-top:8px; border:1px solid #cbd5e1;">
+            <tr>
+                <td style="padding:8px 12px; font-weight:700; color:#334155; background:#f8fafc; border:1px solid #cbd5e1; width: 40%;">Estado de Consciencia:</td>
+                <td style="padding:8px 12px; color:#1e293b; font-weight:700; border:1px solid #cbd5e1;">
+                    {{ p.estado_consciencia or 'No registrado' }}
+                </td>
+            </tr>
+        </table>
     </div>
 
     <!-- Escala de Cincinnati (ACV) -->
@@ -707,25 +708,29 @@ tr { page-break-inside: avoid; break-inside: avoid; }
     {% set ef_obj = p.examen_fisico_obj if p and p.examen_fisico_obj else {} %}
     <div class="hc-section">
         <div class="hc-section-title">Examen Físico</div>
-        <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:12px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:12px 16px;">
+        <table style="width:100%; border-collapse:collapse; margin-top:8px; border:1px solid #cbd5e1; font-size:12px;">
+            <thead>
+                <tr style="background:#f8fafc;">
+                    <th style="padding:6px 10px; border:1px solid #cbd5e1; text-align:left; color:#475569;">Sistema</th>
+                    <th style="padding:6px 10px; border:1px solid #cbd5e1; text-align:center; color:#475569;">Estado</th>
+                    <th style="padding:6px 10px; border:1px solid #cbd5e1; text-align:left; color:#475569;">Observaciones</th>
+                </tr>
+            </thead>
+            <tbody>
             {% for key, label in ef_items %}
                 {% set ef_val = ef_obj.get(key) or {} %}
                 {% set is_dict = (ef_val is mapping) %}
                 {% set estado = (ef_val.get('estado') if is_dict else ef_val) or 'No evaluado' %}
                 {% set obs = ef_val.get('obs') if is_dict else '' %}
-                <div style="display:flex; flex-direction:column; border-bottom:1px solid #f1f5f9; padding-bottom:4px;">
-                    <div style="display:flex; justify-content:space-between;">
-                        <span style="font-size:13px; font-weight:600; color:#475569;">{{ label }}</span>
-                        <span style="font-size:13px; font-weight:700; color:{% if estado == 'Anormal' %}#dc2626{% else %}#16a34a{% endif %};">{{ estado }}</span>
-                    </div>
-                    {% if estado == 'Anormal' and obs %}
-                    <div style="font-size:11px; color:#ef4444; margin-top:2px; font-style:italic;">
-                        Obs: {{ obs }}
-                    </div>
-                    {% endif %}
-                </div>
+                
+                <tr>
+                    <td style="padding:4px 10px; border:1px solid #cbd5e1; font-weight:600; color:#334155;">{{ label }}</td>
+                    <td style="padding:4px 10px; border:1px solid #cbd5e1; text-align:center; font-weight:700; color:{% if estado == 'Anormal' %}#dc2626{% else %}#16a34a{% endif %};">{{ estado }}</td>
+                    <td style="padding:4px 10px; border:1px solid #cbd5e1; color:#ef4444; font-style:italic;">{{ obs }}</td>
+                </tr>
             {% endfor %}
-        </div>
+            </tbody>
+        </table>
     </div>
 
     <!-- Intervenciones y Procedimientos -->
