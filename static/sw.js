@@ -3,7 +3,7 @@
 //  Versión: 1.0.5
 // ═══════════════════════════════════════════════════════════
 
-const CACHE_NAME = 'ambulacia-v57';
+const CACHE_NAME = 'ambulacia-v58';
 const OFFLINE_DB  = 'ambulacia-offline';
 
 // Recursos que se cachean al instalar (shell de la app)
@@ -31,6 +31,10 @@ const STATIC_ASSETS = [
   '/static/manifest.json',
   '/static/offline.html?v=3',
   '/static/pwa-offline.js?v=23',
+  '/static/js/dictation.js',
+  '/static/js/vosk_worker.js',
+  '/static/vosk/vosk.js',
+  '/static/vosk/model.tar.gz',
   '/api/cie10_full',
   '/static/data/Departamentos_Municipios.json',
   '/static/data/barrios_medellin.json',
