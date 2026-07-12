@@ -2,6 +2,7 @@ let recognition = null;
 let targetTextarea = null;
 let dictationBtn = null;
 let isRecording = false;
+let initialText = ""; // Guardar el texto que tenía el área antes de empezar
 
 function initSpeechRecognition() {
     // Si ya existe, no la recreamos
@@ -17,7 +18,8 @@ function initSpeechRecognition() {
     recognition = new SpeechRecognition();
     recognition.lang = 'es-ES'; // Idioma español
     recognition.continuous = true; // Sigue escuchando aunque haya pausas
-    recognition.interimResults = false; // Solo resultados finales consolidados
+    // Activamos resultados interinos para una experiencia más fluida, y evitamos la duplicación reconstruyendo todo
+    recognition.interimResults = true; 
 
     recognition.onstart = function() {
         isRecording = true;
@@ -25,23 +27,36 @@ function initSpeechRecognition() {
             dictationBtn.classList.add('recording');
             dictationBtn.title = "Escuchando... clic para detener";
         }
+        // Guardamos el texto actual que tiene el textarea al momento de empezar a grabar
+        if (targetTextarea) {
+            initialText = targetTextarea.value.trim();
+        }
     };
 
     recognition.onresult = function(event) {
-        let transcript = "";
-        for (let i = event.resultIndex; i < event.results.length; i++) {
+        let finalTranscript = "";
+        let interimTranscript = "";
+
+        // Recorremos todos los resultados desde el inicio de esta sesión de dictado
+        for (let i = 0; i < event.results.length; i++) {
+            let resultText = event.results[i][0].transcript;
             if (event.results[i].isFinal) {
-                transcript += event.results[i][0].transcript;
+                finalTranscript += resultText;
+            } else {
+                interimTranscript += resultText;
             }
         }
 
-        if (transcript.trim().length > 0 && targetTextarea) {
-            let currentVal = targetTextarea.value.trim();
-            if (currentVal) {
-                targetTextarea.value = currentVal + " " + transcript.trim();
-            } else {
-                targetTextarea.value = transcript.trim();
+        if (targetTextarea) {
+            // El nuevo valor será el texto original + lo ya finalizado + lo que está entendiendo en este momento
+            let newText = initialText;
+            if (newText.length > 0 && (finalTranscript.length > 0 || interimTranscript.length > 0)) {
+                newText += " ";
             }
+            newText += finalTranscript + interimTranscript;
+            
+            targetTextarea.value = newText;
+            
             // Disparar evento input para que otros scripts (como autoguardado) lo detecten
             targetTextarea.dispatchEvent(new Event('input', { bubbles: true }));
         }
