@@ -16,28 +16,25 @@ function initSpeechRecognition() {
     }
 
     recognition = new SpeechRecognition();
-    recognition.lang = 'es-ES'; // Idioma español
-    recognition.continuous = true; // Sigue escuchando aunque haya pausas
-    // Activamos resultados interinos para una experiencia más fluida, y evitamos la duplicación reconstruyendo todo
+    recognition.lang = 'es-ES';
+    // Desactivamos continuous para evitar el bug de duplicación en Android Offline
+    recognition.continuous = false; 
     recognition.interimResults = true; 
 
     recognition.onstart = function() {
-        isRecording = true;
         if (dictationBtn) {
             dictationBtn.classList.add('recording');
             dictationBtn.title = "Escuchando... clic para detener";
         }
-        // Guardamos el texto actual que tiene el textarea al momento de empezar a grabar
-        if (targetTextarea) {
+        if (targetTextarea && initialText === "") {
             initialText = targetTextarea.value.trim();
         }
     };
 
     recognition.onresult = function(event) {
-        let finalTranscript = "";
         let interimTranscript = "";
+        let finalTranscript = "";
 
-        // Recorremos todos los resultados desde el inicio de esta sesión de dictado
         for (let i = 0; i < event.results.length; i++) {
             let resultText = event.results[i][0].transcript;
             if (event.results[i].isFinal) {
@@ -48,16 +45,18 @@ function initSpeechRecognition() {
         }
 
         if (targetTextarea) {
-            // El nuevo valor será el texto original + lo ya finalizado + lo que está entendiendo en este momento
             let newText = initialText;
             if (newText.length > 0 && (finalTranscript.length > 0 || interimTranscript.length > 0)) {
                 newText += " ";
             }
             newText += finalTranscript + interimTranscript;
-            
             targetTextarea.value = newText;
             
-            // Disparar evento input para que otros scripts (como autoguardado) lo detecten
+            // Si hay un resultado final, lo volvemos el nuevo texto inicial para el siguiente ciclo
+            if (finalTranscript.length > 0) {
+                initialText = newText;
+            }
+
             targetTextarea.dispatchEvent(new Event('input', { bubbles: true }));
         }
     };
@@ -66,15 +65,29 @@ function initSpeechRecognition() {
         console.error("Speech Recognition Error:", event.error);
         if (event.error === 'network') {
             alert("Error de red: El motor de voz de tu dispositivo no tiene descargado el paquete offline de idioma español.");
+            stopDictation();
         } else if (event.error === 'not-allowed') {
             alert("Permiso denegado para usar el micrófono.");
+            stopDictation();
         }
-        stopDictation();
+        // Si hay otro error leve (como 'no-speech'), onend se encargará de reiniciar si isRecording es true
     };
 
     recognition.onend = function() {
-        // Si se detiene automáticamente por silencio largo, reseteamos el botón
-        stopDictation();
+        // Si el usuario no ha detenido la grabación, la reiniciamos automáticamente
+        if (isRecording) {
+            try {
+                recognition.start();
+            } catch (e) {
+                // Ignore
+            }
+        } else {
+            // Se detuvo manualmente
+            if (dictationBtn) {
+                dictationBtn.classList.remove('recording');
+                dictationBtn.title = "Dictado de voz";
+            }
+        }
     };
 
     return true;
@@ -83,6 +96,7 @@ function initSpeechRecognition() {
 function startDictation(btn, targetEl) {
     targetTextarea = targetEl;
     dictationBtn = btn;
+    initialText = ""; // Reseteamos el texto inicial al presionar el botón
 
     if (isRecording) {
         stopDictation();
@@ -90,10 +104,10 @@ function startDictation(btn, targetEl) {
     }
 
     if (initSpeechRecognition()) {
+        isRecording = true;
         try {
             recognition.start();
         } catch (err) {
-            // Manejar caso donde ya está iniciado
             console.warn("Recognition ya estaba corriendo", err);
         }
     }

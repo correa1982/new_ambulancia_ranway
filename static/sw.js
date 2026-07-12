@@ -3,7 +3,7 @@
 //  Versión: 1.0.5
 // ═══════════════════════════════════════════════════════════
 
-const CACHE_NAME = 'ambulacia-v61';
+const CACHE_NAME = 'ambulacia-v62';
 const OFFLINE_DB  = 'ambulacia-offline';
 
 // Recursos que se cachean al instalar (shell de la app)
