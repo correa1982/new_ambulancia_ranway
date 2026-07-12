@@ -338,7 +338,6 @@ def register_routes(app, serializer):
 
             # Search filter (only for HC, events, preoperacional)
             if tipo_key == "hc":
-                conditions.append("atencion_colectiva_id IS NULL")
                 if search_query:
                     like = f"%{search_query}%"
                     conditions.append("(primer_nombre LIKE ? OR primer_apellido LIKE ? OR identificacion_paciente LIKE ?)")
@@ -374,7 +373,10 @@ def register_routes(app, serializer):
                 complete_url = None
                 if finalizado_val == 0:
                     if tipo_key == "hc":
-                        complete_url = url_for("formulario", id=serializer.dumps(r["id"]))
+                        if r.get("atencion_colectiva_id"):
+                            complete_url = url_for("formulario_mci", atencion_colectiva_id=r["atencion_colectiva_id"])
+                        else:
+                            complete_url = url_for("formulario", id=serializer.dumps(r["id"]))
                     elif tipo_key == "preoperacional":
                         complete_url = url_for("form_preoperacional", id=r["id"])
                     elif tipo_key == "atencion_colectiva":
@@ -399,6 +401,7 @@ def register_routes(app, serializer):
                     "view_url":   view_url,
                     "finalizado": finalizado_val,
                     "complete_url": complete_url,
+                    "atencion_colectiva_id": r.get("atencion_colectiva_id"),
                 })
 
         conn.close()

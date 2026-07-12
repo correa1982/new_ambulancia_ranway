@@ -323,11 +323,7 @@ const PWA = (() => {
 
             for (const [key, val] of Object.entries(registro.datos)) {
               if (val !== null && val !== undefined && val !== '') {
-                if (key === 'accion') {
-                  formData.append(key, 'borrador');
-                } else {
-                  formData.append(key, val);
-                }
+                formData.append(key, val);
               }
             }
 
@@ -563,12 +559,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     for (let key of fd.keys()) {
         const values = fd.getAll(key);
-        if (key.endsWith('[]') || values.length > 1) {
+        if (key.endsWith('[]') || (values.length > 1 && key !== 'accion')) {
             datos[key] = values;
         } else {
-            datos[key] = values[0];
+            // Para 'accion', siempre tomamos el último valor inyectado
+            datos[key] = values[values.length - 1];
         }
     }
+    
+    // Forzar siempre que datos.accion coincida con accionValue
+    datos.accion = accionValue;
 
     datos['_offline_post_url'] = form.getAttribute('action') || (window.location.pathname + window.location.search);
 

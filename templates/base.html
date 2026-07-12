@@ -856,12 +856,23 @@ document.addEventListener('DOMContentLoaded', function() {
             }).then((result) => {
                 if (result.isConfirmed) {
                     if (form) {
-                        const hiddenInput = document.createElement('input');
-                        hiddenInput.type = 'hidden';
-                        hiddenInput.name = btn.name;
-                        hiddenInput.value = btn.value;
-                        form.appendChild(hiddenInput);
-                        form.submit();
+                        // En lugar de form.submit() que salta el evento 'submit', 
+                        // disparamos el evento para que pwa-offline.js lo capture.
+                        if (typeof form.requestSubmit === 'function') {
+                            form.requestSubmit(btn);
+                        } else {
+                            const hiddenInput = document.createElement('input');
+                            hiddenInput.type = 'hidden';
+                            hiddenInput.name = btn.name || 'accion';
+                            hiddenInput.value = btn.value || 'finalizar';
+                            form.appendChild(hiddenInput);
+                            
+                            const event = new Event('submit', { cancelable: true, bubbles: true });
+                            Object.defineProperty(event, 'submitter', { value: btn, enumerable: true });
+                            if (form.dispatchEvent(event)) {
+                                form.submit();
+                            }
+                        }
                     }
                 }
             });
