@@ -793,6 +793,24 @@ def register_routes(app, serializer, TIPOS_DOCUMENTO, TIPOS_AFILIACION, ASEGURAD
             
         conn = get_db()
         paciente = conn.execute("SELECT * FROM pacientes WHERE id = ?", (paciente_id,)).fetchone()
+        
+        if paciente:
+            # Parsear JSON fields
+            if paciente.get("examen_fisico"):
+                try:
+                    paciente["examen_fisico_obj"] = json.loads(paciente["examen_fisico"])
+                except:
+                    paciente["examen_fisico_obj"] = {}
+            else:
+                paciente["examen_fisico_obj"] = {}
+                
+            if paciente.get("datos_complementarios"):
+                try:
+                    paciente["datos_complementarios_obj"] = json.loads(paciente["datos_complementarios"])
+                except:
+                    paciente["datos_complementarios_obj"] = {}
+            else:
+                paciente["datos_complementarios_obj"] = {}
         if not paciente:
             conn.close()
             flash("Registro de paciente no encontrado.", "error")

@@ -787,6 +787,22 @@ def init_db():
         conn.execute("ALTER TABLE pacientes ADD COLUMN soat_aseguradora TEXT")
     if "soat_vigencia" not in pacientes_columns:
         conn.execute("ALTER TABLE pacientes ADD COLUMN soat_vigencia TEXT")
+    
+    # Campos de consentimiento
+    if "consentimiento_tipo" not in pacientes_columns:
+        conn.execute("ALTER TABLE pacientes ADD COLUMN consentimiento_tipo TEXT")
+    if "consentimiento_paciente_nombre" not in pacientes_columns:
+        conn.execute("ALTER TABLE pacientes ADD COLUMN consentimiento_paciente_nombre TEXT")
+    if "consentimiento_paciente_documento" not in pacientes_columns:
+        conn.execute("ALTER TABLE pacientes ADD COLUMN consentimiento_paciente_documento TEXT")
+    if "consentimiento_firma" not in pacientes_columns:
+        conn.execute("ALTER TABLE pacientes ADD COLUMN consentimiento_firma LONGTEXT")
+    if "consentimiento_justificacion" not in pacientes_columns:
+        conn.execute("ALTER TABLE pacientes ADD COLUMN consentimiento_justificacion TEXT")
+    if "consentimiento_testigo_nombre" not in pacientes_columns:
+        conn.execute("ALTER TABLE pacientes ADD COLUMN consentimiento_testigo_nombre TEXT")
+    if "consentimiento_testigo_documento" not in pacientes_columns:
+        conn.execute("ALTER TABLE pacientes ADD COLUMN consentimiento_testigo_documento TEXT")
 
     # Add indexes for pacientes query performance
     cursor.execute("SHOW INDEX FROM pacientes")
