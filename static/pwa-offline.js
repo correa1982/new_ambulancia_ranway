@@ -83,14 +83,20 @@ const PWA = (() => {
 
   // ── Generar clave de deduplicación ───────────────────────
   function generarDedupeKey(datos) {
-    return [
+    const vals = [
       datos.tipo_documento || '',
-      datos.identificacion_paciente || '',
-      datos.fecha_inicio_atencion || '',
-      datos.primer_nombre || '',
+      datos.identificacion_paciente || datos.identificacion || '',
+      datos.fecha_inicio_atencion || datos.fecha_inicio || datos.fecha || '',
+      datos.primer_nombre || datos.tipo_evento || '',
       datos.primer_apellido || '',
-      datos.motivo_consulta || '',
-    ].join('|');
+      datos.motivo_consulta || datos.direccion || '',
+    ];
+    // Si todos los valores están vacíos, usamos un timestamp aleatorio
+    // para evitar que todos los formularios vacíos choquen entre sí.
+    if (vals.join('') === '') {
+        return 'dedupe_' + Date.now() + '_' + Math.floor(Math.random() * 10000);
+    }
+    return vals.join('|');
   }
 
   // ── Guardar registro offline ─────────────────────────────
@@ -476,7 +482,7 @@ const PWA = (() => {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', async () => {
     try {
-      const reg = await navigator.serviceWorker.register('/sw.js?v=59', { scope: '/' });
+      const reg = await navigator.serviceWorker.register('/sw.js?v=60', { scope: '/' });
       console.log('[PWA] Service Worker registrado:', reg.scope);
 
       if (reg.installing) {
@@ -626,6 +632,25 @@ document.addEventListener('DOMContentLoaded', () => {
       const cie10Hidden2 = document.getElementById('cie10-value');
       if (cie10Hidden2) cie10Hidden2.value = '';
 
+      // Limpiar canvas de firmas y sus inputs ocultos
+      const canvases = document.querySelectorAll('canvas');
+      canvases.forEach(canvas => {
+          const ctx = canvas.getContext('2d');
+          if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
+      });
+      const firmasOcultas = document.querySelectorAll('input[type="hidden"][id*="firma"]');
+      firmasOcultas.forEach(inp => inp.value = '');
+
+      // Además, disparar el clic de los botones de "Limpiar" firma por seguridad
+      const clearBtns = form.querySelectorAll('.clear-btn, button[onclick*="clearCanvas"], button[onclick*="limpiarFirma"]');
+      clearBtns.forEach(btn => {
+          try { btn.click(); } catch(e){}
+      });
+      
+      // Limpiar input de edicion offline
+      const offlineIdInputEl = document.getElementById('offline_id_input');
+      if (offlineIdInputEl) offlineIdInputEl.value = '';
+
       if (typeof window.showStep === 'function') {
           window.showStep(1);
       }
@@ -664,8 +689,13 @@ document.addEventListener('DOMContentLoaded', () => {
           } else {
               const params = new URLSearchParams(window.location.search);
               const acId = params.get('atencion_colectiva_id');
-              if (acId) window.location.href = '/formulario_mci?atencion_colectiva_id=' + encodeURIComponent(acId);
-              else window.location.href = '/dashboard';
+              if (acId) {
+                  window.location.href = '/formulario_mci?atencion_colectiva_id=' + encodeURIComponent(acId);
+              } else {
+                  // En lugar de redirigir al dashboard, limpiamos para permitir un nuevo registro offline
+                  form.reset();
+                  mostrarToast('Registro finalizado y guardado offline. El formulario está listo para un nuevo registro.', 'success');
+              }
           }
       }
     } catch (err) {

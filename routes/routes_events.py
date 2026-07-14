@@ -43,7 +43,7 @@ def register_routes(app):
             data = request.form
             conn = get_db()
             firma, perfil, rm = get_user_info(conn, session["usuario"]["identificacion"])
-            conn.execute("""
+            cursor = conn.execute("""
                 INSERT INTO eventos (
                     fecha_inicio, hora_inicio, fecha_finalizacion, hora_finalizacion,
                     tipo_evento, direccion, municipio, num_afectados,
@@ -62,8 +62,13 @@ def register_routes(app):
                 session["usuario"]["nombre"], session["usuario"]["identificacion"],
                 perfil, rm, firma, ahora().strftime("%Y-%m-%d %H:%M:%S")
             ))
+            record_id = cursor.lastrowid
             conn.commit()
             conn.close()
+
+            if request.form.get("_offline_sync") == "1":
+                return jsonify({"status": "success", "id": record_id})
+
             flash("Formulario de Eventos guardado correctamente.", "success")
             return redirect(url_for("registros_eventos"))
         conn = get_db()
