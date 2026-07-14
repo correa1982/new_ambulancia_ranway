@@ -1,912 +1,1397 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>{% block title %}Sistema Médico{% endblock %}</title>
-<link rel="icon" type="image/png" href="{{ url_for('static', filename='icon-192.png') }}">
-<!-- PWA -->
-<link rel="manifest" href="/static/manifest.json">
-<meta name="theme-color" content="#1e6fbf">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Ambulacia">
-<script src="/static/pwa-offline.js?v=54" defer></script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" crossorigin="anonymous">
-<script src="https://unpkg.com/@phosphor-icons/web" defer crossorigin="anonymous"></script>
-<!-- SweetAlert2 -->
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11" integrity="sha384-nLoOnA/BDh8A/jxqtckg4DumuCGOBYUnNJLZdQz/zfYNp3wcjGSoWTAzgko06G/2" crossorigin="anonymous"></script>
-<style>
-/* Custom SweetAlert2 Styles for a Premium Look */
-.swal2-custom-popup {
-    border-radius: 16px !important;
-    padding: 24px !important;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
-    font-family: 'Inter', sans-serif !important;
-}
-.swal2-custom-title {
-    font-size: 22px !important;
-    color: #0f172a !important;
-    font-weight: 700 !important;
-}
-.swal2-custom-confirm, .swal2-custom-cancel {
-    border-radius: 8px !important;
-    font-weight: 600 !important;
-    padding: 10px 24px !important;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
-}
-.swal2-custom-confirm {
-    background: linear-gradient(135deg, #10b981, #059669) !important;
-}
-</style>
-<!-- Flatpickr: picker 24h para datetime-local -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" integrity="sha384-RkASv+6KfBMW9eknReJIJ6b3UnjKOKC5bOUaNgIY778NFbQ8MtWq9Lr/khUgqtTt" crossorigin="anonymous">
-<script src="https://cdn.jsdelivr.net/npm/flatpickr" integrity="sha384-5JqMv4L/Xa0hfvtF06qboNdhvuYXUku9ZrhZh3bSk8VXF0A/RuSLHpLsSV9Zqhl6" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js" integrity="sha384-j/aEP2b+3OKMqGank2qCSosSrlrF9jpIpdgApXq2ryJYBpLSbEi63/PDdL+rKmcQ" crossorigin="anonymous"></script>
-<style>
-    :root {
-        --primary: #1e6fbf;
-        --primary-dark: #185999;
-        --primary-light: #ebf4ff;
-        --success: #10b981;
-        --error: #ef4444;
-        --bg: #f1f5f9;
-        --surface: #ffffff;
-        --border: #e2e8f0;
-        --border-dark: #cbd5e1;
-        --text: #0f172a;
-        --text-muted: #64748b;
-        --radius: 8px;
-        --shadow: 0 4px 6px -1px rgba(0,0,0,0.07), 0 2px 4px -2px rgba(0,0,0,0.05);
-        --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.08), 0 4px 6px -4px rgba(0,0,0,0.05);
-    }
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-        font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
-        background: var(--bg);
-        color: var(--text);
-        min-height: 100vh;
-        font-size: 14px;
-        line-height: 1.5;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Sistema Médico{% endblock %}</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='icon-192.png') }}">
+    <!-- PWA -->
+    <link rel="manifest" href="/static/manifest.json">
+    <meta name="theme-color" content="#1e6fbf">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Ambulacia">
+    <script src="/static/pwa-offline.js?v=54" defer></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet" crossorigin="anonymous">
+    <script src="https://unpkg.com/@phosphor-icons/web" defer crossorigin="anonymous"></script>
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"
+        integrity="sha384-nLoOnA/BDh8A/jxqtckg4DumuCGOBYUnNJLZdQz/zfYNp3wcjGSoWTAzgko06G/2"
+        crossorigin="anonymous"></script>
+    <style>
+        /* Custom SweetAlert2 Styles for a Premium Look */
+        .swal2-custom-popup {
+            border-radius: 16px !important;
+            padding: 24px !important;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+            font-family: 'Inter', sans-serif !important;
+        }
 
-    /* ── Navbar ── */
-    .navbar {
-        background: linear-gradient(135deg, #1a56a0 0%, #1e3a5f 100%);
-        color: white;
-        padding: 10px 22px;
-        min-height: 56px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-        position: sticky; top: 0; z-index: 200;
-        flex-wrap: wrap;
-        gap: 10px;
-    }
-    .navbar-brand {
-        display: flex; align-items: center; gap: 9px;
-        font-weight: 700; font-size: 15px; letter-spacing: 0.2px;
-        color: white; text-decoration: none; flex-shrink: 0;
-        background: rgba(255, 255, 255, 0.12);
-        padding: 5px 16px 5px 6px;
-        border-radius: 8px;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        box-shadow: 0 2px 5px rgba(0,0,0,0.15);
-        transition: all 0.2s ease;
-    }
-    .navbar-brand:hover {
-        background: rgba(255, 255, 255, 0.22);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-        transform: translateY(-1px);
-    }
-    .navbar-brand .brand-icon {
-        width: 28px; height: 28px; background: rgba(255,255,255,0.15);
-        border-radius: 7px; display: flex; align-items: center; justify-content: center;
-        font-size: 15px;
-    }
-    .navbar-right { display: flex; align-items: center; gap: 3px; flex-wrap: wrap; }
+        .swal2-custom-title {
+            font-size: 22px !important;
+            color: #0f172a !important;
+            font-weight: 700 !important;
+        }
 
-    /* Plain nav links */
-    .nav-link {
-        color: rgba(255,255,255,0.85); text-decoration: none;
-        font-size: 13px; font-weight: 500;
-        padding: 6px 10px; border-radius: 6px;
-        transition: background 0.15s, color 0.15s;
-        display: flex; align-items: center; gap: 5px;
-        white-space: nowrap;
-    }
-    .nav-link:hover { background: rgba(255,255,255,0.14); color: white; }
-    .nav-link.nav-logout { color: rgba(255,180,180,0.9); }
-    .nav-link.nav-logout:hover { background: rgba(239,68,68,0.3); color: white; }
+        .swal2-custom-confirm,
+        .swal2-custom-cancel {
+            border-radius: 8px !important;
+            font-weight: 600 !important;
+            padding: 10px 24px !important;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+        }
 
-    /* ── Dropdown Menu ── */
-    .nav-dropdown { position: relative; display: inline-block; }
-    .nav-dropbtn {
-        background: transparent; border: none; cursor: pointer;
-        color: rgba(255,255,255,0.85); font-size: 13px; font-weight: 500;
-        padding: 6px 10px; border-radius: 6px;
-        font-family: inherit; display: flex; align-items: center; gap: 5px;
-        transition: background 0.15s, color 0.15s;
-        white-space: nowrap;
-    }
-    .nav-dropbtn:hover, .nav-dropdown:focus-within .nav-dropbtn {
-        background: rgba(255,255,255,0.14); color: white;
-    }
-    .nav-dropdown-content {
-        display: none; position: absolute; top: calc(100% + 6px); left: 0;
-        background: #1e3a5f; min-width: 240px;
-        border-radius: 10px; border: 1px solid rgba(255,255,255,0.1);
-        box-shadow: 0 12px 32px rgba(0,0,0,0.35); z-index: 300;
-        overflow: hidden; padding: 5px 0;
-        animation: dropIn 0.15s ease-out;
-    }
-    @keyframes dropIn {
-        from { opacity: 0; transform: translateY(-6px); }
-        to   { opacity: 1; transform: translateY(0); }
-    }
-    .nav-dropdown:hover .nav-dropdown-content { display: block; }
-    .nav-dropdown-content a {
-        display: flex; align-items: center; gap: 9px;
-        padding: 9px 16px; color: rgba(255,255,255,0.82); text-decoration: none;
-        font-size: 13px; font-weight: 500;
-        transition: background 0.12s, color 0.12s;
-    }
-    .nav-dropdown-content a:hover { background: rgba(255,255,255,0.1); color: white; }
-    .nav-dropdown-content a .dd-icon {
-        font-size: 15px; width: 20px; text-align: center; flex-shrink: 0;
-    }
-    .nav-dropdown-content .dd-section {
-        font-size: 10px; text-transform: uppercase; letter-spacing: 0.8px;
-        color: rgba(255,255,255,0.35); font-weight: 700;
-        padding: 8px 16px 4px; display: block;
-    }
-    .nav-dropdown-content .dd-divider {
-        height: 1px; background: rgba(255,255,255,0.1); margin: 4px 12px;
-    }
+        .swal2-custom-confirm {
+            background: linear-gradient(135deg, #10b981, #059669) !important;
+        }
+    </style>
+    <!-- Flatpickr: picker 24h para datetime-local -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"
+        integrity="sha384-RkASv+6KfBMW9eknReJIJ6b3UnjKOKC5bOUaNgIY778NFbQ8MtWq9Lr/khUgqtTt" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"
+        integrity="sha384-5JqMv4L/Xa0hfvtF06qboNdhvuYXUku9ZrhZh3bSk8VXF0A/RuSLHpLsSV9Zqhl6"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"
+        integrity="sha384-j/aEP2b+3OKMqGank2qCSosSrlrF9jpIpdgApXq2ryJYBpLSbEi63/PDdL+rKmcQ"
+        crossorigin="anonymous"></script>
+    <style>
+        :root {
+            --primary: #1e6fbf;
+            --primary-dark: #185999;
+            --primary-light: #ebf4ff;
+            --success: #10b981;
+            --error: #ef4444;
+            --bg: #f1f5f9;
+            --surface: #ffffff;
+            --border: #e2e8f0;
+            --border-dark: #cbd5e1;
+            --text: #0f172a;
+            --text-muted: #64748b;
+            --radius: 8px;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+        }
 
-    .nav-divider { width: 1px; height: 18px; background: rgba(255,255,255,0.15); margin: 0 3px; }
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
-    .nav-user-badge {
-        background: rgba(255,255,255,0.1); border-radius: 20px;
-        padding: 3px 10px; font-size: 12px; font-weight: 500;
-        color: rgba(255,255,255,0.8); display: flex; align-items: center; gap: 5px;
-        margin-right: 4px;
-    }
-    .nav-user-badge .user-role {
-        font-size: 10px; background: rgba(255,255,255,0.15); 
-        padding: 1px 6px; border-radius: 4px;
-    }
+        body {
+            font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            font-size: 14px;
+            line-height: 1.5;
+        }
 
-    /* ── Container ── */
-    .container {
-        max-width: 1450px; width: 95%; margin: 26px auto;
-        background: var(--surface); padding: 30px 34px;
-        border-radius: 12px; box-shadow: var(--shadow-lg);
-        border: 1px solid var(--border);
-    }
+        /* ── Navbar ── */
+        .navbar {
+            background: linear-gradient(135deg, #1a56a0 0%, #1e3a5f 100%);
+            color: white;
+            padding: 10px 22px;
+            min-height: 56px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            position: sticky;
+            top: 0;
+            z-index: 200;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
 
-    /* ── Typography ── */
-    h1 {
-        color: var(--primary); font-size: 21px; font-weight: 700;
-        letter-spacing: -0.3px; margin-bottom: 20px;
-        padding-bottom: 14px; border-bottom: 2px solid var(--primary-light);
-        display: flex; align-items: center; gap: 9px;
-    }
-    h2 { color: var(--primary); font-size: 17px; font-weight: 600; margin: 20px 0 12px; }
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            font-weight: 700;
+            font-size: 15px;
+            letter-spacing: 0.2px;
+            color: white;
+            text-decoration: none;
+            flex-shrink: 0;
+            background: rgba(255, 255, 255, 0.12);
+            padding: 5px 16px 5px 6px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+            transition: all 0.2s ease;
+        }
 
-    /* ── Fieldset / Form ── */
-    fieldset {
-        border: 1px solid var(--border);
-        border-radius: var(--radius); margin-bottom: 18px;
-        padding: 18px 22px; background: #fafcff;
-    }
-    legend {
-        font-weight: 700; color: var(--primary);
-        font-size: 11px; padding: 0 8px;
-        letter-spacing: 0.5px; text-transform: uppercase;
-    }
-    label {
-        display: block; margin-top: 11px;
-        font-weight: 600; font-size: 13px; color: #374151;
-    }
-    input, select, textarea {
-        width: 100%; padding: 9px 12px; margin-top: 5px;
-        border: 1.5px solid var(--border-dark); border-radius: var(--radius);
-        font-size: 14px; font-family: inherit;
-        background: white; color: var(--text);
-        transition: border-color 0.15s, box-shadow 0.15s;
-    }
-    input:focus, select:focus, textarea:focus {
-        outline: none; border-color: var(--primary);
-        box-shadow: 0 0 0 3px rgba(30,111,191,0.12);
-    }
-    input[readonly] { background: #f0f7ff; color: #1e40af; font-weight: 600; cursor: default; }
-    textarea { resize: vertical; min-height: 80px; }
+        .navbar-brand:hover {
+            background: rgba(255, 255, 255, 0.22);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transform: translateY(-1px);
+        }
 
-    /* ── Formato 24h (hora militar) en campos de fecha/hora ── */
-    input[type="datetime-local"]::-webkit-datetime-edit-hour-field,
-    input[type="time"]::-webkit-datetime-edit-hour-field { }
-    input[type="datetime-local"]::-webkit-datetime-edit-ampm-field,
-    input[type="time"]::-webkit-datetime-edit-ampm-field {
-        display: none !important;
-        width: 0 !important;
-        overflow: hidden !important;
-    }
+        .navbar-brand .brand-icon {
+            width: 28px;
+            height: 28px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 7px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+        }
+
+        .navbar-right {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            flex-wrap: wrap;
+        }
+
+        /* Plain nav links */
+        .nav-link {
+            color: rgba(255, 255, 255, 0.85);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+            padding: 6px 10px;
+            border-radius: 6px;
+            transition: background 0.15s, color 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            white-space: nowrap;
+        }
+
+        .nav-link:hover {
+            background: rgba(255, 255, 255, 0.14);
+            color: white;
+        }
+
+        .nav-link.nav-logout {
+            color: rgba(255, 180, 180, 0.9);
+        }
+
+        .nav-link.nav-logout:hover {
+            background: rgba(239, 68, 68, 0.3);
+            color: white;
+        }
+
+        /* ── Dropdown Menu ── */
+        .nav-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .nav-dropbtn {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 13px;
+            font-weight: 500;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-family: inherit;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: background 0.15s, color 0.15s;
+            white-space: nowrap;
+        }
+
+        .nav-dropbtn:hover,
+        .nav-dropdown:focus-within .nav-dropbtn {
+            background: rgba(255, 255, 255, 0.14);
+            color: white;
+        }
+
+        .nav-dropdown-content {
+            display: none;
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 0;
+            background: #1e3a5f;
+            min-width: 240px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+            z-index: 300;
+            overflow: hidden;
+            padding: 5px 0;
+            animation: dropIn 0.15s ease-out;
+        }
+
+        @keyframes dropIn {
+            from {
+                opacity: 0;
+                transform: translateY(-6px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .nav-dropdown:hover .nav-dropdown-content {
+            display: block;
+        }
+
+        .nav-dropdown-content a {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            padding: 9px 16px;
+            color: rgba(255, 255, 255, 0.82);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+            transition: background 0.12s, color 0.12s;
+        }
+
+        .nav-dropdown-content a:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .nav-dropdown-content a .dd-icon {
+            font-size: 15px;
+            width: 20px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .nav-dropdown-content .dd-section {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: rgba(255, 255, 255, 0.35);
+            font-weight: 700;
+            padding: 8px 16px 4px;
+            display: block;
+        }
+
+        .nav-dropdown-content .dd-divider {
+            height: 1px;
+            background: rgba(255, 255, 255, 0.1);
+            margin: 4px 12px;
+        }
+
+        .nav-divider {
+            width: 1px;
+            height: 18px;
+            background: rgba(255, 255, 255, 0.15);
+            margin: 0 3px;
+        }
+
+        .nav-user-badge {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 3px 10px;
+            font-size: 12px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.8);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-right: 4px;
+        }
+
+        .nav-user-badge .user-role {
+            font-size: 10px;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 1px 6px;
+            border-radius: 4px;
+        }
+
+        /* ── Container ── */
+        .container {
+            max-width: 1450px;
+            width: 95%;
+            margin: 26px auto;
+            background: var(--surface);
+            padding: 30px 34px;
+            border-radius: 12px;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border);
+        }
+
+        /* ── Typography ── */
+        h1 {
+            color: var(--primary);
+            font-size: 21px;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+            margin-bottom: 20px;
+            padding-bottom: 14px;
+            border-bottom: 2px solid var(--primary-light);
+            display: flex;
+            align-items: center;
+            gap: 9px;
+        }
+
+        h2 {
+            color: var(--primary);
+            font-size: 17px;
+            font-weight: 600;
+            margin: 20px 0 12px;
+        }
+
+        /* ── Fieldset / Form ── */
+        fieldset {
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            margin-bottom: 18px;
+            padding: 18px 22px;
+            background: #fafcff;
+        }
+
+        legend {
+            font-weight: 700;
+            color: var(--primary);
+            font-size: 11px;
+            padding: 0 8px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        label {
+            display: block;
+            margin-top: 11px;
+            font-weight: 600;
+            font-size: 13px;
+            color: #374151;
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            padding: 9px 12px;
+            margin-top: 5px;
+            border: 1.5px solid var(--border-dark);
+            border-radius: var(--radius);
+            font-size: 14px;
+            font-family: inherit;
+            background: white;
+            color: var(--text);
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(30, 111, 191, 0.12);
+        }
+
+        input[readonly] {
+            background: #f0f7ff;
+            color: #1e40af;
+            font-weight: 600;
+            cursor: default;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        /* ── Formato 24h (hora militar) en campos de fecha/hora ── */
+        input[type="datetime-local"]::-webkit-datetime-edit-hour-field,
+        input[type="time"]::-webkit-datetime-edit-hour-field {}
+
+        input[type="datetime-local"]::-webkit-datetime-edit-ampm-field,
+        input[type="time"]::-webkit-datetime-edit-ampm-field {
+            display: none !important;
+            width: 0 !important;
+            overflow: hidden !important;
+        }
 
 
-    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 4px; }
-    .row-3 { grid-template-columns: 1fr 1fr 1fr; }
-    .row-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+        .row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-top: 4px;
+        }
 
-    /* ── Check item row (for checklists) ── */
-    .check-item {
-        display: flex; align-items: center; justify-content: space-between;
-        padding: 9px 12px; border-bottom: 1px solid #f1f5f9;
-        background: white; gap: 10px;
-    }
-    .check-item:last-child { border-bottom: none; }
-    .check-item:hover { background: #fafcff; }
-    .check-label { font-size: 13px; font-weight: 500; color: #374151; flex: 1; }
-    .check-options { display: flex; gap: 5px; flex-shrink: 0; }
-    .check-options label {
-        margin: 0; cursor: pointer; font-weight: 600;
-        font-size: 12px; display: inline-block;
-    }
-    .check-options input[type="radio"] { display: none; }
-    .check-options .opt-si + .opt-label { 
-        padding: 4px 10px; border-radius: 5px; border: 1.5px solid #d1fae5;
-        background: #f0fdf4; color: #166534;
-    }
-    .check-options .opt-si:checked ~ .opt-label-si {
-        background: #10b981; color: white; border-color: #059669;
-    }
-    .radio-group { display: flex; gap: 5px; }
-    .radio-btn input[type="radio"] { display: none; }
-    .radio-btn label {
-        padding: 4px 10px; border-radius: 5px; font-size: 12px; font-weight: 600;
-        cursor: pointer; border: 1.5px solid; transition: all 0.15s; margin: 0;
-    }
-    .radio-btn.si label { border-color: #bbf7d0; color: #166534; background: #f0fdf4; }
-    .radio-btn.no label { border-color: #fecaca; color: #991b1b; background: #fef2f2; }
-    .radio-btn.na label { border-color: #e2e8f0; color: #64748b; background: #f8fafc; }
-    .radio-btn.si input:checked + label { background: #10b981; color: white; border-color: #059669; }
-    .radio-btn.no input:checked + label { background: #ef4444; color: white; border-color: #dc2626; }
-    .radio-btn.na input:checked + label { background: #94a3b8; color: white; border-color: #64748b; }
+        .row-3 {
+            grid-template-columns: 1fr 1fr 1fr;
+        }
 
-    /* ── Buttons ── */
-    .btn-primary {
-        display: inline-flex; align-items: center; justify-content: center; gap: 7px;
-        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-        color: white; border: none; padding: 11px 28px; border-radius: var(--radius);
-        font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit;
-        box-shadow: 0 2px 8px rgba(30,111,191,0.3);
-        transition: transform 0.12s, box-shadow 0.15s;
-        text-decoration: none;
-    }
-    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(30,111,191,0.4); }
-    button:not([class]), button[type="submit"]:not([class]) {
-        display: inline-flex; align-items: center; justify-content: center; gap: 7px;
-        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-        color: white; border: none; padding: 11px 28px; border-radius: var(--radius);
-        font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit;
-        box-shadow: 0 2px 8px rgba(30,111,191,0.3);
-        transition: transform 0.12s, box-shadow 0.15s; margin-top: 14px;
-    }
+        .row-4 {
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+        }
 
-    /* ── Flash messages ── */
-    .flash {
-        padding: 12px 16px; border-radius: var(--radius);
-        margin-bottom: 16px; font-size: 14px; font-weight: 500;
-        display: flex; align-items: flex-start; gap: 9px;
-        border: 1px solid transparent;
-    }
-    .flash.success { background: #f0fdf4; color: #166534; border-color: #bbf7d0; }
-    .flash.success::before { content: '✓'; font-size: 16px; }
-    .flash.error { background: #fef2f2; color: #991b1b; border-color: #fecaca; }
-    .flash.error::before { content: '⚠'; font-size: 16px; }
+        /* ── Check item row (for checklists) ── */
+        .check-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 9px 12px;
+            border-bottom: 1px solid #f1f5f9;
+            background: white;
+            gap: 10px;
+        }
 
-    /* ── Tables ── */
-    table { width: 100%; border-collapse: collapse; font-size: 13px; }
-    th, td { border: 1px solid var(--border); padding: 9px 12px; text-align: left; vertical-align: middle; }
-    th { background: linear-gradient(135deg, #ebf4ff, #dbeafe); font-weight: 700; color: var(--primary); font-size: 11px; text-transform: uppercase; letter-spacing: 0.4px; }
-    tr:hover td { background: #fafcff; }
+        .check-item:last-child {
+            border-bottom: none;
+        }
 
-    /* ── Submit row ── */
-    .submit-row { display: flex; justify-content: flex-end; gap: 12px; margin-top: 10px; flex-wrap: wrap; }
+        .check-item:hover {
+            background: #fafcff;
+        }
 
-    /* ── Change-password warning ── */
-    .pw-warn {
-        background: #fffbeb; border: 1px solid #fcd34d; border-radius: 6px;
-        padding: 7px 14px; font-size: 12px; color: #92400e; font-weight: 600;
-        display: flex; align-items: center; gap: 6px; margin-right: 10px;
-    }
+        .check-label {
+            font-size: 13px;
+            font-weight: 500;
+            color: #374151;
+            flex: 1;
+        }
 
-    @media (max-width: 700px) {
-        .row, .row-3, .row-4 { grid-template-columns: 1fr; }
-        .container { margin: 12px; padding: 18px 16px; }
-        .navbar { padding: 0 14px; }
-        .submit-row { justify-content: stretch; }
-        .submit-row > * { flex: 1 1 100%; text-align: center; justify-content: center; }
-    }
+        .check-options {
+            display: flex;
+            gap: 5px;
+            flex-shrink: 0;
+        }
 
-    /* ── PWA Offline Badge ── */
-    .pwa-offline-btn {
-        position: relative; display: inline-flex; align-items: center; gap: 5px;
-        background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
-        border-radius: 20px; padding: 4px 10px; font-size: 12px; font-weight: 600;
-        color: rgba(255,255,255,0.85); cursor: pointer; transition: background 0.15s;
-        white-space: nowrap;
-    }
-    .pwa-offline-btn:hover { background: rgba(255,255,255,0.18); color: white; }
-    .pwa-badge-pendientes {
-        display: none; background: #ef4444; color: white;
-        border-radius: 999px; padding: 1px 6px; font-size: 10px;
-        font-weight: 800; line-height: 1.4; min-width: 18px; text-align: center;
-    }
-    /* Modal offline */
-    #modal-offline {
-        display: none; position: fixed; inset: 0; z-index: 9999;
-        background: rgba(15,23,42,0.6); backdrop-filter: blur(4px);
-        align-items: center; justify-content: center; padding: 20px;
-    }
-    #modal-offline.open { display: flex; }
-    #modal-offline .modal-box {
-        background: white; border-radius: 16px; max-width: 460px; width: 100%;
-        box-shadow: 0 25px 60px rgba(0,0,0,0.3); overflow: hidden;
-        animation: modalIn 0.2s ease-out;
-    }
-    @keyframes modalIn {
-        from { opacity: 0; transform: scale(0.95) translateY(10px); }
-        to   { opacity: 1; transform: scale(1) translateY(0); }
-    }
-    #modal-offline .modal-header {
-        padding: 18px 22px 14px; background: #fffbeb;
-        border-bottom: 1px solid #fde68a;
-        display: flex; align-items: center; gap: 12px;
-    }
-    #modal-offline .modal-body { padding: 20px 22px; }
-    #modal-offline .modal-footer {
-        padding: 14px 22px; border-top: 1px solid #f1f5f9;
-        display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap;
-    }
-    .modal-btn {
-        border: none; border-radius: 8px; padding: 9px 18px;
-        font-size: 13px; font-weight: 700; cursor: pointer;
-        font-family: inherit; display: inline-flex; align-items: center; gap: 6px;
-        transition: transform 0.12s;
-    }
-    .modal-btn:hover { transform: translateY(-1px); }
-    .modal-btn.sync  { background: linear-gradient(135deg,#3b82f6,#1d4ed8); color: white; }
-    .modal-btn.csv   { background: #f0fdf4; color: #065f46; border: 1.5px solid #bbf7d0; }
-    .modal-btn.json  { background: #f5f3ff; color: #5b21b6; border: 1.5px solid #ddd6fe; }
-    .modal-btn.close { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
+        .check-options label {
+            margin: 0;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 12px;
+            display: inline-block;
+        }
 
-    /* Estilos para elementos deshabilitados offline */
-    .offline-disabled {
-        opacity: 0.55 !important;
-        cursor: not-allowed !important;
-        filter: grayscale(80%) !important;
-        pointer-events: auto !important;
-    }
-    
-    /* ── Marca de Agua para Firmas ── */
-    .signature-container {
-        position: relative;
-        display: inline-block;
-        overflow: hidden;
-    }
-    .signature-container img {
-        display: block;
-    }
-    .signature-container::after {
-        content: '';
-        position: absolute;
-        top: 0; left: 0; right: 0; bottom: 0;
-        {% if institucion is defined and institucion.marca_agua %}
-        background-image: url('{{ institucion.marca_agua }}');
-        {% endif %}
-        background-size: contain;
-        background-position: center;
-        background-repeat: no-repeat;
-        opacity: 0.15;
-        pointer-events: none;
-        z-index: 10;
-    }
-</style>
+        .check-options input[type="radio"] {
+            display: none;
+        }
+
+        .check-options .opt-si+.opt-label {
+            padding: 4px 10px;
+            border-radius: 5px;
+            border: 1.5px solid #d1fae5;
+            background: #f0fdf4;
+            color: #166534;
+        }
+
+        .check-options .opt-si:checked~.opt-label-si {
+            background: #10b981;
+            color: white;
+            border-color: #059669;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 5px;
+        }
+
+        .radio-btn input[type="radio"] {
+            display: none;
+        }
+
+        .radio-btn label {
+            padding: 4px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1.5px solid;
+            transition: all 0.15s;
+            margin: 0;
+        }
+
+        .radio-btn.si label {
+            border-color: #bbf7d0;
+            color: #166534;
+            background: #f0fdf4;
+        }
+
+        .radio-btn.no label {
+            border-color: #fecaca;
+            color: #991b1b;
+            background: #fef2f2;
+        }
+
+        .radio-btn.na label {
+            border-color: #e2e8f0;
+            color: #64748b;
+            background: #f8fafc;
+        }
+
+        .radio-btn.si input:checked+label {
+            background: #10b981;
+            color: white;
+            border-color: #059669;
+        }
+
+        .radio-btn.no input:checked+label {
+            background: #ef4444;
+            color: white;
+            border-color: #dc2626;
+        }
+
+        .radio-btn.na input:checked+label {
+            background: #94a3b8;
+            color: white;
+            border-color: #64748b;
+        }
+
+        /* ── Buttons ── */
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            border: none;
+            padding: 11px 28px;
+            border-radius: var(--radius);
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: inherit;
+            box-shadow: 0 2px 8px rgba(30, 111, 191, 0.3);
+            transition: transform 0.12s, box-shadow 0.15s;
+            text-decoration: none;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 14px rgba(30, 111, 191, 0.4);
+        }
+
+        button:not([class]),
+        button[type="submit"]:not([class]) {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            border: none;
+            padding: 11px 28px;
+            border-radius: var(--radius);
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: inherit;
+            box-shadow: 0 2px 8px rgba(30, 111, 191, 0.3);
+            transition: transform 0.12s, box-shadow 0.15s;
+            margin-top: 14px;
+        }
+
+        /* ── Flash messages ── */
+        .flash {
+            padding: 12px 16px;
+            border-radius: var(--radius);
+            margin-bottom: 16px;
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: flex-start;
+            gap: 9px;
+            border: 1px solid transparent;
+        }
+
+        .flash.success {
+            background: #f0fdf4;
+            color: #166534;
+            border-color: #bbf7d0;
+        }
+
+        .flash.success::before {
+            content: '✓';
+            font-size: 16px;
+        }
+
+        .flash.error {
+            background: #fef2f2;
+            color: #991b1b;
+            border-color: #fecaca;
+        }
+
+        .flash.error::before {
+            content: '⚠';
+            font-size: 16px;
+        }
+
+        /* ── Tables ── */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        th,
+        td {
+            border: 1px solid var(--border);
+            padding: 9px 12px;
+            text-align: left;
+            vertical-align: middle;
+        }
+
+        th {
+            background: linear-gradient(135deg, #ebf4ff, #dbeafe);
+            font-weight: 700;
+            color: var(--primary);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+
+        tr:hover td {
+            background: #fafcff;
+        }
+
+        /* ── Submit row ── */
+        .submit-row {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+
+        /* ── Change-password warning ── */
+        .pw-warn {
+            background: #fffbeb;
+            border: 1px solid #fcd34d;
+            border-radius: 6px;
+            padding: 7px 14px;
+            font-size: 12px;
+            color: #92400e;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-right: 10px;
+        }
+
+        @media (max-width: 700px) {
+
+            .row,
+            .row-3,
+            .row-4 {
+                grid-template-columns: 1fr;
+            }
+
+            .container {
+                margin: 12px;
+                padding: 18px 16px;
+            }
+
+            .navbar {
+                padding: 0 14px;
+            }
+
+            .submit-row {
+                justify-content: stretch;
+            }
+
+            .submit-row>* {
+                flex: 1 1 100%;
+                text-align: center;
+                justify-content: center;
+            }
+        }
+
+        /* ── PWA Offline Badge ── */
+        .pwa-offline-btn {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 4px 10px;
+            font-size: 12px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.85);
+            cursor: pointer;
+            transition: background 0.15s;
+            white-space: nowrap;
+        }
+
+        .pwa-offline-btn:hover {
+            background: rgba(255, 255, 255, 0.18);
+            color: white;
+        }
+
+        .pwa-badge-pendientes {
+            display: none;
+            background: #ef4444;
+            color: white;
+            border-radius: 999px;
+            padding: 1px 6px;
+            font-size: 10px;
+            font-weight: 800;
+            line-height: 1.4;
+            min-width: 18px;
+            text-align: center;
+        }
+
+        /* Modal offline */
+        #modal-offline {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        #modal-offline.open {
+            display: flex;
+        }
+
+        #modal-offline .modal-box {
+            background: white;
+            border-radius: 16px;
+            max-width: 460px;
+            width: 100%;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            animation: modalIn 0.2s ease-out;
+        }
+
+        @keyframes modalIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95) translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        #modal-offline .modal-header {
+            padding: 18px 22px 14px;
+            background: #fffbeb;
+            border-bottom: 1px solid #fde68a;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        #modal-offline .modal-body {
+            padding: 20px 22px;
+        }
+
+        #modal-offline .modal-footer {
+            padding: 14px 22px;
+            border-top: 1px solid #f1f5f9;
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .modal-btn {
+            border: none;
+            border-radius: 8px;
+            padding: 9px 18px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: inherit;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: transform 0.12s;
+        }
+
+        .modal-btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .modal-btn.sync {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+        }
+
+        .modal-btn.csv {
+            background: #f0fdf4;
+            color: #065f46;
+            border: 1.5px solid #bbf7d0;
+        }
+
+        .modal-btn.json {
+            background: #f5f3ff;
+            color: #5b21b6;
+            border: 1.5px solid #ddd6fe;
+        }
+
+        .modal-btn.close {
+            background: #f1f5f9;
+            color: #475569;
+            border: 1px solid #cbd5e1;
+        }
+
+        /* Estilos para elementos deshabilitados offline */
+        .offline-disabled {
+            opacity: 0.55 !important;
+            cursor: not-allowed !important;
+            filter: grayscale(80%) !important;
+            pointer-events: auto !important;
+        }
+
+        /* ── Marca de Agua para Firmas ── */
+        .signature-container {
+            position: relative;
+            display: inline-block;
+            overflow: hidden;
+        }
+
+        .signature-container img {
+            display: block;
+        }
+
+        .signature-container::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+
+                {
+                % if institucion is defined and institucion.marca_agua %
+            }
+
+            background-image: url('{{ institucion.marca_agua }}');
+
+                {
+                % endif %
+            }
+
+            background-size: contain;
+            background-position: center;
+            background-repeat: no-repeat;
+            opacity: 0.15;
+            pointer-events: none;
+            z-index: 10;
+        }
+    </style>
 </head>
+
 <body>
 
-<!-- Caché de sesión para login offline -->
-{% if session.usuario %}
-<span id="usuario-datos" style="display:none"
-  data-usuario='{{ session["usuario"] | tojson }}'></span>
-{% endif %}
+    <!-- Caché de sesión para login offline -->
+    {% if session.usuario %}
+    <span id="usuario-datos" style="display:none" data-usuario='{{ session["usuario"] | tojson }}'></span>
+    {% endif %}
 
-{% if session.usuario %}
-<nav class="navbar">
-    <a class="navbar-brand" href="{{ url_for('dashboard') }}" style="background: rgba(255,255,255,0.15); padding: 6px 16px; border-radius: 8px; display: flex; align-items: center; gap: 8px; height: 38px; border: 1px solid rgba(255,255,255,0.2); text-decoration: none; color: white; font-weight: 600; font-size: 14px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
-        <i class="ph ph-house" style="font-size: 18px;"></i> Home
-    </a>
+    {% if session.usuario %}
+    <nav class="navbar">
+        <a class="navbar-brand" href="{{ url_for('dashboard') }}"
+            style="background: rgba(255,255,255,0.15); padding: 6px 16px; border-radius: 8px; display: flex; align-items: center; gap: 8px; height: 38px; border: 1px solid rgba(255,255,255,0.2); text-decoration: none; color: white; font-weight: 600; font-size: 14px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+            <i class="ph ph-house" style="font-size: 18px;"></i> Hogar
+        </a>
 
-    <div class="navbar-right">
-        {% if session.usuario.requiere_cambio_clave == 1 %}
-        <div class="pw-warn">⚠️ Cambio de contraseña requerido</div>
-        {% endif %}
+        <div class="navbar-right">
+            {% if session.usuario.requiere_cambio_clave == 1 %}
+            <div class="pw-warn">⚠️ Cambio de contraseña requerido</div>
+            {% endif %}
 
-        <!-- Badge registros offline -->
-        <button class="pwa-offline-btn" onclick="document.getElementById('modal-offline').classList.add('open')" title="Registros guardados sin internet">
-            📶
-            <span class="pwa-badge-pendientes" id="pwa-badge-nav">0</span>
-        </button>
+            <!-- Badge registros offline -->
+            <button class="pwa-offline-btn" onclick="document.getElementById('modal-offline').classList.add('open')"
+                title="Registros guardados sin internet">
+                📶
+                <span class="pwa-badge-pendientes" id="pwa-badge-nav">0</span>
+            </button>
 
-        <div class="nav-divider"></div>
+            <div class="nav-divider"></div>
 
-        <div class="nav-user-badge">
-            👤 {{ session.usuario.nombre.split()[0] }}
-            <span class="user-role">
-                {% if session.usuario.rol == 'admin' %}Admin{% else %}{{ session.usuario.perfil or 'Usuario' }}{% endif %}
-            </span>
+            <div class="nav-user-badge">
+                👤 {{ session.usuario.nombre.split()[0] }}
+                <span class="user-role">
+                    {% if session.usuario.rol == 'admin' %}Admin{% else %}{{ session.usuario.perfil or 'Usuario' }}{%
+                    endif %}
+                </span>
+            </div>
+            <button id="btn-instalar-pwa" class="nav-link"
+                style="display: none; background: #f59e0b; color: white; border: none; cursor: pointer; font-weight: 700;"
+                title="Instalar como aplicación nativa">📲 Instalar App</button>
+            <button id="btn-mi-gps" class="nav-link"
+                style="background: transparent; border: 1px solid rgba(255,255,255,0.3); cursor: pointer;"
+                onclick="mostrarMiUbicacionMapa()" title="Ver mi ubicación actual en el mapa">📍 Mi GPS</button>
+            <a class="nav-link nav-logout" href="{{ url_for('logout') }}">🚪 Salir</a>
         </div>
-        <button id="btn-instalar-pwa" class="nav-link" style="display: none; background: #f59e0b; color: white; border: none; cursor: pointer; font-weight: 700;" title="Instalar como aplicación nativa">📲 Instalar App</button>
-        <button id="btn-mi-gps" class="nav-link" style="background: transparent; border: 1px solid rgba(255,255,255,0.3); cursor: pointer;" onclick="mostrarMiUbicacionMapa()" title="Ver mi ubicación actual en el mapa">📍 Mi GPS</button>
-        <a class="nav-link nav-logout" href="{{ url_for('logout') }}">🚪 Salir</a>
+    </nav>
+    {% endif %}
+
+    <!-- Modal gestión offline -->
+    <div id="modal-offline" onclick="if(event.target===this) this.classList.remove('open')">
+        <div class="modal-box">
+            <div class="modal-header">
+                <div style="font-size:28px;">📱</div>
+                <div>
+                    <div style="font-weight:700; color:#92400e; font-size:15px;">Registros Offline</div>
+                    <div style="font-size:12px; color:#b45309; margin-top:2px;" id="pwa-estado-conexion">Verificando
+                        conexión...</div>
+                </div>
+            </div>
+            <div class="modal-body">
+                <div
+                    style="background:#fef3c7; border:1px solid #fde68a; border-radius:10px; padding:14px 16px; margin-bottom:14px;">
+                    <div style="font-weight:700; font-size:13px; color:#92400e; margin-bottom:6px;">📋 Registros
+                        pendientes</div>
+                    <div class="pwa-texto-pendientes" style="font-size:13px; color:#b45309;">Cargando...</div>
+                </div>
+                <div style="font-size:12px; color:#64748b; line-height:1.7;">
+                    💾 Los registros se guardan automáticamente en el dispositivo cuando no hay internet.<br>
+                    🔄 Al sincronizar, se envían al servidor Flask y quedan en la base de datos.<br>
+                    📊 También puedes exportar como CSV o JSON como respaldo.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn close"
+                    onclick="document.getElementById('modal-offline').classList.remove('open')">✕ Cerrar</button>
+                <button class="modal-btn csv" onclick="window.PWA_exportarCSV()">📊 CSV</button>
+                <button class="modal-btn json" onclick="window.PWA_exportarJSON()">📋 JSON</button>
+                <button class="modal-btn sync" onclick="window.PWA_sincronizar()">🔄 Sincronizar</button>
+            </div>
+        </div>
     </div>
-</nav>
-{% endif %}
 
-<!-- Modal gestión offline -->
-<div id="modal-offline" onclick="if(event.target===this) this.classList.remove('open')">
-  <div class="modal-box">
-    <div class="modal-header">
-      <div style="font-size:28px;">📱</div>
-      <div>
-        <div style="font-weight:700; color:#92400e; font-size:15px;">Registros Offline</div>
-        <div style="font-size:12px; color:#b45309; margin-top:2px;" id="pwa-estado-conexion">Verificando conexión...</div>
-      </div>
+    <div class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+        <div class="flash {{ category }}">{{ message }}</div>
+        {% endfor %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+
+        <div
+            style="margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); display: flex; flex-direction: row; justify-content: center; align-items: center; padding-bottom: 0px; flex-wrap: wrap; gap: 30px;">
+            <img src="{{ url_for('static', filename='rapa.png') }}" alt="RAPA Logo"
+                style="height: 100px; object-fit: contain; opacity: 0.9; margin: -10px 0;">
+            <div style="text-align: left; color: #64748b; font-size: 12px; font-weight: 500;">
+                <div style="margin-bottom: 4px;">© 2026. Derechos Reservados.</div>
+                <div>Versión: 1.0</div>
+            </div>
+        </div>
     </div>
-    <div class="modal-body">
-      <div style="background:#fef3c7; border:1px solid #fde68a; border-radius:10px; padding:14px 16px; margin-bottom:14px;">
-        <div style="font-weight:700; font-size:13px; color:#92400e; margin-bottom:6px;">📋 Registros pendientes</div>
-        <div class="pwa-texto-pendientes" style="font-size:13px; color:#b45309;">Cargando...</div>
-      </div>
-      <div style="font-size:12px; color:#64748b; line-height:1.7;">
-        💾 Los registros se guardan automáticamente en el dispositivo cuando no hay internet.<br>
-        🔄 Al sincronizar, se envían al servidor Flask y quedan en la base de datos.<br>
-        📊 También puedes exportar como CSV o JSON como respaldo.
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="modal-btn close" onclick="document.getElementById('modal-offline').classList.remove('open')">✕ Cerrar</button>
-      <button class="modal-btn csv"  onclick="window.PWA_exportarCSV()">📊 CSV</button>
-      <button class="modal-btn json" onclick="window.PWA_exportarJSON()">📋 JSON</button>
-      <button class="modal-btn sync" onclick="window.PWA_sincronizar()">🔄 Sincronizar</button>
-    </div>
-  </div>
-</div>
 
-<div class="container">
-{% with messages = get_flashed_messages(with_categories=true) %}
-  {% for category, message in messages %}
-    <div class="flash {{ category }}">{{ message }}</div>
-  {% endfor %}
-{% endwith %}
-{% block content %}{% endblock %}
-
-<div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); display: flex; flex-direction: row; justify-content: center; align-items: center; padding-bottom: 0px; flex-wrap: wrap; gap: 30px;">
-    <img src="{{ url_for('static', filename='rapa.png') }}" alt="RAPA Logo" style="height: 100px; object-fit: contain; opacity: 0.9; margin: -10px 0;">
-    <div style="text-align: left; color: #64748b; font-size: 12px; font-weight: 500;">
-        <div style="margin-bottom: 4px;">© 2026. Derechos Reservados.</div>
-        <div>Versión: 1.0</div>
-    </div>
-</div>
-</div>
-
-<script>
-// ── Actualizar badge y modal de estado offline ────────────
-async function _pwaBadgeUpdate() {
-  if (typeof PWA === 'undefined') return;
-  try {
-    const n = await PWA.contarPendientes();
-    // Badge en navbar
-    const badge = document.getElementById('pwa-badge-nav');
-    if (badge) {
-      badge.textContent = n;
-      badge.style.display = n > 0 ? 'inline-block' : 'none';
-    }
-    // Badges genéricos
-    document.querySelectorAll('.pwa-badge-pendientes').forEach(b => {
-      b.textContent = n;
-      b.style.display = n > 0 ? 'inline-flex' : 'none';
-    });
-    // Texto en modal
-    document.querySelectorAll('.pwa-texto-pendientes').forEach(t => {
-      t.textContent = n === 0
-        ? '✅ Todo sincronizado. Sin registros pendientes.'
-        : `⚠️ ${n} registro(s) guardado(s) sin internet, pendiente(s) de enviar.`;
-    });
-    // Estado conexión en modal
-    const est = document.getElementById('pwa-estado-conexion');
-    if (est) {
-      est.textContent = navigator.onLine
-        ? '🌐 Conectado — puedes sincronizar ahora'
-        : '📡 Sin internet — los registros quedan guardados en el dispositivo';
-      est.style.color = navigator.onLine ? '#065f46' : '#b45309';
-    }
-  } catch(e) {}
-}
-document.addEventListener('DOMContentLoaded', _pwaBadgeUpdate);
-window.addEventListener('online',  _pwaBadgeUpdate);
-window.addEventListener('offline', _pwaBadgeUpdate);
-
-// ── PWA Installation Logic ────────────
-let deferredPrompt;
-window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-    const installBtn = document.getElementById('btn-instalar-pwa');
-    if(installBtn) {
-        installBtn.style.display = 'inline-flex';
-        installBtn.addEventListener('click', async () => {
-            deferredPrompt.prompt();
-            const { outcome } = await deferredPrompt.userChoice;
-            deferredPrompt = null;
-            installBtn.style.display = 'none';
-        });
-    }
-});
-window.addEventListener('appinstalled', () => {
-    const installBtn = document.getElementById('btn-instalar-pwa');
-    if(installBtn) installBtn.style.display = 'none';
-    deferredPrompt = null;
-});
-
-// ── Restricción de navegación offline ────────────
-const OFFLINE_ALLOWED_PATHS = [
-  '/',
-  '/login',
-  '/logout',
-  '/dashboard',
-  '/formulario',
-  '/formulario_mci',
-  '/formularios/atencion-colectiva',
-  '/formularios/atencion-colectiva/registros',
-  '/registros',
-  '/pendientes',
-  '/formularios/atencion_vehiculo',
-  '/checklist/preoperacional',
-  '/checklist/tam',
-  '/checklist/tab',
-  '/checklist/avanzada',
-  '/checklist/pasb',
-  '/checklist/pasm',
-  '/checklist/equipos',
-  '/checklist/calif_atencion',
-  '/checklist/segur_paciente',
-  '/formularios/eventos'
-];
-
-function isUrlAllowedOffline(urlStr) {
-  if (!urlStr) return true;
-  if (urlStr.startsWith('#') || urlStr.startsWith('javascript:')) return true;
-  try {
-    const url = new URL(urlStr, window.location.origin);
-    if (url.origin !== window.location.origin) return true;
-    const path = url.pathname;
-    return OFFLINE_ALLOWED_PATHS.includes(path);
-  } catch (e) {
-    return true;
-  }
-}
-
-function actualizarEnlacesOffline() {
-  const offline = !navigator.onLine;
-  
-  // 1. Modificar enlaces <a>
-  document.querySelectorAll('a').forEach(link => {
-    const href = link.getAttribute('href');
-    if (href && !isUrlAllowedOffline(href)) {
-      if (offline) {
-        link.classList.add('offline-disabled');
-      } else {
-        link.classList.remove('offline-disabled');
-      }
-    }
-  });
-
-  // 2. Modificar botón GPS
-  const gpsBtn = document.getElementById('btn-mi-gps');
-  if (gpsBtn) {
-    if (offline) {
-      gpsBtn.classList.add('offline-disabled');
-      gpsBtn.setAttribute('disabled', 'true');
-    } else {
-      gpsBtn.classList.remove('offline-disabled');
-      gpsBtn.removeAttribute('disabled');
-    }
-  }
-}
-
-// Interceptar clicks globales para bloquear navegación offline
-document.addEventListener('click', (e) => {
-  if (navigator.onLine) return; // Si hay internet, no bloquear nada
-  
-  const link = e.target.closest('a');
-  if (link) {
-    const href = link.getAttribute('href');
-    if (href && !isUrlAllowedOffline(href)) {
-      e.preventDefault();
-      e.stopPropagation();
-      if (typeof mostrarToast === 'function') {
-        mostrarToast('❌ Este módulo no está disponible sin conexión a internet.', 'error');
-      } else {
-        alert('Este módulo no está disponible sin conexión a internet.');
-      }
-      return;
-    }
-  }
-  
-  const button = e.target.closest('button');
-  if (button && button.classList.contains('offline-disabled')) {
-    e.preventDefault();
-    e.stopPropagation();
-    if (typeof mostrarToast === 'function') {
-      mostrarToast('❌ Esta acción no está disponible sin conexión a internet.', 'error');
-    } else {
-      alert('Esta acción no está disponible sin conexión a internet.');
-    }
-  }
-}, true);
-
-// Escuchar cambios de conexión
-window.addEventListener('online', actualizarEnlacesOffline);
-window.addEventListener('offline', actualizarEnlacesOffline);
-document.addEventListener('DOMContentLoaded', () => {
-  setTimeout(actualizarEnlacesOffline, 200);
-});
-</script>
-
-{% if usuario %}
-<script>
-// ── GPS Background Tracker ────────────
-(function() {
-    function sendLocation() {
-        if (!navigator.geolocation) return;
-        navigator.geolocation.getCurrentPosition((position) => {
-            fetch('/api/update_gps', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    lat: position.coords.latitude,
-                    lng: position.coords.longitude
-                })
-            }).catch(e => console.error("GPS Tracker error", e));
-        }, (err) => {
-            console.error("GPS Error:", err);
-        }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 });
-    }
-    
-    function startTracker() {
-        setTimeout(sendLocation, 5000);
-        setInterval(sendLocation, 120000);
-    }
-
-    // Solo solicitar permiso (lanzar el prompt) una vez por sesión, 
-    // y seguir rastreando "por debajo" si ya fue otorgado.
-    if (navigator.permissions && navigator.permissions.query) {
-        navigator.permissions.query({name: 'geolocation'}).then(function(result) {
-            if (result.state === 'granted') {
-                startTracker(); // Ya tiene permiso, rastreamos sin molestar
-            } else if (result.state === 'prompt') {
-                if (!sessionStorage.getItem('gps_prompted')) {
-                    sessionStorage.setItem('gps_prompted', '1');
-                    startTracker(); // Pedimos permiso una vez en la sesión
+    <script>
+        // ── Actualizar badge y modal de estado offline ────────────
+        async function _pwaBadgeUpdate() {
+            if (typeof PWA === 'undefined') return;
+            try {
+                const n = await PWA.contarPendientes();
+                // Badge en navbar
+                const badge = document.getElementById('pwa-badge-nav');
+                if (badge) {
+                    badge.textContent = n;
+                    badge.style.display = n > 0 ? 'inline-block' : 'none';
                 }
+                // Badges genéricos
+                document.querySelectorAll('.pwa-badge-pendientes').forEach(b => {
+                    b.textContent = n;
+                    b.style.display = n > 0 ? 'inline-flex' : 'none';
+                });
+                // Texto en modal
+                document.querySelectorAll('.pwa-texto-pendientes').forEach(t => {
+                    t.textContent = n === 0
+                        ? '✅ Todo sincronizado. Sin registros pendientes.'
+                        : `⚠️ ${n} registro(s) guardado(s) sin internet, pendiente(s) de enviar.`;
+                });
+                // Estado conexión en modal
+                const est = document.getElementById('pwa-estado-conexion');
+                if (est) {
+                    est.textContent = navigator.onLine
+                        ? '🌐 Conectado — puedes sincronizar ahora'
+                        : '📡 Sin internet — los registros quedan guardados en el dispositivo';
+                    est.style.color = navigator.onLine ? '#065f46' : '#b45309';
+                }
+            } catch (e) { }
+        }
+        document.addEventListener('DOMContentLoaded', _pwaBadgeUpdate);
+        window.addEventListener('online', _pwaBadgeUpdate);
+        window.addEventListener('offline', _pwaBadgeUpdate);
+
+        // ── PWA Installation Logic ────────────
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            const installBtn = document.getElementById('btn-instalar-pwa');
+            if (installBtn) {
+                installBtn.style.display = 'inline-flex';
+                installBtn.addEventListener('click', async () => {
+                    deferredPrompt.prompt();
+                    const { outcome } = await deferredPrompt.userChoice;
+                    deferredPrompt = null;
+                    installBtn.style.display = 'none';
+                });
             }
         });
-    } else {
-        // Fallback navegadores antiguos
-        if (!sessionStorage.getItem('gps_prompted')) {
-            sessionStorage.setItem('gps_prompted', '1');
-            startTracker();
-        }
-    }
-})();
-
-function mostrarMiUbicacionMapa() {
-    if (!navigator.geolocation) {
-        alert("Tu navegador no soporta geolocalización.");
-        return;
-    }
-    const btn = event.currentTarget;
-    const oldText = btn.innerHTML;
-    btn.innerHTML = "📍 Actualizando...";
-    
-    const options = { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 };
-    
-    function sendToServer(position) {
-        const lat = position.coords.latitude;
-        const lng = position.coords.longitude;
-        
-        fetch('/api/update_gps', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ lat: lat, lng: lng })
-        }).then(res => {
-            btn.innerHTML = "✅ Ubicación enviada";
-            setTimeout(() => { btn.innerHTML = oldText; }, 3000);
-        }).catch(e => {
-            btn.innerHTML = oldText;
-            alert("Error al enviar la ubicación al servidor.");
+        window.addEventListener('appinstalled', () => {
+            const installBtn = document.getElementById('btn-instalar-pwa');
+            if (installBtn) installBtn.style.display = 'none';
+            deferredPrompt = null;
         });
-    }
 
-    navigator.geolocation.getCurrentPosition(sendToServer, (err) => {
-        console.warn("GPS High Accuracy falló:", err);
-        // Fallback a menor precisión
-        navigator.geolocation.getCurrentPosition(sendToServer, (err2) => {
-            btn.innerHTML = oldText;
-            alert("No se pudo obtener tu ubicación. Verifica los permisos de GPS o asegúrate de tener señal.");
-        }, { enableHighAccuracy: false, timeout: 10000, maximumAge: 30000 });
-    }, options);
-}
-</script>
-{% endif %}
+        // ── Restricción de navegación offline ────────────
+        const OFFLINE_ALLOWED_PATHS = [
+            '/',
+            '/login',
+            '/logout',
+            '/dashboard',
+            '/formulario',
+            '/formulario_mci',
+            '/formularios/atencion-colectiva',
+            '/formularios/atencion-colectiva/registros',
+            '/registros',
+            '/pendientes',
+            '/formularios/atencion_vehiculo',
+            '/checklist/preoperacional',
+            '/checklist/tam',
+            '/checklist/tab',
+            '/checklist/avanzada',
+            '/checklist/pasb',
+            '/checklist/pasm',
+            '/checklist/equipos',
+            '/checklist/calif_atencion',
+            '/checklist/segur_paciente',
+            '/formularios/eventos'
+        ];
 
-<script>
-/* ── Forzar formato 24h (hora militar) en todos los campos datetime-local ── */
-(function () {
-    function aplicar24h(input) {
-        if (input.type === 'datetime-local' || input.type === 'time') {
-            input.setAttribute('lang', 'en-GB');
+        function isUrlAllowedOffline(urlStr) {
+            if (!urlStr) return true;
+            if (urlStr.startsWith('#') || urlStr.startsWith('javascript:')) return true;
+            try {
+                const url = new URL(urlStr, window.location.origin);
+                if (url.origin !== window.location.origin) return true;
+                const path = url.pathname;
+                return OFFLINE_ALLOWED_PATHS.includes(path);
+            } catch (e) {
+                return true;
+            }
         }
-    }
-    // Aplicar a los ya existentes
-    document.querySelectorAll('input[type="datetime-local"], input[type="time"]')
-        .forEach(aplicar24h);
-    // Aplicar a los que se agreguen dinámicamente
-    var observer = new MutationObserver(function (mutations) {
-        mutations.forEach(function (m) {
-            m.addedNodes.forEach(function (node) {
-                if (node.nodeType === 1) {
-                    if (node.matches && (node.matches('input[type="datetime-local"]') || node.matches('input[type="time"]'))) {
-                        aplicar24h(node);
+
+        function actualizarEnlacesOffline() {
+            const offline = !navigator.onLine;
+
+            // 1. Modificar enlaces <a>
+            document.querySelectorAll('a').forEach(link => {
+                const href = link.getAttribute('href');
+                if (href && !isUrlAllowedOffline(href)) {
+                    if (offline) {
+                        link.classList.add('offline-disabled');
+                    } else {
+                        link.classList.remove('offline-disabled');
                     }
-                    node.querySelectorAll && node.querySelectorAll('input[type="datetime-local"], input[type="time"]').forEach(aplicar24h);
                 }
             });
-        });
-    });
-    observer.observe(document.body, { childList: true, subtree: true });
-})();
 
-// Interceptar botones de finalizar para usar SweetAlert2
-document.addEventListener('DOMContentLoaded', function() {
-    document.querySelectorAll('button[value="finalizar"]').forEach(function(btn) {
-        // Obtenemos si tenía validateAll configurado
-        let hasValidateAll = false;
-        const origOnclick = btn.getAttribute('onclick');
-        if (origOnclick && origOnclick.includes('validateAll')) {
-            hasValidateAll = true;
+            // 2. Modificar botón GPS
+            const gpsBtn = document.getElementById('btn-mi-gps');
+            if (gpsBtn) {
+                if (offline) {
+                    gpsBtn.classList.add('offline-disabled');
+                    gpsBtn.setAttribute('disabled', 'true');
+                } else {
+                    gpsBtn.classList.remove('offline-disabled');
+                    gpsBtn.removeAttribute('disabled');
+                }
+            }
         }
-        
-        // Removemos el onclick nativo para que no salte el feo del navegador
-        btn.removeAttribute('onclick');
-        
-        btn.addEventListener('click', function(e) {
-            e.preventDefault();
-            
-            const form = btn.closest('form');
-            
-            // Verificamos si el form es válido nativamente (required, etc) ANTES del modal
-            if (form && typeof form.reportValidity === 'function') {
-                if (!form.reportValidity()) {
-                    return; // Si faltan datos obligatorios, no mostramos el mensaje
-                }
-            }
-            
-            // Si requiere validación extra (ej. checklists), la ejecutamos
-            if (hasValidateAll && typeof validateAll === 'function') {
-                if (!validateAll()) {
-                    return; // Detenemos aquí si la validación falla
-                }
-            }
 
-            // Validación especial para CIE10 en formulario
-            const cie10Hidden = document.getElementById('cie10-value');
-            if (cie10Hidden && form.contains(cie10Hidden) && !cie10Hidden.value.trim()) {
-                const searchInput = document.getElementById('cie10-search');
-                if (searchInput) {
-                    alert("Por favor seleccione la Impresión Diagnóstica (CIE10) antes de finalizar.");
-                    searchInput.focus();
-                    return;
-                }
-            }
-            
-            // Validación especial para CIE10 en MCI
-            const cie10HiddenMci = document.getElementById('cie10-value-mci');
-            if (cie10HiddenMci && form.contains(cie10HiddenMci) && !cie10HiddenMci.value.trim()) {
-                const searchInputMci = document.getElementById('cie10-search-mci');
-                if (searchInputMci) {
-                    alert("Por favor seleccione la Impresión Diagnóstica (CIE10) antes de finalizar.");
-                    searchInputMci.focus();
+        // Interceptar clicks globales para bloquear navegación offline
+        document.addEventListener('click', (e) => {
+            if (navigator.onLine) return; // Si hay internet, no bloquear nada
+
+            const link = e.target.closest('a');
+            if (link) {
+                const href = link.getAttribute('href');
+                if (href && !isUrlAllowedOffline(href)) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (typeof mostrarToast === 'function') {
+                        mostrarToast('❌ Este módulo no está disponible sin conexión a internet.', 'error');
+                    } else {
+                        alert('Este módulo no está disponible sin conexión a internet.');
+                    }
                     return;
                 }
             }
 
-            Swal.fire({
-                title: '¿Confirmar Finalización?',
-                text: '¿Está seguro de finalizar este registro? Una vez finalizado no podrá ser editado.',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#10b981',
-                cancelButtonColor: '#64748b',
-                confirmButtonText: '<i class="ph ph-check-circle" style="font-size:18px; vertical-align:-3px; margin-right:4px;"></i> Sí, finalizar',
-                cancelButtonText: 'Cancelar',
-                reverseButtons: true,
-                customClass: {
-                    popup: 'swal2-custom-popup',
-                    title: 'swal2-custom-title',
-                    confirmButton: 'swal2-custom-confirm',
-                    cancelButton: 'swal2-custom-cancel'
+            const button = e.target.closest('button');
+            if (button && button.classList.contains('offline-disabled')) {
+                e.preventDefault();
+                e.stopPropagation();
+                if (typeof mostrarToast === 'function') {
+                    mostrarToast('❌ Esta acción no está disponible sin conexión a internet.', 'error');
+                } else {
+                    alert('Esta acción no está disponible sin conexión a internet.');
                 }
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    if (form) {
-                        // En lugar de form.submit() que salta el evento 'submit', 
-                        // disparamos el evento para que pwa-offline.js lo capture.
-                        if (typeof form.requestSubmit === 'function') {
-                            form.requestSubmit(btn);
-                        } else {
-                            const hiddenInput = document.createElement('input');
-                            hiddenInput.type = 'hidden';
-                            hiddenInput.name = btn.name || 'accion';
-                            hiddenInput.value = btn.value || 'finalizar';
-                            form.appendChild(hiddenInput);
-                            
-                            const event = new Event('submit', { cancelable: true, bubbles: true });
-                            Object.defineProperty(event, 'submitter', { value: btn, enumerable: true });
-                            if (form.dispatchEvent(event)) {
-                                form.submit();
-                            }
+            }
+        }, true);
+
+        // Escuchar cambios de conexión
+        window.addEventListener('online', actualizarEnlacesOffline);
+        window.addEventListener('offline', actualizarEnlacesOffline);
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(actualizarEnlacesOffline, 200);
+        });
+    </script>
+
+    {% if usuario %}
+    <script>
+        // ── GPS Background Tracker ────────────
+        (function () {
+            function sendLocation() {
+                if (!navigator.geolocation) return;
+                navigator.geolocation.getCurrentPosition((position) => {
+                    fetch('/api/update_gps', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            lat: position.coords.latitude,
+                            lng: position.coords.longitude
+                        })
+                    }).catch(e => console.error("GPS Tracker error", e));
+                }, (err) => {
+                    console.error("GPS Error:", err);
+                }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 });
+            }
+
+            function startTracker() {
+                setTimeout(sendLocation, 5000);
+                setInterval(sendLocation, 120000);
+            }
+
+            // Solo solicitar permiso (lanzar el prompt) una vez por sesión, 
+            // y seguir rastreando "por debajo" si ya fue otorgado.
+            if (navigator.permissions && navigator.permissions.query) {
+                navigator.permissions.query({ name: 'geolocation' }).then(function (result) {
+                    if (result.state === 'granted') {
+                        startTracker(); // Ya tiene permiso, rastreamos sin molestar
+                    } else if (result.state === 'prompt') {
+                        if (!sessionStorage.getItem('gps_prompted')) {
+                            sessionStorage.setItem('gps_prompted', '1');
+                            startTracker(); // Pedimos permiso una vez en la sesión
                         }
                     }
+                });
+            } else {
+                // Fallback navegadores antiguos
+                if (!sessionStorage.getItem('gps_prompted')) {
+                    sessionStorage.setItem('gps_prompted', '1');
+                    startTracker();
                 }
+            }
+        })();
+
+        function mostrarMiUbicacionMapa() {
+            if (!navigator.geolocation) {
+                alert("Tu navegador no soporta geolocalización.");
+                return;
+            }
+            const btn = event.currentTarget;
+            const oldText = btn.innerHTML;
+            btn.innerHTML = "📍 Actualizando...";
+
+            const options = { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 };
+
+            function sendToServer(position) {
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+
+                fetch('/api/update_gps', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ lat: lat, lng: lng })
+                }).then(res => {
+                    btn.innerHTML = "✅ Ubicación enviada";
+                    setTimeout(() => { btn.innerHTML = oldText; }, 3000);
+                }).catch(e => {
+                    btn.innerHTML = oldText;
+                    alert("Error al enviar la ubicación al servidor.");
+                });
+            }
+
+            navigator.geolocation.getCurrentPosition(sendToServer, (err) => {
+                console.warn("GPS High Accuracy falló:", err);
+                // Fallback a menor precisión
+                navigator.geolocation.getCurrentPosition(sendToServer, (err2) => {
+                    btn.innerHTML = oldText;
+                    alert("No se pudo obtener tu ubicación. Verifica los permisos de GPS o asegúrate de tener señal.");
+                }, { enableHighAccuracy: false, timeout: 10000, maximumAge: 30000 });
+            }, options);
+        }
+    </script>
+    {% endif %}
+
+    <script>
+        /* ── Forzar formato 24h (hora militar) en todos los campos datetime-local ── */
+        (function () {
+            function aplicar24h(input) {
+                if (input.type === 'datetime-local' || input.type === 'time') {
+                    input.setAttribute('lang', 'en-GB');
+                }
+            }
+            // Aplicar a los ya existentes
+            document.querySelectorAll('input[type="datetime-local"], input[type="time"]')
+                .forEach(aplicar24h);
+            // Aplicar a los que se agreguen dinámicamente
+            var observer = new MutationObserver(function (mutations) {
+                mutations.forEach(function (m) {
+                    m.addedNodes.forEach(function (node) {
+                        if (node.nodeType === 1) {
+                            if (node.matches && (node.matches('input[type="datetime-local"]') || node.matches('input[type="time"]'))) {
+                                aplicar24h(node);
+                            }
+                            node.querySelectorAll && node.querySelectorAll('input[type="datetime-local"], input[type="time"]').forEach(aplicar24h);
+                        }
+                    });
+                });
+            });
+            observer.observe(document.body, { childList: true, subtree: true });
+        })();
+
+        // Interceptar botones de finalizar para usar SweetAlert2
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('button[value="finalizar"]').forEach(function (btn) {
+                // Obtenemos si tenía validateAll configurado
+                let hasValidateAll = false;
+                const origOnclick = btn.getAttribute('onclick');
+                if (origOnclick && origOnclick.includes('validateAll')) {
+                    hasValidateAll = true;
+                }
+
+                // Removemos el onclick nativo para que no salte el feo del navegador
+                btn.removeAttribute('onclick');
+
+                btn.addEventListener('click', function (e) {
+                    e.preventDefault();
+
+                    const form = btn.closest('form');
+
+                    // Verificamos si el form es válido nativamente (required, etc) ANTES del modal
+                    if (form && typeof form.reportValidity === 'function') {
+                        if (!form.reportValidity()) {
+                            return; // Si faltan datos obligatorios, no mostramos el mensaje
+                        }
+                    }
+
+                    // Si requiere validación extra (ej. checklists), la ejecutamos
+                    if (hasValidateAll && typeof validateAll === 'function') {
+                        if (!validateAll()) {
+                            return; // Detenemos aquí si la validación falla
+                        }
+                    }
+
+                    // Validación especial para CIE10 en formulario
+                    const cie10Hidden = document.getElementById('cie10-value');
+                    if (cie10Hidden && form.contains(cie10Hidden) && !cie10Hidden.value.trim()) {
+                        const searchInput = document.getElementById('cie10-search');
+                        if (searchInput) {
+                            alert("Por favor seleccione la Impresión Diagnóstica (CIE10) antes de finalizar.");
+                            searchInput.focus();
+                            return;
+                        }
+                    }
+
+                    // Validación especial para CIE10 en MCI
+                    const cie10HiddenMci = document.getElementById('cie10-value-mci');
+                    if (cie10HiddenMci && form.contains(cie10HiddenMci) && !cie10HiddenMci.value.trim()) {
+                        const searchInputMci = document.getElementById('cie10-search-mci');
+                        if (searchInputMci) {
+                            alert("Por favor seleccione la Impresión Diagnóstica (CIE10) antes de finalizar.");
+                            searchInputMci.focus();
+                            return;
+                        }
+                    }
+
+                    Swal.fire({
+                        title: '¿Confirmar Finalización?',
+                        text: '¿Está seguro de finalizar este registro? Una vez finalizado no podrá ser editado.',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#10b981',
+                        cancelButtonColor: '#64748b',
+                        confirmButtonText: '<i class="ph ph-check-circle" style="font-size:18px; vertical-align:-3px; margin-right:4px;"></i> Sí, finalizar',
+                        cancelButtonText: 'Cancelar',
+                        reverseButtons: true,
+                        customClass: {
+                            popup: 'swal2-custom-popup',
+                            title: 'swal2-custom-title',
+                            confirmButton: 'swal2-custom-confirm',
+                            cancelButton: 'swal2-custom-cancel'
+                        }
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            if (form) {
+                                // En lugar de form.submit() que salta el evento 'submit', 
+                                // disparamos el evento para que pwa-offline.js lo capture.
+                                if (typeof form.requestSubmit === 'function') {
+                                    form.requestSubmit(btn);
+                                } else {
+                                    const hiddenInput = document.createElement('input');
+                                    hiddenInput.type = 'hidden';
+                                    hiddenInput.name = btn.name || 'accion';
+                                    hiddenInput.value = btn.value || 'finalizar';
+                                    form.appendChild(hiddenInput);
+
+                                    const event = new Event('submit', { cancelable: true, bubbles: true });
+                                    Object.defineProperty(event, 'submitter', { value: btn, enumerable: true });
+                                    if (form.dispatchEvent(event)) {
+                                        form.submit();
+                                    }
+                                }
+                            }
+                        }
+                    });
+                });
             });
         });
-    });
-});
-</script>
-<script>
-(function() {
-    var pageKey = 'amb_app_open';
-    if (!sessionStorage.getItem(pageKey)) {
-        sessionStorage.setItem(pageKey, '1');
-        var path = window.location.pathname;
-        if (path !== '/' && path !== '/dashboard' && path.indexOf('/login') === -1 && path.indexOf('/seleccionar_perfil') === -1 && path.indexOf('/cambiar_contrasena') === -1) {
-            window.location.replace('/dashboard');
-        }
-    }
-})();
-</script>
-<script>
-// Validaciones globales para inputs de integrantes
-document.addEventListener('input', function(e) {
-    if (!e.target || e.target.tagName.toLowerCase() !== 'input') return;
-    
-    // Solo letras y espacios para el nombre
-    if (e.target.name === 'integrante_nombre[]' || e.target.classList.contains('integrante-nombre') || e.target.classList.contains('input-nombre')) {
-        e.target.value = e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ ]/g, '');
-    }
-    
-    // Solo números para el documento
-    if (e.target.name === 'integrante_doc[]' || e.target.classList.contains('integrante-doc') || e.target.classList.contains('input-doc')) {
-        e.target.value = e.target.value.replace(/[^0-9]/g, '');
-    }
-});
-</script>
+    </script>
+    <script>
+        (function () {
+            var pageKey = 'amb_app_open';
+            if (!sessionStorage.getItem(pageKey)) {
+                sessionStorage.setItem(pageKey, '1');
+                var path = window.location.pathname;
+                if (path !== '/' && path !== '/dashboard' && path.indexOf('/login') === -1 && path.indexOf('/seleccionar_perfil') === -1 && path.indexOf('/cambiar_contrasena') === -1) {
+                    window.location.replace('/dashboard');
+                }
+            }
+        })();
+    </script>
+    <script>
+        // Validaciones globales para inputs de integrantes
+        document.addEventListener('input', function (e) {
+            if (!e.target || e.target.tagName.toLowerCase() !== 'input') return;
+
+            // Solo letras y espacios para el nombre
+            if (e.target.name === 'integrante_nombre[]' || e.target.classList.contains('integrante-nombre') || e.target.classList.contains('input-nombre')) {
+                e.target.value = e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ ]/g, '');
+            }
+
+            // Solo números para el documento
+            if (e.target.name === 'integrante_doc[]' || e.target.classList.contains('integrante-doc') || e.target.classList.contains('input-doc')) {
+                e.target.value = e.target.value.replace(/[^0-9]/g, '');
+            }
+        });
+    </script>
 </body>
+
 </html>
