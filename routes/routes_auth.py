@@ -687,9 +687,6 @@ def register_routes(app):
         conn = get_db()
         user = conn.execute("SELECT * FROM usuarios WHERE id = ?", (user_id,)).fetchone()
         if user:
-            if user["identificacion"] == "admin":
-                flash("No se puede restablecer la contraseña del administrador principal desde aquí.", "error")
-            else:
                 # Reset password to identification and force change
                 hashed_id = generate_password_hash(user["identificacion"])
                 conn.execute(
