@@ -642,7 +642,7 @@ document.addEventListener('DOMContentLoaded', () => {
       firmasOcultas.forEach(inp => inp.value = '');
 
       // Además, disparar el clic de los botones de "Limpiar" firma por seguridad
-      const clearBtns = form.querySelectorAll('.clear-btn, button[onclick*="clearCanvas"], button[onclick*="limpiarFirma"]');
+      const clearBtns = form.querySelectorAll('.clear-btn, button[onclick*="clearCanvas"], button[onclick*="limpiarFirma"], button[id*="clear"]');
       clearBtns.forEach(btn => {
           try { btn.click(); } catch(e){}
       });

@@ -3,7 +3,7 @@
 //  Versión: 1.0.8
 // ═══════════════════════════════════════════════════════════
 
-const CACHE_NAME = 'ambulacia-v84';
+const CACHE_NAME = 'ambulacia-v85';
 const OFFLINE_DB  = 'ambulacia-offline';
 const SW_FETCH_TIMEOUT = 30000;
 
@@ -32,7 +32,7 @@ const STATIC_ASSETS = [
   '/static/css/styles.css',
   '/static/manifest.json',
   '/static/offline.html?v=3',
-  '/static/pwa-offline.js?v=57',
+  '/static/pwa-offline.js?v=58',
   '/static/js/dictation.js',
   '/api/cie10_full',
   '/static/data/Departamentos_Municipios.json',
