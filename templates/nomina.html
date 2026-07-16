@@ -428,5 +428,13 @@
         
         return false;
     }
+
+    const uploadForm = document.getElementById('uploadForm');
+    if (uploadForm) {
+        uploadForm.addEventListener('submit', function() {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> Subiendo...';
+        });
+    }
 </script>
 {% endblock %}
