@@ -539,11 +539,11 @@ setTimeout(function() {
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
                                 Editar
                             </a>
-                            {% if u.identificacion != 'admin' %}
                             <a href="{{ url_for('reset_usuario_contrasena', user_id=u.id) }}" class="btn-accion restablecer" title="Restablecer contraseña" onclick="return confirm('¿Restablecer contraseña de {{ u.nombre }}? Será su número de identificación y deberá cambiarla al ingresar.');">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="m8 12 2 2 4-4"/></svg>
                                 Rest. Clave
                             </a>
+                            {% if u.identificacion != 'admin' %}
                             <a href="{{ url_for('toggle_usuario', user_id=u.id) }}" class="btn-accion {% if u.activo %}desactivar{% else %}activar{% endif %}" title="{% if u.activo %}Desactivar usuario{% else %}Activar usuario{% endif %}" onclick="return confirm('¿Está seguro de {% if u.activo %}desactivar{% else %}activar{% endif %} al usuario {{ u.nombre }}?');">
                                 {% if u.activo %}
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.68 13.31a6 6 0 0 0 0 0"/><path d="M18 8h2a3 3 0 0 1 0 6h-2"/><path d="M4 8h2a3 3 0 0 1 0 6H4"/><path d="M8 14v-3a4 4 0 0 1 8 0v3"/></svg>
