@@ -1,0 +1,432 @@
+{% extends "base.html" %}
+
+{% block title %}Nómina - {{ institucion.nombre_institucion }}{% endblock %}
+
+{% block content %}
+<style>
+    .page-header {
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+    .page-header h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        margin-bottom: 0.5rem;
+    }
+    .page-header p {
+        color: var(--text-muted);
+        font-size: 1rem;
+    }
+    
+    .upload-card {
+        background: var(--surface);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-lg);
+        padding: 2.5rem;
+        max-width: 600px;
+        margin: 0 auto 3rem auto;
+        text-align: center;
+        border: 1px solid var(--border);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .upload-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 15px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+    
+    .upload-area {
+        border: 2px dashed var(--primary);
+        border-radius: var(--radius);
+        padding: 3rem 2rem;
+        background: var(--primary-light);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 1rem;
+    }
+    
+    .upload-area:hover, .upload-area.dragover {
+        background: #dbeafe;
+        border-color: var(--primary-dark);
+    }
+    
+    .upload-icon {
+        font-size: 3.5rem;
+        color: var(--primary);
+        transition: transform 0.3s ease;
+    }
+    
+    .upload-area:hover .upload-icon {
+        transform: translateY(-5px);
+    }
+    
+    .upload-text {
+        font-weight: 600;
+        color: var(--primary-dark);
+        font-size: 1.1rem;
+    }
+    
+    .upload-hint {
+        color: var(--text-muted);
+        font-size: 0.85rem;
+    }
+    
+    .file-input {
+        display: none;
+    }
+    
+    .file-selected {
+        display: none;
+        margin-top: 1.5rem;
+        padding: 1rem;
+        background: #f8fafc;
+        border-radius: var(--radius);
+        border: 1px solid var(--border);
+        align-items: center;
+        justify-content: space-between;
+    }
+    
+    .file-selected.active {
+        display: flex;
+    }
+    
+    .file-name {
+        font-weight: 500;
+        color: var(--text);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    
+    .btn-upload {
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: var(--radius);
+        font-weight: 600;
+        cursor: pointer;
+        transition: opacity 0.2s;
+        width: 100%;
+        margin-top: 1.5rem;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 1rem;
+    }
+    
+    .btn-upload:hover {
+        opacity: 0.9;
+    }
+    
+    .btn-upload:disabled {
+        background: var(--text-muted);
+        cursor: not-allowed;
+    }
+
+    .history-section {
+        background: var(--surface);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 1.5rem;
+        margin-top: 2rem;
+    }
+    
+    .history-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--text);
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .table-container {
+        overflow-x: auto;
+    }
+    
+    .table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 600px;
+    }
+    
+    .table th {
+        background: #f8fafc;
+        color: var(--text-muted);
+        font-weight: 600;
+        text-align: left;
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid var(--border);
+    }
+    
+    .table td {
+        padding: 1rem;
+        border-bottom: 1px solid var(--border);
+        color: var(--text);
+        vertical-align: middle;
+    }
+    
+    .table tr:last-child td {
+        border-bottom: none;
+    }
+    
+    .table tr:hover {
+        background: #f8fafc;
+    }
+    
+    .action-btns {
+        display: flex;
+        gap: 0.5rem;
+    }
+    
+    .btn-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        cursor: pointer;
+        color: white;
+        transition: opacity 0.2s;
+        text-decoration: none;
+    }
+    
+    .btn-icon:hover {
+        opacity: 0.8;
+    }
+    
+    .btn-download {
+        background: var(--primary);
+    }
+    
+    .btn-delete {
+        background: var(--error);
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+        color: var(--text-muted);
+    }
+    
+    .empty-state i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+</style>
+
+<div class="container" style="max-width: 900px; margin: 0 auto; padding: 2rem 1rem;">
+    <div class="page-header">
+        <h1>Gestión de Nómina</h1>
+        <p>Sube el archivo de Excel con la nómina para mantener un registro histórico</p>
+    </div>
+
+    <div class="upload-card">
+        <form id="uploadForm" action="{{ url_for('nomina.nomina_upload') }}" method="POST" enctype="multipart/form-data">
+            <div class="upload-area" id="dropArea" onclick="document.getElementById('fileInput').click()">
+                <i class="ph ph-file-xls upload-icon"></i>
+                <div class="upload-text">Selecciona o arrastra el archivo Excel aquí</div>
+                <div class="upload-hint">Formatos soportados: .xlsx, .xls, .csv</div>
+            </div>
+            <input type="file" name="file" id="fileInput" class="file-input" accept=".xlsx, .xls, .csv">
+            
+            <div class="file-selected" id="fileSelected">
+                <div class="file-name">
+                    <i class="ph ph-file-excel" style="color: var(--success); font-size: 1.5rem;"></i>
+                    <span id="fileNameDisplay">NOMINA.xlsx</span>
+                </div>
+                <button type="button" class="btn-icon" style="background: transparent; color: var(--text-muted);" onclick="clearFile()">
+                    <i class="ph ph-x"></i>
+                </button>
+            </div>
+            
+            <button type="submit" class="btn-upload" id="submitBtn" disabled>
+                <i class="ph ph-upload-simple"></i> Subir Nómina
+            </button>
+        </form>
+    </div>
+
+    <div class="history-section">
+        <div class="history-title">
+            <i class="ph ph-clock-counter-clockwise"></i> Historial de Nóminas
+        </div>
+        
+        {% if archivos %}
+        <div class="table-container">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Fecha de Subida</th>
+                        <th>Archivo</th>
+                        <th>Registrado por</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for archivo in archivos %}
+                    <tr>
+                        <td>
+                            <div style="font-weight: 500;">{{ archivo.fecha_subida.strftime('%Y-%m-%d') if archivo.fecha_subida else '' }}</div>
+                            <div style="font-size: 0.85rem; color: var(--text-muted);">{{ archivo.fecha_subida.strftime('%H:%M') if archivo.fecha_subida else '' }}</div>
+                        </td>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <i class="ph ph-file-xls" style="color: var(--success); font-size: 1.2rem;"></i>
+                                {{ archivo.nombre_archivo }}
+                            </div>
+                        </td>
+                        <td>
+                            <div>{{ archivo.registrado_por }}</div>
+                            <div style="font-size: 0.85rem; color: var(--text-muted);">{{ archivo.registrado_por_identificacion }}</div>
+                        </td>
+                        <td>
+                            <div class="action-btns">
+                                <a href="{{ url_for('nomina.download_nomina', filename=archivo.archivo_url) }}" class="btn-icon btn-download" title="Descargar">
+                                    <i class="ph ph-download-simple"></i>
+                                </a>
+                                <form action="{{ url_for('nomina.delete_nomina', id=archivo.id) }}" method="POST" onsubmit="return confirmDelete(event);">
+                                    <button type="submit" class="btn-icon btn-delete" title="Eliminar">
+                                        <i class="ph ph-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="ph ph-folder-open"></i>
+            <h3>No hay archivos de nómina</h3>
+            <p>Aún no se ha subido ningún archivo de nómina al sistema.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    const dropArea = document.getElementById('dropArea');
+    const fileInput = document.getElementById('fileInput');
+    const fileSelected = document.getElementById('fileSelected');
+    const fileNameDisplay = document.getElementById('fileNameDisplay');
+    const submitBtn = document.getElementById('submitBtn');
+
+    // Handle drag events
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropArea.addEventListener(eventName, preventDefaults, false);
+    });
+
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropArea.addEventListener(eventName, () => {
+            dropArea.classList.add('dragover');
+        }, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropArea.addEventListener(eventName, () => {
+            dropArea.classList.remove('dragover');
+        }, false);
+    });
+
+    // Handle dropped files
+    dropArea.addEventListener('drop', (e) => {
+        let dt = e.dataTransfer;
+        let files = dt.files;
+        handleFiles(files);
+    });
+
+    // Handle selected files
+    fileInput.addEventListener('change', function() {
+        handleFiles(this.files);
+    });
+
+    function handleFiles(files) {
+        if (files.length > 0) {
+            const file = files[0];
+            const validExtensions = ['.xlsx', '.xls', '.csv'];
+            const fileExtension = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+            
+            if (validExtensions.includes(fileExtension)) {
+                // Update file input manually if it came from drop
+                if (fileInput.files !== files) {
+                    const dataTransfer = new DataTransfer();
+                    dataTransfer.items.add(file);
+                    fileInput.files = dataTransfer.files;
+                }
+                
+                fileNameDisplay.textContent = file.name;
+                fileSelected.classList.add('active');
+                dropArea.style.display = 'none';
+                submitBtn.disabled = false;
+            } else {
+                Swal.fire({
+                    title: 'Formato no válido',
+                    text: 'Solo se permiten archivos de Excel o CSV (.xlsx, .xls, .csv)',
+                    icon: 'error',
+                    customClass: {
+                        popup: 'swal2-custom-popup',
+                        title: 'swal2-custom-title',
+                        confirmButton: 'swal2-custom-confirm'
+                    }
+                });
+                clearFile();
+            }
+        }
+    }
+
+    function clearFile() {
+        fileInput.value = '';
+        fileSelected.classList.remove('active');
+        dropArea.style.display = 'flex';
+        submitBtn.disabled = true;
+    }
+
+    function confirmDelete(e) {
+        e.preventDefault();
+        const form = e.target;
+        
+        Swal.fire({
+            title: '¿Eliminar archivo?',
+            text: "Esta acción no se puede deshacer y el archivo se borrará del servidor.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#94a3b8',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar',
+            customClass: {
+                popup: 'swal2-custom-popup',
+                title: 'swal2-custom-title',
+                confirmButton: 'swal2-custom-confirm',
+                cancelButton: 'swal2-custom-cancel'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                form.submit();
+            }
+        });
+        
+        return false;
+    }
+</script>
+{% endblock %}

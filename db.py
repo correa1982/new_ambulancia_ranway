@@ -205,6 +205,16 @@ def init_db():
         )
     """)
     conn.execute("""
+        CREATE TABLE IF NOT EXISTS nomina (
+            id INTEGER PRIMARY KEY AUTO_INCREMENT,
+            fecha_subida DATETIME NOT NULL,
+            nombre_archivo VARCHAR(255) NOT NULL,
+            archivo_url TEXT NOT NULL,
+            registrado_por TEXT NOT NULL,
+            registrado_por_identificacion TEXT NOT NULL
+        )
+    """)
+    conn.execute("""
         CREATE TABLE IF NOT EXISTS pacientes (
             id INTEGER PRIMARY KEY AUTO_INCREMENT,
             identificacion_paciente TEXT NOT NULL,

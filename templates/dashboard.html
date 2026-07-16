@@ -353,6 +353,11 @@ document.addEventListener("DOMContentLoaded", function() {
     </a>
 
     {% if session.usuario.rol == 'admin' %}
+    <a href="{{ url_for('nomina.nomina_index') }}" class="dash-card" style="border-color: #e2e8f0;">
+        <div class="card-icon" style="background: #dcfce7;"><i class="ph ph-money" style="color: #16a34a;"></i></div>
+        <div class="card-title">Gestión de Nómina</div>
+        <div class="card-desc">Subir y consultar historial de nóminas cargadas mediante archivo de Excel.</div>
+    </a>
     <a href="{{ url_for('admin_mapa') }}" class="dash-card" style="border-color: #e2e8f0;">
         <div class="card-icon" style="background: #dcfce7;"><i class="ph ph-map-pin" style="color: #16a34a;"></i></div>
         <div class="card-title">Mapa de Unidades</div>
