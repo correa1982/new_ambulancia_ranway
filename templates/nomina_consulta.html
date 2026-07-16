@@ -158,7 +158,8 @@
             
             <div class="total-box">
                 <div class="total-label">Valor Total a Pagar</div>
-                <div class="total-val">${{ resultado.valor_total }}</div>
+                {% set total_num = resultado.valor_total|float(default=0) %}
+                <div class="total-val">${{ "{:,.0f}".format(total_num).replace(',', '.') }}</div>
             </div>
             
             {% if resultado.detalle_dict %}
