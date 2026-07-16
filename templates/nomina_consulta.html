@@ -162,17 +162,7 @@
                 <div class="total-val">${{ "{:,.0f}".format(total_num).replace(',', '.') }}</div>
             </div>
             
-            {% if resultado.detalle_dict %}
-            <div style="margin-bottom: 12px; font-weight: 600; color: rgba(255,255,255,0.8); font-size: 14px;">Detalles:</div>
-            <div class="detail-grid">
-                {% for key, val in resultado.detalle_dict.items() %}
-                <div class="detail-item">
-                    <span class="detail-key">{{ key }}</span>
-                    <span class="detail-value">{{ val }}</span>
-                </div>
-                {% endfor %}
-            </div>
-            {% endif %}
+
         </div>
         <a href="{{ url_for('nomina.nomina_consulta') }}" class="btn-submit" style="display:block; text-align:center; margin-top:20px; text-decoration:none;">Realizar otra consulta</a>
     {% else %}
