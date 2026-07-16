@@ -211,7 +211,8 @@ def init_db():
             nombre_archivo VARCHAR(255) NOT NULL,
             archivo_url TEXT NOT NULL,
             registrado_por TEXT NOT NULL,
-            registrado_por_identificacion TEXT NOT NULL
+            registrado_por_identificacion TEXT NOT NULL,
+            periodo VARCHAR(255)
         )
     """)
     conn.execute("""

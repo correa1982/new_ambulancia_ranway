@@ -90,6 +90,9 @@ def register_routes(app):
                     wb = openpyxl.load_workbook(file_path, data_only=True)
                     ws = wb.active
                     
+                    periodo_val = str(ws['U2'].value).strip() if ws['U2'].value else ""
+                    conn.execute("UPDATE nomina SET periodo = ? WHERE id = ?", (periodo_val, nomina_id))
+                    
                     header_row_idx = None
                     headers = []
                     for idx, row in enumerate(ws.iter_rows(values_only=True)):
@@ -206,7 +209,7 @@ def register_routes(app):
             conn = get_db()
             try:
                 # Find the latest nomina uploaded
-                cursor = conn.execute("SELECT id, fecha_subida FROM nomina ORDER BY fecha_subida DESC LIMIT 1")
+                cursor = conn.execute("SELECT id, fecha_subida, periodo FROM nomina ORDER BY fecha_subida DESC LIMIT 1")
                 latest_nomina = cursor.fetchone()
                 
                 if not latest_nomina:
@@ -232,7 +235,7 @@ def register_routes(app):
                     else:
                         empleado['detalle_dict'] = {}
                         
-                    return render_template('nomina_consulta.html', resultado=empleado, fecha_nomina=latest_nomina['fecha_subida'])
+                    return render_template('nomina_consulta.html', resultado=empleado, fecha_nomina=latest_nomina['fecha_subida'], periodo_nomina=latest_nomina.get('periodo', ''))
                 else:
                     flash('Cédula o código incorrectos, o no se encontró en la nómina actual.', 'error')
             except Exception as e:
