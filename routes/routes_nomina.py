@@ -25,6 +25,9 @@ def register_routes(app):
     def nomina_index():
         from flask import session
         user_info = session['usuario']
+        if user_info.get('rol_real') != 'admin' and 'nomina' not in user_info.get('formularios_acceso', []):
+            flash('Acceso no autorizado al módulo de nómina.', 'error')
+            return redirect(url_for('dashboard'))
         conn = get_db()
         try:
             cursor = conn.execute("SELECT * FROM nomina ORDER BY fecha_subida DESC")
@@ -40,6 +43,12 @@ def register_routes(app):
     @nomina_bp.route('/nomina/upload', methods=['POST'])
     @login_required
     def nomina_upload():
+        from flask import session
+        user_info = session['usuario']
+        if user_info.get('rol_real') != 'admin' and 'nomina' not in user_info.get('formularios_acceso', []):
+            flash('Acceso no autorizado al módulo de nómina.', 'error')
+            return redirect(url_for('dashboard'))
+
         if 'file' not in request.files:
             flash('No se seleccionó ningún archivo.', 'error')
             return redirect(url_for('nomina.nomina_index'))
