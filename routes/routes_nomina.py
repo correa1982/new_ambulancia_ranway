@@ -90,6 +90,11 @@ def register_routes(app):
                     wb = openpyxl.load_workbook(file_path, data_only=True)
                     ws = wb.active
                     
+                    try:
+                        conn.execute("ALTER TABLE nomina ADD COLUMN periodo VARCHAR(255)")
+                    except Exception:
+                        pass
+                        
                     periodo_val = str(ws['U2'].value).strip() if ws['U2'].value else ""
                     conn.execute("UPDATE nomina SET periodo = ? WHERE id = ?", (periodo_val, nomina_id))
                     
