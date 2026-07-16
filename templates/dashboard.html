@@ -332,9 +332,11 @@ document.addEventListener("DOMContentLoaded", function() {
 </div>
 {% endif %}
 
-{% if session.usuario.rol == 'admin' or 'registros' in session.usuario.get('formularios_acceso', []) %}
+{% set has_registros = session.usuario.rol == 'admin' or 'registros' in session.usuario.get('formularios_acceso', []) or 'nomina' in session.usuario.get('formularios_acceso', []) %}
+{% if has_registros %}
 <div class="section-title">Administración y Consultas</div>
 <div class="dashboard-grid">
+    {% if session.usuario.rol == 'admin' or 'registros' in session.usuario.get('formularios_acceso', []) %}
     <a href="{{ url_for('registros_global') }}" class="dash-card" style="border-color: #e2e8f0;">
         <div class="card-icon" style="background: #fef3c7;"><i class="ph ph-folder-open" style="color: #d97706;"></i></div>
         <div class="card-title">Explorador de Registros</div>
@@ -351,6 +353,15 @@ document.addEventListener("DOMContentLoaded", function() {
         <div class="card-title">Estadísticas Globales</div>
         <div class="card-desc">Métricas y gráficas consolidadas de pacientes, eventos y operatividad.</div>
     </a>
+    {% endif %}
+
+    {% if session.usuario.get('rol_real') == 'admin' or 'nomina' in session.usuario.get('formularios_acceso', []) %}
+    <a href="{{ url_for('nomina.nomina_index') }}" class="dash-card" style="border-color: #e2e8f0;">
+        <div class="card-icon" style="background: #dcfce7;"><i class="ph ph-money" style="color: #16a34a;"></i></div>
+        <div class="card-title">Gestión de Nómina</div>
+        <div class="card-desc">Subir y consultar historial de nóminas cargadas mediante archivo de Excel.</div>
+    </a>
+    {% endif %}
 
     {% if session.usuario.rol == 'admin' %}
     <a href="{{ url_for('admin_mapa') }}" class="dash-card" style="border-color: #e2e8f0;">
@@ -382,7 +393,7 @@ document.addEventListener("DOMContentLoaded", function() {
 </div>
 {% endif %}
 
-{% set has_registros = session.usuario.rol == 'admin' or 'registros' in session.usuario.get('formularios_acceso', []) %}
+{% set has_registros = session.usuario.rol == 'admin' or 'registros' in session.usuario.get('formularios_acceso', []) or 'nomina' in session.usuario.get('formularios_acceso', []) %}
 {% if not has_clinica and not has_checklists and not has_registros %}
 <div style="text-align: center; padding: 60px 20px; background: white; border-radius: 12px; border: 1px dashed #cbd5e1; margin-top: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);">
     <div style="font-size: 48px; margin-bottom: 16px; opacity: 0.5;">🚫</div>

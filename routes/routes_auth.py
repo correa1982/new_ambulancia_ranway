@@ -111,6 +111,7 @@ def register_routes(app):
                 "identificacion": user["identificacion"],
                 "registro_medico": user["registro_medico"],
                 "rol": "admin" if (user["rol"] == "admin" or perfil_unico == "Administrador") else "usuario",
+                "rol_real": user["rol"],
                 "perfil": perfil_unico,
                 "requiere_cambio_clave": user["requiere_cambio_clave"],
                 "formularios_acceso": formularios_acceso_list,
@@ -162,6 +163,7 @@ def register_routes(app):
                 "identificacion": pendiente["identificacion"],
                 "registro_medico": pendiente["registro_medico"],
                 "rol": "admin" if (pendiente["rol"] == "admin" or perfil_elegido == "Administrador") else "usuario",
+                "rol_real": pendiente["rol"],
                 "perfil": perfil_elegido,
                 "requiere_cambio_clave": pendiente["requiere_cambio_clave"],
                 "formularios_acceso": formularios_acceso_list,
@@ -624,9 +626,23 @@ def register_routes(app):
             firma = request.form.get("firma", "").strip()
             correo = request.form.get("correo", "").strip()
             
+            # Recuperar permisos antiguos por si el usuario que edita no es admin real
+            old_acc_dict = {}
+            if user and user["formularios_acceso"]:
+                try:
+                    old_acc_dict = json.loads(user["formularios_acceso"])
+                except:
+                    pass
+
             formularios_acceso_dict = {}
             for p in perfiles_list:
-                formularios_acceso_dict[p] = request.form.getlist(f"formularios_acceso_{p}")
+                current_forms = request.form.getlist(f"formularios_acceso_{p}")
+                # Si no es admin real, preservar el permiso 'nomina' si ya lo tenía
+                if session['usuario'].get('rol_real') != 'admin':
+                    old_forms = old_acc_dict.get(p, []) if isinstance(old_acc_dict, dict) else []
+                    if 'nomina' in old_forms and 'nomina' not in current_forms:
+                        current_forms.append('nomina')
+                formularios_acceso_dict[p] = current_forms
             formularios_acceso = json.dumps(formularios_acceso_dict, ensure_ascii=False)
 
             perfiles_requieren_rm = {"Médico", "Enfermero", "APH", "Auxiliar en Enfermeria"}
