@@ -215,6 +215,19 @@ def init_db():
         )
     """)
     conn.execute("""
+        CREATE TABLE IF NOT EXISTS nomina_empleados (
+            id INTEGER PRIMARY KEY AUTO_INCREMENT,
+            nomina_id INTEGER NOT NULL,
+            identificacion VARCHAR(255) NOT NULL,
+            nombres VARCHAR(255),
+            apellidos VARCHAR(255),
+            codigo VARCHAR(255) NOT NULL,
+            valor_total VARCHAR(255),
+            detalle TEXT,
+            FOREIGN KEY(nomina_id) REFERENCES nomina(id) ON DELETE CASCADE
+        )
+    """)
+    conn.execute("""
         CREATE TABLE IF NOT EXISTS pacientes (
             id INTEGER PRIMARY KEY AUTO_INCREMENT,
             identificacion_paciente TEXT NOT NULL,
