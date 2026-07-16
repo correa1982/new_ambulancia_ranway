@@ -175,10 +175,10 @@
                 </div>
             </div>
             <div class="form-group">
-                <label class="form-label">Código de Empleado</label>
+                <label class="form-label">Código de Empleado (Fecha expedición CC)</label>
                 <div class="input-wrap">
-                    <span class="input-icon">🔑</span>
-                    <input type="text" name="codigo" class="form-input" placeholder="Ingresa tu código único" required>
+                    <span class="input-icon">📅</span>
+                    <input type="text" name="codigo" id="codigoInput" class="form-input" placeholder="DD/MM/AAAA" required>
                 </div>
             </div>
             <button type="submit" class="btn-submit">🔍 Consultar</button>
@@ -188,5 +188,23 @@
     <a href="{{ url_for('login') }}" class="btn-back">← Volver al Login</a>
 </div>
 
+<script>
+    const codigoInput = document.getElementById('codigoInput');
+    if (codigoInput) {
+        codigoInput.addEventListener('input', function (e) {
+            let val = e.target.value.replace(/\D/g, ''); // Remove all non-digits
+            if (val.length > 8) val = val.substring(0, 8); // Max 8 digits
+            
+            let formatted = val;
+            if (val.length > 2) {
+                formatted = val.substring(0, 2) + '/' + val.substring(2);
+            }
+            if (val.length > 4) {
+                formatted = formatted.substring(0, 5) + '/' + val.substring(4);
+            }
+            e.target.value = formatted;
+        });
+    }
+</script>
 </body>
 </html>

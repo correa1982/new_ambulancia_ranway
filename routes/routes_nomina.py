@@ -128,7 +128,13 @@ def register_routes(app):
                                 
                             nombres_val = str(row[nombres_idx]).strip() if nombres_idx != -1 and len(row) > nombres_idx and row[nombres_idx] is not None else ""
                             apellidos_val = str(row[apellidos_idx]).strip() if apellidos_idx != -1 and len(row) > apellidos_idx and row[apellidos_idx] is not None else ""
-                            codigo_val = str(row[codigo_idx]).strip() if codigo_idx != -1 and len(row) > codigo_idx and row[codigo_idx] is not None else ""
+                            
+                            codigo_val_raw = row[codigo_idx] if codigo_idx != -1 and len(row) > codigo_idx else None
+                            if isinstance(codigo_val_raw, datetime):
+                                codigo_val = codigo_val_raw.strftime('%d/%m/%Y')
+                            else:
+                                codigo_val = str(codigo_val_raw).strip() if codigo_val_raw is not None else ""
+
                             total_val = str(row[total_idx]).strip() if total_idx != -1 and len(row) > total_idx and row[total_idx] is not None else ""
                             
                             detalle_dict = {}
@@ -224,10 +230,19 @@ def register_routes(app):
                 nomina_id = latest_nomina['id']
                 
                 # Check for employee in this nomina
-                cursor = conn.execute("""
+                codigo_variants = [codigo]
+                import re
+                match = re.match(r'^(\d{2})/(\d{2})/(\d{4})$', codigo)
+                if match:
+                    d, m, y = match.groups()
+                    codigo_variants.append(f"{y}-{m}-{d} 00:00:00")
+                    codigo_variants.append(f"{y}-{m}-{d}")
+                
+                placeholders = ','.join(['?'] * len(codigo_variants))
+                cursor = conn.execute(f"""
                     SELECT * FROM nomina_empleados 
-                    WHERE nomina_id = ? AND identificacion = ? AND codigo = ?
-                """, (nomina_id, cedula, codigo))
+                    WHERE nomina_id = ? AND identificacion = ? AND codigo IN ({placeholders})
+                """, (nomina_id, cedula, *codigo_variants))
                 empleado = cursor.fetchone()
                 
                 if empleado:
