@@ -1,10 +1,10 @@
 {% extends "base.html" %}
-{% block title %}Exportar RIPS JSON{% endblock %}
+{% block title %}Exportar RIPS Excel{% endblock %}
 {% block content %}
 <div class="content-header">
     <div class="header-title">
-        <h1>Exportar RIPS JSON (Res. 2275)</h1>
-        <p>Genera el archivo JSON requerido por el Ministerio de Salud para reportar facturación.</p>
+        <h1>Exportar RIPS Excel (Res. 2275)</h1>
+        <p>Genera el archivo Excel requerido por el Ministerio de Salud para reportar facturación.</p>
     </div>
     <div class="header-actions">
         <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">
@@ -13,23 +13,18 @@
     </div>
 </div>
 
-<div class="card" style="max-width: 600px; margin: 0 auto; margin-top: 2rem;">
-    <form action="{{ url_for('api_generar_rips') }}" method="POST" id="form-rips">
-        
-        <div class="form-group">
-            <label for="fecha_inicio">Fecha de Inicio <span style="color:#ef4444;">*</span></label>
-            <input type="date" id="fecha_inicio" name="fecha_inicio" required value="{{ date_hoy }}">
-        </div>
-
-        <div class="form-group">
-            <label for="fecha_fin">Fecha de Fin <span style="color:#ef4444;">*</span></label>
-            <input type="date" id="fecha_fin" name="fecha_fin" required value="{{ date_hoy }}">
-        </div>
-
-        <div class="form-group">
-            <label for="num_factura">Número de Factura Electrónica (FEV) <span style="color:#ef4444;">*</span></label>
-            <input type="text" id="num_factura" name="num_factura" required placeholder="Ej: SETT1234" autocomplete="off">
-            <small>Este número debe coincidir exactamente con la factura emitida por la DIAN.</small>
+<div class="card" style="margin: 0 auto; margin-top: 2rem;">
+    <form action="{{ url_for('api_generar_rips_excel') }}" method="POST" id="form-rips">
+        <div class="row">
+            <div class="form-group">
+                <label for="fecha_inicio">Fecha de Inicio <span style="color:#ef4444;">*</span></label>
+                <input type="date" id="fecha_inicio" name="fecha_inicio" required value="{{ date_hoy }}">
+            </div>
+    
+            <div class="form-group">
+                <label for="fecha_fin">Fecha de Fin <span style="color:#ef4444;">*</span></label>
+                <input type="date" id="fecha_fin" name="fecha_fin" required value="{{ date_hoy }}">
+            </div>
         </div>
         
         <div class="form-group">
@@ -37,26 +32,130 @@
             <input type="text" id="codigo_prestador" name="codigo_prestador" required placeholder="12 dígitos" value="123456789012" maxlength="12" pattern="\d{10,12}">
         </div>
 
-        <div style="margin-top: 2rem; display: flex; justify-content: flex-end;">
-            <button type="submit" class="btn btn-primary">
-                <i class="ph ph-download-simple"></i> Generar y Descargar JSON
+        <div style="margin-top: 1rem; display: flex; justify-content: flex-end;">
+            <button type="button" class="btn btn-secondary" id="btn-buscar">
+                <i class="ph ph-magnifying-glass"></i> Buscar Pacientes
             </button>
+        </div>
+
+        <div id="contenedor-pacientes" style="margin-top: 2rem; display: none;">
+            <div class="pw-warn" style="margin-bottom: 1rem;">Selecciona los pacientes y asigna un número de factura (opcional). Si lo dejas vacío, se exportará sin factura.</div>
+            <div style="overflow-x: auto;">
+                <table id="tabla-pacientes" style="width: 100%;">
+                    <thead>
+                        <tr>
+                            <th style="width: 40px; text-align: center;"><input type="checkbox" id="check-all" checked></th>
+                            <th>Paciente</th>
+                            <th>Identificación</th>
+                            <th>Fecha Registro</th>
+                            <th>Núm. Factura</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Poblado por JS -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Input hidden para enviar los datos seleccionados -->
+            <input type="hidden" name="pacientes_datos" id="pacientes_datos">
+
+            <div style="margin-top: 2rem; display: flex; justify-content: flex-end; gap: 10px;">
+                <button type="button" class="btn btn-primary" id="btn-generar-json" disabled onclick="submitRips('json')">
+                    <i class="ph ph-file-code"></i> Generar JSON
+                </button>
+                <button type="button" class="btn btn-success" id="btn-generar-excel" disabled onclick="submitRips('excel')">
+                    <i class="ph ph-file-xls"></i> Generar Excel
+                </button>
+            </div>
         </div>
     </form>
 </div>
 
 <script>
-document.getElementById('form-rips').addEventListener('submit', function(e) {
-    const btn = this.querySelector('button[type="submit"]');
-    const originalText = btn.innerHTML;
+document.getElementById('btn-buscar').addEventListener('click', async function() {
+    const fInicio = document.getElementById('fecha_inicio').value;
+    const fFin = document.getElementById('fecha_fin').value;
+    const btn = this;
+
+    if (!fInicio || !fFin) {
+        Swal.fire('Error', 'Debes seleccionar ambas fechas', 'error');
+        return;
+    }
+
     btn.disabled = true;
-    btn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> Generando...';
-    
-    // Habilitar de nuevo después de unos segundos, ya que la descarga no recarga la página
-    setTimeout(() => {
+    btn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> Buscando...';
+
+    try {
+        const res = await fetch(`{{ url_for('api_pacientes_por_fecha') }}?fecha_inicio=${fInicio}&fecha_fin=${fFin}`);
+        const data = await res.json();
+        
+        const tbody = document.querySelector('#tabla-pacientes tbody');
+        tbody.innerHTML = '';
+        
+        if (data.pacientes && data.pacientes.length > 0) {
+            data.pacientes.forEach(p => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="text-align: center;"><input type="checkbox" class="chk-paciente" data-id="${p.id}" checked></td>
+                    <td>${p.nombre_completo}</td>
+                    <td>${p.documento}</td>
+                    <td>${p.fecha_registro.split(' ')[0]}</td>
+                    <td><input type="text" class="input-factura" placeholder="Dejar vacío si no aplica" style="margin-top: 0; padding: 5px;"></td>
+                `;
+                tbody.appendChild(tr);
+            });
+            document.getElementById('contenedor-pacientes').style.display = 'block';
+            document.getElementById('btn-generar-json').disabled = false;
+            document.getElementById('btn-generar-excel').disabled = false;
+        } else {
+            document.getElementById('contenedor-pacientes').style.display = 'none';
+            document.getElementById('btn-generar-json').disabled = true;
+            document.getElementById('btn-generar-excel').disabled = true;
+            Swal.fire('Aviso', 'No se encontraron pacientes en ese rango de fechas', 'info');
+        }
+    } catch (e) {
+        Swal.fire('Error', 'Ocurrió un error al buscar los pacientes', 'error');
+    } finally {
         btn.disabled = false;
-        btn.innerHTML = originalText;
-    }, 3000);
+        btn.innerHTML = '<i class="ph ph-magnifying-glass"></i> Buscar Pacientes';
+    }
 });
+
+document.getElementById('check-all').addEventListener('change', function() {
+    const isChecked = this.checked;
+    document.querySelectorAll('.chk-paciente').forEach(chk => chk.checked = isChecked);
+});
+
+function submitRips(formato) {
+    const seleccionados = [];
+    const filas = document.querySelectorAll('#tabla-pacientes tbody tr');
+    
+    filas.forEach(fila => {
+        const chk = fila.querySelector('.chk-paciente');
+        if (chk && chk.checked) {
+            const id = chk.getAttribute('data-id');
+            const factura = fila.querySelector('.input-factura').value.trim();
+            seleccionados.push({ id: id, factura: factura });
+        }
+    });
+
+    if (seleccionados.length === 0) {
+        Swal.fire('Error', 'Debes seleccionar al menos un paciente', 'warning');
+        return;
+    }
+
+    document.getElementById('pacientes_datos').value = JSON.stringify(seleccionados);
+
+    const form = document.getElementById('form-rips');
+    if (formato === 'json') {
+        form.action = "{{ url_for('api_generar_rips') }}";
+    } else {
+        form.action = "{{ url_for('api_generar_rips_excel') }}";
+    }
+    
+    // Submit form manually after changing action
+    form.submit();
+}
 </script>
 {% endblock %}
