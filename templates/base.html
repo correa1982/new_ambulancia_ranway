@@ -678,8 +678,11 @@
             margin-right: 10px;
         }
 
-        @media (max-width: 700px) {
+        .mobile-break {
+            display: none;
+        }
 
+        @media (max-width: 700px) {
             .row,
             .row-3,
             .row-4 {
@@ -698,9 +701,23 @@
             }
 
             .navbar-right {
-                justify-content: center;
-                gap: 6px;
+                display: contents;
             }
+
+            .mobile-break {
+                display: block;
+                flex-basis: 100%;
+                height: 0;
+                order: 4;
+            }
+
+            .navbar-brand { order: 1; margin: 0; }
+            #btn-mi-gps { order: 2; margin: 0; }
+            .nav-logout { order: 3; margin: 0; }
+            
+            #btn-instalar-pwa { order: 5; margin: 0; }
+            .user-offline-group { order: 6; margin: 0; }
+            .pw-warn { order: 7; flex-basis: 100%; text-align: center; }
 
 
             .submit-row {
@@ -912,27 +929,30 @@
             style="background: rgba(255,255,255,0.15); padding: 6px 16px; border-radius: 8px; display: flex; align-items: center; gap: 8px; height: 38px; border: 1px solid rgba(255,255,255,0.2); text-decoration: none; color: white; font-weight: 600; font-size: 14px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
             <i class="ph ph-house" style="font-size: 18px;"></i> Menú
         </a>
+        <div class="mobile-break"></div>
 
         <div class="navbar-right">
             {% if session.usuario.requiere_cambio_clave == 1 %}
             <div class="pw-warn">⚠️ Cambio de contraseña requerido</div>
             {% endif %}
 
-            <!-- Badge registros offline -->
-            <button class="pwa-offline-btn" onclick="document.getElementById('modal-offline').classList.add('open')"
-                title="Registros guardados sin internet">
-                📶
-                <span class="pwa-badge-pendientes" id="pwa-badge-nav">0</span>
-            </button>
+            <div class="user-offline-group" style="display:flex; align-items:center; gap:3px;">
+                <!-- Badge registros offline -->
+                <button class="pwa-offline-btn" onclick="document.getElementById('modal-offline').classList.add('open')"
+                    title="Registros guardados sin internet">
+                    📶
+                    <span class="pwa-badge-pendientes" id="pwa-badge-nav">0</span>
+                </button>
 
-            <div class="nav-divider"></div>
+                <div class="nav-divider"></div>
 
-            <div class="nav-user-badge">
-                👤 {{ session.usuario.nombre.split()[0] }}
-                <span class="user-role">
-                    {% if session.usuario.rol == 'admin' %}Admin{% else %}{{ session.usuario.perfil or 'Usuario' }}{%
-                    endif %}
-                </span>
+                <div class="nav-user-badge">
+                    👤 {{ session.usuario.nombre.split()[0] }}
+                    <span class="user-role">
+                        {% if session.usuario.rol == 'admin' %}Admin{% else %}{{ session.usuario.perfil or 'Usuario' }}{%
+                        endif %}
+                    </span>
+                </div>
             </div>
             <button id="btn-instalar-pwa" class="nav-link"
                 style="display: none; background: #f59e0b; color: white; border: none; cursor: pointer; font-weight: 700;"
