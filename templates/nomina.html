@@ -260,8 +260,13 @@
     </div>
 
     <div class="history-section">
-        <div class="history-title">
-            <i class="ph ph-clock-counter-clockwise"></i> Historial de Nóminas
+        <div class="history-title" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+            <div><i class="ph ph-clock-counter-clockwise"></i> Historial de Nóminas</div>
+            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: nowrap;">
+                <label for="dateFilter" style="font-size: 0.9rem; color: var(--text-muted); font-weight: 500; white-space: nowrap;">Filtrar por fecha:</label>
+                <input type="date" id="dateFilter" style="padding: 0.5rem; border: 1px solid var(--border); border-radius: var(--radius); outline: none; font-family: inherit; color: var(--text);" onchange="filterHistory()">
+                <button type="button" style="background: #e2e8f0; color: #475569; border: 1px solid #cbd5e1; padding: 0.5rem 1rem; border-radius: var(--radius); cursor: pointer; transition: all 0.2s; font-weight: 500; font-family: inherit;" onclick="document.getElementById('dateFilter').value=''; filterHistory()">Limpiar</button>
+            </div>
         </div>
         
         {% if archivos %}
@@ -434,6 +439,26 @@
         uploadForm.addEventListener('submit', function() {
             submitBtn.disabled = true;
             submitBtn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> Subiendo...';
+        });
+    }
+    
+    function filterHistory() {
+        const dateInput = document.getElementById('dateFilter').value;
+        const rows = document.querySelectorAll('.table tbody tr');
+        
+        rows.forEach(row => {
+            if (!dateInput) {
+                row.style.display = '';
+                return;
+            }
+            // Date comes from input as YYYY-MM-DD
+            // It is stored in the table as YYYY-MM-DD
+            const rowDate = row.querySelector('td:first-child div:first-child').innerText.trim();
+            if (rowDate === dateInput) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
         });
     }
 </script>
