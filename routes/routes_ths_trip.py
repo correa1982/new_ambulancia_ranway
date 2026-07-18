@@ -45,11 +45,15 @@ def register_routes(app):
                         fecha_obj = fecha
 
                     if fecha_obj:
-                        if unidad == 'meses':
-                            expira = fecha_obj + relativedelta(months=int(vigencia))
-                        elif unidad == 'años':
-                            expira = fecha_obj + relativedelta(years=int(vigencia))
-                        else:
+                        try:
+                            v_int = int(vigencia)
+                            if unidad == 'meses':
+                                expira = fecha_obj + relativedelta(months=v_int)
+                            elif unidad == 'años':
+                                expira = fecha_obj + relativedelta(years=v_int)
+                            else:
+                                expira = None
+                        except ValueError:
                             expira = None
                         
                         record[f'{cert}_expira'] = expira.strftime('%Y-%m-%d') if expira else 'N/A'
