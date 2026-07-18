@@ -358,8 +358,8 @@ document.addEventListener("DOMContentLoaded", function() {
     {% if session.usuario.get('rol_real') == 'admin' or 'nomina' in session.usuario.get('formularios_acceso', []) %}
     <a href="{{ url_for('nomina.nomina_index') }}" class="dash-card" style="border-color: #e2e8f0;">
         <div class="card-icon" style="background: #dcfce7;"><i class="ph ph-money" style="color: #16a34a;"></i></div>
-        <div class="card-title">Gestión de Nómina</div>
-        <div class="card-desc">Subir y consultar historial de nóminas cargadas mediante archivo de Excel.</div>
+        <div class="card-title">Gestión de Honorarios</div>
+        <div class="card-desc">Subir y consultar historial de honorarios cargados mediante archivo de Excel.</div>
     </a>
     {% endif %}
 
