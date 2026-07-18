@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Nómina - {{ institucion.nombre_institucion }}{% endblock %}
+{% block title %}Honorarios - {{ institucion.nombre_institucion }}{% endblock %}
 
 {% block content %}
 <style>
@@ -230,8 +230,8 @@
 
 <div class="container" style="max-width: 900px; margin: 0 auto; padding: 2rem 1rem;">
     <div class="page-header">
-        <h1>Gestión de Nómina</h1>
-        <p>Sube el archivo de Excel con la nómina para mantener un registro histórico</p>
+        <h1>Gestión de Honorarios</h1>
+        <p>Sube el archivo de Excel con los honorarios para mantener un registro histórico</p>
     </div>
 
     <div class="upload-card">
@@ -254,14 +254,14 @@
             </div>
             
             <button type="submit" class="btn-upload" id="submitBtn" disabled>
-                <i class="ph ph-upload-simple"></i> Subir Nómina
+                <i class="ph ph-upload-simple"></i> Subir Honorarios
             </button>
         </form>
     </div>
 
     <div class="history-section">
         <div class="history-title" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
-            <div><i class="ph ph-clock-counter-clockwise"></i> Historial de Nóminas</div>
+            <div><i class="ph ph-clock-counter-clockwise"></i> Historial de Honorarios</div>
             <div style="display: flex; gap: 10px; align-items: center; flex-wrap: nowrap;">
                 <label for="dateFilter" style="font-size: 0.9rem; color: var(--text-muted); font-weight: 500; white-space: nowrap;">Filtrar por fecha:</label>
                 <input type="date" id="dateFilter" style="padding: 0.5rem; border: 1px solid var(--border); border-radius: var(--radius); outline: none; font-family: inherit; color: var(--text);" onchange="filterHistory()">
@@ -317,8 +317,8 @@
         {% else %}
         <div class="empty-state">
             <i class="ph ph-folder-open"></i>
-            <h3>No hay archivos de nómina</h3>
-            <p>Aún no se ha subido ningún archivo de nómina al sistema.</p>
+            <h3>No hay archivos de honorarios</h3>
+            <p>Aún no se ha subido ningún archivo de honorarios al sistema.</p>
         </div>
         {% endif %}
     </div>

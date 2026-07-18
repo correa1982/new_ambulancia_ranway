@@ -135,7 +135,7 @@
                     <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px;">
                         <label class="perm-toggle"><input type="checkbox" name="formularios_acceso_{{ p }}" value="registros" {% if 'registros' in current_p_forms %}checked{% endif %}><span class="perm-label"><span class="perm-icon">📁</span>Explorador de Registros</span></label>
                         {% if session.usuario.get('rol_real') == 'admin' and p != 'Administrador' %}
-                        <label class="perm-toggle"><input type="checkbox" name="formularios_acceso_{{ p }}" value="nomina" {% if 'nomina' in current_p_forms %}checked{% endif %}><span class="perm-label"><span class="perm-icon">💵</span>Gestión de Nómina</span></label>
+                        <label class="perm-toggle"><input type="checkbox" name="formularios_acceso_{{ p }}" value="nomina" {% if 'nomina' in current_p_forms %}checked{% endif %}><span class="perm-label"><span class="perm-icon">💵</span>Gestión de Honorarios</span></label>
                         {% endif %}
                     </div>
                 </div>
