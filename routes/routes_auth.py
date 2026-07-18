@@ -476,7 +476,7 @@ def register_routes(app):
                 def normalizar(s):
                     return unicodedata.normalize('NFKD', s).encode('ascii', 'ignore').decode().strip().lower()
 
-                perfiles_canon = {"Médico", "Enfermero", "APH", "Auxiliar en Enfermeria", "Socorrista", "Conductor"}
+                perfiles_canon = {"Médico", "Enfermero", "APH", "Auxiliar en Enfermeria", "Socorrista", "Conductor", "Gestion Humana"}
                 mapa_norm = {normalizar(p): p for p in perfiles_canon}
                 perfiles_list = []
                 invalidos = []

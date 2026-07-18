@@ -57,6 +57,7 @@
                     <label class="perm-toggle"><input type="checkbox" name="perfil" value="Auxiliar en Enfermeria" {% if user.perfil and '"Auxiliar en Enfermeria"' in user.perfil %}checked{% endif %}><span class="perm-label"><i class="ph ph-bandaids perm-icon" style="color: #38bdf8;"></i>Auxiliar en Enfermeria</span></label>
                     <label class="perm-toggle"><input type="checkbox" name="perfil" value="Conductor" {% if user.perfil and '"Conductor"' in user.perfil %}checked{% endif %}><span class="perm-label"><i class="ph ph-car perm-icon" style="color: #ef4444;"></i>Conductor</span></label>
                     <label class="perm-toggle"><input type="checkbox" name="perfil" value="Socorrista" {% if user.perfil and '"Socorrista"' in user.perfil %}checked{% endif %}><span class="perm-label"><i class="ph ph-first-aid-kit perm-icon" style="color: #ef4444;"></i>Socorrista</span></label>
+                    <label class="perm-toggle"><input type="checkbox" name="perfil" value="Gestion Humana" {% if user.perfil and '"Gestion Humana"' in user.perfil %}checked{% endif %}><span class="perm-label"><i class="ph ph-users perm-icon" style="color: #8b5cf6;"></i>Gestion Humana</span></label>
                     <label class="perm-toggle"><input type="checkbox" name="perfil" value="Administrador" {% if user.perfil and '"Administrador"' in user.perfil %}checked{% endif %}><span class="perm-label"><i class="ph ph-gear-six perm-icon" style="color: #64748b;"></i>Administrador</span></label>
                 </div>
                 <p style="font-size: 11px; color: #94a3b8; margin-top: 6px; display: flex; align-items: center; gap: 4px;"><i class="ph ph-info" style="color: #3b82f6;"></i> Si el usuario tiene varios perfiles, al iniciar sesión podrá elegir con cuál operar.</p>
@@ -80,7 +81,7 @@
             
             <div id="accesos-tabs" style="display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap;"></div>
 
-            {% set perfiles_lista = ['Médico', 'Enfermero', 'APH', 'Auxiliar en Enfermeria', 'Conductor', 'Socorrista', 'Administrador'] %}
+            {% set perfiles_lista = ['Médico', 'Enfermero', 'APH', 'Auxiliar en Enfermeria', 'Conductor', 'Socorrista', 'Gestion Humana', 'Administrador'] %}
             
             {% set forms_dict = {} %}
             {% if user.formularios_acceso and user.formularios_acceso.startswith('{') %}
