@@ -26,7 +26,7 @@ def register_routes(app):
         from flask import session
         user_info = session['usuario']
         if user_info.get('rol_real') != 'admin' and 'nomina' not in user_info.get('formularios_acceso', []):
-            flash('Acceso no autorizado al módulo de nómina.', 'error')
+            flash('Acceso no autorizado al módulo de honorarios.', 'error')
             return redirect(url_for('dashboard'))
         conn = get_db()
         try:
@@ -46,7 +46,7 @@ def register_routes(app):
         from flask import session
         user_info = session['usuario']
         if user_info.get('rol_real') != 'admin' and 'nomina' not in user_info.get('formularios_acceso', []):
-            flash('Acceso no autorizado al módulo de nómina.', 'error')
+            flash('Acceso no autorizado al módulo de honorarios.', 'error')
             return redirect(url_for('dashboard'))
 
         if 'file' not in request.files:
@@ -156,7 +156,7 @@ def register_routes(app):
                             """, (nomina_id, cc_val, nombres_val, apellidos_val, codigo_val, total_val, detalle_json))
                             
                     conn.commit()
-                    flash('Archivo de nómina subido y procesado exitosamente.', 'success')
+                    flash('Archivo de honorarios subido y procesado exitosamente.', 'success')
                 except Exception as db_error:
                     conn.close()
                     # Clean up the file if db insert fails
@@ -224,7 +224,7 @@ def register_routes(app):
                 latest_nomina = cursor.fetchone()
                 
                 if not latest_nomina:
-                    flash('No hay registros de nómina en el sistema.', 'error')
+                    flash('No hay registros de honorarios en el sistema.', 'error')
                     return render_template('nomina_consulta.html', resultado=None)
                     
                 nomina_id = latest_nomina['id']
@@ -257,10 +257,10 @@ def register_routes(app):
                         
                     return render_template('nomina_consulta.html', resultado=empleado, fecha_nomina=latest_nomina['fecha_subida'], periodo_nomina=latest_nomina.get('periodo', ''))
                 else:
-                    flash('Cédula o código incorrectos, o no se encontró en la nómina actual.', 'error')
+                    flash('Cédula o código incorrectos, o no se encontró en los honorarios actuales.', 'error')
             except Exception as e:
                 current_app.logger.error(f"Error querying nomina: {e}")
-                flash('Error de servidor al consultar la nómina.', 'error')
+                flash('Error de servidor al consultar los honorarios.', 'error')
             finally:
                 conn.close()
                 
