@@ -25,62 +25,68 @@ def register_routes(app):
     @login_required
     @ths_trip_required
     def admin_ths_trip():
-        conn = get_db()
-        records = conn.execute("SELECT * FROM ths_trip_records ORDER BY id DESC").fetchall()
-        
-        # Calculate expiration for each record
-        for record in records:
-            for cert in ['bls', 'avvs', 'avaq']:
-                fecha = record[f'{cert}_fecha']
-                vigencia = record[f'{cert}_vigencia']
-                unidad = record[f'{cert}_vigencia_unidad']
-                
-                if fecha and vigencia and unidad:
-                    if isinstance(fecha, str):
-                        try:
-                            fecha_obj = datetime.strptime(fecha, '%Y-%m-%d').date()
-                        except:
-                            fecha_obj = None
-                    else:
-                        fecha_obj = fecha
-
-                    if fecha_obj:
-                        try:
-                            v_int = int(vigencia)
-                            if unidad == 'meses':
-                                expira = fecha_obj + relativedelta(months=v_int)
-                            elif unidad == 'años':
-                                expira = fecha_obj + relativedelta(years=v_int)
-                            else:
-                                expira = None
-                        except ValueError:
-                            expira = None
-                        
-                        record[f'{cert}_expira'] = expira.strftime('%Y-%m-%d') if expira else 'N/A'
-                        if expira:
-                            record[f'{cert}_vencido'] = expira < datetime.now().date()
-                        else:
-                            record[f'{cert}_vencido'] = False
-                else:
-                    record[f'{cert}_expira'] = 'N/A'
-                    record[f'{cert}_vencido'] = False
+        try:
+            conn = get_db()
+            records = conn.execute("SELECT * FROM ths_trip_records ORDER BY id DESC").fetchall()
+            
+            # Calculate expiration for each record
+            for record in records:
+                for cert in ['bls', 'avvs', 'avaq']:
+                    fecha = record[f'{cert}_fecha']
+                    vigencia = record[f'{cert}_vigencia']
+                    unidad = record[f'{cert}_vigencia_unidad']
                     
-        # Check if current user is superadmin (ID 1)
-        is_superadmin = False
-        user_info = conn.execute("SELECT id FROM usuarios WHERE identificacion = ?", (session["usuario"]["identificacion"],)).fetchone()
-        if user_info and user_info["id"] == 1:
-            is_superadmin = True
-            
-        activos = []
-        inactivos = []
-        for record in records:
-            if record.get("activo", 1) == 1:
-                activos.append(record)
-            else:
-                inactivos.append(record)
-            
-        conn.close()
-        return render_template("ths_trip.html", activos=activos, inactivos=inactivos, is_superadmin=is_superadmin, usuario=session["usuario"])
+                    if fecha and vigencia and unidad:
+                        if isinstance(fecha, str):
+                            try:
+                                fecha_obj = datetime.strptime(fecha, '%Y-%m-%d').date()
+                            except:
+                                fecha_obj = None
+                        else:
+                            fecha_obj = fecha
+
+                        if fecha_obj:
+                            try:
+                                v_int = int(vigencia)
+                                if unidad == 'meses':
+                                    expira = fecha_obj + relativedelta(months=v_int)
+                                elif unidad == 'años':
+                                    expira = fecha_obj + relativedelta(years=v_int)
+                                else:
+                                    expira = None
+                            except ValueError:
+                                expira = None
+                            except TypeError:
+                                expira = None
+                            
+                            record[f'{cert}_expira'] = expira.strftime('%Y-%m-%d') if expira else 'N/A'
+                            if expira:
+                                record[f'{cert}_vencido'] = expira < datetime.now().date()
+                            else:
+                                record[f'{cert}_vencido'] = False
+                    else:
+                        record[f'{cert}_expira'] = 'N/A'
+                        record[f'{cert}_vencido'] = False
+                        
+            # Check if current user is superadmin (ID 1)
+            is_superadmin = False
+            user_info = conn.execute("SELECT id FROM usuarios WHERE identificacion = ?", (session["usuario"]["identificacion"],)).fetchone()
+            if user_info and user_info["id"] == 1:
+                is_superadmin = True
+                
+            activos = []
+            inactivos = []
+            for record in records:
+                if record.get("activo", 1) == 1:
+                    activos.append(record)
+                else:
+                    inactivos.append(record)
+                    
+            conn.close()
+            return render_template("ths_trip.html", activos=activos, inactivos=inactivos, is_superadmin=is_superadmin, usuario=session["usuario"])
+        except Exception as e:
+            import traceback
+            return f"<pre>{traceback.format_exc()}</pre>", 500
 
     @app.route("/admin/ths_trip/agregar", methods=["POST"])
     @login_required
