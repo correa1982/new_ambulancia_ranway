@@ -332,7 +332,7 @@ document.addEventListener("DOMContentLoaded", function() {
 </div>
 {% endif %}
 
-{% set has_registros = session.usuario.rol == 'admin' or 'registros' in session.usuario.get('formularios_acceso', []) or 'nomina' in session.usuario.get('formularios_acceso', []) %}
+{% set has_registros = session.usuario.rol == 'admin' or 'registros' in session.usuario.get('formularios_acceso', []) or 'nomina' in session.usuario.get('formularios_acceso', []) or 'ths_sga' in session.usuario.get('formularios_acceso', []) %}
 {% if has_registros %}
 <div class="section-title">Administración y Consultas</div>
 <div class="dashboard-grid">
@@ -390,10 +390,34 @@ document.addEventListener("DOMContentLoaded", function() {
         <div class="card-desc">Modulo de parametrizacion de items preoperacionales, vehiculos y otros.</div>
     </a>
     {% endif %}
+    
+    {% if 'ths_sga' in session.usuario.get('formularios_acceso', []) or session.usuario.rol == 'admin' %}
+    <a href="{{ url_for('admin_ths_sga') }}" class="dash-card" style="border-color: #e2e8f0;">
+        <div class="card-icon" style="background: #e0f2fe;"><i class="ph ph-certificate" style="color: #0369a1;"></i></div>
+        <div class="card-title">Documentación Personal de Apoyo Externo</div>
+        <div class="card-desc">Gestión de Documentación</div>
+    </a>
+    {% endif %}
+    
+    {% if 'ths_trip' in session.usuario.get('formularios_acceso', []) or session.usuario.rol == 'admin' %}
+    <a href="{{ url_for('admin_ths_trip') }}" class="dash-card" style="border-color: #e2e8f0;">
+        <div class="card-icon" style="background: #fdf4ff;"><i class="ph ph-airplane-tilt" style="color: #a21caf;"></i></div>
+        <div class="card-title">Documentación Tripulantes</div>
+        <div class="card-desc">Gestión de Documentación</div>
+    </a>
+    {% endif %}
+    
+    {% if 'ths_soc' in session.usuario.get('formularios_acceso', []) or session.usuario.rol == 'admin' %}
+    <a href="{{ url_for('admin_ths_soc') }}" class="dash-card" style="border-color: #e2e8f0;">
+        <div class="card-icon" style="background: #ecfdf5;"><i class="ph ph-first-aid" style="color: #059669;"></i></div>
+        <div class="card-title">Documentación Salud Socorristas</div>
+        <div class="card-desc">Gestión de Documentación</div>
+    </a>
+    {% endif %}
 </div>
 {% endif %}
 
-{% set has_registros = session.usuario.rol == 'admin' or 'registros' in session.usuario.get('formularios_acceso', []) or 'nomina' in session.usuario.get('formularios_acceso', []) %}
+{% set has_registros = session.usuario.rol == 'admin' or 'registros' in session.usuario.get('formularios_acceso', []) or 'nomina' in session.usuario.get('formularios_acceso', []) or 'ths_sga' in session.usuario.get('formularios_acceso', []) %}
 {% if not has_clinica and not has_checklists and not has_registros %}
 <div style="text-align: center; padding: 60px 20px; background: white; border-radius: 12px; border: 1px dashed #cbd5e1; margin-top: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);">
     <div style="font-size: 48px; margin-bottom: 16px; opacity: 0.5;">🚫</div>

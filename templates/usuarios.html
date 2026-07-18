@@ -128,6 +128,11 @@
                                 <div style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px;">Reportes</div>
                                 <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 6px;">
                                     <label class="perm-toggle"><input type="checkbox" name="formularios_acceso_{{ p }}" value="registros"><span class="perm-label"><span class="perm-icon">📁</span>Explorador de Registros</span></label>
+                                    {% if session.usuario.get('id') == 1 %}
+                                    <label class="perm-toggle"><input type="checkbox" name="formularios_acceso_{{ p }}" value="ths_sga"><span class="perm-label"><span class="perm-icon">📜</span>Documentación Personal de Apoyo Externo</span></label>
+                                    <label class="perm-toggle"><input type="checkbox" name="formularios_acceso_{{ p }}" value="ths_trip"><span class="perm-label"><span class="perm-icon">✈️</span>Documentación Tripulantes</span></label>
+                                    <label class="perm-toggle"><input type="checkbox" name="formularios_acceso_{{ p }}" value="ths_soc"><span class="perm-label"><span class="perm-icon">🚑</span>Documentación Salud Socorristas</span></label>
+                                    {% endif %}
                                     {% if session.usuario.get('rol_real') == 'admin' and p != 'Administrador' %}
                                     <label class="perm-toggle"><input type="checkbox" name="formularios_acceso_{{ p }}" value="nomina"><span class="perm-label"><span class="perm-icon">💵</span>Gestión de Nómina</span></label>
                                     {% endif %}
