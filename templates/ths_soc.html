@@ -129,12 +129,14 @@ function editRecord(btn) {
     // Parse data from button attributes
     const id = $(btn).data('id');
     const nombreCompleto = $(btn).data('nombre');
+    const perfil = $(btn).data('perfil');
     const registro = $(btn).data('registro');
     const contacto = $(btn).data('contacto');
     
     // Fill the form
     $('input[name="identificacion"]').val(id).prop('readonly', true);
     $('input[name="nombre_completo"]').val(nombreCompleto);
+    $('select[name="perfil"]').val(perfil);
     $('input[name="registro_salud"]').val(registro);
     $('input[name="contacto"]').val(contacto);
     
@@ -212,6 +214,16 @@ function cancelEdit() {
                 <input type="text" name="nombre_completo" class="form-control" placeholder="Ej: Juan Perez" required>
             </div>
             <div class="form-group" style="margin-bottom: 0;">
+                <label>Perfil</label>
+                <select name="perfil" class="form-control">
+                    <option value="">Seleccione...</option>
+                    <option value="APH">APH</option>
+                    <option value="Aux Enfermeria">Aux Enfermeria</option>
+                    <option value="Enfermero">Enfermero</option>
+                    <option value="Medico">Medico</option>
+                </select>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
                 <label>Registro (Resolución en Salud)</label>
                 <input type="text" name="registro_salud" class="form-control">
             </div>
@@ -259,8 +271,8 @@ function cancelEdit() {
                     <div class="form-group" style="margin-bottom: 0;">
                         <label>Unidad</label>
                         <select name="bls_vigencia_unidad" class="form-control">
-                            <option value="meses">Meses</option>
                             <option value="años">Años</option>
+                            <option value="meses">Meses</option>
                         </select>
                     </div>
                 </div>
@@ -280,8 +292,8 @@ function cancelEdit() {
                     <div class="form-group" style="margin-bottom: 0;">
                         <label>Unidad</label>
                         <select name="avvs_vigencia_unidad" class="form-control">
-                            <option value="meses">Meses</option>
                             <option value="años">Años</option>
+                            <option value="meses">Meses</option>
                         </select>
                     </div>
                 </div>
@@ -301,8 +313,8 @@ function cancelEdit() {
                     <div class="form-group" style="margin-bottom: 0;">
                         <label>Unidad</label>
                         <select name="avaq_vigencia_unidad" class="form-control">
-                            <option value="meses">Meses</option>
                             <option value="años">Años</option>
+                            <option value="meses">Meses</option>
                         </select>
                     </div>
                 </div>
@@ -330,6 +342,7 @@ function cancelEdit() {
                         <tr style="background-color: #d1d5db; text-align: center; font-size: 10px;">
                             <th rowspan="2" style="vertical-align: middle; border: 1px solid #9ca3af;">NOMBRES Y APELLIDOS</th>
                             <th rowspan="2" style="vertical-align: middle; border: 1px solid #9ca3af;">IDENTIFICACIÓN</th>
+                            <th rowspan="2" style="vertical-align: middle; border: 1px solid #9ca3af;">PERFIL</th>
                             <th rowspan="2" style="vertical-align: middle; border: 1px solid #9ca3af;">REGISTRO</th>
                             <th rowspan="2" style="vertical-align: middle; border: 1px solid #9ca3af;">CONTACTO</th>
                             <th rowspan="2" style="vertical-align: middle; border: 1px solid #9ca3af;">HOJA DE<br>VIDA</th>
@@ -356,6 +369,7 @@ function cancelEdit() {
                         <tr>
                             <td style="border: 1px solid #d1d5db;">{{ r.nombres }} {{ r.apellidos }}</td>
                             <td style="border: 1px solid #d1d5db;">{{ r.identificacion }}</td>
+                            <td style="border: 1px solid #d1d5db;">{{ r.perfil or '' }}</td>
                             <td style="border: 1px solid #d1d5db;">{{ r.registro_salud or '' }}</td>
                             <td style="border: 1px solid #d1d5db;">{{ r.contacto or '' }}</td>
                             
@@ -417,6 +431,7 @@ function cancelEdit() {
                                    onclick="editRecord(this); return false;"
                                    data-id="{{ r.identificacion }}"
                                    data-nombre="{{ r.nombres }} {{ r.apellidos }}"
+                                   data-perfil="{{ r.perfil or '' }}"
                                    data-registro="{{ r.registro_salud or '' }}"
                                    data-contacto="{{ r.contacto or '' }}"
                                    data-hoja="{{ r.hoja_vida }}"
@@ -444,6 +459,7 @@ function cancelEdit() {
                         <tr style="background-color: #d1d5db; text-align: center; font-size: 10px;">
                             <th rowspan="2" style="vertical-align: middle; border: 1px solid #9ca3af;">NOMBRES Y APELLIDOS</th>
                             <th rowspan="2" style="vertical-align: middle; border: 1px solid #9ca3af;">IDENTIFICACIÓN</th>
+                            <th rowspan="2" style="vertical-align: middle; border: 1px solid #9ca3af;">PERFIL</th>
                             <th rowspan="2" style="vertical-align: middle; border: 1px solid #9ca3af;">REGISTRO</th>
                             <th rowspan="2" style="vertical-align: middle; border: 1px solid #9ca3af;">CONTACTO</th>
                             <th rowspan="2" style="vertical-align: middle; border: 1px solid #9ca3af;">HOJA DE<br>VIDA</th>
@@ -470,6 +486,7 @@ function cancelEdit() {
                         <tr>
                             <td style="border: 1px solid #d1d5db;">{{ r.nombres }} {{ r.apellidos }}</td>
                             <td style="border: 1px solid #d1d5db;">{{ r.identificacion }}</td>
+                            <td style="border: 1px solid #d1d5db;">{{ r.perfil or '' }}</td>
                             <td style="border: 1px solid #d1d5db;">{{ r.registro_salud or '' }}</td>
                             <td style="border: 1px solid #d1d5db;">{{ r.contacto or '' }}</td>
                             
@@ -531,6 +548,7 @@ function cancelEdit() {
                                    onclick="editRecord(this); return false;"
                                    data-id="{{ r.identificacion }}"
                                    data-nombre="{{ r.nombres }} {{ r.apellidos }}"
+                                   data-perfil="{{ r.perfil or '' }}"
                                    data-registro="{{ r.registro_salud or '' }}"
                                    data-contacto="{{ r.contacto or '' }}"
                                    data-hoja="{{ r.hoja_vida }}"

@@ -90,6 +90,7 @@ def register_routes(app):
     def admin_ths_trip_agregar():
         identificacion = request.form.get("identificacion", "").strip()
         nombre_completo = request.form.get("nombre_completo", "").strip()
+        perfil = request.form.get("perfil", "")
         
         parts = nombre_completo.split(" ", 1)
         nombres = parts[0] if len(parts) > 0 else ""
@@ -129,12 +130,13 @@ def register_routes(app):
             conn.execute(
                 """UPDATE ths_trip_records SET 
                     nombres = ?, apellidos = ?,
+                    perfil = ?,
                     bls_fecha = ?, bls_vigencia = ?, bls_vigencia_unidad = ?,
                     avvs_fecha = ?, avvs_vigencia = ?, avvs_vigencia_unidad = ?,
                     avaq_fecha = ?, avaq_vigencia = ?, avaq_vigencia_unidad = ?,
                     contacto = ?, registro_salud = ?, hoja_vida = ?, rethus = ?, acta_grado = ?, tarjeta_profesional = ?
                    WHERE identificacion = ?""",
-                (nombres, apellidos,
+                (nombres, apellidos, perfil,
                  bls_fecha, bls_vigencia, bls_vigencia_unidad,
                  avvs_fecha, avvs_vigencia, avvs_vigencia_unidad,
                  avaq_fecha, avaq_vigencia, avaq_vigencia_unidad,
@@ -145,14 +147,14 @@ def register_routes(app):
         else:
             conn.execute(
                 """INSERT INTO ths_trip_records (
-                    identificacion, nombres, apellidos, 
+                    identificacion, nombres, apellidos, perfil,
                     bls_fecha, bls_vigencia, bls_vigencia_unidad,
                     avvs_fecha, avvs_vigencia, avvs_vigencia_unidad,
                     avaq_fecha, avaq_vigencia, avaq_vigencia_unidad,
                     contacto, registro_salud, hoja_vida, rethus, acta_grado, tarjeta_profesional,
                     registrado_por
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-                (identificacion, nombres, apellidos,
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                (identificacion, nombres, apellidos, perfil,
                  bls_fecha, bls_vigencia, bls_vigencia_unidad,
                  avvs_fecha, avvs_vigencia, avvs_vigencia_unidad,
                  avaq_fecha, avaq_vigencia, avaq_vigencia_unidad,
