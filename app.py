@@ -266,6 +266,10 @@ from routes.routes_api import register_routes as register_api
 from routes.routes_registros_global import register_routes as register_registros_global
 from routes.routes_atencion_vehiculo import register_routes as register_atencion_vehiculo
 from routes.routes_archivador import register_routes as register_archivador
+from routes.routes_nomina import register_routes as register_nomina
+from routes.routes_ths_sga import register_routes as register_ths_sga
+from routes.routes_ths_trip import register_routes as register_ths_trip
+from routes.routes_ths_soc import register_routes as register_ths_soc
 
 # Registrar todas las rutas
 register_auth(app)
@@ -278,6 +282,10 @@ register_api(app, get_cie10_data())
 register_registros_global(app, serializer)
 register_atencion_vehiculo(app)
 register_archivador(app)
+register_nomina(app)
+register_ths_sga(app)
+register_ths_trip(app)
+register_ths_soc(app)
 
 if __name__ == "__main__":
     

@@ -1,0 +1,31 @@
+PRUEBAS
+mysql://root:fwduYHhKExfttYgXIbwLUgaTxTKHLMza@tokaido.proxy.rlwy.net:41880/railway
+
+PASS fwduYHhKExfttYgXIbwLUgaTxTKHLMza
+
+
+mysql -h tokaido.proxy.rlwy.net -P 41880 -u root -p railway < D:\GITHUB\new_ambulancia_ranway\desarrollo.sql
+
+
+tokaido.proxy.rlwy.net
+
+PUERTO  41880
+
+
+
+URL PRODUCCION
+mysql://root:HZcLGOHeqHkMbCPwJSRRQoWNrHHveKsC@shinkansen.proxy.rlwy.net:45186/railway
+PASS   HZcLGOHeqHkMbCPwJSRRQoWNrHHveKsC
+
+PARA DESCARAGAR BASE DE DATOS 
+mysqldump -h shinkansen.proxy.rlwy.net -P 45186 -u root -p railway > railway_backup.sql
+
+shinkansen.proxy.rlwy.net
+mysqldump -h shinkansen.proxy.rlwy.net -P 45186 -u root -p railway
+
+URL DESARROLLO
+mysql://root:qdWejFxMJjKVqvcWmgPiEssbRargBclL@tokaido.proxy.rlwy.net:57378/railway
+PASS  qdWejFxMJjKVqvcWmgPiEssbRargBclL
+
+tokaido.proxy.rlwy.net
+mysql -h tokaido.proxy.rlwy.net -P 57378 -u root -p railway < D:\GITHUB\new_ambulancia_ranway\desarrollo.sql

@@ -605,28 +605,202 @@ def register_routes(app):
     def exportar_rips():
         return render_template("exportar_rips.html", usuario=session.get("usuario"), date_hoy=hoy())
 
+    @app.route("/api/pacientes_por_fecha")
+    @login_required
+    @admin_required
+    def api_pacientes_por_fecha():
+        fecha_inicio = request.args.get("fecha_inicio")
+        fecha_fin = request.args.get("fecha_fin")
+        if not fecha_inicio or not fecha_fin:
+            return jsonify({"error": "Fechas inválidas"}), 400
+            
+        conn = get_db()
+        pacientes = conn.execute(
+            "SELECT id, primer_nombre, segundo_nombre, primer_apellido, segundo_apellido, identificacion_paciente as documento, fecha_registro FROM pacientes WHERE DATE(fecha_registro) >= %s AND DATE(fecha_registro) <= %s ORDER BY fecha_registro DESC", 
+            (fecha_inicio, fecha_fin)
+        ).fetchall()
+        conn.close()
+        
+        # Formatear la respuesta
+        from flask import jsonify
+        for p in pacientes:
+            p['nombre_completo'] = f"{p.get('primer_nombre','')} {p.get('segundo_nombre','')} {p.get('primer_apellido','')} {p.get('segundo_apellido','')}".replace("  ", " ").strip()
+            
+        return jsonify({"pacientes": pacientes})
+
+    @app.route("/api/generar_rips_excel", methods=["POST"])
+    @login_required
+    @admin_required
+    def api_generar_rips_excel():
+        pacientes_json = request.form.get("pacientes_datos")
+        codigo_prestador = request.form.get("codigo_prestador", "")
+        
+        if not pacientes_json:
+            flash("No se han enviado datos de pacientes.", "error")
+            return redirect(url_for("exportar_rips"))
+            
+        import json
+        try:
+            pacientes_seleccionados = json.loads(pacientes_json)
+        except Exception:
+            flash("Error al leer los datos de pacientes seleccionados.", "error")
+            return redirect(url_for("exportar_rips"))
+            
+        if not pacientes_seleccionados:
+            flash("Debe seleccionar al menos un paciente.", "warning")
+            return redirect(url_for("exportar_rips"))
+            
+        conn = get_db()
+        ids = [str(p['id']) for p in pacientes_seleccionados]
+        placeholders = ','.join(['%s']*len(ids))
+        pacientes_db = conn.execute(f"SELECT * FROM pacientes WHERE id IN ({placeholders})", tuple(ids)).fetchall()
+        conn.close()
+        
+        # Mapear facturas
+        facturas_map = {str(p['id']): p.get('factura', '').strip() for p in pacientes_seleccionados}
+        
+        # Build Lists for DataFrames
+        general_data = [
+            ["NÚMERO DE IDENTIFICACIÓN DEL PRESTADOR", codigo_prestador],
+            ["CODIGO DE HABILITACION DEL PRESTADOR", "50011187901"]
+        ]
+        
+        facturas_data = []
+        usuarios_data = []
+        procedimientos_data = []
+        consultas_data = []
+        medicamentos_data = []
+        otros_servicios_data = []
+        
+        facturas_vistas = set()
+        
+        cups_map = {
+            "TAB": "890201",
+            "TAM": "890202",
+            "PAS-B": "890101",
+            "PAS-M": "890102"
+        }
+        
+        for p in pacientes_db:
+            p_id = str(p['id'])
+            factura = facturas_map.get(p_id, "")
+            
+            # Facturas
+            if factura and factura not in facturas_vistas:
+                facturas_vistas.add(factura)
+                facturas_data.append({
+                    "NÚMERO DE FACTURA": factura,
+                    "TIPO NOTA": "",
+                    "NÚMERO NOTA": "",
+                    "VALOR TOTAL NETO FACTURA": 0
+                })
+                
+            # Usuarios
+            cod_divipola = str(p.get("municipio_residencia", "")).split(" - ")[0].strip() if p.get("municipio_residencia") else ""
+            
+            usuarios_data.append({
+                "NÚMERO DE FACTURA": factura,
+                "TIPO DE IDENTIFICACION": p.get("tipo_documento", "CC"),
+                "NÚMERO DE IDENTIFICACIÓN": p.get("documento") or p.get("identificacion_paciente", ""),
+                "TIPO DE USUARIO": "01",
+                "FECHA NACIMIENTO (DD/MM/AAAA)": p.get("fecha_nacimiento", ""),
+                "SEXO": "M" if str(p.get("sexo")).upper().startswith("M") else "F" if str(p.get("sexo")).upper().startswith("F") else "I",
+                "CÓDIGO PAIS RECIDENCIA": "170",
+                "CÓDIGO DEL MUNICIPIO DE RESIDENCIA HABITUAL": cod_divipola,
+                "ZONA DE RESIDENCIA HABITUAL": "01",
+                "INCAPACIDAD": "02",
+                "CONSECUTIVO": len(usuarios_data) + 1,
+                "CÓDIGO PAIS ORIGEN": "170"
+            })
+            
+            # Procedimientos
+            tipo_servicio = str(p.get("tipo_servicio", "")).upper()
+            cod_cups = cups_map.get(tipo_servicio, "890201")
+            diag_prin = str(p.get("diagnostico_cie10", "")).split(" - ")[0].strip() if p.get("diagnostico_cie10") else "R69X"
+            
+            procedimientos_data.append({
+                "DOCUMENTO USUARIO": p.get("documento") or p.get("identificacion_paciente", ""),
+                "FECHA Y HORA PROCEDIMIENTO": p.get("fecha_inicio_atencion") or p.get("fecha_registro", ""),
+                "idMIPRES": "",
+                "NÚMERO DE AUTORIZACIÓN": "",
+                "CODIGO PROCEDIMIENTO": cod_cups,
+                "VIA DE INGRESO": "02",
+                "MODALIDAD ATENCIÓN": "01",
+                "GRUPO SERVICIO": "01",
+                "CODIGO SERVICIO": "314",
+                "FINALIDAD PROCEDIMIENTO": "44",
+                "TIPO DE IDENTIFICACION PROFESIONAL DE LA SALUD": p.get("tipo_documento", "CC"),
+                "NÚMERO DE IDENTIFICACIÓN PROFESIONAL DE LA SALUD": p.get("documento") or p.get("identificacion_paciente", ""),
+                "DIAGNOSTICO PRINCIPAL": diag_prin,
+                "DIAGNOSTICO RELACIONADO": "",
+                "COMPLICACIÓN": "",
+                "VALOR PROCEDIMIENTO": 0,
+                "TIPO PAGO MODERADOR": "05",
+                "VALOR CUOTA MODERADORA": 0,
+                "NÚMERO FEV": factura
+            })
+            
+        import pandas as pd
+        from io import BytesIO
+        from flask import send_file
+        
+        output = BytesIO()
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            df_general = pd.DataFrame(general_data)
+            df_general.to_excel(writer, sheet_name="General", index=False, header=False)
+            
+            df_facturas = pd.DataFrame(facturas_data, columns=["NÚMERO DE FACTURA", "TIPO NOTA", "NÚMERO NOTA", "VALOR TOTAL NETO FACTURA"])
+            df_facturas.to_excel(writer, sheet_name="Facturas", index=False)
+            
+            df_usuarios = pd.DataFrame(usuarios_data, columns=["NÚMERO DE FACTURA", "TIPO DE IDENTIFICACION", "NÚMERO DE IDENTIFICACIÓN", "TIPO DE USUARIO", "FECHA NACIMIENTO (DD/MM/AAAA)", "SEXO", "CÓDIGO PAIS RECIDENCIA", "CÓDIGO DEL MUNICIPIO DE RESIDENCIA HABITUAL", "ZONA DE RESIDENCIA HABITUAL", "INCAPACIDAD", "CONSECUTIVO", "CÓDIGO PAIS ORIGEN"])
+            df_usuarios.to_excel(writer, sheet_name="Usuarios", index=False)
+            
+            df_consultas = pd.DataFrame(consultas_data, columns=["DOCUMENTO USUARIO", "FECHA Y HORA CONSULTA", "NÚMERO DE AUTORIZACIÓN", "CODIGO CONSULTA", "MODALIDAD ATENCIÓN", "GRUPO SERVICIO", "CÓDIGO SERVICIO", "FINALIDAD CONSULTA", "CAUSA EXTERNA", "DIAGNOSTICO PRINCIPAL", "DIAGNOSTICO RELACIONADO 1", "DIAGNOSTICO RELACIONADO 2", "DIAGNOSTICO RELACIONADO 3", "TIPO DIAGNÓSTICO PRINCIPAL", "TIPO DE IDENTIFICACION PROFESIONAL DE LA SALUD", "NÚMERO DE IDENTIFICACIÓN PROFESIONAL DE LA SALUD", "VALOR CONSULTA", "TIPO PAGO MODERADOR", "VALOR CUOTA MODERADORA", "NÚMERO FEV"])
+            df_consultas.to_excel(writer, sheet_name="Consultas", index=False)
+            
+            df_procedimientos = pd.DataFrame(procedimientos_data, columns=["DOCUMENTO USUARIO", "FECHA Y HORA PROCEDIMIENTO", "idMIPRES", "NÚMERO DE AUTORIZACIÓN", "CODIGO PROCEDIMIENTO", "VIA DE INGRESO", "MODALIDAD ATENCIÓN", "GRUPO SERVICIO", "CODIGO SERVICIO", "FINALIDAD PROCEDIMIENTO", "TIPO DE IDENTIFICACION PROFESIONAL DE LA SALUD", "NÚMERO DE IDENTIFICACIÓN PROFESIONAL DE LA SALUD", "DIAGNOSTICO PRINCIPAL", "DIAGNOSTICO RELACIONADO", "COMPLICACIÓN", "VALOR PROCEDIMIENTO", "TIPO PAGO MODERADOR", "VALOR CUOTA MODERADORA", "NÚMERO FEV"])
+            df_procedimientos.to_excel(writer, sheet_name="Procedimientos", index=False)
+            
+            df_medicamentos = pd.DataFrame(medicamentos_data, columns=["DOCUMENTO USUARIO", "NÚMERO DE AUTORIZACIÓN", "idMIPRES", "FECHA Y HORA ADMINISTRACIÓN (AAAA-MM-DD hh:mm)", "DIAGNOSTICO PRINCIPAL", "DIAGNOSTICO RELACIONADO", "TIPO MEDICAMENTO", "CÓDIGO MEDICAMENTO", "DESCRIPCIÓN MEDICAMENTO", "CONCENTRACIÓN MEDICAMENTO", "UNIDAD MEDIDA", "FORMA FARMACÉUTICA", "UNIDAD MEDIDA DISPENSA", "CANTIDAD MEDICAMENTO", "DÍAS TRATAMIENTO", "TIPO DE IDENTIFICACION PROFESIONAL QUE PRESCRIBE EL MEDICAMENTO", "NÚMERO DE IDENTIFICACIÓN PROFESIONAL QUE PRESCRIBE EL MEDICAMENTO", "VALOR UNITARIO", "VALOR TOTAL", "TIPO PAGO MODERADOR", "VALOR PAGO MODERADORA", "NÚMERO FEV"])
+            df_medicamentos.to_excel(writer, sheet_name="Medicamentos", index=False)
+            
+            df_otros = pd.DataFrame(otros_servicios_data, columns=["DOCUMENTO USUARIO", "NÚMERO DE AUTORIZACIÓN", "idMIPRES", "FECHA Y HORA SERVICIO (AAAA-MM-DD hh:mm)", "TIPO SERVICIO", "CÓDIGO DEL SERVICIO", "NOMBRE DEL SERVICIO", "CANTIDAD", "TIPO DE IDENTIFICACION PROFESIONAL QUE ORDENA O REALIZA EL SERVICIO", "NÚMERO DE IDENTIFICACIÓN PROFESIONAL QUE ORDENA O REALIZA EL SERVICIO", "VALOR UNITARIO", "VALOR TOTAL", "TIPO PAGO MODERADOR", "VALOR PAGO MODERADORA", "NÚMERO FEV"])
+            df_otros.to_excel(writer, sheet_name="Otros servicios", index=False)
+            
+        output.seek(0)
+        return send_file(output, download_name="RIPS_Generado.xlsx", as_attachment=True, mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+
     @app.route("/api/generar_rips", methods=["POST"])
     @login_required
     @admin_required
     def api_generar_rips():
-        fecha_inicio = request.form.get("fecha_inicio")
-        fecha_fin = request.form.get("fecha_fin")
-        num_factura = request.form.get("num_factura")
-        codigo_prestador = request.form.get("codigo_prestador")
+        pacientes_json = request.form.get("pacientes_datos")
+        codigo_prestador = request.form.get("codigo_prestador", "")
         
-        conn = get_db()
-        # Traer pacientes en ese rango de fechas
-        pacientes = conn.execute(
-            "SELECT * FROM pacientes WHERE DATE(fecha_registro) >= %s AND DATE(fecha_registro) <= %s", 
-            (fecha_inicio, fecha_fin)
-        ).fetchall()
-        
-        if not pacientes:
-            conn.close()
-            flash("No se encontraron pacientes registrados en el rango de fechas seleccionado.", "warning")
+        if not pacientes_json:
+            flash("No se han enviado datos de pacientes.", "error")
             return redirect(url_for("exportar_rips"))
             
-        # Diccionario CUPS quemado para tipos de servicio basicos
+        import json
+        try:
+            pacientes_seleccionados = json.loads(pacientes_json)
+        except Exception:
+            flash("Error al leer los datos de pacientes seleccionados.", "error")
+            return redirect(url_for("exportar_rips"))
+            
+        if not pacientes_seleccionados:
+            flash("Debe seleccionar al menos un paciente.", "warning")
+            return redirect(url_for("exportar_rips"))
+            
+        conn = get_db()
+        ids = [str(p['id']) for p in pacientes_seleccionados]
+        placeholders = ','.join(['%s']*len(ids))
+        pacientes = conn.execute(f"SELECT * FROM pacientes WHERE id IN ({placeholders})", tuple(ids)).fetchall()
+        conn.close()
+        
+        # Mapear facturas
+        facturas_map = {str(p['id']): p.get('factura', '').strip() for p in pacientes_seleccionados}
+        
         cups_map = {
             "TAB": "890201",
             "TAM": "890202",
@@ -638,12 +812,20 @@ def register_routes(app):
         procedimientos = []
         urgencias = []
         
+        num_factura_general = "" # We'll use the first non-empty invoice for the transaccion block, or maybe blank
+        
         for p in pacientes:
+            p_id = str(p['id'])
+            factura = facturas_map.get(p_id, "")
+            
+            if factura and not num_factura_general:
+                num_factura_general = factura
+                
             # Construir Nodo Usuario
             cod_divipola = str(p.get("municipio_residencia", "")).split(" - ")[0].strip() if p.get("municipio_residencia") else ""
             usuario = {
                 "tipoDocumentoIdentificacion": p.get("tipo_documento", "CC"),
-                "numDocumentoIdentificacion": p.get("documento", ""),
+                "numDocumentoIdentificacion": p.get("documento") or p.get("identificacion_paciente", ""),
                 "tipoUsuario": "01",
                 "fechaNacimiento": p.get("fecha_nacimiento", ""),
                 "sexo": "M" if str(p.get("sexo")).upper().startswith("M") else "F" if str(p.get("sexo")).upper().startswith("F") else "I",
@@ -671,7 +853,7 @@ def register_routes(app):
                 "codServicio": "314",
                 "finalidadTecnologiaSalud": "44",
                 "tipoDocumentoIdentificacion": p.get("tipo_documento", "CC"),
-                "numDocumentoIdentificacion": p.get("documento", ""),
+                "numDocumentoIdentificacion": p.get("documento") or p.get("identificacion_paciente", ""),
                 "codDiagnosticoPrincipal": diag_prin,
                 "codDiagnosticoRelacionado": "",
                 "codComplicacion": "",
@@ -683,12 +865,11 @@ def register_routes(app):
             }
             procedimientos.append(procedimiento)
             
-        conn.close()
         
         # Ensamblar JSON Final Res 2275
         rips = {
             "numDocumentoIdObligado": codigo_prestador,
-            "numFactura": num_factura,
+            "numFactura": num_factura_general,
             "tipoNota": "",
             "numNota": "",
             "usuarios": usuarios,
@@ -696,19 +877,17 @@ def register_routes(app):
             "urgencias": urgencias,
             "transaccion": {
                 "numDocumentoIdObligado": codigo_prestador,
-                "numFactura": num_factura,
+                "numFactura": num_factura_general,
                 "tipoNota": "",
                 "numNota": ""
             }
         }
         
-        import json
         from flask import Response
-        
         response = Response(
             json.dumps(rips, ensure_ascii=False, indent=2), 
             mimetype='application/json',
-            headers={"Content-disposition": f"attachment; filename=RIPS_{num_factura}.json"}
+            headers={"Content-disposition": f"attachment; filename=RIPS_{num_factura_general or 'sin_factura'}.json"}
         )
         return response
 
