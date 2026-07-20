@@ -78,6 +78,7 @@
                     <label class="perm-toggle"><input type="checkbox" name="perfil" value="Auxiliar en Enfermeria"><span class="perm-label"><i class="ph ph-bandaids perm-icon" style="color: #38bdf8;"></i>Auxiliar en Enfermeria</span></label>
                     <label class="perm-toggle"><input type="checkbox" name="perfil" value="Conductor"><span class="perm-label"><i class="ph ph-car perm-icon" style="color: #ef4444;"></i>Conductor</span></label>
                     <label class="perm-toggle"><input type="checkbox" name="perfil" value="Socorrista"><span class="perm-label"><i class="ph ph-first-aid-kit perm-icon" style="color: #ef4444;"></i>Socorrista</span></label>
+                    <label class="perm-toggle"><input type="checkbox" name="perfil" value="Gestion Humana"><span class="perm-label"><i class="ph ph-users perm-icon" style="color: #8b5cf6;"></i>Gestion Humana</span></label>
                     <label class="perm-toggle"><input type="checkbox" name="perfil" value="Administrador"><span class="perm-label"><i class="ph ph-gear-six perm-icon" style="color: #64748b;"></i>Administrador</span></label>
                 </div>
                 <p style="font-size: 11px; color: #94a3b8; margin-top: 8px; display: flex; align-items: center; gap: 4px;"><i class="ph ph-info" style="color: #3b82f6;"></i> Si el usuario tiene varios perfiles, al iniciar sesión podrá elegir con cuál operar.</p>
@@ -90,7 +91,7 @@
                     
                     <div id="accesos-tabs" style="display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap;"></div>
 
-                    {% set perfiles_lista = ['Médico', 'Enfermero', 'APH', 'Auxiliar en Enfermeria', 'Conductor', 'Socorrista', 'Administrador'] %}
+                    {% set perfiles_lista = ['Médico', 'Enfermero', 'APH', 'Auxiliar en Enfermeria', 'Conductor', 'Socorrista', 'Gestion Humana', 'Administrador'] %}
                     {% for p in perfiles_lista %}
                     <div id="accesos-block-{{ p }}" class="accesos-block" style="display: none;">
                         <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px 16px; margin-bottom: 8px;">
@@ -128,6 +129,14 @@
                                 <div style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px;">Reportes</div>
                                 <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 6px;">
                                     <label class="perm-toggle"><input type="checkbox" name="formularios_acceso_{{ p }}" value="registros"><span class="perm-label"><span class="perm-icon">📁</span>Explorador de Registros</span></label>
+                                    {% if session.usuario.get('id') == 1 %}
+                                    <label class="perm-toggle"><input type="checkbox" name="formularios_acceso_{{ p }}" value="ths_sga"><span class="perm-label"><span class="perm-icon">📜</span>Documentación Personal de Apoyo Externo</span></label>
+                                    <label class="perm-toggle"><input type="checkbox" name="formularios_acceso_{{ p }}" value="ths_trip"><span class="perm-label"><span class="perm-icon">✈️</span>Documentación Tripulantes</span></label>
+                                    <label class="perm-toggle"><input type="checkbox" name="formularios_acceso_{{ p }}" value="ths_soc"><span class="perm-label"><span class="perm-icon">🚑</span>Documentación Salud Socorristas</span></label>
+                                    {% endif %}
+                                    {% if session.usuario.get('rol_real') == 'admin' and p != 'Administrador' %}
+                                    <label class="perm-toggle"><input type="checkbox" name="formularios_acceso_{{ p }}" value="nomina"><span class="perm-label"><span class="perm-icon">💵</span>Gestión de Honorarios</span></label>
+                                    {% endif %}
                                 </div>
                             </div>
                         </div>
@@ -536,11 +545,11 @@ setTimeout(function() {
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
                                 Editar
                             </a>
-                            {% if u.identificacion != 'admin' %}
                             <a href="{{ url_for('reset_usuario_contrasena', user_id=u.id) }}" class="btn-accion restablecer" title="Restablecer contraseña" onclick="return confirm('¿Restablecer contraseña de {{ u.nombre }}? Será su número de identificación y deberá cambiarla al ingresar.');">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="m8 12 2 2 4-4"/></svg>
                                 Rest. Clave
                             </a>
+                            {% if u.identificacion != 'admin' %}
                             <a href="{{ url_for('toggle_usuario', user_id=u.id) }}" class="btn-accion {% if u.activo %}desactivar{% else %}activar{% endif %}" title="{% if u.activo %}Desactivar usuario{% else %}Activar usuario{% endif %}" onclick="return confirm('¿Está seguro de {% if u.activo %}desactivar{% else %}activar{% endif %} al usuario {{ u.nombre }}?');">
                                 {% if u.activo %}
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.68 13.31a6 6 0 0 0 0 0"/><path d="M18 8h2a3 3 0 0 1 0 6h-2"/><path d="M4 8h2a3 3 0 0 1 0 6H4"/><path d="M8 14v-3a4 4 0 0 1 8 0v3"/></svg>
