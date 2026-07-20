@@ -57,6 +57,7 @@
                     <label class="perm-toggle"><input type="checkbox" name="perfil" value="Auxiliar en Enfermeria" {% if user.perfil and '"Auxiliar en Enfermeria"' in user.perfil %}checked{% endif %}><span class="perm-label"><i class="ph ph-bandaids perm-icon" style="color: #38bdf8;"></i>Auxiliar en Enfermeria</span></label>
                     <label class="perm-toggle"><input type="checkbox" name="perfil" value="Conductor" {% if user.perfil and '"Conductor"' in user.perfil %}checked{% endif %}><span class="perm-label"><i class="ph ph-car perm-icon" style="color: #ef4444;"></i>Conductor</span></label>
                     <label class="perm-toggle"><input type="checkbox" name="perfil" value="Socorrista" {% if user.perfil and '"Socorrista"' in user.perfil %}checked{% endif %}><span class="perm-label"><i class="ph ph-first-aid-kit perm-icon" style="color: #ef4444;"></i>Socorrista</span></label>
+                    <label class="perm-toggle"><input type="checkbox" name="perfil" value="Gestion Humana" {% if user.perfil and '"Gestion Humana"' in user.perfil %}checked{% endif %}><span class="perm-label"><i class="ph ph-users perm-icon" style="color: #8b5cf6;"></i>Gestion Humana</span></label>
                     <label class="perm-toggle"><input type="checkbox" name="perfil" value="Administrador" {% if user.perfil and '"Administrador"' in user.perfil %}checked{% endif %}><span class="perm-label"><i class="ph ph-gear-six perm-icon" style="color: #64748b;"></i>Administrador</span></label>
                 </div>
                 <p style="font-size: 11px; color: #94a3b8; margin-top: 6px; display: flex; align-items: center; gap: 4px;"><i class="ph ph-info" style="color: #3b82f6;"></i> Si el usuario tiene varios perfiles, al iniciar sesión podrá elegir con cuál operar.</p>
@@ -80,7 +81,7 @@
             
             <div id="accesos-tabs" style="display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap;"></div>
 
-            {% set perfiles_lista = ['Médico', 'Enfermero', 'APH', 'Auxiliar en Enfermeria', 'Conductor', 'Socorrista', 'Administrador'] %}
+            {% set perfiles_lista = ['Médico', 'Enfermero', 'APH', 'Auxiliar en Enfermeria', 'Conductor', 'Socorrista', 'Gestion Humana', 'Administrador'] %}
             
             {% set forms_dict = {} %}
             {% if user.formularios_acceso and user.formularios_acceso.startswith('{') %}
@@ -134,6 +135,22 @@
                     <div style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; padding-left: 2px;">Reportes</div>
                     <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px;">
                         <label class="perm-toggle"><input type="checkbox" name="formularios_acceso_{{ p }}" value="registros" {% if 'registros' in current_p_forms %}checked{% endif %}><span class="perm-label"><span class="perm-icon">📁</span>Explorador de Registros</span></label>
+                        {% if session.usuario.get('id') == 1 %}
+                        <label class="perm-toggle"><input type="checkbox" name="formularios_acceso_{{ p }}" value="ths_sga" {% if 'ths_sga' in current_p_forms %}checked{% endif %}><span class="perm-label"><span class="perm-icon">📜</span>Documentación Personal de Apoyo Externo</span></label>
+                        <label class="perm-toggle"><input type="checkbox" name="formularios_acceso_{{ p }}" value="ths_trip" {% if 'ths_trip' in current_p_forms %}checked{% endif %}><span class="perm-label"><span class="perm-icon">✈️</span>Documentación Tripulantes</span></label>
+                        <label class="perm-toggle"><input type="checkbox" name="formularios_acceso_{{ p }}" value="ths_soc" {% if 'ths_soc' in current_p_forms %}checked{% endif %}><span class="perm-label"><span class="perm-icon">🚑</span>Documentación Salud Socorristas</span></label>
+                        {% else %}
+                            <!-- Preserve the existing permission if user is not superadmin and it was already assigned -->
+                            {% if 'ths_sga' in current_p_forms %}
+                            <input type="hidden" name="formularios_acceso_{{ p }}" value="ths_sga">
+                            {% endif %}
+                            {% if 'ths_trip' in current_p_forms %}
+                            <input type="hidden" name="formularios_acceso_{{ p }}" value="ths_trip">
+                            {% endif %}
+                            {% if 'ths_soc' in current_p_forms %}
+                            <input type="hidden" name="formularios_acceso_{{ p }}" value="ths_soc">
+                            {% endif %}
+                        {% endif %}
                         {% if session.usuario.get('rol_real') == 'admin' and p != 'Administrador' %}
                         <label class="perm-toggle"><input type="checkbox" name="formularios_acceso_{{ p }}" value="nomina" {% if 'nomina' in current_p_forms %}checked{% endif %}><span class="perm-label"><span class="perm-icon">💵</span>Gestión de Honorarios</span></label>
                         {% endif %}

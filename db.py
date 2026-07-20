@@ -622,6 +622,37 @@ def init_db():
         )
     """)
     
+    ths_tables = ["ths_sga_records", "ths_trip_records", "ths_soc_records"]
+    for ths_table in ths_tables:
+        conn.execute(f"""
+            CREATE TABLE IF NOT EXISTS {ths_table} (
+              id int(11) NOT NULL AUTO_INCREMENT,
+              identificacion varchar(255) NOT NULL,
+              nombres varchar(255) NOT NULL,
+              apellidos varchar(255) NOT NULL,
+              bls_fecha date DEFAULT NULL,
+              bls_vigencia int(11) DEFAULT NULL,
+              bls_vigencia_unidad varchar(20) DEFAULT NULL,
+              avvs_fecha date DEFAULT NULL,
+              avvs_vigencia int(11) DEFAULT NULL,
+              avvs_vigencia_unidad varchar(20) DEFAULT NULL,
+              avaq_fecha date DEFAULT NULL,
+              avaq_vigencia int(11) DEFAULT NULL,
+              avaq_vigencia_unidad varchar(20) DEFAULT NULL,
+              registrado_por text DEFAULT NULL,
+              fecha_registro datetime DEFAULT current_timestamp(),
+              contacto varchar(255) DEFAULT NULL,
+              registro_salud varchar(255) DEFAULT NULL,
+              hoja_vida tinyint(1) DEFAULT 0,
+              rethus tinyint(1) DEFAULT 0,
+              acta_grado tinyint(1) DEFAULT 0,
+              tarjeta_profesional tinyint(1) DEFAULT 0,
+              activo tinyint(1) DEFAULT 1,
+              PRIMARY KEY (id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+        """)
+
+    
     # Dynamic schema migration for usuarios
     cursor = conn.cursor()
     cursor.execute("DESCRIBE usuarios")

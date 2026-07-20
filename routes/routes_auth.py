@@ -78,6 +78,7 @@ def register_routes(app):
             # If multiple profiles, redirect to profile selection
             if len(perfiles) > 1:
                 session["pendiente_seleccion_perfil"] = {
+                    "id": user["id"],
                     "nombre": user["nombre"],
                     "identificacion": user["identificacion"],
                     "registro_medico": user["registro_medico"],
@@ -85,6 +86,7 @@ def register_routes(app):
                     "perfiles": perfiles,
                     "requiere_cambio_clave": user["requiere_cambio_clave"],
                     "formularios_acceso": formularios_acceso,
+                    "permiso_ths_sga": user.get("permiso_ths_sga"),
                 }
                 return redirect(url_for("seleccionar_perfil"))
 
@@ -107,6 +109,7 @@ def register_routes(app):
                 formularios_acceso_list = []
 
             session["usuario"] = {
+                "id": user["id"],
                 "nombre": user["nombre"],
                 "identificacion": user["identificacion"],
                 "registro_medico": user["registro_medico"],
@@ -115,6 +118,7 @@ def register_routes(app):
                 "perfil": perfil_unico,
                 "requiere_cambio_clave": user["requiere_cambio_clave"],
                 "formularios_acceso": formularios_acceso_list,
+                "permiso_ths_sga": user.get("permiso_ths_sga")
             }
             session.permanent = True
             
@@ -159,6 +163,7 @@ def register_routes(app):
 
             # Set definitive session
             session["usuario"] = {
+                "id": pendiente.get("id"),
                 "nombre": pendiente["nombre"],
                 "identificacion": pendiente["identificacion"],
                 "registro_medico": pendiente["registro_medico"],
@@ -167,6 +172,7 @@ def register_routes(app):
                 "perfil": perfil_elegido,
                 "requiere_cambio_clave": pendiente["requiere_cambio_clave"],
                 "formularios_acceso": formularios_acceso_list,
+                "permiso_ths_sga": pendiente.get("permiso_ths_sga"),
             }
             session.permanent = True
             # Clean up temp data
@@ -476,7 +482,7 @@ def register_routes(app):
                 def normalizar(s):
                     return unicodedata.normalize('NFKD', s).encode('ascii', 'ignore').decode().strip().lower()
 
-                perfiles_canon = {"Médico", "Enfermero", "APH", "Auxiliar en Enfermeria", "Socorrista", "Conductor"}
+                perfiles_canon = {"Médico", "Enfermero", "APH", "Auxiliar en Enfermeria", "Socorrista", "Conductor", "Gestion Humana"}
                 mapa_norm = {normalizar(p): p for p in perfiles_canon}
                 perfiles_list = []
                 invalidos = []
