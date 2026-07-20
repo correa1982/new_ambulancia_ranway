@@ -205,6 +205,30 @@ def init_db():
         )
     """)
     conn.execute("""
+        CREATE TABLE IF NOT EXISTS nomina (
+            id INTEGER PRIMARY KEY AUTO_INCREMENT,
+            fecha_subida DATETIME NOT NULL,
+            nombre_archivo VARCHAR(255) NOT NULL,
+            archivo_url TEXT NOT NULL,
+            registrado_por TEXT NOT NULL,
+            registrado_por_identificacion TEXT NOT NULL,
+            periodo VARCHAR(255)
+        )
+    """)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS nomina_empleados (
+            id INTEGER PRIMARY KEY AUTO_INCREMENT,
+            nomina_id INTEGER NOT NULL,
+            identificacion VARCHAR(255) NOT NULL,
+            nombres VARCHAR(255),
+            apellidos VARCHAR(255),
+            codigo VARCHAR(255) NOT NULL,
+            valor_total VARCHAR(255),
+            detalle TEXT,
+            FOREIGN KEY(nomina_id) REFERENCES nomina(id) ON DELETE CASCADE
+        )
+    """)
+    conn.execute("""
         CREATE TABLE IF NOT EXISTS pacientes (
             id INTEGER PRIMARY KEY AUTO_INCREMENT,
             identificacion_paciente TEXT NOT NULL,
@@ -597,6 +621,43 @@ def init_db():
             activo INTEGER DEFAULT 1
         )
     """)
+    
+    ths_tables = ["ths_sga_records", "ths_trip_records", "ths_soc_records"]
+    for ths_table in ths_tables:
+        conn.execute(f"""
+            CREATE TABLE IF NOT EXISTS {ths_table} (
+              id int(11) NOT NULL AUTO_INCREMENT,
+              identificacion varchar(255) NOT NULL,
+              nombres varchar(255) NOT NULL,
+              apellidos varchar(255) NOT NULL,
+              bls_fecha date DEFAULT NULL,
+              bls_vigencia int(11) DEFAULT NULL,
+              bls_vigencia_unidad varchar(20) DEFAULT NULL,
+              avvs_fecha date DEFAULT NULL,
+              avvs_vigencia int(11) DEFAULT NULL,
+              avvs_vigencia_unidad varchar(20) DEFAULT NULL,
+              avaq_fecha date DEFAULT NULL,
+              avaq_vigencia int(11) DEFAULT NULL,
+              avaq_vigencia_unidad varchar(20) DEFAULT NULL,
+              registrado_por text DEFAULT NULL,
+              fecha_registro datetime DEFAULT current_timestamp(),
+              contacto varchar(255) DEFAULT NULL,
+              registro_salud varchar(255) DEFAULT NULL,
+              hoja_vida tinyint(1) DEFAULT 0,
+              rethus tinyint(1) DEFAULT 0,
+              acta_grado tinyint(1) DEFAULT 0,
+              tarjeta_profesional tinyint(1) DEFAULT 0,
+              activo tinyint(1) DEFAULT 1,
+              PRIMARY KEY (id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+        """)
+        
+        # Dynamic schema migration for ths tables
+        cursor = conn.cursor()
+        cursor.execute(f"DESCRIBE {ths_table}")
+        ths_columns = [row["Field"] for row in cursor.fetchall()]
+        if "perfil" not in ths_columns:
+            conn.execute(f"ALTER TABLE {ths_table} ADD COLUMN perfil VARCHAR(50)")
     
     # Dynamic schema migration for usuarios
     cursor = conn.cursor()

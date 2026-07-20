@@ -1,9 +1,9 @@
 // ═══════════════════════════════════════════════════════════
 //  SERVICE WORKER — Ambulacia PWA Offline
-//  Versión: 1.0.7
+//  Versión: 1.0.8
 // ═══════════════════════════════════════════════════════════
 
-const CACHE_NAME = 'ambulacia-v82';
+const CACHE_NAME = 'ambulacia-v85';
 const OFFLINE_DB  = 'ambulacia-offline';
 const SW_FETCH_TIMEOUT = 30000;
 
@@ -32,7 +32,7 @@ const STATIC_ASSETS = [
   '/static/css/styles.css',
   '/static/manifest.json',
   '/static/offline.html?v=3',
-  '/static/pwa-offline.js?v=24',
+  '/static/pwa-offline.js?v=58',
   '/static/js/dictation.js',
   '/api/cie10_full',
   '/static/data/Departamentos_Municipios.json',
@@ -149,9 +149,9 @@ async function sincronizarRegistros() {
       formData.append('_offline_id', registro.id);
       formData.append('_offline_dedupe_key', registro.dedupe_key || '');
 
-      let urlPost = '/formulario';
+      let urlPost = registro.datos._offline_post_url || '/formulario';
       const acId = registro.datos.atencion_colectiva_id;
-      if (acId && acId !== 'None' && acId !== 'null' && acId !== 'undefined' && acId !== '') {
+      if (!registro.datos._offline_post_url && acId && acId !== 'None' && acId !== 'null' && acId !== 'undefined' && acId !== '') {
         urlPost = '/formulario_mci?atencion_colectiva_id=' + encodeURIComponent(acId);
       }
 

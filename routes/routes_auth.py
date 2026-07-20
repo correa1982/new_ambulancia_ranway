@@ -78,6 +78,7 @@ def register_routes(app):
             # If multiple profiles, redirect to profile selection
             if len(perfiles) > 1:
                 session["pendiente_seleccion_perfil"] = {
+                    "id": user["id"],
                     "nombre": user["nombre"],
                     "identificacion": user["identificacion"],
                     "registro_medico": user["registro_medico"],
@@ -85,6 +86,7 @@ def register_routes(app):
                     "perfiles": perfiles,
                     "requiere_cambio_clave": user["requiere_cambio_clave"],
                     "formularios_acceso": formularios_acceso,
+                    "permiso_ths_sga": user.get("permiso_ths_sga"),
                 }
                 return redirect(url_for("seleccionar_perfil"))
 
@@ -107,13 +109,16 @@ def register_routes(app):
                 formularios_acceso_list = []
 
             session["usuario"] = {
+                "id": user["id"],
                 "nombre": user["nombre"],
                 "identificacion": user["identificacion"],
                 "registro_medico": user["registro_medico"],
                 "rol": "admin" if (user["rol"] == "admin" or perfil_unico == "Administrador") else "usuario",
+                "rol_real": user["rol"],
                 "perfil": perfil_unico,
                 "requiere_cambio_clave": user["requiere_cambio_clave"],
                 "formularios_acceso": formularios_acceso_list,
+                "permiso_ths_sga": user.get("permiso_ths_sga")
             }
             session.permanent = True
             
@@ -158,13 +163,16 @@ def register_routes(app):
 
             # Set definitive session
             session["usuario"] = {
+                "id": pendiente.get("id"),
                 "nombre": pendiente["nombre"],
                 "identificacion": pendiente["identificacion"],
                 "registro_medico": pendiente["registro_medico"],
                 "rol": "admin" if (pendiente["rol"] == "admin" or perfil_elegido == "Administrador") else "usuario",
+                "rol_real": pendiente["rol"],
                 "perfil": perfil_elegido,
                 "requiere_cambio_clave": pendiente["requiere_cambio_clave"],
                 "formularios_acceso": formularios_acceso_list,
+                "permiso_ths_sga": pendiente.get("permiso_ths_sga"),
             }
             session.permanent = True
             # Clean up temp data
@@ -474,7 +482,7 @@ def register_routes(app):
                 def normalizar(s):
                     return unicodedata.normalize('NFKD', s).encode('ascii', 'ignore').decode().strip().lower()
 
-                perfiles_canon = {"Médico", "Enfermero", "APH", "Auxiliar en Enfermeria", "Socorrista", "Conductor"}
+                perfiles_canon = {"Médico", "Enfermero", "APH", "Auxiliar en Enfermeria", "Socorrista", "Conductor", "Gestion Humana"}
                 mapa_norm = {normalizar(p): p for p in perfiles_canon}
                 perfiles_list = []
                 invalidos = []
@@ -624,9 +632,23 @@ def register_routes(app):
             firma = request.form.get("firma", "").strip()
             correo = request.form.get("correo", "").strip()
             
+            # Recuperar permisos antiguos por si el usuario que edita no es admin real
+            old_acc_dict = {}
+            if user and user["formularios_acceso"]:
+                try:
+                    old_acc_dict = json.loads(user["formularios_acceso"])
+                except:
+                    pass
+
             formularios_acceso_dict = {}
             for p in perfiles_list:
-                formularios_acceso_dict[p] = request.form.getlist(f"formularios_acceso_{p}")
+                current_forms = request.form.getlist(f"formularios_acceso_{p}")
+                # Si no es admin real, preservar el permiso 'nomina' si ya lo tenía
+                if session['usuario'].get('rol_real') != 'admin':
+                    old_forms = old_acc_dict.get(p, []) if isinstance(old_acc_dict, dict) else []
+                    if 'nomina' in old_forms and 'nomina' not in current_forms:
+                        current_forms.append('nomina')
+                formularios_acceso_dict[p] = current_forms
             formularios_acceso = json.dumps(formularios_acceso_dict, ensure_ascii=False)
 
             perfiles_requieren_rm = {"Médico", "Enfermero", "APH", "Auxiliar en Enfermeria"}
@@ -687,9 +709,6 @@ def register_routes(app):
         conn = get_db()
         user = conn.execute("SELECT * FROM usuarios WHERE id = ?", (user_id,)).fetchone()
         if user:
-            if user["identificacion"] == "admin":
-                flash("No se puede restablecer la contraseña del administrador principal desde aquí.", "error")
-            else:
                 # Reset password to identification and force change
                 hashed_id = generate_password_hash(user["identificacion"])
                 conn.execute(

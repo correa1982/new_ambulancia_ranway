@@ -160,6 +160,9 @@ def register_routes(app):
             conn.commit()
             conn.close()
 
+            if request.form.get("_offline_sync") == "1":
+                return jsonify({"status": "success", "id": record_id})
+
             if finalizado == 1:
                 flash(f"{cfg['titulo']} finalizado y guardado correctamente.", "success")
                 return redirect(url_for("registros_checklist", tipo=tipo))

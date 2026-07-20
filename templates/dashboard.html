@@ -186,7 +186,7 @@ document.addEventListener("DOMContentLoaded", function() {
     <a href="{{ url_for('form_checklist', tipo='calif_atencion') }}" class="dash-card primary">
         <div class="card-icon" style="background: #fef9c3;"><i class="ph ph-star-half" style="color: #ca8a04;"></i></div>
         <div class="card-title">Calif. Atención</div>
-        <div class="card-desc">Formulario para calificar la atención recibida (usuario o admin).</div>
+        <div class="card-desc">Formulario para calificar la atención recibida.</div>
     </a>
     {% endif %}
     
@@ -291,7 +291,7 @@ document.addEventListener("DOMContentLoaded", function() {
     <a href="{{ url_for('form_checklist', tipo='pasb') }}" class="dash-card">
         <div class="card-icon" style="background: #f3e8ff;"><i class="ph ph-toolbox" style="color: #9333ea;"></i></div>
         <div class="card-title">Check List PASB</div>
-        <div class="card-desc">Primer Respondiente Básico.</div>
+        <div class="card-desc">Puesto de Atención en Salud Básico.</div>
     </a>
     {% endif %}
 
@@ -299,7 +299,7 @@ document.addEventListener("DOMContentLoaded", function() {
     <a href="{{ url_for('form_checklist', tipo='pasm') }}" class="dash-card">
         <div class="card-icon" style="background: #fef9c3;"><i class="ph ph-backpack" style="color: #ca8a04;"></i></div>
         <div class="card-title">Check List PASM</div>
-        <div class="card-desc">Primer Respondiente Medicalizado.</div>
+        <div class="card-desc">Puesto de Atención en Salud Medicalizado.</div>
     </a>
     {% endif %}
 
@@ -332,9 +332,11 @@ document.addEventListener("DOMContentLoaded", function() {
 </div>
 {% endif %}
 
-{% if session.usuario.rol == 'admin' or 'registros' in session.usuario.get('formularios_acceso', []) %}
+{% set has_registros = session.usuario.rol == 'admin' or 'registros' in session.usuario.get('formularios_acceso', []) or 'nomina' in session.usuario.get('formularios_acceso', []) or 'ths_sga' in session.usuario.get('formularios_acceso', []) %}
+{% if has_registros %}
 <div class="section-title">Administración y Consultas</div>
 <div class="dashboard-grid">
+    {% if session.usuario.rol == 'admin' or 'registros' in session.usuario.get('formularios_acceso', []) %}
     <a href="{{ url_for('registros_global') }}" class="dash-card" style="border-color: #e2e8f0;">
         <div class="card-icon" style="background: #fef3c7;"><i class="ph ph-folder-open" style="color: #d97706;"></i></div>
         <div class="card-title">Explorador de Registros</div>
@@ -351,12 +353,21 @@ document.addEventListener("DOMContentLoaded", function() {
         <div class="card-title">Estadísticas Globales</div>
         <div class="card-desc">Métricas y gráficas consolidadas de pacientes, eventos y operatividad.</div>
     </a>
+    {% endif %}
+
+    {% if session.usuario.get('rol_real') == 'admin' or 'nomina' in session.usuario.get('formularios_acceso', []) %}
+    <a href="{{ url_for('nomina.nomina_index') }}" class="dash-card" style="border-color: #e2e8f0;">
+        <div class="card-icon" style="background: #dcfce7;"><i class="ph ph-money" style="color: #16a34a;"></i></div>
+        <div class="card-title">Gestión de Honorarios</div>
+        <div class="card-desc">Subir y consultar historial de honorarios cargados mediante archivo de Excel.</div>
+    </a>
+    {% endif %}
 
     {% if session.usuario.rol == 'admin' %}
     <a href="{{ url_for('admin_mapa') }}" class="dash-card" style="border-color: #e2e8f0;">
         <div class="card-icon" style="background: #dcfce7;"><i class="ph ph-map-pin" style="color: #16a34a;"></i></div>
         <div class="card-title">Mapa de Unidades</div>
-        <div class="card-desc">Monitorear ubicación GPS en tiempo real del personal médico.</div>
+        <div class="card-desc">Monitorear ubicación GPS en tiempo real del equipo.</div>
     </a>
     <a href="{{ url_for('configuracion') }}" class="dash-card" style="border-color: #e2e8f0;">
         <div class="card-icon" style="background: #fef3c7;"><i class="ph ph-buildings" style="color: #d97706;"></i></div>
@@ -366,7 +377,7 @@ document.addEventListener("DOMContentLoaded", function() {
     <a href="{{ url_for('usuarios') }}" class="dash-card" style="border-color: #e2e8f0;">
         <div class="card-icon" style="background: #dbeafe;"><i class="ph ph-users" style="color: #1d4ed8;"></i></div>
         <div class="card-title">Gestión de Usuarios</div>
-        <div class="card-desc">Crear y administrar el personal médico y contraseñas.</div>
+        <div class="card-desc">Crear y administrar el personal y contraseñas.</div>
     </a>
     <a href="{{ url_for('exportar_rips') }}" class="dash-card" style="border-color: #e2e8f0;">
         <div class="card-icon" style="background: #fee2e2;"><i class="ph ph-file-code" style="color: #dc2626;"></i></div>
@@ -376,13 +387,37 @@ document.addEventListener("DOMContentLoaded", function() {
     <a href="{{ url_for('admin_checklists') }}" class="dash-card" style="border-color: #e2e8f0;">
         <div class="card-icon" style="background: #fae8ff;"><i class="ph ph-list-dashes" style="color: #c026d3;"></i></div>
         <div class="card-title">Gestión de Ítems</div>
-        <div class="card-desc">Parametrizar medicamentos e insumos de todas las unidades.</div>
+        <div class="card-desc">Modulo de parametrizacion de items preoperacionales, vehiculos y otros.</div>
+    </a>
+    {% endif %}
+    
+    {% if 'ths_sga' in session.usuario.get('formularios_acceso', []) or session.usuario.rol == 'admin' %}
+    <a href="{{ url_for('admin_ths_sga') }}" class="dash-card" style="border-color: #e2e8f0;">
+        <div class="card-icon" style="background: #e0f2fe;"><i class="ph ph-certificate" style="color: #0369a1;"></i></div>
+        <div class="card-title">Documentación Personal de Apoyo Externo</div>
+        <div class="card-desc">Gestión de Documentación</div>
+    </a>
+    {% endif %}
+    
+    {% if 'ths_trip' in session.usuario.get('formularios_acceso', []) or session.usuario.rol == 'admin' %}
+    <a href="{{ url_for('admin_ths_trip') }}" class="dash-card" style="border-color: #e2e8f0;">
+        <div class="card-icon" style="background: #fdf4ff;"><i class="ph ph-airplane-tilt" style="color: #a21caf;"></i></div>
+        <div class="card-title">Documentación Tripulantes</div>
+        <div class="card-desc">Gestión de Documentación</div>
+    </a>
+    {% endif %}
+    
+    {% if 'ths_soc' in session.usuario.get('formularios_acceso', []) or session.usuario.rol == 'admin' %}
+    <a href="{{ url_for('admin_ths_soc') }}" class="dash-card" style="border-color: #e2e8f0;">
+        <div class="card-icon" style="background: #ecfdf5;"><i class="ph ph-first-aid" style="color: #059669;"></i></div>
+        <div class="card-title">Documentación Salud Socorristas</div>
+        <div class="card-desc">Gestión de Documentación</div>
     </a>
     {% endif %}
 </div>
 {% endif %}
 
-{% set has_registros = session.usuario.rol == 'admin' or 'registros' in session.usuario.get('formularios_acceso', []) %}
+{% set has_registros = session.usuario.rol == 'admin' or 'registros' in session.usuario.get('formularios_acceso', []) or 'nomina' in session.usuario.get('formularios_acceso', []) or 'ths_sga' in session.usuario.get('formularios_acceso', []) %}
 {% if not has_clinica and not has_checklists and not has_registros %}
 <div style="text-align: center; padding: 60px 20px; background: white; border-radius: 12px; border: 1px dashed #cbd5e1; margin-top: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);">
     <div style="font-size: 48px; margin-bottom: 16px; opacity: 0.5;">🚫</div>
