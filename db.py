@@ -651,7 +651,13 @@ def init_db():
               PRIMARY KEY (id)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
         """)
-
+        
+        # Dynamic schema migration for ths tables
+        cursor = conn.cursor()
+        cursor.execute(f"DESCRIBE {ths_table}")
+        ths_columns = [row["Field"] for row in cursor.fetchall()]
+        if "perfil" not in ths_columns:
+            conn.execute(f"ALTER TABLE {ths_table} ADD COLUMN perfil VARCHAR(50)")
     
     # Dynamic schema migration for usuarios
     cursor = conn.cursor()
