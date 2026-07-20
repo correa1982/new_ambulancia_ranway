@@ -1,0 +1,552 @@
+{% extends "base.html" %}
+{% block title %}Documentación THS Tripulantes{% endblock %}
+{% block content %}
+
+<style>
+.header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #e2e8f0;
+    padding-bottom: 12px;
+}
+
+.add-form {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    margin-bottom: 24px;
+    border: 1px solid #e2e8f0;
+}
+.add-form h3 {
+    margin-top: 0;
+    font-size: 16px;
+    color: #1e3a5f;
+    margin-bottom: 15px;
+}
+.form-group {
+    margin-bottom: 15px;
+}
+.cert-section {
+    border-top: 1px solid #e2e8f0;
+    padding-top: 15px;
+    margin-top: 15px;
+}
+.cert-section h4 {
+    margin: 0 0 10px 0;
+    color: #2d3748;
+}
+
+.data-table th, .data-table td {
+    white-space: nowrap !important;
+    text-align: center !important;
+    vertical-align: middle !important;
+    padding: 2px 3px !important;
+    font-size: 9px !important;
+}
+.data-table {
+    width: 100% !important;
+}
+.table-container {
+    overflow-x: auto;
+    width: 100%;
+}
+.dataTables_wrapper {
+    text-align: center;
+}
+.dataTables_wrapper .dataTables_length, 
+.dataTables_wrapper .dataTables_filter {
+    float: none !important;
+    display: inline-flex !important;
+    align-items: center;
+    margin-bottom: 15px;
+}
+.dataTables_wrapper .dataTables_filter {
+    margin-left: 30px;
+}
+.dataTables_wrapper label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+}
+.dataTables_wrapper label,
+.dataTables_wrapper input,
+.dataTables_wrapper select,
+.dataTables_wrapper .dataTables_info,
+.dataTables_wrapper .dataTables_paginate {
+    font-size: 9px !important;
+}
+.dataTables_wrapper input,
+.dataTables_wrapper select {
+    padding: 2px 4px !important;
+    height: auto !important;
+}
+</style>
+
+<!-- DataTables CSS and JS -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+$(document).ready(function() {
+    $('.data-table').DataTable({
+        "language": {
+            "sProcessing":     "Procesando...",
+            "sLengthMenu":     "Mostrar _MENU_ registros",
+            "sZeroRecords":    "No se encontraron resultados",
+            "sEmptyTable":     "Ningún dato disponible en esta tabla",
+            "sInfo":           "Mostrando _START_ a _END_ de _TOTAL_ registros",
+            "sInfoEmpty":      "Mostrando del 0 al 0 de 0 registros",
+            "sInfoFiltered":   "(filtrado de _MAX_ registros)",
+            "sSearch":         "Buscar:",
+            "oPaginate": {
+                "sFirst":    "Primero",
+                "sLast":     "Último",
+                "sNext":     "Siguiente",
+                "sPrevious": "Anterior"
+            }
+        },
+        "order": [[0, "asc"]],
+        "pageLength": 10,
+        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "Todos"]],
+        "scrollX": false,
+        "autoWidth": false
+    });
+    
+    // Fix DataTables header misalignment when switching tabs
+    $('a[data-bs-toggle="tab"]').on('shown.bs.tab', function(e){
+       $($.fn.dataTable.tables(true)).DataTable()
+          .columns.adjust();
+    });
+});
+
+function editRecord(btn) {
+    // Parse data from button attributes
+    const id = $(btn).data('id');
+    const nombreCompleto = $(btn).data('nombre');
+    const registro = $(btn).data('registro');
+    const contacto = $(btn).data('contacto');
+    
+    // Fill the form
+    $('input[name="identificacion"]').val(id).prop('readonly', true);
+    $('input[name="nombre_completo"]').val(nombreCompleto);
+    $('input[name="registro_salud"]').val(registro);
+    $('input[name="contacto"]').val(contacto);
+    
+    // Checkboxes
+    $('#hoja_vida').prop('checked', $(btn).data('hoja') == '1');
+    $('#rethus').prop('checked', $(btn).data('rethus') == '1');
+    $('#acta_grado').prop('checked', $(btn).data('acta') == '1');
+    $('#tarjeta_profesional').prop('checked', $(btn).data('tarjeta') == '1');
+    
+    // Change action type to edit
+    $('#action_type').val('edit');
+    $('#submitBtn').text('Actualizar').removeClass('btn-primary').addClass('btn-success');
+    $('#cancelEditBtn').show();
+    
+    // Expand the Agregar accordion if it's closed
+    $('#detailsAgregar').prop('open', true);
+    
+    // Scroll up smoothly to the form
+    document.getElementById('detailsAgregar').scrollIntoView({ behavior: 'smooth' });
+}
+
+function cancelEdit() {
+    $('#sgaForm')[0].reset();
+    $('input[name="identificacion"]').prop('readonly', false);
+    $('#action_type').val('add');
+    $('#submitBtn').text('Agregar Registro').removeClass('btn-success').addClass('btn-primary');
+    $('#cancelEditBtn').hide();
+}
+</script>
+
+{% set stats = {'sum_pct': 0, 'count': 0} %}
+{% for r in activos %}
+    {% set count = 0 %}
+    {% if r.hoja_vida %}{% set count = count + 1 %}{% endif %}
+    {% if r.acta_grado %}{% set count = count + 1 %}{% endif %}
+    {% if r.tarjeta_profesional %}{% set count = count + 1 %}{% endif %}
+    {% if r.rethus %}{% set count = count + 1 %}{% endif %}
+    {% if r.bls_fecha and not r.bls_vencido %}{% set count = count + 1 %}{% endif %}
+    {% if r.avvs_fecha and not r.avvs_vencido %}{% set count = count + 1 %}{% endif %}
+    {% if r.avaq_fecha and not r.avaq_vencido %}{% set count = count + 1 %}{% endif %}
+    {% set pct = (count / 7 * 100) %}
+    {% if stats.update({'sum_pct': stats.sum_pct + pct, 'count': stats.count + 1}) %}{% endif %}
+{% endfor %}
+{% if stats.count > 0 %}
+    {% set cumplimiento_general = (stats.sum_pct / stats.count) | round(0) | int %}
+{% else %}
+    {% set cumplimiento_general = 0 %}
+{% endif %}
+
+<div class="header-row">
+    <h2>Documentación THS Tripulantes</h2>
+    <div style="font-size: 1.2rem; font-weight: bold; color: {% if cumplimiento_general == 100 %}#15803d{% elif cumplimiento_general >= 50 %}#ca8a04{% else %}#b91c1c{% endif %};">
+        Cumplimiento General: {{ cumplimiento_general }}%
+    </div>
+</div>
+
+<div class="native-accordion-container">
+  
+  <!-- Accordion: Agregar Persona -->
+  <details id="detailsAgregar" style="border: 1px solid #e2e8f0; margin-bottom: 15px; border-radius: 8px; overflow: hidden; background: white;">
+    <summary style="padding: 15px; background-color: #f8fafc; color: #1e3a5f; font-weight: bold; cursor: pointer; border-bottom: 1px solid #e2e8f0; font-size: 16px;">
+        Agregar Persona
+    </summary>
+    <div class="add-form" style="padding: 15px; border: none; margin-bottom: 0; box-shadow: none;">
+        <form action="{{ url_for('admin_ths_trip_agregar') }}" method="POST" id="sgaForm">
+        <input type="hidden" name="action_type" id="action_type" value="add">
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px;">
+            <div class="form-group" style="margin-bottom: 0;">
+                <label>Identificación</label>
+                <input type="text" name="identificacion" class="form-control" required>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+                <label>Nombre Completo</label>
+                <input type="text" name="nombre_completo" class="form-control" placeholder="Ej: Juan Perez" required>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+                <label>Registro (Resolución en Salud)</label>
+                <input type="text" name="registro_salud" class="form-control">
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+                <label>Contacto (Número)</label>
+                <input type="text" name="contacto" class="form-control">
+            </div>
+        </div>
+        
+        <div style="width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; margin-top: 10px; margin-bottom: 15px;">
+            <label style="margin-bottom: 10px; font-size: 15px;"><strong>Documentos:</strong></label>
+            <div style="display: flex; gap: 20px; justify-content: center; align-items: center; flex-wrap: wrap; width: 100%;">
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <input type="checkbox" name="hoja_vida" value="1" id="hoja_vida" style="margin: 0; cursor: pointer; width: 16px; height: 16px;">
+                        <label for="hoja_vida" style="margin: 0; cursor: pointer;">Hoja de Vida</label>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <input type="checkbox" name="rethus" value="1" id="rethus" style="margin: 0; cursor: pointer; width: 16px; height: 16px;">
+                        <label for="rethus" style="margin: 0; cursor: pointer;">RETHUS</label>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <input type="checkbox" name="acta_grado" value="1" id="acta_grado" style="margin: 0; cursor: pointer; width: 16px; height: 16px;">
+                        <label for="acta_grado" style="margin: 0; cursor: pointer;">Acta/Diploma</label>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <input type="checkbox" name="tarjeta_profesional" value="1" id="tarjeta_profesional" style="margin: 0; cursor: pointer; width: 16px; height: 16px;">
+                        <label for="tarjeta_profesional" style="margin: 0; cursor: pointer;">Resolución/Tarjeta Prof.</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="cert-section" style="margin-top: 25px;">
+            <div class="cert-block" style="background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 15px;">
+                <h5 style="color: #0f172a; font-weight: 700; margin-bottom: 15px;">BLS (Cert. RCP)</h5>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label>Fecha Realización</label>
+                        <input type="date" name="bls_fecha" class="form-control">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label>Vigencia</label>
+                        <input type="number" name="bls_vigencia" class="form-control" min="1">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label>Unidad</label>
+                        <select name="bls_vigencia_unidad" class="form-control">
+                            <option value="meses">Meses</option>
+                            <option value="años">Años</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="cert-block" style="background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 15px;">
+                <h5 style="color: #0f172a; font-weight: 700; margin-bottom: 15px;">AVVS (Violencia Sexual)</h5>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label>Fecha Realización</label>
+                        <input type="date" name="avvs_fecha" class="form-control">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label>Vigencia</label>
+                        <input type="number" name="avvs_vigencia" class="form-control" min="1">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label>Unidad</label>
+                        <select name="avvs_vigencia_unidad" class="form-control">
+                            <option value="meses">Meses</option>
+                            <option value="años">Años</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="cert-block" style="background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 15px;">
+                <h5 style="color: #0f172a; font-weight: 700; margin-bottom: 15px;">AVAQ (Agentes Químicos)</h5>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label>Fecha Realización</label>
+                        <input type="date" name="avaq_fecha" class="form-control">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label>Vigencia</label>
+                        <input type="number" name="avaq_vigencia" class="form-control" min="1">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label>Unidad</label>
+                        <select name="avaq_vigencia_unidad" class="form-control">
+                            <option value="meses">Meses</option>
+                            <option value="años">Años</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-3" style="display: flex; justify-content: center; gap: 10px;">
+            <button type="submit" id="submitBtn" class="btn btn-primary">Agregar Registro</button>
+            <button type="button" id="cancelEditBtn" class="btn btn-secondary" style="display: none;" onclick="cancelEdit()">Cancelar Edición</button>
+        </div>
+    </form>
+      </div>
+  </details>
+
+  <!-- Accordion: Tabla de Registros Activos -->
+  <details open style="border: 1px solid #e2e8f0; margin-bottom: 15px; border-radius: 8px; overflow: hidden; background: white;">
+    <summary style="padding: 15px; background-color: #f8fafc; color: #1e3a5f; font-weight: bold; cursor: pointer; border-bottom: 1px solid #e2e8f0; font-size: 16px;">
+        Tabla de Registros Activos
+    </summary>
+    <div style="padding: 15px;">
+            <div class="table-container mt-3">
+                <table class="data-table">
+                    <!-- same headers -->
+                    <thead>
+                        <tr style="background-color: #d1d5db; text-align: center; font-size: 10px;">
+                            <th rowspan="2" style="vertical-align: middle; border: 1px solid #9ca3af;">NOMBRES Y APELLIDOS</th>
+                            <th rowspan="2" style="vertical-align: middle; border: 1px solid #9ca3af;">IDENTIFICACIÓN</th>
+                            <th rowspan="2" style="vertical-align: middle; border: 1px solid #9ca3af;">REGISTRO</th>
+                            <th rowspan="2" style="vertical-align: middle; border: 1px solid #9ca3af;">CONTACTO</th>
+                            <th rowspan="2" style="vertical-align: middle; border: 1px solid #9ca3af;">HOJA DE<br>VIDA</th>
+                            <th rowspan="2" style="vertical-align: middle; border: 1px solid #9ca3af;">RETHUS</th>
+                            <th rowspan="2" style="vertical-align: middle; border: 1px solid #9ca3af;">DIPLOMA</th>
+                            <th rowspan="2" style="vertical-align: middle; border: 1px solid #9ca3af;">RESOLUCIÓN</th>
+                            <th colspan="2" style="border: 1px solid #9ca3af;">BLS</th>
+                            <th colspan="2" style="border: 1px solid #9ca3af;">AVVS</th>
+                            <th colspan="2" style="border: 1px solid #9ca3af;">AVAQ</th>
+                            <th rowspan="2" style="vertical-align: middle; border: 1px solid #9ca3af;">%</th>
+                            <th rowspan="2" style="vertical-align: middle; border: 1px solid #9ca3af;">ACCIONES</th>
+                        </tr>
+                        <tr style="background-color: #d1d5db; text-align: center; font-size: 11px;">
+                            <th style="border: 1px solid #9ca3af;">FR</th>
+                            <th style="border: 1px solid #9ca3af;">Vigente</th>
+                            <th style="border: 1px solid #9ca3af;">FR</th>
+                            <th style="border: 1px solid #9ca3af;">Vigente</th>
+                            <th style="border: 1px solid #9ca3af;">FR</th>
+                            <th style="border: 1px solid #9ca3af;">Vigente</th>
+                        </tr>
+                    </thead>
+                    <tbody style="font-size: 12px; text-align: center;">
+                        {% for r in activos %}
+                        <tr>
+                            <td style="border: 1px solid #d1d5db;">{{ r.nombres }} {{ r.apellidos }}</td>
+                            <td style="border: 1px solid #d1d5db;">{{ r.identificacion }}</td>
+                            <td style="border: 1px solid #d1d5db;">{{ r.registro_salud or '' }}</td>
+                            <td style="border: 1px solid #d1d5db;">{{ r.contacto or '' }}</td>
+                            
+                            <td style="border: 1px solid #d1d5db;">{% if r.hoja_vida %}OK{% endif %}</td>
+                            <td style="border: 1px solid #d1d5db;">{% if r.rethus %}OK{% endif %}</td>
+                            <td style="border: 1px solid #d1d5db;">{% if r.acta_grado %}OK{% endif %}</td>
+                            <td style="border: 1px solid #d1d5db;">{% if r.tarjeta_profesional %}OK{% endif %}</td>
+                            
+                            <!-- BLS -->
+                            <td style="border: 1px solid #d1d5db;">{{ r.bls_fecha or '' }}</td>
+                            {% if r.bls_fecha %}
+                            <td style="border: 1px solid #d1d5db; background-color: {% if r.bls_vencido %}#ef4444{% else %}#84cc16{% endif %}; font-weight: bold; color: {% if r.bls_vencido %}white{% else %}black{% endif %};">
+                                {% if r.bls_vencido %}VENCIDO{% else %}VIGENTE{% endif %}
+                            </td>
+                            {% else %}
+                            <td style="border: 1px solid #d1d5db;"></td>
+                            {% endif %}
+                            
+                            <!-- AVVS -->
+                            <td style="border: 1px solid #d1d5db;">{{ r.avvs_fecha or '' }}</td>
+                            {% if r.avvs_fecha %}
+                            <td style="border: 1px solid #d1d5db; background-color: {% if r.avvs_vencido %}#ef4444{% else %}#84cc16{% endif %}; font-weight: bold; color: {% if r.avvs_vencido %}white{% else %}black{% endif %};">
+                                {% if r.avvs_vencido %}VENCIDO{% else %}VIGENTE{% endif %}
+                            </td>
+                            {% else %}
+                            <td style="border: 1px solid #d1d5db;"></td>
+                            {% endif %}
+
+                            <!-- AVAQ -->
+                            <td style="border: 1px solid #d1d5db;">{{ r.avaq_fecha or '' }}</td>
+                            {% if r.avaq_fecha %}
+                            <td style="border: 1px solid #d1d5db; background-color: {% if r.avaq_vencido %}#ef4444{% else %}#84cc16{% endif %}; font-weight: bold; color: {% if r.avaq_vencido %}white{% else %}black{% endif %};">
+                                {% if r.avaq_vencido %}VENCIDO{% else %}VIGENTE{% endif %}
+                            </td>
+                            {% else %}
+                            <td style="border: 1px solid #d1d5db;"></td>
+                            {% endif %}
+                            
+                            <!-- Cumplimiento -->
+                            {% set count = 0 %}
+                            {% if r.hoja_vida %}{% set count = count + 1 %}{% endif %}
+                            {% if r.acta_grado %}{% set count = count + 1 %}{% endif %}
+                            {% if r.tarjeta_profesional %}{% set count = count + 1 %}{% endif %}
+                            {% if r.rethus %}{% set count = count + 1 %}{% endif %}
+                            {% if r.bls_fecha and not r.bls_vencido %}{% set count = count + 1 %}{% endif %}
+                            {% if r.avvs_fecha and not r.avvs_vencido %}{% set count = count + 1 %}{% endif %}
+                            {% if r.avaq_fecha and not r.avaq_vencido %}{% set count = count + 1 %}{% endif %}
+                            {% set pct = (count / 7 * 100) | round(0) | int %}
+                            
+                            <td style="border: 1px solid #d1d5db; font-weight: bold; color: {% if pct == 100 %}#15803d{% elif pct >= 50 %}#ca8a04{% else %}#b91c1c{% endif %};">
+                                {{ pct }}%
+                            </td>
+                            
+                            <td style="border: 1px solid #d1d5db; white-space: nowrap;">
+                                <form action="{{ url_for('admin_ths_trip_toggle', identificacion=r.identificacion) }}" method="POST" style="display:inline;">
+                                    <button type="submit" class="btn btn-sm" style="padding: 1px 6px; font-size: 9px; border-radius: 12px; background-color: #ef4444; color: white; border: none; box-shadow: 0 1px 3px rgba(0,0,0,0.2);" onclick="return confirm('¿Inactivar registro?')">🚫 Inactivar</button>
+                                </form>
+                                <a href="#" class="btn btn-secondary btn-sm" style="padding: 1px 6px; font-size: 9px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.2); margin-left: 2px;"
+                                   onclick="editRecord(this); return false;"
+                                   data-id="{{ r.identificacion }}"
+                                   data-nombre="{{ r.nombres }} {{ r.apellidos }}"
+                                   data-registro="{{ r.registro_salud or '' }}"
+                                   data-contacto="{{ r.contacto or '' }}"
+                                   data-hoja="{{ r.hoja_vida }}"
+                                   data-rethus="{{ r.rethus }}"
+                                   data-acta="{{ r.acta_grado }}"
+                                   data-tarjeta="{{ r.tarjeta_profesional }}">✏️ Editar</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+      </div>
+  </details>
+        
+  <!-- Accordion: Tabla de Registros Inactivos -->
+  <details style="border: 1px solid #e2e8f0; margin-bottom: 15px; border-radius: 8px; overflow: hidden; background: white;">
+    <summary style="padding: 15px; background-color: #f8fafc; color: #1e3a5f; font-weight: bold; cursor: pointer; border-bottom: 1px solid #e2e8f0; font-size: 16px;">
+        Tabla de Registros Inactivos
+    </summary>
+    <div style="padding: 15px;">
+            <div class="table-container mt-3">
+                <table class="data-table" style="opacity: 0.8;">
+                    <thead>
+                        <tr style="background-color: #d1d5db; text-align: center; font-size: 10px;">
+                            <th rowspan="2" style="vertical-align: middle; border: 1px solid #9ca3af;">NOMBRES Y APELLIDOS</th>
+                            <th rowspan="2" style="vertical-align: middle; border: 1px solid #9ca3af;">IDENTIFICACIÓN</th>
+                            <th rowspan="2" style="vertical-align: middle; border: 1px solid #9ca3af;">REGISTRO</th>
+                            <th rowspan="2" style="vertical-align: middle; border: 1px solid #9ca3af;">CONTACTO</th>
+                            <th rowspan="2" style="vertical-align: middle; border: 1px solid #9ca3af;">HOJA DE<br>VIDA</th>
+                            <th rowspan="2" style="vertical-align: middle; border: 1px solid #9ca3af;">RETHUS</th>
+                            <th rowspan="2" style="vertical-align: middle; border: 1px solid #9ca3af;">DIPLOMA</th>
+                            <th rowspan="2" style="vertical-align: middle; border: 1px solid #9ca3af;">RESOLUCIÓN</th>
+                            <th colspan="2" style="border: 1px solid #9ca3af;">BLS</th>
+                            <th colspan="2" style="border: 1px solid #9ca3af;">AVVS</th>
+                            <th colspan="2" style="border: 1px solid #9ca3af;">AVAQ</th>
+                            <th rowspan="2" style="vertical-align: middle; border: 1px solid #9ca3af;">%</th>
+                            <th rowspan="2" style="vertical-align: middle; border: 1px solid #9ca3af;">ACCIONES</th>
+                        </tr>
+                        <tr style="background-color: #d1d5db; text-align: center; font-size: 11px;">
+                            <th style="border: 1px solid #9ca3af;">FR</th>
+                            <th style="border: 1px solid #9ca3af;">Vigente</th>
+                            <th style="border: 1px solid #9ca3af;">FR</th>
+                            <th style="border: 1px solid #9ca3af;">Vigente</th>
+                            <th style="border: 1px solid #9ca3af;">FR</th>
+                            <th style="border: 1px solid #9ca3af;">Vigente</th>
+                        </tr>
+                    </thead>
+                    <tbody style="font-size: 12px; text-align: center;">
+                        {% for r in inactivos %}
+                        <tr>
+                            <td style="border: 1px solid #d1d5db;">{{ r.nombres }} {{ r.apellidos }}</td>
+                            <td style="border: 1px solid #d1d5db;">{{ r.identificacion }}</td>
+                            <td style="border: 1px solid #d1d5db;">{{ r.registro_salud or '' }}</td>
+                            <td style="border: 1px solid #d1d5db;">{{ r.contacto or '' }}</td>
+                            
+                            <td style="border: 1px solid #d1d5db;">{% if r.hoja_vida %}OK{% endif %}</td>
+                            <td style="border: 1px solid #d1d5db;">{% if r.rethus %}OK{% endif %}</td>
+                            <td style="border: 1px solid #d1d5db;">{% if r.acta_grado %}OK{% endif %}</td>
+                            <td style="border: 1px solid #d1d5db;">{% if r.tarjeta_profesional %}OK{% endif %}</td>
+                            
+                            <!-- BLS -->
+                            <td style="border: 1px solid #d1d5db;">{{ r.bls_fecha or '' }}</td>
+                            {% if r.bls_fecha %}
+                            <td style="border: 1px solid #d1d5db; background-color: {% if r.bls_vencido %}#ef4444{% else %}#84cc16{% endif %}; font-weight: bold; color: {% if r.bls_vencido %}white{% else %}black{% endif %};">
+                                {% if r.bls_vencido %}VENCIDO{% else %}VIGENTE{% endif %}
+                            </td>
+                            {% else %}
+                            <td style="border: 1px solid #d1d5db;"></td>
+                            {% endif %}
+                            
+                            <!-- AVVS -->
+                            <td style="border: 1px solid #d1d5db;">{{ r.avvs_fecha or '' }}</td>
+                            {% if r.avvs_fecha %}
+                            <td style="border: 1px solid #d1d5db; background-color: {% if r.avvs_vencido %}#ef4444{% else %}#84cc16{% endif %}; font-weight: bold; color: {% if r.avvs_vencido %}white{% else %}black{% endif %};">
+                                {% if r.avvs_vencido %}VENCIDO{% else %}VIGENTE{% endif %}
+                            </td>
+                            {% else %}
+                            <td style="border: 1px solid #d1d5db;"></td>
+                            {% endif %}
+
+                            <!-- AVAQ -->
+                            <td style="border: 1px solid #d1d5db;">{{ r.avaq_fecha or '' }}</td>
+                            {% if r.avaq_fecha %}
+                            <td style="border: 1px solid #d1d5db; background-color: {% if r.avaq_vencido %}#ef4444{% else %}#84cc16{% endif %}; font-weight: bold; color: {% if r.avaq_vencido %}white{% else %}black{% endif %};">
+                                {% if r.avaq_vencido %}VENCIDO{% else %}VIGENTE{% endif %}
+                            </td>
+                            {% else %}
+                            <td style="border: 1px solid #d1d5db;"></td>
+                            {% endif %}
+                            
+                            <!-- Cumplimiento -->
+                            {% set count_inactivo = 0 %}
+                            {% if r.hoja_vida %}{% set count_inactivo = count_inactivo + 1 %}{% endif %}
+                            {% if r.acta_grado %}{% set count_inactivo = count_inactivo + 1 %}{% endif %}
+                            {% if r.tarjeta_profesional %}{% set count_inactivo = count_inactivo + 1 %}{% endif %}
+                            {% if r.rethus %}{% set count_inactivo = count_inactivo + 1 %}{% endif %}
+                            {% if r.bls_fecha and not r.bls_vencido %}{% set count_inactivo = count_inactivo + 1 %}{% endif %}
+                            {% if r.avvs_fecha and not r.avvs_vencido %}{% set count_inactivo = count_inactivo + 1 %}{% endif %}
+                            {% if r.avaq_fecha and not r.avaq_vencido %}{% set count_inactivo = count_inactivo + 1 %}{% endif %}
+                            {% set pct_inactivo = (count_inactivo / 7 * 100) | round(0) | int %}
+                            
+                            <td style="border: 1px solid #d1d5db; font-weight: bold; color: {% if pct_inactivo == 100 %}#15803d{% elif pct_inactivo >= 50 %}#ca8a04{% else %}#b91c1c{% endif %};">
+                                {{ pct_inactivo }}%
+                            </td>
+
+                            <td style="border: 1px solid #d1d5db; white-space: nowrap;">
+                                <form action="{{ url_for('admin_ths_trip_toggle', identificacion=r.identificacion) }}" method="POST" style="display:inline;">
+                                    <button type="submit" class="btn btn-sm" style="padding: 1px 6px; font-size: 9px; border-radius: 12px; background-color: #10b981; color: white; border: none; box-shadow: 0 1px 3px rgba(0,0,0,0.2);" onclick="return confirm('¿Activar registro?')">✅ Activar</button>
+                                </form>
+                                <a href="#" class="btn btn-secondary btn-sm" style="padding: 1px 6px; font-size: 9px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.2); margin-left: 2px;"
+                                   onclick="editRecord(this); return false;"
+                                   data-id="{{ r.identificacion }}"
+                                   data-nombre="{{ r.nombres }} {{ r.apellidos }}"
+                                   data-registro="{{ r.registro_salud or '' }}"
+                                   data-contacto="{{ r.contacto or '' }}"
+                                   data-hoja="{{ r.hoja_vida }}"
+                                   data-rethus="{{ r.rethus }}"
+                                   data-acta="{{ r.acta_grado }}"
+                                   data-tarjeta="{{ r.tarjeta_profesional }}">✏️ Editar</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            </div>
+      </div>
+  </details>
+
+</div>
+
+{% endblock %}
