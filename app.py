@@ -297,7 +297,7 @@ if __name__ == "__main__":
         s.close()
         print("\n" + "="*60)
         print(" Aplicación disponible en tu red local.")
-        print(f" Ingresa desde otro dispositivo (celular/tablet) a:")
+        print(f" Ingresa desde otro dispositivo (celular/tablets) a:")
         print(f"   http://{ip}:10000")
         print("="*60 + "\n")
     except Exception:
