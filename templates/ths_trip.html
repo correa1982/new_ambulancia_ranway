@@ -200,7 +200,7 @@ $(document).ready(function() {
         $('#avaq_fecha').prop('required', true);
         $('#avaq_vigencia').prop('required', true);
         
-        if (p === 'CONDUCTOR') {
+        if (p === 'CONDUCTOR' || p === 'ADMINISTRATIVO') {
             // Hide medical fields
             $('#group_registro').hide();
             $('#registro_salud').prop('required', false);
@@ -208,9 +208,14 @@ $(document).ready(function() {
             $('#cert_section').hide();
             $('#bls_fecha, #bls_vigencia, #avvs_fecha, #avvs_vigencia, #avaq_fecha, #avaq_vigencia').prop('required', false);
             
-            // Show licencias
-            $('#licencia_section').show();
-            if($('#licencias_container').children().length === 0) addLicenciaRow();
+            if (p === 'CONDUCTOR') {
+                // Show licencias
+                $('#licencia_section').show();
+                if($('#licencias_container').children().length === 0) addLicenciaRow();
+            } else {
+                // ADMINISTRATIVO
+                $('#licencia_section').hide();
+            }
             
         } else if (p === 'CONDUCTOR APH') {
             // Show both
@@ -533,6 +538,9 @@ function confirmAction(btn, title, text, confirmButtonText, confirmButtonColor) 
         {% set total = 2 %}
         {% if lic_ns.has_valid %}{% set count = count + 1 %}{% endif %}
         {% if r.examen_fecha and not r.examen_vencido %}{% set count = count + 1 %}{% endif %}
+    {% elif r.perfil == 'ADMINISTRATIVO' %}
+        {% set total = 1 %}
+        {% if r.examen_fecha and not r.examen_vencido %}{% set count = count + 1 %}{% endif %}
     {% elif r.perfil == 'CONDUCTOR APH' %}
         {% set total = 5 %}
         {% if r.bls_fecha and not r.bls_vencido %}{% set count = count + 1 %}{% endif %}
@@ -592,6 +600,7 @@ function confirmAction(btn, title, text, confirmButtonText, confirmButtonColor) 
                     <option value="MEDICO">MEDICO</option>
                     <option value="CONDUCTOR APH">CONDUCTOR APH</option>
                     <option value="CONDUCTOR">CONDUCTOR</option>
+                    <option value="ADMINISTRATIVO">ADMINISTRATIVO</option>
                 </select>
             </div>
             <div class="form-group" style="margin-bottom: 0;" id="group_registro">
@@ -820,6 +829,9 @@ function confirmAction(btn, title, text, confirmButtonText, confirmButtonColor) 
             {% if r.perfil == 'CONDUCTOR' %}
                 {% set total = 2 %}
                 {% if lic_ns.has_valid %}{% set count = count + 1 %}{% endif %}
+                {% if r.examen_fecha and not r.examen_vencido %}{% set count = count + 1 %}{% endif %}
+            {% elif r.perfil == 'ADMINISTRATIVO' %}
+                {% set total = 1 %}
                 {% if r.examen_fecha and not r.examen_vencido %}{% set count = count + 1 %}{% endif %}
             {% elif r.perfil == 'CONDUCTOR APH' %}
                 {% set total = 5 %}
@@ -1059,6 +1071,9 @@ function confirmAction(btn, title, text, confirmButtonText, confirmButtonColor) 
             {% if r.perfil == 'CONDUCTOR' %}
                 {% set total_inactivo = 2 %}
                 {% if lic_ns.has_valid %}{% set count_inactivo = count_inactivo + 1 %}{% endif %}
+                {% if r.examen_fecha and not r.examen_vencido %}{% set count_inactivo = count_inactivo + 1 %}{% endif %}
+            {% elif r.perfil == 'ADMINISTRATIVO' %}
+                {% set total_inactivo = 1 %}
                 {% if r.examen_fecha and not r.examen_vencido %}{% set count_inactivo = count_inactivo + 1 %}{% endif %}
             {% elif r.perfil == 'CONDUCTOR APH' %}
                 {% set total_inactivo = 5 %}
