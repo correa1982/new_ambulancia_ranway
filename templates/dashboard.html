@@ -401,8 +401,8 @@ document.addEventListener("DOMContentLoaded", function() {
     
     {% if 'ths_trip' in session.usuario.get('formularios_acceso', []) or session.usuario.rol == 'admin' %}
     <a href="{{ url_for('admin_ths_trip') }}" class="dash-card" style="border-color: #e2e8f0;">
-        <div class="card-icon" style="background: #fdf4ff;"><i class="ph ph-airplane-tilt" style="color: #a21caf;"></i></div>
-        <div class="card-title">Documentación Tripulantes</div>
+        <div class="card-icon" style="background: #fdf4ff;"><i class="ph ph-ambulance" style="color: #a21caf;"></i></div>
+        <div class="card-title">Documentación Personal Ambulancias</div>
         <div class="card-desc">Gestión de Documentación</div>
     </a>
     {% endif %}
