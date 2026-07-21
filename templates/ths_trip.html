@@ -84,6 +84,69 @@
     padding: 2px 4px !important;
     height: auto !important;
 }
+
+/* User Card Styles */
+.user-card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+    margin-top: 15px;
+}
+.user-card {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e2e8f0;
+    padding: 12px 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.user-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+.user-card-header {
+    border-bottom: 1px solid #f1f5f9;
+    padding-bottom: 8px;
+}
+.user-card-title {
+    font-size: 15px;
+    font-weight: bold;
+    color: #1e3a5f;
+    margin: 0;
+}
+.user-card-subtitle {
+    font-size: 12px;
+    color: #64748b;
+    margin-top: 2px;
+}
+.user-card-body {
+    font-size: 13px;
+    color: #475569;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.user-card-detail {
+    display: flex;
+    justify-content: space-between;
+}
+.user-card-pct {
+    font-size: 24px;
+    font-weight: 800;
+    text-align: center;
+    margin: 4px 0;
+}
+.user-card-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: auto;
+    border-top: 1px solid #f1f5f9;
+    padding-top: 10px;
+    justify-content: center;
+}
 </style>
 
 <!-- DataTables CSS and JS -->
@@ -123,7 +186,192 @@ $(document).ready(function() {
        $($.fn.dataTable.tables(true)).DataTable()
           .columns.adjust();
     });
+
+    // Toggle visibility based on perfil
+    $('#perfil_select').on('change', function() {
+        const p = $(this).val();
+        
+        // Reset required
+        $('#registro_salud').prop('required', true);
+        $('#bls_fecha').prop('required', true);
+        $('#bls_vigencia').prop('required', true);
+        $('#avvs_fecha').prop('required', true);
+        $('#avvs_vigencia').prop('required', true);
+        $('#avaq_fecha').prop('required', true);
+        $('#avaq_vigencia').prop('required', true);
+        
+        if (p === 'CONDUCTOR') {
+            // Hide medical fields
+            $('#group_registro').hide();
+            $('#registro_salud').prop('required', false);
+            $('#wrapper_rethus, #wrapper_acta, #wrapper_tarjeta').hide();
+            $('#cert_section').hide();
+            $('#bls_fecha, #bls_vigencia, #avvs_fecha, #avvs_vigencia, #avaq_fecha, #avaq_vigencia').prop('required', false);
+            
+            // Show licencias
+            $('#licencia_section').show();
+            if($('#licencias_container').children().length === 0) addLicenciaRow();
+            
+        } else if (p === 'CONDUCTOR APH') {
+            // Show both
+            $('#group_registro').show();
+            $('#wrapper_rethus, #wrapper_acta, #wrapper_tarjeta').show();
+            $('#cert_section').show();
+            
+            // Show licencias
+            $('#licencia_section').show();
+            if($('#licencias_container').children().length === 0) addLicenciaRow();
+            
+        } else {
+            // APH, MEDICO
+            $('#group_registro').show();
+            $('#wrapper_rethus, #wrapper_acta, #wrapper_tarjeta').show();
+            $('#cert_section').show();
+            
+            // Hide licencias
+            $('#licencia_section').hide();
+        }
+    });
+
+    // Initialize vaccines empty row if empty
+    // Removed to allow empty state: if($('#vacunas_container').children().length === 0) addVacunaRow();
 });
+
+function addLicenciaRow(cat='', fec='') {
+    const rowId = Date.now() + Math.random().toString().slice(2, 6);
+    const html = `
+        <div id="lic_row_${rowId}" style="display: flex; gap: 10px; align-items: center; background: #f1f5f9; padding: 10px; border-radius: 8px; width: 100%; max-width: 500px;">
+            <div style="flex: 1;">
+                <label style="font-size: 11px;">Categoría</label>
+                <select name="licencia_categoria[]" class="form-control form-control-sm" required>
+                    <option value="">Seleccione...</option>
+                    <option value="A1" ${cat==='A1'?'selected':''}>A1</option>
+                    <option value="A2" ${cat==='A2'?'selected':''}>A2</option>
+                    <option value="B1" ${cat==='B1'?'selected':''}>B1</option>
+                    <option value="B2" ${cat==='B2'?'selected':''}>B2</option>
+                    <option value="B3" ${cat==='B3'?'selected':''}>B3</option>
+                    <option value="C1" ${cat==='C1'?'selected':''}>C1</option>
+                    <option value="C2" ${cat==='C2'?'selected':''}>C2</option>
+                    <option value="C3" ${cat==='C3'?'selected':''}>C3</option>
+                </select>
+            </div>
+            <div style="flex: 1;">
+                <label style="font-size: 11px;">Vencimiento</label>
+                <input type="date" name="licencia_fecha_vencimiento[]" class="form-control form-control-sm" value="${fec}" required>
+            </div>
+            <button type="button" class="btn btn-sm" style="margin-top: 18px; border-radius: 50%; width: 28px; height: 28px; padding: 0; display: flex; align-items: center; justify-content: center; background-color: #fef2f2; color: #ef4444; border: 1px solid #fca5a5; transition: all 0.2s; font-weight: bold; flex-shrink: 0;" onmouseover="this.style.backgroundColor='#fee2e2'; this.style.borderColor='#ef4444';" onmouseout="this.style.backgroundColor='#fef2f2'; this.style.borderColor='#fca5a5';" onclick="$('#lic_row_${rowId}').remove()" title="Eliminar Categoría">✕</button>
+        </div>
+    `;
+    $('#licencias_container').append(html);
+}
+
+function addVacunaRow(nom='', dos='', fec='') {
+    const rowId = Date.now() + Math.random().toString().slice(2, 6);
+    const html = `
+        <div id="vac_row_${rowId}" style="display: flex; gap: 8px; align-items: flex-end; background: #f1f5f9; padding: 10px; border-radius: 8px; width: 100%; flex-wrap: nowrap; overflow-x: auto;">
+            <div style="flex: 1.5; min-width: 100px;">
+                <label style="font-size: 10px; margin-bottom: 2px;">Nombre de Vacuna</label>
+                <input type="text" name="vacuna_nombre[]" class="form-control form-control-sm" value="${nom}" required>
+            </div>
+            <div style="flex: 1; min-width: 60px;">
+                <label style="font-size: 10px; margin-bottom: 2px;">Dosis</label>
+                <input type="text" name="vacuna_dosis[]" class="form-control form-control-sm" value="${dos}" required>
+            </div>
+            <div style="flex: 1; min-width: 100px;">
+                <label style="font-size: 10px; margin-bottom: 2px;">F. Aplicación</label>
+                <input type="date" name="vacuna_fecha[]" class="form-control form-control-sm" value="${fec}" required>
+            </div>
+            <button type="button" class="btn btn-sm" style="border-radius: 50%; width: 28px; height: 28px; padding: 0; display: flex; align-items: center; justify-content: center; background-color: #fef2f2; color: #ef4444; border: 1px solid #fca5a5; transition: all 0.2s; font-weight: bold; flex-shrink: 0;" onmouseover="this.style.backgroundColor='#fee2e2'; this.style.borderColor='#ef4444';" onmouseout="this.style.backgroundColor='#fef2f2'; this.style.borderColor='#fca5a5';" onclick="$('#vac_row_${rowId}').remove()" title="Eliminar Vacuna">✕</button>
+        </div>
+    `;
+    $('#vacunas_container').append(html);
+}
+
+function addCertAdicRow(nom='', fec='', vig='', un='años') {
+    const rowId = Date.now() + Math.random().toString().slice(2, 6);
+    const selA = (un === 'años') ? 'selected' : '';
+    const selM = (un === 'meses') ? 'selected' : '';
+    
+    const html = `
+        <div id="cert_adic_row_${rowId}" style="background: #f8fafc; padding: 10px 15px; border-radius: 8px; border: 1px dashed #cbd5e1; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; position: relative;">
+            <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 120px;">
+                <input type="text" name="cert_adic_nombre[]" class="form-control form-control-sm" placeholder="Nombre de Certificado" style="font-size: 11px;" value="${nom}" required>
+            </div>
+            <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 100px;">
+                <input type="date" name="cert_adic_fecha[]" class="form-control form-control-sm" style="font-size: 11px;" value="${fec}" required>
+            </div>
+            <div class="form-group" style="margin-bottom: 0; flex: 0.5; min-width: 60px;">
+                <input type="number" name="cert_adic_vigencia[]" class="form-control form-control-sm" placeholder="Vig." style="font-size: 11px;" min="1" value="${vig}" required>
+            </div>
+            <div class="form-group" style="margin-bottom: 0; flex: 0.8; min-width: 70px;">
+                <select name="cert_adic_unidad[]" class="form-control form-control-sm" style="font-size: 11px;" required>
+                    <option value="años" ${selA}>Años</option>
+                    <option value="meses" ${selM}>Meses</option>
+                </select>
+            </div>
+            <button type="button" class="btn btn-sm" style="position: absolute; top: -10px; right: -10px; border-radius: 50%; width: 22px; height: 22px; padding: 0; display: flex; align-items: center; justify-content: center; background-color: #fef2f2; color: #ef4444; border: 1px solid #fca5a5; transition: all 0.2s; font-weight: bold; flex-shrink: 0; font-size: 10px;" onmouseover="this.style.backgroundColor='#fee2e2'; this.style.borderColor='#ef4444';" onmouseout="this.style.backgroundColor='#fef2f2'; this.style.borderColor='#fca5a5';" onclick="$('#cert_adic_row_${rowId}').remove()" title="Eliminar Certificado">✕</button>
+        </div>
+    `;
+    $('#cert_adic_container').append(html);
+}
+
+function updateContratoRow(rowId) {
+    const row = document.getElementById('contrato_row_' + rowId);
+    if (!row) return;
+    const typeSelect = row.querySelector('[name="contrato_tipo[]"]');
+    const durInput = row.querySelector('[name="contrato_duracion[]"]');
+    const startInput = row.querySelector('[name="contrato_inicio[]"]');
+    const endInput = row.querySelector('[name="contrato_fin[]"]');
+    const durContainer = row.querySelector('.dur-container');
+    const endContainer = row.querySelector('.end-container');
+    
+    if (typeSelect.value === 'Indefinido') {
+        durContainer.style.display = 'none';
+        endContainer.style.display = 'none';
+        endInput.removeAttribute('required');
+        endInput.value = '';
+    } else {
+        durContainer.style.display = 'block';
+        endContainer.style.display = 'block';
+        endInput.setAttribute('required', 'required');
+        
+        if (startInput.value && durInput.value) {
+            const date = new Date(startInput.value);
+            date.setUTCMonth(date.getUTCMonth() + parseInt(durInput.value));
+            endInput.value = date.toISOString().split('T')[0];
+        }
+    }
+}
+
+function addContratoRow(tipo='Definido', dur='', fecIn='', fecFin='') {
+    const rowId = Date.now() + Math.random().toString().slice(2, 6);
+    
+    const html = `
+        <div id="contrato_row_${rowId}" style="display: flex; gap: 8px; align-items: flex-end; background: #faf5ff; padding: 10px; border-radius: 8px; width: 100%; flex-wrap: nowrap; overflow-x: auto;">
+            <div style="flex: 1.2;">
+                <label style="font-size: 10px; margin-bottom: 2px;">Tipo Contrato</label>
+                <select name="contrato_tipo[]" class="form-control form-control-sm" onchange="updateContratoRow('${rowId}')">
+                    <option value="Definido" ${tipo==='Definido' ? 'selected' : ''}>Definido</option>
+                    <option value="Indefinido" ${tipo==='Indefinido' ? 'selected' : ''}>Indefinido</option>
+                </select>
+            </div>
+            <div style="flex: 1;">
+                <label style="font-size: 10px; margin-bottom: 2px;">F. Inicio</label>
+                <input type="date" name="contrato_inicio[]" class="form-control form-control-sm" value="${fecIn}" required onchange="updateContratoRow('${rowId}')">
+            </div>
+            <div class="dur-container" style="flex: 0.8; display: ${tipo==='Indefinido'?'none':'block'};">
+                <label style="font-size: 10px; margin-bottom: 2px;">Dur.(meses)</label>
+                <input type="number" name="contrato_duracion[]" class="form-control form-control-sm" value="${dur}" min="1" onchange="updateContratoRow('${rowId}')">
+            </div>
+            <div class="end-container" style="flex: 1; display: ${tipo==='Indefinido'?'none':'block'};">
+                <label style="font-size: 10px; margin-bottom: 2px;">F. Fin</label>
+                <input type="date" name="contrato_fin[]" class="form-control form-control-sm" value="${fecFin}" ${tipo==='Indefinido'?'':'required'} readonly>
+            </div>
+            <button type="button" class="btn btn-sm" style="border-radius: 50%; width: 28px; height: 28px; padding: 0; display: flex; align-items: center; justify-content: center; background-color: #fef2f2; color: #ef4444; border: 1px solid #fca5a5; transition: all 0.2s; font-weight: bold; flex-shrink: 0;" onmouseover="this.style.backgroundColor='#fee2e2'; this.style.borderColor='#ef4444';" onmouseout="this.style.backgroundColor='#fef2f2'; this.style.borderColor='#fca5a5';" onclick="$('#contrato_row_${rowId}').remove()" title="Eliminar Contrato">✕</button>
+        </div>
+    `;
+    $('#contratos_container').append(html);
+}
 
 function editRecord(btn) {
     // Parse data from button attributes
@@ -136,7 +384,7 @@ function editRecord(btn) {
     // Fill the form
     $('input[name="identificacion"]').val(id).prop('readonly', true);
     $('input[name="nombre_completo"]').val(nombreCompleto);
-    $('select[name="perfil"]').val(perfil);
+    $('select[name="perfil"]').val(perfil).trigger('change');
     $('input[name="registro_salud"]').val(registro);
     $('input[name="contacto"]').val(contacto);
     
@@ -145,8 +393,20 @@ function editRecord(btn) {
     $('#rethus').prop('checked', $(btn).data('rethus') == '1');
     $('#acta_grado').prop('checked', $(btn).data('acta') == '1');
     $('#tarjeta_profesional').prop('checked', $(btn).data('tarjeta') == '1');
+    $('#cedula_150').prop('checked', $(btn).data('cedula') == '1');
+    
+    $('#cert_bancario').prop('checked', $(btn).data('certbancario') == '1').trigger('change');
+    $('#banco_nombre').val($(btn).data('banconombre') || '');
+    $('#banco_cuenta').val($(btn).data('bancocuenta') || '');
+    
+    $('#cert_pension').prop('checked', $(btn).data('certpension') == '1').trigger('change');
+    $('#pension_nombre').val($(btn).data('pensionnombre') || '');
+    
+    $('#cert_eps').prop('checked', $(btn).data('certeps') == '1').trigger('change');
+    $('#eps_nombre').val($(btn).data('epsnombre') || '');
     
     // Certs
+    $('input[name="examen_fecha"]').val($(btn).data('examenfecha') || '');
     $('input[name="bls_fecha"]').val($(btn).data('bls-fecha') || '');
     $('input[name="bls_vigencia"]').val($(btn).data('bls-vigencia') || '');
     if ($(btn).data('bls-unidad')) { $('select[name="bls_vigencia_unidad"]').val($(btn).data('bls-unidad')); }
@@ -158,6 +418,55 @@ function editRecord(btn) {
     $('input[name="avaq_fecha"]').val($(btn).data('avaq-fecha') || '');
     $('input[name="avaq_vigencia"]').val($(btn).data('avaq-vigencia') || '');
     if ($(btn).data('avaq-unidad')) { $('select[name="avaq_vigencia_unidad"]').val($(btn).data('avaq-unidad')); }
+
+    // Licencias
+    $('#licencias_container').empty();
+    const licsJson = $(btn).attr('data-licencias');
+    if (licsJson) {
+        try {
+            const lics = JSON.parse(licsJson);
+            lics.forEach(l => {
+                addLicenciaRow(l.categoria, l.fecha_vencimiento);
+            });
+        } catch (e) {}
+    }
+    
+    // Vacunas
+    $('#vacunas_container').empty();
+    const vacsJson = $(btn).attr('data-vacunas');
+    if (vacsJson) {
+        try {
+            const vacs = JSON.parse(vacsJson);
+            vacs.forEach(v => {
+                addVacunaRow(v.vacuna, v.dosis, v.fecha_aplicacion);
+            });
+        } catch (e) {}
+    }
+    
+    // Certs Adicionales
+    $('#cert_adic_container').empty();
+    const certAdicJson = $(btn).attr('data-certadic');
+    if (certAdicJson) {
+        try {
+            const certs = JSON.parse(certAdicJson);
+            certs.forEach(c => {
+                addCertAdicRow(c.nombre_certificado, c.fecha_realizacion, c.vigencia, c.unidad_vigencia);
+            });
+        } catch (e) {}
+    }
+
+    // Contratos
+    $('#contratos_container').empty();
+    const contJson = $(btn).attr('data-contratos');
+    if (contJson) {
+        try {
+            const conts = JSON.parse(contJson);
+            conts.forEach(c => {
+                addContratoRow(c.tipo_contrato || 'Definido', c.duracion_meses || '', c.fecha_inicio, c.fecha_fin);
+            });
+        } catch (e) {}
+    }
+    if ($('#contratos_container').children().length === 0) addContratoRow();
 
     // Change action type to edit
     $('#action_type').val('edit');
@@ -174,6 +483,18 @@ function editRecord(btn) {
 function cancelEdit() {
     $('#sgaForm')[0].reset();
     $('input[name="identificacion"]').prop('readonly', false);
+    $('#licencias_container').empty();
+    $('#vacunas_container').empty();
+    // Removed empty row by default: addVacunaRow(); 
+    $('#contratos_container').empty();
+    addContratoRow(); // Add empty row by default
+    $('#perfil_select').trigger('change');
+    
+    // Hide extra fields
+    $('#cert_bancario').trigger('change');
+    $('#cert_pension').trigger('change');
+    $('#cert_eps').trigger('change');
+    
     $('#action_type').val('add');
     $('#submitBtn').text('Agregar Registro').removeClass('btn-success').addClass('btn-primary');
     $('#cancelEditBtn').hide();
@@ -198,15 +519,33 @@ function confirmAction(btn, title, text, confirmButtonText, confirmButtonColor) 
 
 {% set stats = {'sum_pct': 0, 'count': 0} %}
 {% for r in activos %}
+    {% set lic_ns = namespace(has_valid=false) %}
+    {% for lic in r.licencias %}
+        {% if not lic.vencida %}
+            {% set lic_ns.has_valid = true %}
+        {% endif %}
+    {% endfor %}
+
     {% set count = 0 %}
-    {% if r.hoja_vida %}{% set count = count + 1 %}{% endif %}
-    {% if r.acta_grado %}{% set count = count + 1 %}{% endif %}
-    {% if r.tarjeta_profesional %}{% set count = count + 1 %}{% endif %}
-    {% if r.rethus %}{% set count = count + 1 %}{% endif %}
-    {% if r.bls_fecha and not r.bls_vencido %}{% set count = count + 1 %}{% endif %}
-    {% if r.avvs_fecha and not r.avvs_vencido %}{% set count = count + 1 %}{% endif %}
-    {% if r.avaq_fecha and not r.avaq_vencido %}{% set count = count + 1 %}{% endif %}
-    {% set pct = (count / 7 * 100) %}
+    {% set total = 0 %}
+    
+    {% if r.perfil == 'CONDUCTOR' %}
+        {% set total = 1 %}
+        {% if lic_ns.has_valid %}{% set count = count + 1 %}{% endif %}
+    {% elif r.perfil == 'CONDUCTOR APH' %}
+        {% set total = 4 %}
+        {% if r.bls_fecha and not r.bls_vencido %}{% set count = count + 1 %}{% endif %}
+        {% if r.avvs_fecha and not r.avvs_vencido %}{% set count = count + 1 %}{% endif %}
+        {% if r.avaq_fecha and not r.avaq_vencido %}{% set count = count + 1 %}{% endif %}
+        {% if lic_ns.has_valid %}{% set count = count + 1 %}{% endif %}
+    {% else %}
+        {% set total = 3 %}
+        {% if r.bls_fecha and not r.bls_vencido %}{% set count = count + 1 %}{% endif %}
+        {% if r.avvs_fecha and not r.avvs_vencido %}{% set count = count + 1 %}{% endif %}
+        {% if r.avaq_fecha and not r.avaq_vencido %}{% set count = count + 1 %}{% endif %}
+    {% endif %}
+    
+    {% set pct = (count / total * 100) if total > 0 else 0 %}
     {% if stats.update({'sum_pct': stats.sum_pct + pct, 'count': stats.count + 1}) %}{% endif %}
 {% endfor %}
 {% if stats.count > 0 %}
@@ -244,21 +583,21 @@ function confirmAction(btn, title, text, confirmButtonText, confirmButtonColor) 
             </div>
             <div class="form-group" style="margin-bottom: 0;">
                 <label>Perfil</label>
-                <select name="perfil" class="form-control">
+                <select name="perfil" id="perfil_select" class="form-control" required>
                     <option value="">Seleccione...</option>
                     <option value="APH">APH</option>
-                    <option value="Aux Enfermeria">Aux Enfermeria</option>
-                    <option value="Enfermero">Enfermero</option>
-                    <option value="Medico">Medico</option>
+                    <option value="MEDICO">MEDICO</option>
+                    <option value="CONDUCTOR APH">CONDUCTOR APH</option>
+                    <option value="CONDUCTOR">CONDUCTOR</option>
                 </select>
             </div>
-            <div class="form-group" style="margin-bottom: 0;">
+            <div class="form-group" style="margin-bottom: 0;" id="group_registro">
                 <label>Registro (Resolución en Salud)</label>
-                <input type="text" name="registro_salud" class="form-control">
+                <input type="text" name="registro_salud" id="registro_salud" class="form-control" required>
             </div>
             <div class="form-group" style="margin-bottom: 0;">
                 <label>Contacto (Número)</label>
-                <input type="text" name="contacto" class="form-control">
+                <input type="text" name="contacto" class="form-control" required>
             </div>
         </div>
         
@@ -266,91 +605,190 @@ function confirmAction(btn, title, text, confirmButtonText, confirmButtonColor) 
             <label style="margin-bottom: 10px; font-size: 15px;"><strong>Documentos:</strong></label>
             <div style="display: flex; gap: 20px; justify-content: center; align-items: center; flex-wrap: wrap; width: 100%;">
                     <div style="display: flex; align-items: center; gap: 6px;">
-                        <input type="checkbox" name="hoja_vida" value="1" id="hoja_vida" style="margin: 0; cursor: pointer; width: 16px; height: 16px;">
+                        <input type="checkbox" name="hoja_vida" value="1" id="hoja_vida" style="margin: 0; cursor: pointer; width: 16px; height: 16px;" required>
                         <label for="hoja_vida" style="margin: 0; cursor: pointer;">Hoja de Vida</label>
                     </div>
                     <div style="display: flex; align-items: center; gap: 6px;">
-                        <input type="checkbox" name="rethus" value="1" id="rethus" style="margin: 0; cursor: pointer; width: 16px; height: 16px;">
+                        <input type="checkbox" name="cedula_150" value="1" id="cedula_150" style="margin: 0; cursor: pointer; width: 16px; height: 16px;" required>
+                        <label for="cedula_150" style="margin: 0; cursor: pointer;">Cédula 150%</label>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 6px;" id="wrapper_rethus">
+                        <input type="checkbox" name="rethus" value="1" id="rethus" style="margin: 0; cursor: pointer; width: 16px; height: 16px;" required>
                         <label for="rethus" style="margin: 0; cursor: pointer;">RETHUS</label>
                     </div>
-                    <div style="display: flex; align-items: center; gap: 6px;">
-                        <input type="checkbox" name="acta_grado" value="1" id="acta_grado" style="margin: 0; cursor: pointer; width: 16px; height: 16px;">
+                    <div style="display: flex; align-items: center; gap: 6px;" id="wrapper_acta">
+                        <input type="checkbox" name="acta_grado" value="1" id="acta_grado" style="margin: 0; cursor: pointer; width: 16px; height: 16px;" required>
                         <label for="acta_grado" style="margin: 0; cursor: pointer;">Acta/Diploma</label>
                     </div>
-                    <div style="display: flex; align-items: center; gap: 6px;">
-                        <input type="checkbox" name="tarjeta_profesional" value="1" id="tarjeta_profesional" style="margin: 0; cursor: pointer; width: 16px; height: 16px;">
+                    <div style="display: flex; align-items: center; gap: 6px;" id="wrapper_tarjeta">
+                        <input type="checkbox" name="tarjeta_profesional" value="1" id="tarjeta_profesional" style="margin: 0; cursor: pointer; width: 16px; height: 16px;" required>
                         <label for="tarjeta_profesional" style="margin: 0; cursor: pointer;">Resolución/Tarjeta Prof.</label>
                     </div>
                 </div>
             </div>
+            
+            <!-- Nuevos Certificados y Campos Dinámicos -->
+            <div style="width: 100%; margin-top: 20px;">
+                <label style="margin-bottom: 10px; font-size: 15px; display: block; text-align: center;"><strong>Certificados Adicionales:</strong></label>
+                <div style="display: flex; gap: 20px; justify-content: center; align-items: flex-start; flex-wrap: wrap; width: 100%;">
+                    
+                    <!-- Certificado Bancario -->
+                    <div style="display: flex; flex-direction: column; align-items: center; gap: 10px; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; width: 280px;">
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                            <input type="checkbox" name="cert_bancario" value="1" id="cert_bancario" style="margin: 0; cursor: pointer; width: 16px; height: 16px;" onchange="$('#campos_bancario').toggle(this.checked)">
+                            <label for="cert_bancario" style="margin: 0; cursor: pointer; font-weight: bold; font-size: 13px;">Certificado Bancario</label>
+                        </div>
+                        <div id="campos_bancario" style="display: none; width: 100%;">
+                            <div class="form-group" style="margin-bottom: 5px;">
+                                <label style="font-size: 11px;">Nombre del Banco:</label>
+                                <input type="text" name="banco_nombre" id="banco_nombre" class="form-control form-control-sm" style="font-size: 11px;">
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label style="font-size: 11px;">Número de Cuenta:</label>
+                                <input type="text" name="banco_cuenta" id="banco_cuenta" class="form-control form-control-sm" style="font-size: 11px;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Certificado Pensión -->
+                    <div style="display: flex; flex-direction: column; align-items: center; gap: 10px; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; width: 280px;">
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                            <input type="checkbox" name="cert_pension" value="1" id="cert_pension" style="margin: 0; cursor: pointer; width: 16px; height: 16px;" onchange="$('#campos_pension').toggle(this.checked)">
+                            <label for="cert_pension" style="margin: 0; cursor: pointer; font-weight: bold; font-size: 13px;">Certificado Fondo de Pensión</label>
+                        </div>
+                        <div id="campos_pension" style="display: none; width: 100%;">
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label style="font-size: 11px;">Fondo de Pensión:</label>
+                                <input type="text" name="pension_nombre" id="pension_nombre" class="form-control form-control-sm" style="font-size: 11px;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Certificado EPS -->
+                    <div style="display: flex; flex-direction: column; align-items: center; gap: 10px; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; width: 280px;">
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                            <input type="checkbox" name="cert_eps" value="1" id="cert_eps" style="margin: 0; cursor: pointer; width: 16px; height: 16px;" onchange="$('#campos_eps').toggle(this.checked)">
+                            <label for="cert_eps" style="margin: 0; cursor: pointer; font-weight: bold; font-size: 13px;">Certificado EPS</label>
+                        </div>
+                        <div id="campos_eps" style="display: none; width: 100%;">
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label style="font-size: 11px;">EPS:</label>
+                                <input type="text" name="eps_nombre" id="eps_nombre" class="form-control form-control-sm" style="font-size: 11px;">
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            
+            <div style="width: 100%; margin-top: 25px; display: flex; flex-wrap: wrap; gap: 15px;">
+                
+                <!-- Carné de Vacunas -->
+                <div class="vacuna-section" id="vacuna_section" style="flex: 1.8; min-width: 320px; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; height: fit-content;">
+                    <h6 style="color: #0f172a; font-weight: 700; margin-bottom: 10px; font-size: 14px; text-align: center;">Carné de Vacunas</h6>
+                    <div id="vacunas_container" style="display: flex; flex-direction: column; gap: 10px; align-items: center;">
+                        <!-- Template row will be inserted here -->
+                    </div>
+                    <div style="text-align: center; margin-top: 15px;">
+                        <button type="button" class="btn btn-sm" style="background-color: #eff6ff; color: #2563eb; border: 1px dashed #3b82f6; border-radius: 20px; padding: 6px 16px; font-weight: 600; font-size: 12px; transition: all 0.2s; cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,0.05);" onmouseover="this.style.backgroundColor='#dbeafe'; this.style.borderColor='#2563eb';" onmouseout="this.style.backgroundColor='#eff6ff'; this.style.borderColor='#3b82f6';" onclick="addVacunaRow()">+ Agregar Vacuna</button>
+                    </div>
+                </div>
+
+                <!-- Exámenes Médico Laborales -->
+                <div style="flex: 1; min-width: 200px; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; height: fit-content;">
+                    <label style="font-size: 13px; font-weight: bold; margin-bottom: 8px; display: block; text-align: center;">Exámenes Médico Laborales</label>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label style="font-size: 11px;">Fecha de realización:</label>
+                        <input type="date" name="examen_fecha" id="examen_fecha" class="form-control form-control-sm" style="font-size: 11px;">
+                    </div>
+                </div>
+                
+                <!-- Vigencia de Contrato -->
+                <div class="contrato-section" id="contrato_section" style="flex: 2.2; min-width: 450px; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; height: fit-content;">
+                    <h6 style="color: #0f172a; font-weight: 700; margin-bottom: 10px; font-size: 14px; text-align: center;">Vigencia de Contrato</h6>
+                    <div id="contratos_container" style="display: flex; flex-direction: column; gap: 10px; align-items: center;">
+                        <!-- Template row will be inserted here -->
+                    </div>
+                    <div style="text-align: center; margin-top: 15px;">
+                        <button type="button" class="btn btn-sm" style="background-color: #fdf4ff; color: #c026d3; border: 1px dashed #e879f9; border-radius: 20px; padding: 6px 16px; font-weight: 600; font-size: 12px; transition: all 0.2s; cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,0.05);" onmouseover="this.style.backgroundColor='#fce7f3'; this.style.borderColor='#c026d3';" onmouseout="this.style.backgroundColor='#fdf4ff'; this.style.borderColor='#e879f9';" onclick="addContratoRow()">+ Agregar Contrato</button>
+                    </div>
+                </div>
+
+            </div>
+        <div class="cert-section" id="cert_section" style="margin-top: 20px;">
+            <h6 style="color: #0f172a; font-weight: 700; margin-bottom: 10px; font-size: 14px; text-align: center;">Vigencia de Certificaciones</h6>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px;">
+                
+                <div style="background: #f8fafc; padding: 10px 15px; border-radius: 8px; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+                    <div style="font-weight: 600; color: #1e3a5f; font-size: 12px; width: 80px;">BLS (RCP)</div>
+                    <div class="form-group" style="margin-bottom: 0; flex: 1.5;">
+                        <input type="date" name="bls_fecha" id="bls_fecha" class="form-control form-control-sm" style="font-size: 11px;" required>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0; flex: 0.8;">
+                        <input type="number" name="bls_vigencia" id="bls_vigencia" class="form-control form-control-sm" placeholder="Vig." style="font-size: 11px;" min="1" required>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0; flex: 1;">
+                        <select name="bls_vigencia_unidad" id="bls_vigencia_unidad" class="form-control form-control-sm" style="font-size: 11px;" required>
+                            <option value="años">Años</option>
+                            <option value="meses">Meses</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="background: #f8fafc; padding: 10px 15px; border-radius: 8px; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+                    <div style="font-weight: 600; color: #1e3a5f; font-size: 12px; width: 80px;">AVVS</div>
+                    <div class="form-group" style="margin-bottom: 0; flex: 1.5;">
+                        <input type="date" name="avvs_fecha" id="avvs_fecha" class="form-control form-control-sm" style="font-size: 11px;" required>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0; flex: 0.8;">
+                        <input type="number" name="avvs_vigencia" id="avvs_vigencia" class="form-control form-control-sm" placeholder="Vig." style="font-size: 11px;" min="1" required>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0; flex: 1;">
+                        <select name="avvs_vigencia_unidad" id="avvs_vigencia_unidad" class="form-control form-control-sm" style="font-size: 11px;" required>
+                            <option value="años">Años</option>
+                            <option value="meses">Meses</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="background: #f8fafc; padding: 10px 15px; border-radius: 8px; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+                    <div style="font-weight: 600; color: #1e3a5f; font-size: 12px; width: 80px;">AVAQ</div>
+                    <div class="form-group" style="margin-bottom: 0; flex: 1.5;">
+                        <input type="date" name="avaq_fecha" id="avaq_fecha" class="form-control form-control-sm" style="font-size: 11px;" required>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0; flex: 0.8;">
+                        <input type="number" name="avaq_vigencia" id="avaq_vigencia" class="form-control form-control-sm" placeholder="Vig." style="font-size: 11px;" min="1" required>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0; flex: 1;">
+                        <select name="avaq_vigencia_unidad" id="avaq_vigencia_unidad" class="form-control form-control-sm" style="font-size: 11px;" required>
+                            <option value="años">Años</option>
+                            <option value="meses">Meses</option>
+                        </select>
+                    </div>
+                </div>
+                </div>
+            </div>
+            
+            <div id="cert_adic_container" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; width: 100%; margin-top: 15px;">
+                <!-- Template row will be inserted here -->
+            </div>
+            <div style="text-align: center; margin-top: 15px; width: 100%;">
+                <button type="button" class="btn btn-sm" style="background-color: #f0fdf4; color: #16a34a; border: 1px dashed #4ade80; border-radius: 20px; padding: 6px 16px; font-weight: 600; font-size: 12px; transition: all 0.2s; cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,0.05);" onmouseover="this.style.backgroundColor='#dcfce7'; this.style.borderColor='#16a34a';" onmouseout="this.style.backgroundColor='#f0fdf4'; this.style.borderColor='#4ade80';" onclick="addCertAdicRow()">+ Agregar Certificado</button>
+            </div>
         </div>
 
-        <div class="cert-section" style="margin-top: 25px;">
-            <div class="cert-block" style="background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 15px;">
-                <h5 style="color: #0f172a; font-weight: 700; margin-bottom: 15px;">BLS (Cert. RCP)</h5>
-                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;">
-                    <div class="form-group" style="margin-bottom: 0;">
-                        <label>Fecha Realización</label>
-                        <input type="date" name="bls_fecha" class="form-control">
-                    </div>
-                    <div class="form-group" style="margin-bottom: 0;">
-                        <label>Vigencia</label>
-                        <input type="number" name="bls_vigencia" class="form-control" min="1">
-                    </div>
-                    <div class="form-group" style="margin-bottom: 0;">
-                        <label>Unidad</label>
-                        <select name="bls_vigencia_unidad" class="form-control">
-                            <option value="años">Años</option>
-                            <option value="meses">Meses</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
 
-            <div class="cert-block" style="background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 15px;">
-                <h5 style="color: #0f172a; font-weight: 700; margin-bottom: 15px;">AVVS (Violencia Sexual)</h5>
-                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;">
-                    <div class="form-group" style="margin-bottom: 0;">
-                        <label>Fecha Realización</label>
-                        <input type="date" name="avvs_fecha" class="form-control">
-                    </div>
-                    <div class="form-group" style="margin-bottom: 0;">
-                        <label>Vigencia</label>
-                        <input type="number" name="avvs_vigencia" class="form-control" min="1">
-                    </div>
-                    <div class="form-group" style="margin-bottom: 0;">
-                        <label>Unidad</label>
-                        <select name="avvs_vigencia_unidad" class="form-control">
-                            <option value="años">Años</option>
-                            <option value="meses">Meses</option>
-                        </select>
-                    </div>
-                </div>
+        <div class="licencia-section" id="licencia_section" style="margin-top: 20px; display: none;">
+            <h6 style="color: #0f172a; font-weight: 700; margin-bottom: 10px; font-size: 14px; text-align: center;">Vigencia de Licencia de Conducción</h6>
+            <div id="licencias_container" style="display: flex; flex-direction: column; gap: 10px; align-items: center;">
+                <!-- Template row will be inserted here -->
             </div>
-
-            <div class="cert-block" style="background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 15px;">
-                <h5 style="color: #0f172a; font-weight: 700; margin-bottom: 15px;">AVAQ (Agentes Químicos)</h5>
-                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;">
-                    <div class="form-group" style="margin-bottom: 0;">
-                        <label>Fecha Realización</label>
-                        <input type="date" name="avaq_fecha" class="form-control">
-                    </div>
-                    <div class="form-group" style="margin-bottom: 0;">
-                        <label>Vigencia</label>
-                        <input type="number" name="avaq_vigencia" class="form-control" min="1">
-                    </div>
-                    <div class="form-group" style="margin-bottom: 0;">
-                        <label>Unidad</label>
-                        <select name="avaq_vigencia_unidad" class="form-control">
-                            <option value="años">Años</option>
-                            <option value="meses">Meses</option>
-                        </select>
-                    </div>
-                </div>
+            <div style="text-align: center; margin-top: 15px;">
+                <button type="button" class="btn btn-sm" style="background-color: #eff6ff; color: #2563eb; border: 1px dashed #3b82f6; border-radius: 20px; padding: 6px 16px; font-weight: 600; font-size: 12px; transition: all 0.2s; cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,0.05);" onmouseover="this.style.backgroundColor='#dbeafe'; this.style.borderColor='#2563eb';" onmouseout="this.style.backgroundColor='#eff6ff'; this.style.borderColor='#3b82f6';" onclick="addLicenciaRow()">+ Agregar Categoría</button>
             </div>
         </div>
 
-        <div class="mt-3" style="display: flex; justify-content: center; gap: 10px;">
+        <div class="mt-3" style="display: flex; justify-content: center; gap: 10px; margin-top: 30px !important;">
             <button type="submit" id="submitBtn" class="btn btn-primary">Agregar Registro</button>
             <button type="button" id="cancelEditBtn" class="btn btn-secondary" style="display: none;" onclick="cancelEdit()">Cancelar Edición</button>
         </div>
@@ -363,131 +801,235 @@ function confirmAction(btn, title, text, confirmButtonText, confirmButtonColor) 
     <summary style="padding: 15px; background-color: #f8fafc; color: #1e3a5f; font-weight: bold; cursor: pointer; border-bottom: 1px solid #e2e8f0; font-size: 16px;">
         Tabla de Registros Activos
     </summary>
-    <div style="padding: 15px;">
-            <div class="table-container mt-3">
-                <table class="data-table">
-                    <!-- same headers -->
-                    <thead>
-                        <tr style="background-color: #d1d5db; text-align: center; font-size: 10px;">
-                            <th rowspan="2" style="vertical-align: middle; border: 1px solid #9ca3af;">NOMBRES Y APELLIDOS</th>
-                            <th rowspan="2" style="vertical-align: middle; border: 1px solid #9ca3af;">IDENTIFICACIÓN</th>
-                            <th rowspan="2" style="vertical-align: middle; border: 1px solid #9ca3af;">PERFIL</th>
-                            <th rowspan="2" style="vertical-align: middle; border: 1px solid #9ca3af;">REGISTRO</th>
-                            <th rowspan="2" style="vertical-align: middle; border: 1px solid #9ca3af;">CONTACTO</th>
-                            <th rowspan="2" style="vertical-align: middle; border: 1px solid #9ca3af;">HOJA DE<br>VIDA</th>
-                            <th rowspan="2" style="vertical-align: middle; border: 1px solid #9ca3af;">RETHUS</th>
-                            <th rowspan="2" style="vertical-align: middle; border: 1px solid #9ca3af;">DIPLOMA</th>
-                            <th rowspan="2" style="vertical-align: middle; border: 1px solid #9ca3af;">RESOLUCIÓN</th>
-                            <th colspan="2" style="border: 1px solid #9ca3af;">BLS</th>
-                            <th colspan="2" style="border: 1px solid #9ca3af;">AVVS</th>
-                            <th colspan="2" style="border: 1px solid #9ca3af;">AVAQ</th>
-                            <th rowspan="2" style="vertical-align: middle; border: 1px solid #9ca3af;">%</th>
-                            <th rowspan="2" style="vertical-align: middle; border: 1px solid #9ca3af;">ACCIONES</th>
-                        </tr>
-                        <tr style="background-color: #d1d5db; text-align: center; font-size: 11px;">
-                            <th style="border: 1px solid #9ca3af;">FR</th>
-                            <th style="border: 1px solid #9ca3af;">Vigente</th>
-                            <th style="border: 1px solid #9ca3af;">FR</th>
-                            <th style="border: 1px solid #9ca3af;">Vigente</th>
-                            <th style="border: 1px solid #9ca3af;">FR</th>
-                            <th style="border: 1px solid #9ca3af;">Vigente</th>
-                        </tr>
-                    </thead>
-                    <tbody style="font-size: 12px; text-align: center;">
-                        {% for r in activos %}
-                        <tr>
-                            <td style="border: 1px solid #d1d5db;">{{ r.nombres }} {{ r.apellidos }}</td>
-                            <td style="border: 1px solid #d1d5db;">{{ r.identificacion }}</td>
-                            <td style="border: 1px solid #d1d5db;">{{ r.perfil or '' }}</td>
-                            <td style="border: 1px solid #d1d5db;">{{ r.registro_salud or '' }}</td>
-                            <td style="border: 1px solid #d1d5db;">{{ r.contacto or '' }}</td>
-                            
-                            <td style="border: 1px solid #d1d5db;">{% if r.hoja_vida %}OK{% endif %}</td>
-                            <td style="border: 1px solid #d1d5db;">{% if r.rethus %}OK{% endif %}</td>
-                            <td style="border: 1px solid #d1d5db;">{% if r.acta_grado %}OK{% endif %}</td>
-                            <td style="border: 1px solid #d1d5db;">{% if r.tarjeta_profesional %}OK{% endif %}</td>
-                            
-                            <!-- BLS -->
-                            <td style="border: 1px solid #d1d5db;">{{ r.bls_fecha or '' }}</td>
-                            {% if r.bls_fecha %}
-                            <td style="border: 1px solid #d1d5db; background-color: {% if r.bls_vencido %}#ef4444{% else %}#84cc16{% endif %}; font-weight: bold; color: {% if r.bls_vencido %}white{% else %}black{% endif %};">
-                                {% if r.bls_vencido %}VENCIDO{% else %}VIGENTE{% endif %}
-                            </td>
-                            {% else %}
-                            <td style="border: 1px solid #d1d5db;"></td>
-                            {% endif %}
-                            
-                            <!-- AVVS -->
-                            <td style="border: 1px solid #d1d5db;">{{ r.avvs_fecha or '' }}</td>
-                            {% if r.avvs_fecha %}
-                            <td style="border: 1px solid #d1d5db; background-color: {% if r.avvs_vencido %}#ef4444{% else %}#84cc16{% endif %}; font-weight: bold; color: {% if r.avvs_vencido %}white{% else %}black{% endif %};">
-                                {% if r.avvs_vencido %}VENCIDO{% else %}VIGENTE{% endif %}
-                            </td>
-                            {% else %}
-                            <td style="border: 1px solid #d1d5db;"></td>
-                            {% endif %}
+    <div style="padding: 15px; background: #f8fafc;">
+        <div class="user-card-grid">
+            {% for r in activos %}
+            {% set lic_ns = namespace(has_valid=false) %}
+            {% for lic in r.licencias %}
+                {% if not lic.vencida %}
+                    {% set lic_ns.has_valid = true %}
+                {% endif %}
+            {% endfor %}
 
-                            <!-- AVAQ -->
-                            <td style="border: 1px solid #d1d5db;">{{ r.avaq_fecha or '' }}</td>
-                            {% if r.avaq_fecha %}
-                            <td style="border: 1px solid #d1d5db; background-color: {% if r.avaq_vencido %}#ef4444{% else %}#84cc16{% endif %}; font-weight: bold; color: {% if r.avaq_vencido %}white{% else %}black{% endif %};">
-                                {% if r.avaq_vencido %}VENCIDO{% else %}VIGENTE{% endif %}
-                            </td>
-                            {% else %}
-                            <td style="border: 1px solid #d1d5db;"></td>
-                            {% endif %}
-                            
-                            <!-- Cumplimiento -->
-                            {% set count = 0 %}
-                            {% if r.hoja_vida %}{% set count = count + 1 %}{% endif %}
-                            {% if r.acta_grado %}{% set count = count + 1 %}{% endif %}
-                            {% if r.tarjeta_profesional %}{% set count = count + 1 %}{% endif %}
-                            {% if r.rethus %}{% set count = count + 1 %}{% endif %}
-                            {% if r.bls_fecha and not r.bls_vencido %}{% set count = count + 1 %}{% endif %}
-                            {% if r.avvs_fecha and not r.avvs_vencido %}{% set count = count + 1 %}{% endif %}
-                            {% if r.avaq_fecha and not r.avaq_vencido %}{% set count = count + 1 %}{% endif %}
-                            {% set pct = (count / 7 * 100) | round(0) | int %}
-                            
-                            <td style="border: 1px solid #d1d5db; font-weight: bold; color: {% if pct == 100 %}#15803d{% elif pct >= 50 %}#ca8a04{% else %}#b91c1c{% endif %};">
-                                {{ pct }}%
-                            </td>
-                            
-                            <td style="border: 1px solid #d1d5db; white-space: nowrap;">
-                                <form action="{{ url_for('admin_ths_trip_toggle', identificacion=r.identificacion) }}" method="POST" style="display:inline;">
-                                    <button type="button" class="btn btn-sm" style="padding: 1px 6px; font-size: 9px; border-radius: 12px; background-color: #ef4444; color: white; border: none; box-shadow: 0 1px 3px rgba(0,0,0,0.2);" onclick="confirmAction(this, '¿Inactivar registro?', 'El registro pasará a estado inactivo.', 'Sí, inactivar', '#ef4444')">🚫 Inactivar</button>
-                                </form>
-                                <a href="#" class="btn btn-secondary btn-sm" style="padding: 1px 6px; font-size: 9px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.2); margin-left: 2px;"
-                                   onclick="editRecord(this); return false;"
-                                   data-id="{{ r.identificacion }}"
-                                   data-nombre="{{ r.nombres }} {{ r.apellidos }}"
-                                   data-perfil="{{ r.perfil or '' }}"
-                                   data-registro="{{ r.registro_salud or '' }}"
-                                   data-contacto="{{ r.contacto or '' }}"
-                                   data-hoja="{{ r.hoja_vida }}"
-                                   data-rethus="{{ r.rethus }}"
-                                   data-acta="{{ r.acta_grado }}"
-                                   data-tarjeta="{{ r.tarjeta_profesional }}"
-                                   data-bls-fecha="{{ r.bls_fecha or '' }}"
-                                   data-bls-vigencia="{{ r.bls_vigencia or '' }}"
-                                   data-bls-unidad="{{ r.bls_vigencia_unidad or '' }}"
-                                   data-avvs-fecha="{{ r.avvs_fecha or '' }}"
-                                   data-avvs-vigencia="{{ r.avvs_vigencia or '' }}"
-                                   data-avvs-unidad="{{ r.avvs_vigencia_unidad or '' }}"
-                                   data-avaq-fecha="{{ r.avaq_fecha or '' }}"
-                                   data-avaq-vigencia="{{ r.avaq_vigencia or '' }}"
-                                   data-avaq-unidad="{{ r.avaq_vigencia_unidad or '' }}">✏️ Editar</a>
-                                {% if is_superadmin %}
-                                <form action="{{ url_for('admin_ths_trip_eliminar', identificacion=r.identificacion) }}" method="POST" style="display:inline;">
-                                    <button type="button" class="btn btn-sm" style="padding: 1px 6px; font-size: 9px; border-radius: 12px; background-color: #991b1b; color: white; border: none; box-shadow: 0 1px 3px rgba(0,0,0,0.2); margin-left: 2px;" onclick="confirmAction(this, '¿Eliminar registro?', 'Esta acción no se puede deshacer.', 'Sí, eliminar', '#991b1b')">🗑️ Eliminar</button>
-                                </form>
+            {% set count = 0 %}
+            {% set total = 0 %}
+            
+            {% if r.perfil == 'CONDUCTOR' %}
+                {% set total = 1 %}
+                {% if lic_ns.has_valid %}{% set count = count + 1 %}{% endif %}
+            {% elif r.perfil == 'CONDUCTOR APH' %}
+                {% set total = 4 %}
+                {% if r.bls_fecha and not r.bls_vencido %}{% set count = count + 1 %}{% endif %}
+                {% if r.avvs_fecha and not r.avvs_vencido %}{% set count = count + 1 %}{% endif %}
+                {% if r.avaq_fecha and not r.avaq_vencido %}{% set count = count + 1 %}{% endif %}
+                {% if lic_ns.has_valid %}{% set count = count + 1 %}{% endif %}
+            {% else %}
+                {% set total = 3 %}
+                {% if r.bls_fecha and not r.bls_vencido %}{% set count = count + 1 %}{% endif %}
+                {% if r.avvs_fecha and not r.avvs_vencido %}{% set count = count + 1 %}{% endif %}
+                {% if r.avaq_fecha and not r.avaq_vencido %}{% set count = count + 1 %}{% endif %}
+            {% endif %}
+            
+            {% set pct = (count / total * 100) | round(0) | int if total > 0 else 0 %}
+            
+            <div class="user-card">
+                <div class="user-card-header">
+                    <h4 class="user-card-title">{{ r.nombres }} {{ r.apellidos }}</h4>
+                    <div class="user-card-subtitle">ID: {{ r.identificacion }}</div>
+                </div>
+                <div class="user-card-body">
+                    <div class="user-card-detail">
+                        <strong>Perfil:</strong> <span>{{ r.perfil or 'N/A' }}</span>
+                    </div>
+                    <div class="user-card-pct" style="color: {% if pct == 100 %}#15803d{% elif pct >= 50 %}#ca8a04{% else %}#b91c1c{% endif %};">
+                        {{ pct }}%
+                    </div>
+                    <div style="text-align: center; font-size: 11px; color: #64748b; margin-top: -8px;">Cumplimiento</div>
+                    {% if r.licencias %}
+                    <div style="margin-top: 5px; font-size: 10px; color: #1e3a5f;">
+                        <strong>Licencias:</strong>
+                        <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px;">
+                            {% for lic in r.licencias %}
+                            <span style="background: {% if lic.vencida %}#fee2e2{% elif lic.alerta_15 %}#fef3c7{% else %}#f0fdf4{% endif %}; color: {% if lic.vencida %}#991b1b{% elif lic.alerta_15 %}#d97706{% else %}#166534{% endif %}; padding: 2px 6px; border-radius: 4px; border: 1px solid {% if lic.vencida %}#fca5a5{% elif lic.alerta_15 %}#fcd34d{% else %}#86efac{% endif %};">
+                                {{ lic.categoria }} ({{ lic.fecha_vencimiento }}) 
+                                {% if lic.vencida %}
+                                    - Vencida hace {{ lic.dias_vencido }} días
+                                {% elif lic.alerta_15 %}
+                                    - Vence en {{ lic.dias_restantes }} días
                                 {% endif %}
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                            </span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if r.vacunas %}
+                    <div style="margin-top: 5px; font-size: 10px; color: #1e3a5f;">
+                        <strong>Vacunas:</strong>
+                        <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px;">
+                            {% for vac in r.vacunas %}
+                            <span style="background: #f0f9ff; color: #0369a1; padding: 2px 6px; border-radius: 4px; border: 1px solid #bae6fd;">
+                                {{ vac.vacuna }} ({{ vac.dosis }}) - {{ vac.fecha_aplicacion }}
+                            </span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if r.bls_fecha or r.avvs_fecha or r.avaq_fecha or r.cert_adicionales %}
+                    <div style="margin-top: 5px; font-size: 10px; color: #1e3a5f;">
+                        <strong>Certificados:</strong>
+                        <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px;">
+                            {% for cert_name, c_fecha, c_vencido, c_alerta, c_restantes, c_diasv in [('BLS', r.bls_fecha, r.bls_vencido, r.bls_alerta_15, r.bls_dias_restantes, r.bls_dias_vencido), ('AVVS', r.avvs_fecha, r.avvs_vencido, r.avvs_alerta_15, r.avvs_dias_restantes, r.avvs_dias_vencido), ('AVAQ', r.avaq_fecha, r.avaq_vencido, r.avaq_alerta_15, r.avaq_dias_restantes, r.avaq_dias_vencido)] %}
+                            {% if c_fecha %}
+                            <span style="background: {% if c_vencido %}#fee2e2{% elif c_alerta %}#fef3c7{% else %}#f0fdf4{% endif %}; color: {% if c_vencido %}#991b1b{% elif c_alerta %}#d97706{% else %}#166534{% endif %}; padding: 2px 6px; border-radius: 4px; border: 1px solid {% if c_vencido %}#fca5a5{% elif c_alerta %}#fcd34d{% else %}#86efac{% endif %};">
+                                {{ cert_name }} 
+                                {% if c_vencido %}
+                                    - Vencido hace {{ c_diasv }} días
+                                {% elif c_alerta %}
+                                    - Vence en {{ c_restantes }} días
+                                {% else %}
+                                    - Vigente
+                                {% endif %}
+                            </span>
+                            {% endif %}
+                            {% endfor %}
+                            
+                            {% if r.cert_adicionales %}
+                                {% for ca in r.cert_adicionales %}
+                                <span style="background: {% if ca.vencido %}#fee2e2{% elif ca.alerta_15 %}#fef3c7{% else %}#f0fdf4{% endif %}; color: {% if ca.vencido %}#991b1b{% elif ca.alerta_15 %}#d97706{% else %}#166534{% endif %}; padding: 2px 6px; border-radius: 4px; border: 1px solid {% if ca.vencido %}#fca5a5{% elif ca.alerta_15 %}#fcd34d{% else %}#86efac{% endif %};">
+                                    {{ ca.nombre_certificado }} 
+                                    {% if ca.vencido %}
+                                        - Vencido hace {{ ca.dias_vencido }} días
+                                    {% elif ca.alerta_15 %}
+                                        - Vence en {{ ca.dias_restantes }} días
+                                    {% else %}
+                                        - Vigente
+                                    {% endif %}
+                                </span>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if r.cert_bancario or r.cert_pension or r.cert_eps %}
+                    <div style="margin-top: 5px; font-size: 10px; color: #1e3a5f;">
+                        <strong>Información Adicional:</strong>
+                        <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px;">
+                            {% if r.cert_bancario %}
+                            <span style="background: #f3f4f6; color: #374151; padding: 2px 6px; border-radius: 4px; border: 1px solid #d1d5db;">
+                                🏦 Banco: {{ r.banco_nombre }} - {{ r.banco_cuenta }}
+                            </span>
+                            {% endif %}
+                            {% if r.cert_pension %}
+                            <span style="background: #f3f4f6; color: #374151; padding: 2px 6px; border-radius: 4px; border: 1px solid #d1d5db;">
+                                🛡️ Pensión: {{ r.pension_nombre }}
+                            </span>
+                            {% endif %}
+                            {% if r.cert_eps %}
+                            <span style="background: #f3f4f6; color: #374151; padding: 2px 6px; border-radius: 4px; border: 1px solid #d1d5db;">
+                                🏥 EPS: {{ r.eps_nombre }}
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if r.examen_fecha %}
+                    <div style="margin-top: 5px; font-size: 10px; color: #1e3a5f;">
+                        <strong>Exámenes Médico Laborales:</strong> {{ r.examen_fecha }}
+                        {% if r.examen_vencido %}
+                            <span style="color: #991b1b; font-weight: bold; margin-left: 5px;">(Vencido hace {{ r.examen_dias_vencido }} días)</span>
+                        {% elif r.examen_alerta_15 %}
+                            <span style="color: #d97706; font-weight: bold; margin-left: 5px;">(Vence en {{ r.examen_dias_restantes }} días)</span>
+                        {% else %}
+                            <span style="color: #166534; font-weight: bold; margin-left: 5px;">(Vigente)</span>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    
+                    {% if r.contratos %}
+                    <div style="margin-top: 5px; font-size: 10px; color: #1e3a5f;">
+                        <strong>Contratos:</strong>
+                        <div style="display: flex; flex-direction: column; gap: 4px; margin-top: 4px;">
+                            {% for c in r.contratos %}
+                            <div style="background: {% if loop.last and c.tipo_contrato != 'Indefinido' and r.contrato_vencido %}#fee2e2{% elif loop.last and c.tipo_contrato != 'Indefinido' and r.contrato_alerta %}#fef3c7{% else %}#f3f4f6{% endif %}; color: #374151; padding: 4px 8px; border-radius: 4px; border: 1px solid {% if loop.last and c.tipo_contrato != 'Indefinido' and r.contrato_vencido %}#ef4444{% elif loop.last and c.tipo_contrato != 'Indefinido' and r.contrato_alerta %}#f59e0b{% else %}#d1d5db{% endif %};">
+                                {% if c.tipo_contrato == 'Indefinido' %}
+                                    <span>Término Indefinido | 📅 Inicio: {{ c.fecha_inicio }}</span>
+                                    {% if loop.last %}
+                                        <span style="color: #15803d; font-weight: bold; margin-left: 5px;">(Vigente)</span>
+                                    {% endif %}
+                                {% else %}
+                                    <span>Término Definido | 📅 {{ c.fecha_inicio }} a {{ c.fecha_fin }}</span>
+                                    {% if loop.last %}
+                                        {% if r.contrato_vencido %}
+                                            <span style="color: #b91c1c; font-weight: bold; margin-left: 5px;">(Vencido hace {{ c.dias_vencido }} días)</span>
+                                        {% elif r.contrato_alerta %}
+                                            <span style="color: #d97706; font-weight: bold; margin-left: 5px;">(Próximo a vencer en {{ c.dias_restantes }} días)</span>
+                                        {% else %}
+                                            <span style="color: #15803d; font-weight: bold; margin-left: 5px;">(Vigente)</span>
+                                        {% endif %}
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="user-card-actions">
+                    {% if r.activo == 0 %}
+                    <form action="{{ url_for('admin_ths_trip_toggle', identificacion=r.identificacion) }}" method="POST" style="display:inline;">
+                        <button type="button" class="btn btn-sm" style="padding: 4px 10px; font-size: 11px; border-radius: 12px; background-color: #10b981; color: white; border: none; box-shadow: 0 1px 3px rgba(0,0,0,0.2);" onclick="confirmAction(this, '¿Activar registro?', 'El registro volverá a estar activo.', 'Sí, activar', '#10b981')">✅ Activar</button>
+                    </form>
+                    {% else %}
+                    <form action="{{ url_for('admin_ths_trip_toggle', identificacion=r.identificacion) }}" method="POST" style="display:inline;">
+                        <button type="button" class="btn btn-sm" style="padding: 4px 10px; font-size: 11px; border-radius: 12px; background-color: #f59e0b; color: white; border: none; box-shadow: 0 1px 3px rgba(0,0,0,0.2);" onclick="confirmAction(this, '¿Inactivar registro?', 'El registro pasará a inactivos.', 'Sí, inactivar', '#f59e0b')">⚠️ Inactivar</button>
+                    </form>
+                    {% endif %}
+                    <a href="#" class="btn btn-secondary btn-sm" style="padding: 4px 10px; font-size: 11px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.2);"
+                       onclick="editRecord(this); return false;"
+                       data-id="{{ r.identificacion }}"
+                       data-nombre="{{ r.nombres }} {{ r.apellidos }}"
+                       data-perfil="{{ r.perfil or '' }}"
+                       data-registro="{{ r.registro_salud or '' }}"
+                       data-contacto="{{ r.contacto or '' }}"
+                       data-hoja="{{ r.hoja_vida }}"
+                       data-rethus="{{ r.rethus }}"
+                       data-acta="{{ r.acta_grado }}"
+                       data-tarjeta="{{ r.tarjeta_profesional }}"
+                       data-cedula="{{ r.cedula_150 }}"
+                       data-certbancario="{{ r.cert_bancario }}"
+                       data-banconombre="{{ r.banco_nombre or '' }}"
+                       data-bancocuenta="{{ r.banco_cuenta or '' }}"
+                       data-certpension="{{ r.cert_pension }}"
+                       data-pensionnombre="{{ r.pension_nombre or '' }}"
+                       data-certeps="{{ r.cert_eps }}"
+                       data-epsnombre="{{ r.eps_nombre or '' }}"
+                       data-examenfecha="{{ r.examen_fecha or '' }}"
+                       data-bls-fecha="{{ r.bls_fecha or '' }}"
+                       data-bls-vigencia="{{ r.bls_vigencia or '' }}"
+                       data-bls-unidad="{{ r.bls_vigencia_unidad or '' }}"
+                       data-avvs-fecha="{{ r.avvs_fecha or '' }}"
+                       data-avvs-vigencia="{{ r.avvs_vigencia or '' }}"
+                       data-avvs-unidad="{{ r.avvs_vigencia_unidad or '' }}"
+                       data-avaq-fecha="{{ r.avaq_fecha or '' }}"
+                       data-avaq-vigencia="{{ r.avaq_vigencia or '' }}"
+                       data-avaq-unidad="{{ r.avaq_vigencia_unidad or '' }}"
+                       data-licencias='{{ r.licencias | tojson | safe }}'
+                       data-vacunas='{{ r.vacunas | tojson | safe }}'
+                       data-certadic='{{ r.cert_adicionales | tojson | safe }}'
+                       data-contratos='{{ r.contratos | tojson | safe }}'>✏️ Editar</a>
+                    {% if is_superadmin %}
+                    <form action="{{ url_for('admin_ths_trip_eliminar', identificacion=r.identificacion) }}" method="POST" style="display:inline;">
+                        <button type="button" class="btn btn-sm" style="padding: 4px 10px; font-size: 11px; border-radius: 12px; background-color: #991b1b; color: white; border: none; box-shadow: 0 1px 3px rgba(0,0,0,0.2);" onclick="confirmAction(this, '¿Eliminar registro?', 'Esta acción no se puede deshacer.', 'Sí, eliminar', '#991b1b')">🗑️ Eliminar</button>
+                    </form>
+                    {% endif %}
+                </div>
             </div>
-      </div>
+            {% endfor %}
+        </div>
+    </div>
   </details>
         
   <!-- Accordion: Tabla de Registros Inactivos -->
@@ -495,125 +1037,148 @@ function confirmAction(btn, title, text, confirmButtonText, confirmButtonColor) 
     <summary style="padding: 15px; background-color: #f8fafc; color: #1e3a5f; font-weight: bold; cursor: pointer; border-bottom: 1px solid #e2e8f0; font-size: 16px;">
         Tabla de Registros Inactivos
     </summary>
-    <div style="padding: 15px;">
-            <div class="table-container mt-3">
-                <table class="data-table" style="opacity: 0.8;">
-                    <thead>
-                        <tr style="background-color: #d1d5db; text-align: center; font-size: 10px;">
-                            <th rowspan="2" style="vertical-align: middle; border: 1px solid #9ca3af;">NOMBRES Y APELLIDOS</th>
-                            <th rowspan="2" style="vertical-align: middle; border: 1px solid #9ca3af;">IDENTIFICACIÓN</th>
-                            <th rowspan="2" style="vertical-align: middle; border: 1px solid #9ca3af;">PERFIL</th>
-                            <th rowspan="2" style="vertical-align: middle; border: 1px solid #9ca3af;">REGISTRO</th>
-                            <th rowspan="2" style="vertical-align: middle; border: 1px solid #9ca3af;">CONTACTO</th>
-                            <th rowspan="2" style="vertical-align: middle; border: 1px solid #9ca3af;">HOJA DE<br>VIDA</th>
-                            <th rowspan="2" style="vertical-align: middle; border: 1px solid #9ca3af;">RETHUS</th>
-                            <th rowspan="2" style="vertical-align: middle; border: 1px solid #9ca3af;">DIPLOMA</th>
-                            <th rowspan="2" style="vertical-align: middle; border: 1px solid #9ca3af;">RESOLUCIÓN</th>
-                            <th colspan="2" style="border: 1px solid #9ca3af;">BLS</th>
-                            <th colspan="2" style="border: 1px solid #9ca3af;">AVVS</th>
-                            <th colspan="2" style="border: 1px solid #9ca3af;">AVAQ</th>
-                            <th rowspan="2" style="vertical-align: middle; border: 1px solid #9ca3af;">%</th>
-                            <th rowspan="2" style="vertical-align: middle; border: 1px solid #9ca3af;">ACCIONES</th>
-                        </tr>
-                        <tr style="background-color: #d1d5db; text-align: center; font-size: 11px;">
-                            <th style="border: 1px solid #9ca3af;">FR</th>
-                            <th style="border: 1px solid #9ca3af;">Vigente</th>
-                            <th style="border: 1px solid #9ca3af;">FR</th>
-                            <th style="border: 1px solid #9ca3af;">Vigente</th>
-                            <th style="border: 1px solid #9ca3af;">FR</th>
-                            <th style="border: 1px solid #9ca3af;">Vigente</th>
-                        </tr>
-                    </thead>
-                    <tbody style="font-size: 12px; text-align: center;">
-                        {% for r in inactivos %}
-                        <tr>
-                            <td style="border: 1px solid #d1d5db;">{{ r.nombres }} {{ r.apellidos }}</td>
-                            <td style="border: 1px solid #d1d5db;">{{ r.identificacion }}</td>
-                            <td style="border: 1px solid #d1d5db;">{{ r.perfil or '' }}</td>
-                            <td style="border: 1px solid #d1d5db;">{{ r.registro_salud or '' }}</td>
-                            <td style="border: 1px solid #d1d5db;">{{ r.contacto or '' }}</td>
-                            
-                            <td style="border: 1px solid #d1d5db;">{% if r.hoja_vida %}OK{% endif %}</td>
-                            <td style="border: 1px solid #d1d5db;">{% if r.rethus %}OK{% endif %}</td>
-                            <td style="border: 1px solid #d1d5db;">{% if r.acta_grado %}OK{% endif %}</td>
-                            <td style="border: 1px solid #d1d5db;">{% if r.tarjeta_profesional %}OK{% endif %}</td>
-                            
-                            <!-- BLS -->
-                            <td style="border: 1px solid #d1d5db;">{{ r.bls_fecha or '' }}</td>
-                            {% if r.bls_fecha %}
-                            <td style="border: 1px solid #d1d5db; background-color: {% if r.bls_vencido %}#ef4444{% else %}#84cc16{% endif %}; font-weight: bold; color: {% if r.bls_vencido %}white{% else %}black{% endif %};">
-                                {% if r.bls_vencido %}VENCIDO{% else %}VIGENTE{% endif %}
-                            </td>
-                            {% else %}
-                            <td style="border: 1px solid #d1d5db;"></td>
-                            {% endif %}
-                            
-                            <!-- AVVS -->
-                            <td style="border: 1px solid #d1d5db;">{{ r.avvs_fecha or '' }}</td>
-                            {% if r.avvs_fecha %}
-                            <td style="border: 1px solid #d1d5db; background-color: {% if r.avvs_vencido %}#ef4444{% else %}#84cc16{% endif %}; font-weight: bold; color: {% if r.avvs_vencido %}white{% else %}black{% endif %};">
-                                {% if r.avvs_vencido %}VENCIDO{% else %}VIGENTE{% endif %}
-                            </td>
-                            {% else %}
-                            <td style="border: 1px solid #d1d5db;"></td>
-                            {% endif %}
+    <div style="padding: 15px; background: #f8fafc; opacity: 0.8;">
+        <div class="user-card-grid">
+            {% for r in inactivos %}
+            {% set lic_ns = namespace(has_valid=false) %}
+            {% for lic in r.licencias %}
+                {% if not lic.vencida %}
+                    {% set lic_ns.has_valid = true %}
+                {% endif %}
+            {% endfor %}
 
-                            <!-- AVAQ -->
-                            <td style="border: 1px solid #d1d5db;">{{ r.avaq_fecha or '' }}</td>
-                            {% if r.avaq_fecha %}
-                            <td style="border: 1px solid #d1d5db; background-color: {% if r.avaq_vencido %}#ef4444{% else %}#84cc16{% endif %}; font-weight: bold; color: {% if r.avaq_vencido %}white{% else %}black{% endif %};">
-                                {% if r.avaq_vencido %}VENCIDO{% else %}VIGENTE{% endif %}
-                            </td>
-                            {% else %}
-                            <td style="border: 1px solid #d1d5db;"></td>
+            {% set count_inactivo = 0 %}
+            {% set total_inactivo = 0 %}
+            
+            {% if r.perfil == 'CONDUCTOR' %}
+                {% set total_inactivo = 1 %}
+                {% if lic_ns.has_valid %}{% set count_inactivo = count_inactivo + 1 %}{% endif %}
+            {% elif r.perfil == 'CONDUCTOR APH' %}
+                {% set total_inactivo = 4 %}
+                {% if r.bls_fecha and not r.bls_vencido %}{% set count_inactivo = count_inactivo + 1 %}{% endif %}
+                {% if r.avvs_fecha and not r.avvs_vencido %}{% set count_inactivo = count_inactivo + 1 %}{% endif %}
+                {% if r.avaq_fecha and not r.avaq_vencido %}{% set count_inactivo = count_inactivo + 1 %}{% endif %}
+                {% if lic_ns.has_valid %}{% set count_inactivo = count_inactivo + 1 %}{% endif %}
+            {% else %}
+                {% set total_inactivo = 3 %}
+                {% if r.bls_fecha and not r.bls_vencido %}{% set count_inactivo = count_inactivo + 1 %}{% endif %}
+                {% if r.avvs_fecha and not r.avvs_vencido %}{% set count_inactivo = count_inactivo + 1 %}{% endif %}
+                {% if r.avaq_fecha and not r.avaq_vencido %}{% set count_inactivo = count_inactivo + 1 %}{% endif %}
+            {% endif %}
+            
+            {% set pct_inactivo = (count_inactivo / total_inactivo * 100) | round(0) | int if total_inactivo > 0 else 0 %}
+            
+            <div class="user-card">
+                <div class="user-card-header">
+                    <h4 class="user-card-title">{{ r.nombres }} {{ r.apellidos }}</h4>
+                    <div class="user-card-subtitle">ID: {{ r.identificacion }}</div>
+                </div>
+                <div class="user-card-body">
+                    <div class="user-card-detail">
+                        <strong>Perfil:</strong> <span>{{ r.perfil or 'N/A' }}</span>
+                    </div>
+                    <div class="user-card-pct" style="color: {% if pct_inactivo == 100 %}#15803d{% elif pct_inactivo >= 50 %}#ca8a04{% else %}#b91c1c{% endif %};">
+                        {{ pct_inactivo }}%
+                    </div>
+                    <div style="text-align: center; font-size: 11px; color: #64748b; margin-top: -8px;">Cumplimiento</div>
+                    {% if r.licencias %}
+                    <div style="margin-top: 5px; font-size: 10px; color: #1e3a5f;">
+                        <strong>Licencias:</strong>
+                        <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px;">
+                            {% for lic in r.licencias %}
+                            <span style="background: {% if lic.vencida %}#fef2f2{% else %}#f0fdf4{% endif %}; color: {% if lic.vencida %}#991b1b{% else %}#166534{% endif %}; padding: 2px 6px; border-radius: 4px; border: 1px solid {% if lic.vencida %}#fca5a5{% else %}#86efac{% endif %};">
+                                {{ lic.categoria }} ({{ lic.fecha_vencimiento }})
+                            </span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if r.bls_fecha or r.avvs_fecha or r.avaq_fecha or r.cert_adicionales %}
+                    <div style="margin-top: 5px; font-size: 10px; color: #1e3a5f;">
+                        <strong>Certificados:</strong>
+                        <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px;">
+                            {% for cert_name, c_fecha, c_vencido, c_alerta, c_restantes, c_diasv in [('BLS', r.bls_fecha, r.bls_vencido, r.bls_alerta_15, r.bls_dias_restantes, r.bls_dias_vencido), ('AVVS', r.avvs_fecha, r.avvs_vencido, r.avvs_alerta_15, r.avvs_dias_restantes, r.avvs_dias_vencido), ('AVAQ', r.avaq_fecha, r.avaq_vencido, r.avaq_alerta_15, r.avaq_dias_restantes, r.avaq_dias_vencido)] %}
+                            {% if c_fecha %}
+                            <span style="background: {% if c_vencido %}#fee2e2{% elif c_alerta %}#fef3c7{% else %}#f0fdf4{% endif %}; color: {% if c_vencido %}#991b1b{% elif c_alerta %}#d97706{% else %}#166534{% endif %}; padding: 2px 6px; border-radius: 4px; border: 1px solid {% if c_vencido %}#fca5a5{% elif c_alerta %}#fcd34d{% else %}#86efac{% endif %};">
+                                {{ cert_name }} 
+                                {% if c_vencido %}
+                                    - Vencido hace {{ c_diasv }} días
+                                {% elif c_alerta %}
+                                    - Vence en {{ c_restantes }} días
+                                {% else %}
+                                    - Vigente
+                                {% endif %}
+                            </span>
                             {% endif %}
+                            {% endfor %}
                             
-                            <!-- Cumplimiento -->
-                            {% set count_inactivo = 0 %}
-                            {% if r.hoja_vida %}{% set count_inactivo = count_inactivo + 1 %}{% endif %}
-                            {% if r.acta_grado %}{% set count_inactivo = count_inactivo + 1 %}{% endif %}
-                            {% if r.tarjeta_profesional %}{% set count_inactivo = count_inactivo + 1 %}{% endif %}
-                            {% if r.rethus %}{% set count_inactivo = count_inactivo + 1 %}{% endif %}
-                            {% if r.bls_fecha and not r.bls_vencido %}{% set count_inactivo = count_inactivo + 1 %}{% endif %}
-                            {% if r.avvs_fecha and not r.avvs_vencido %}{% set count_inactivo = count_inactivo + 1 %}{% endif %}
-                            {% if r.avaq_fecha and not r.avaq_vencido %}{% set count_inactivo = count_inactivo + 1 %}{% endif %}
-                            {% set pct_inactivo = (count_inactivo / 7 * 100) | round(0) | int %}
-                            
-                            <td style="border: 1px solid #d1d5db; font-weight: bold; color: {% if pct_inactivo == 100 %}#15803d{% elif pct_inactivo >= 50 %}#ca8a04{% else %}#b91c1c{% endif %};">
-                                {{ pct_inactivo }}%
-                            </td>
-
-                            <td style="border: 1px solid #d1d5db; white-space: nowrap;">
-                                <form action="{{ url_for('admin_ths_trip_toggle', identificacion=r.identificacion) }}" method="POST" style="display:inline;">
-                                    <button type="button" class="btn btn-sm" style="padding: 1px 6px; font-size: 9px; border-radius: 12px; background-color: #10b981; color: white; border: none; box-shadow: 0 1px 3px rgba(0,0,0,0.2);" onclick="confirmAction(this, '¿Activar registro?', 'El registro volverá a estar activo.', 'Sí, activar', '#10b981')">✅ Activar</button>
-                                </form>
-                                <a href="#" class="btn btn-secondary btn-sm" style="padding: 1px 6px; font-size: 9px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.2); margin-left: 2px;"
-                                   onclick="editRecord(this); return false;"
-                                   data-id="{{ r.identificacion }}"
-                                   data-nombre="{{ r.nombres }} {{ r.apellidos }}"
-                                   data-perfil="{{ r.perfil or '' }}"
-                                   data-registro="{{ r.registro_salud or '' }}"
-                                   data-contacto="{{ r.contacto or '' }}"
-                                   data-hoja="{{ r.hoja_vida }}"
-                                   data-rethus="{{ r.rethus }}"
-                                   data-acta="{{ r.acta_grado }}"
-                                   data-tarjeta="{{ r.tarjeta_profesional }}"
-                                   data-bls-fecha="{{ r.bls_fecha or '' }}"
-                                   data-bls-vigencia="{{ r.bls_vigencia or '' }}"
-                                   data-bls-unidad="{{ r.bls_vigencia_unidad or '' }}"
-                                   data-avvs-fecha="{{ r.avvs_fecha or '' }}"
-                                   data-avvs-vigencia="{{ r.avvs_vigencia or '' }}"
-                                   data-avvs-unidad="{{ r.avvs_vigencia_unidad or '' }}"
-                                   data-avaq-fecha="{{ r.avaq_fecha or '' }}"
-                                   data-avaq-vigencia="{{ r.avaq_vigencia or '' }}"
-                                   data-avaq-unidad="{{ r.avaq_vigencia_unidad or '' }}">✏️ Editar</a>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                            {% if r.cert_adicionales %}
+                                {% for ca in r.cert_adicionales %}
+                                <span style="background: {% if ca.vencido %}#fee2e2{% elif ca.alerta_15 %}#fef3c7{% else %}#f0fdf4{% endif %}; color: {% if ca.vencido %}#991b1b{% elif ca.alerta_15 %}#d97706{% else %}#166534{% endif %}; padding: 2px 6px; border-radius: 4px; border: 1px solid {% if ca.vencido %}#fca5a5{% elif ca.alerta_15 %}#fcd34d{% else %}#86efac{% endif %};">
+                                    {{ ca.nombre_certificado }} 
+                                    {% if ca.vencido %}
+                                        - Vencido hace {{ ca.dias_vencido }} días
+                                    {% elif ca.alerta_15 %}
+                                        - Vence en {{ ca.dias_restantes }} días
+                                    {% else %}
+                                        - Vigente
+                                    {% endif %}
+                                </span>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if r.vacunas %}
+                    <div style="margin-top: 5px; font-size: 10px; color: #1e3a5f;">
+                        <strong>Vacunas:</strong>
+                        <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px;">
+                            {% for vac in r.vacunas %}
+                            <span style="background: #f0f9ff; color: #0369a1; padding: 2px 6px; border-radius: 4px; border: 1px solid #bae6fd;">
+                                {{ vac.vacuna }} ({{ vac.dosis }}) - {{ vac.fecha_aplicacion }}
+                            </span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="user-card-actions">
+                    <form action="{{ url_for('admin_ths_trip_toggle', identificacion=r.identificacion) }}" method="POST" style="display:inline;">
+                        <button type="button" class="btn btn-sm" style="padding: 4px 10px; font-size: 11px; border-radius: 12px; background-color: #10b981; color: white; border: none; box-shadow: 0 1px 3px rgba(0,0,0,0.2);" onclick="confirmAction(this, '¿Activar registro?', 'El registro volverá a estar activo.', 'Sí, activar', '#10b981')">✅ Activar</button>
+                    </form>
+                    <a href="#" class="btn btn-secondary btn-sm" style="padding: 4px 10px; font-size: 11px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.2);"
+                       onclick="editRecord(this); return false;"
+                       data-id="{{ r.identificacion }}"
+                       data-nombre="{{ r.nombres }} {{ r.apellidos }}"
+                       data-perfil="{{ r.perfil or '' }}"
+                       data-registro="{{ r.registro_salud or '' }}"
+                       data-contacto="{{ r.contacto or '' }}"
+                       data-hoja="{{ r.hoja_vida }}"
+                       data-rethus="{{ r.rethus }}"
+                       data-acta="{{ r.acta_grado }}"
+                       data-tarjeta="{{ r.tarjeta_profesional }}"
+                       data-cedula="{{ r.cedula_150 }}"
+                       data-bls-fecha="{{ r.bls_fecha or '' }}"
+                       data-bls-vigencia="{{ r.bls_vigencia or '' }}"
+                       data-bls-unidad="{{ r.bls_vigencia_unidad or '' }}"
+                       data-avvs-fecha="{{ r.avvs_fecha or '' }}"
+                       data-avvs-vigencia="{{ r.avvs_vigencia or '' }}"
+                       data-avvs-unidad="{{ r.avvs_vigencia_unidad or '' }}"
+                       data-avaq-fecha="{{ r.avaq_fecha or '' }}"
+                       data-avaq-vigencia="{{ r.avaq_vigencia or '' }}"
+                       data-avaq-unidad="{{ r.avaq_vigencia_unidad or '' }}"
+                       data-licencias='{{ r.licencias | tojson | safe }}'
+                       data-certadic='{{ r.cert_adicionales | tojson | safe }}'
+                       data-contratos='{{ r.contratos | tojson | safe }}'
+                       data-vacunas='{{ r.vacunas | tojson | safe }}'>✏️ Editar</a>
+                </div>
             </div>
-            </div>
+            {% endfor %}
+        </div>
+      </div>
       </div>
   </details>
 
