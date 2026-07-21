@@ -191,6 +191,13 @@ $(document).ready(function() {
     $('#perfil_select').on('change', function() {
         const p = $(this).val();
         
+        if (!p) {
+            $('#dynamic_fields_container').hide();
+            return;
+        } else {
+            $('#dynamic_fields_container').show();
+        }
+        
         // Reset required
         $('#registro_salud').prop('required', true);
         $('#bls_fecha').prop('required', true);
@@ -500,6 +507,8 @@ function cancelEdit() {
     $('#cert_pension').trigger('change');
     $('#cert_eps').trigger('change');
     
+    $('#dynamic_fields_container').hide();
+    
     $('#action_type').val('add');
     $('#submitBtn').text('Agregar Registro').removeClass('btn-success').addClass('btn-primary');
     $('#cancelEditBtn').hide();
@@ -613,6 +622,7 @@ function confirmAction(btn, title, text, confirmButtonText, confirmButtonColor) 
             </div>
         </div>
         
+        <div id="dynamic_fields_container" style="display: none;">
         <div style="width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; margin-top: 10px; margin-bottom: 15px;">
             <label style="margin-bottom: 10px; font-size: 15px;"><strong>Documentos:</strong></label>
             <div style="display: flex; gap: 20px; justify-content: center; align-items: center; flex-wrap: wrap; width: 100%;">
@@ -798,6 +808,7 @@ function confirmAction(btn, title, text, confirmButtonText, confirmButtonColor) 
             <div style="text-align: center; margin-top: 15px;">
                 <button type="button" class="btn btn-sm" style="background-color: #eff6ff; color: #2563eb; border: 1px dashed #3b82f6; border-radius: 20px; padding: 6px 16px; font-weight: 600; font-size: 12px; transition: all 0.2s; cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,0.05);" onmouseover="this.style.backgroundColor='#dbeafe'; this.style.borderColor='#2563eb';" onmouseout="this.style.backgroundColor='#eff6ff'; this.style.borderColor='#3b82f6';" onclick="addLicenciaRow()">+ Agregar Categoría</button>
             </div>
+        </div>
         </div>
 
         <div class="mt-3" style="display: flex; justify-content: center; gap: 10px; margin-top: 30px !important;">
