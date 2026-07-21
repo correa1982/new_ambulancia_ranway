@@ -146,6 +146,19 @@ function editRecord(btn) {
     $('#acta_grado').prop('checked', $(btn).data('acta') == '1');
     $('#tarjeta_profesional').prop('checked', $(btn).data('tarjeta') == '1');
     
+    // Certs
+    $('input[name="bls_fecha"]').val($(btn).data('bls-fecha') || '');
+    $('input[name="bls_vigencia"]').val($(btn).data('bls-vigencia') || '');
+    if ($(btn).data('bls-unidad')) { $('select[name="bls_vigencia_unidad"]').val($(btn).data('bls-unidad')); }
+    
+    $('input[name="avvs_fecha"]').val($(btn).data('avvs-fecha') || '');
+    $('input[name="avvs_vigencia"]').val($(btn).data('avvs-vigencia') || '');
+    if ($(btn).data('avvs-unidad')) { $('select[name="avvs_vigencia_unidad"]').val($(btn).data('avvs-unidad')); }
+    
+    $('input[name="avaq_fecha"]').val($(btn).data('avaq-fecha') || '');
+    $('input[name="avaq_vigencia"]').val($(btn).data('avaq-vigencia') || '');
+    if ($(btn).data('avaq-unidad')) { $('select[name="avaq_vigencia_unidad"]').val($(btn).data('avaq-unidad')); }
+
     // Change action type to edit
     $('#action_type').val('edit');
     $('#submitBtn').text('Actualizar').removeClass('btn-primary').addClass('btn-success');
@@ -436,7 +449,16 @@ function cancelEdit() {
                                    data-hoja="{{ r.hoja_vida }}"
                                    data-rethus="{{ r.rethus }}"
                                    data-acta="{{ r.acta_grado }}"
-                                   data-tarjeta="{{ r.tarjeta_profesional }}">✏️ Editar</a>
+                                   data-tarjeta="{{ r.tarjeta_profesional }}"
+                                   data-bls-fecha="{{ r.bls_fecha or '' }}"
+                                   data-bls-vigencia="{{ r.bls_vigencia or '' }}"
+                                   data-bls-unidad="{{ r.bls_vigencia_unidad or '' }}"
+                                   data-avvs-fecha="{{ r.avvs_fecha or '' }}"
+                                   data-avvs-vigencia="{{ r.avvs_vigencia or '' }}"
+                                   data-avvs-unidad="{{ r.avvs_vigencia_unidad or '' }}"
+                                   data-avaq-fecha="{{ r.avaq_fecha or '' }}"
+                                   data-avaq-vigencia="{{ r.avaq_vigencia or '' }}"
+                                   data-avaq-unidad="{{ r.avaq_vigencia_unidad or '' }}">✏️ Editar</a>
                             </td>
                         </tr>
                         {% endfor %}
@@ -553,7 +575,16 @@ function cancelEdit() {
                                    data-hoja="{{ r.hoja_vida }}"
                                    data-rethus="{{ r.rethus }}"
                                    data-acta="{{ r.acta_grado }}"
-                                   data-tarjeta="{{ r.tarjeta_profesional }}">✏️ Editar</a>
+                                   data-tarjeta="{{ r.tarjeta_profesional }}"
+                                   data-bls-fecha="{{ r.bls_fecha or '' }}"
+                                   data-bls-vigencia="{{ r.bls_vigencia or '' }}"
+                                   data-bls-unidad="{{ r.bls_vigencia_unidad or '' }}"
+                                   data-avvs-fecha="{{ r.avvs_fecha or '' }}"
+                                   data-avvs-vigencia="{{ r.avvs_vigencia or '' }}"
+                                   data-avvs-unidad="{{ r.avvs_vigencia_unidad or '' }}"
+                                   data-avaq-fecha="{{ r.avaq_fecha or '' }}"
+                                   data-avaq-vigencia="{{ r.avaq_vigencia or '' }}"
+                                   data-avaq-unidad="{{ r.avaq_vigencia_unidad or '' }}">✏️ Editar</a>
                             </td>
                         </tr>
                         {% endfor %}
