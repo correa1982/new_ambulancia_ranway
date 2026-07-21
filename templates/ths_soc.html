@@ -178,6 +178,22 @@ function cancelEdit() {
     $('#submitBtn').text('Agregar Registro').removeClass('btn-success').addClass('btn-primary');
     $('#cancelEditBtn').hide();
 }
+function confirmAction(btn, title, text, confirmButtonText, confirmButtonColor) {
+    Swal.fire({
+        title: title,
+        text: text,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: confirmButtonColor,
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: confirmButtonText,
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $(btn).closest('form').submit();
+        }
+    });
+}
 </script>
 
 {% set stats = {'sum_pct': 0, 'count': 0} %}
@@ -438,7 +454,7 @@ function cancelEdit() {
                             
                             <td style="border: 1px solid #d1d5db; white-space: nowrap;">
                                 <form action="{{ url_for('admin_ths_soc_toggle', identificacion=r.identificacion) }}" method="POST" style="display:inline;">
-                                    <button type="submit" class="btn btn-sm" style="padding: 1px 6px; font-size: 9px; border-radius: 12px; background-color: #ef4444; color: white; border: none; box-shadow: 0 1px 3px rgba(0,0,0,0.2);" onclick="return confirm('¿Inactivar registro?')">🚫 Inactivar</button>
+                                    <button type="button" class="btn btn-sm" style="padding: 1px 6px; font-size: 9px; border-radius: 12px; background-color: #ef4444; color: white; border: none; box-shadow: 0 1px 3px rgba(0,0,0,0.2);" onclick="confirmAction(this, '¿Inactivar registro?', 'El registro pasará a estado inactivo.', 'Sí, inactivar', '#ef4444')">🚫 Inactivar</button>
                                 </form>
                                 <a href="#" class="btn btn-secondary btn-sm" style="padding: 1px 6px; font-size: 9px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.2); margin-left: 2px;"
                                    onclick="editRecord(this); return false;"
@@ -460,6 +476,11 @@ function cancelEdit() {
                                    data-avaq-fecha="{{ r.avaq_fecha or '' }}"
                                    data-avaq-vigencia="{{ r.avaq_vigencia or '' }}"
                                    data-avaq-unidad="{{ r.avaq_vigencia_unidad or '' }}">✏️ Editar</a>
+                                {% if is_superadmin %}
+                                <form action="{{ url_for('admin_ths_soc_eliminar', identificacion=r.identificacion) }}" method="POST" style="display:inline;">
+                                    <button type="button" class="btn btn-sm" style="padding: 1px 6px; font-size: 9px; border-radius: 12px; background-color: #991b1b; color: white; border: none; box-shadow: 0 1px 3px rgba(0,0,0,0.2); margin-left: 2px;" onclick="confirmAction(this, '¿Eliminar registro?', 'Esta acción no se puede deshacer.', 'Sí, eliminar', '#991b1b')">🗑️ Eliminar</button>
+                                </form>
+                                {% endif %}
                             </td>
                         </tr>
                         {% endfor %}
@@ -564,7 +585,7 @@ function cancelEdit() {
 
                             <td style="border: 1px solid #d1d5db; white-space: nowrap;">
                                 <form action="{{ url_for('admin_ths_soc_toggle', identificacion=r.identificacion) }}" method="POST" style="display:inline;">
-                                    <button type="submit" class="btn btn-sm" style="padding: 1px 6px; font-size: 9px; border-radius: 12px; background-color: #10b981; color: white; border: none; box-shadow: 0 1px 3px rgba(0,0,0,0.2);" onclick="return confirm('¿Activar registro?')">✅ Activar</button>
+                                    <button type="button" class="btn btn-sm" style="padding: 1px 6px; font-size: 9px; border-radius: 12px; background-color: #10b981; color: white; border: none; box-shadow: 0 1px 3px rgba(0,0,0,0.2);" onclick="confirmAction(this, '¿Activar registro?', 'El registro volverá a estar activo.', 'Sí, activar', '#10b981')">✅ Activar</button>
                                 </form>
                                 <a href="#" class="btn btn-secondary btn-sm" style="padding: 1px 6px; font-size: 9px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.2); margin-left: 2px;"
                                    onclick="editRecord(this); return false;"
