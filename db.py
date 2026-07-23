@@ -725,6 +725,52 @@ def init_db():
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
     """)
     
+    # Crear tabla para inventarios
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS inventarios (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            codigo_barras VARCHAR(255),
+            tipo VARCHAR(100) NOT NULL,
+            nombre VARCHAR(255) NOT NULL,
+            invima VARCHAR(255),
+            cantidad INT DEFAULT 0,
+            unidad_medida VARCHAR(50),
+            lote VARCHAR(100),
+            fecha_vencimiento DATE NULL,
+            observaciones TEXT,
+            registrado_por VARCHAR(255),
+            fecha_registro DATETIME DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+    """)
+    
+    # Dynamic schema migration for inventarios
+    cursor_inv = conn.cursor()
+    cursor_inv.execute("DESCRIBE inventarios")
+    inv_cols = [row["Field"] for row in cursor_inv.fetchall()]
+    if "codigo_barras" not in inv_cols:
+        conn.execute("ALTER TABLE inventarios ADD COLUMN codigo_barras VARCHAR(255)")
+    if "invima" not in inv_cols:
+        conn.execute("ALTER TABLE inventarios ADD COLUMN invima VARCHAR(255)")
+
+    # Crear tabla para historial de inventarios
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS inventarios_historial (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            item_id INT NOT NULL,
+            codigo_barras VARCHAR(255),
+            nombre VARCHAR(255) NOT NULL,
+            lote VARCHAR(100),
+            accion VARCHAR(50) NOT NULL, -- 'ingreso' o 'egreso'
+            cantidad INT NOT NULL,
+            tipo_egreso VARCHAR(100), -- 'Reposicion', 'Averia', 'Vencimiento'
+            destino VARCHAR(255),
+            registrado_por VARCHAR(255),
+            fecha_registro DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (item_id) REFERENCES inventarios(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+    """)
+
+    
     # Dynamic schema migration for ths_contratos
     cursor_c = conn.cursor()
     cursor_c.execute("DESCRIBE ths_contratos")

@@ -1,0 +1,926 @@
+{% extends "base.html" %}
+{% block title %}Inventarios{% endblock %}
+{% block content %}
+<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
+<script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+<style>
+    .inv-header {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+    .inv-title {
+        font-size: 24px;
+        color: #1e3a5f;
+        margin: 0;
+    }
+    .inv-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    .inv-btn {
+        background: #3b82f6;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: background 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .inv-btn:hover { background: #2563eb; }
+    .btn-green { background: #10b981; }
+    .btn-green:hover { background: #059669; }
+    .btn-red { background: #ef4444; }
+    .btn-red:hover { background: #dc2626; }
+    .btn-purple { background: #8b5cf6; }
+    .btn-purple:hover { background: #7c3aed; }
+
+    .inv-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+    }
+    .inv-table th, .inv-table td {
+        padding: 12px 16px;
+        text-align: left;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    .inv-table th {
+        background: #f8fafc;
+        font-weight: bold;
+        color: #475569;
+    }
+    .inv-table tr:hover {
+        background: #f1f5f9;
+    }
+    .action-btn {
+        padding: 4px 8px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: bold;
+    }
+    .btn-edit { background: #eab308; color: white; }
+    .btn-delete { background: #ef4444; color: white; }
+    
+    /* Modal Styles */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.5);
+    }
+    .modal-content {
+        background-color: #fff;
+        margin: 5% auto;
+        padding: 20px;
+        border-radius: 8px;
+        width: 500px;
+        max-width: 90%;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+    .close-btn {
+        background: none;
+        border: none;
+        font-size: 20px;
+        cursor: pointer;
+    }
+    .form-group {
+        margin-bottom: 15px;
+    }
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+        color: #475569;
+    }
+    .form-group input, .form-group select, .form-group textarea {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #cbd5e1;
+        border-radius: 4px;
+        box-sizing: border-box;
+    }
+    #reader {
+        width: 100%;
+        min-height: 300px;
+    }
+</style>
+
+<div class="inv-header">
+    <h1 class="inv-title">📦 Módulo de Inventarios</h1>
+    <div class="inv-actions">
+        <button class="inv-btn btn-green" onclick="openScanner('ingreso')">📸 QR Ingreso</button>
+        <button class="inv-btn btn-red" onclick="openScanner('egreso')">📸 QR Egreso</button>
+        <button class="inv-btn btn-green" onclick="openManualUpdate('ingreso')">➕ Ingreso Manual</button>
+        <button class="inv-btn btn-red" onclick="openManualUpdate('egreso')">➖ Egreso Manual</button>
+        <button class="inv-btn btn-purple" onclick="openScanner('nuevo')">✨ Nuevo Producto</button>
+        <a href="{{ url_for('inventarios.inventarios_movimientos') }}" class="inv-btn" style="background: #334155; text-decoration: none;">📋 Consultar Movimientos</a>
+    </div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
+    <div style="display: flex; gap: 15px; align-items: center; flex-wrap: nowrap;">
+        <input type="text" id="searchInput" placeholder="Buscar por nombre, código, invima, lote..." style="flex: 3; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px;">
+        <select id="typeFilter" style="flex: 1; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px;">
+            <option value="all">Todos los tipos</option>
+            <option value="Dispositivo Médico">Dispositivo Médico</option>
+            <option value="Medicamento">Medicamento</option>
+            <option value="Cosméticos y Aseo">Cosméticos y Aseo</option>
+        </select>
+        <a href="{{ url_for('inventarios.inventarios_exportar_excel') }}" class="inv-btn" style="background: #10b981; text-decoration: none; flex: 0 0 auto; white-space: nowrap; padding: 8px 12px; font-size: 13px;">📊 Exportar Excel</a>
+    </div>
+    <div id="dateFilterContainer" style="display: none; gap: 10px; align-items: center; background: #f8fafc; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0; width: fit-content;">
+        <label style="font-size: 13px; font-weight: bold; color: #475569; margin: 0;">Filtro Vencimiento:</label>
+        <input type="date" id="dateFilterStart" style="padding: 6px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 13px;">
+        <span style="color: #64748b; font-size: 13px;">hasta</span>
+        <input type="date" id="dateFilterEnd" style="padding: 6px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 13px;">
+        <button class="inv-btn" style="background: #94a3b8; padding: 6px 10px; font-size: 12px; min-height: 32px;" onclick="clearDateFilter()">Limpiar</button>
+    </div>
+</div>
+
+<table class="inv-table">
+    <thead>
+        <tr>
+            <th onclick="toggleDateFilter(false)" style="cursor: pointer;" title="Ocultar filtro de fechas">Nombre</th>
+            <th onclick="toggleDateFilter(false)" style="cursor: pointer;" title="Ocultar filtro de fechas">Tipo</th>
+            <th onclick="toggleDateFilter(false)" style="cursor: pointer;" title="Ocultar filtro de fechas">Invima</th>
+            <th onclick="toggleDateFilter(false)" style="cursor: pointer;" title="Ocultar filtro de fechas">Lote</th>
+            <th onclick="toggleDateFilter(true)" style="cursor: pointer;" title="Mostrar Filtro de Fechas">Vencimiento</th>
+            <th onclick="toggleDateFilter(false)" style="cursor: pointer;" title="Ocultar filtro de fechas">Cantidad</th>
+            <th onclick="toggleDateFilter(false)">Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in items %}
+        <tr>
+            <td>
+                <strong>{{ item.nombre }}</strong>
+                {% if item.codigo_barras %}
+                <br><small style="color: #64748b; font-family: monospace;">{{ item.codigo_barras }}</small>
+                {% endif %}
+            </td>
+            <td>
+                {% if item.tipo == 'Dispositivo Médico' %} <span style="color: #0284c7;">🩺 {{ item.tipo }}</span>
+                {% elif item.tipo == 'Medicamento' %} <span style="color: #16a34a;">💊 {{ item.tipo }}</span>
+                {% else %} <span style="color: #ea580c;">🩹 {{ item.tipo }}</span>
+                {% endif %}
+            </td>
+            <td>{{ item.invima or 'N/A' }}</td>
+            <td>{{ item.lote or 'N/A' }}</td>
+            <td>{{ item.fecha_vencimiento or 'N/A' }}</td>
+            <td><strong>{{ item.cantidad }}</strong></td>
+            <td>
+                <button class="action-btn btn-edit" onclick='openModal("edit", {{ item | tojson }})'>Editar</button>
+                <form action="{{ url_for('inventarios.inventarios_delete', item_id=item.id) }}" method="POST" style="display:inline;" onsubmit="return confirm('¿Está seguro de eliminar este ítem?');">
+                    <button type="submit" class="action-btn btn-delete">Eliminar</button>
+                </form>
+            </td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="7" style="text-align: center; color: #64748b;">No hay ítems registrados en el inventario.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+    <tfoot>
+        <tr style="background-color: #f8fafc; font-weight: bold; border-top: 2px solid #cbd5e1;">
+            <td colspan="5" style="text-align: right; color: #475569;">CANTIDAD TOTAL:</td>
+            <td id="totalQuantity" style="color: #1e3a5f; font-size: 15px;">0</td>
+            <td></td>
+        </tr>
+    </tfoot>
+</table>
+
+<!-- Modal para Agregar/Editar Producto -->
+<div id="invModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="modalTitle" style="margin: 0; font-size: 20px; color: #1e293b;">Agregar Ítem</h2>
+            <button class="close-btn" onclick="closeModal('invModal')">×</button>
+        </div>
+        <form id="invForm" method="POST" action="{{ url_for('inventarios.inventarios_add') }}">
+            <div class="form-group">
+                <label>Código de Barras / QR (Opcional)</label>
+                <input type="text" name="codigo_barras" id="invCodigoBarras" placeholder="Escanee o digite el código">
+            </div>
+            <div class="form-group">
+                <label>Nombre del Ítem</label>
+                <input type="text" name="nombre" id="invNombre" required>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <div class="form-group" style="flex: 1;">
+                    <label>Tipo</label>
+                    <select name="tipo" id="invTipo" required>
+                        <option value="Dispositivo Médico">Dispositivo Médico</option>
+                        <option value="Medicamento">Medicamento</option>
+                        <option value="Cosméticos y Aseo">Cosméticos y Aseo</option>
+                    </select>
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label>Registro Invima</label>
+                    <input type="text" name="invima" id="invInvima">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Cantidad Inicial</label>
+                <input type="number" name="cantidad" id="invCantidad" value="0" required>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <div class="form-group" style="flex: 1;">
+                    <label>Lote</label>
+                    <input type="text" name="lote" id="invLote">
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label>Fecha de Vencimiento</label>
+                    <input type="date" name="fecha_vencimiento" id="invVencimiento">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Observaciones</label>
+                <textarea name="observaciones" id="invObservaciones" rows="2"></textarea>
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                <button type="submit" class="inv-btn" id="submitBtn">Guardar</button>
+                <button type="button" class="inv-btn" style="background: #94a3b8;" onclick="closeModal('invModal')">Cancelar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal para Escáner QR (Mejorado) -->
+<style>
+    /* Estilos Premium para el Scanner Modal */
+    #scannerModal .modal-content {
+        max-width: 550px;
+        padding: 30px;
+        border-radius: 16px;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+    }
+    .scanner-header {
+        text-align: center;
+        margin-bottom: 25px;
+        position: relative;
+    }
+    .scanner-header h2 {
+        font-size: 22px;
+        color: #1e293b;
+        font-weight: 800;
+        margin: 0 0 8px 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+    .scanner-header p {
+        color: #64748b;
+        font-size: 14px;
+        margin: 0;
+    }
+    .close-modal-btn {
+        position: absolute;
+        top: -10px;
+        right: -10px;
+        background: #f1f5f9;
+        border: none;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        color: #64748b;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .close-modal-btn:hover {
+        background: #e2e8f0;
+        color: #0f172a;
+    }
+    
+    /* Overrides para html5-qrcode */
+    #reader {
+        border: 2px dashed #cbd5e1 !important;
+        border-radius: 12px;
+        overflow: hidden;
+        background: #f8fafc;
+        padding: 15px 0;
+    }
+    #reader button {
+        background: #3b82f6 !important;
+        color: white !important;
+        border: none !important;
+        padding: 8px 16px !important;
+        border-radius: 6px !important;
+        font-weight: 600 !important;
+        cursor: pointer !important;
+        transition: background 0.2s !important;
+        margin-top: 10px !important;
+    }
+    #reader button:hover {
+        background: #2563eb !important;
+    }
+    #reader a {
+        color: #3b82f6 !important;
+        text-decoration: none !important;
+        font-size: 13px !important;
+    }
+    #reader__dashboard_section_csr span {
+        color: #475569 !important;
+        font-weight: 500 !important;
+    }
+
+    .divider {
+        display: flex;
+        align-items: center;
+        text-align: center;
+        margin: 25px 0;
+        color: #94a3b8;
+        font-size: 13px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    .divider::before, .divider::after {
+        content: '';
+        flex: 1;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    .divider:not(:empty)::before { margin-right: 15px; }
+    .divider:not(:empty)::after { margin-left: 15px; }
+
+    .usb-scanner-section {
+        background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+        padding: 20px;
+        border-radius: 12px;
+        border: 1px solid #bbf7d0;
+        text-align: center;
+    }
+    .usb-scanner-section label {
+        display: block;
+        color: #166534;
+        font-weight: 700;
+        font-size: 15px;
+        margin-bottom: 10px;
+    }
+    .usb-input-container {
+        position: relative;
+        max-width: 350px;
+        margin: 0 auto;
+    }
+    .usb-input-container i {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #22c55e;
+        font-size: 20px;
+    }
+    #manualBarcode {
+        width: 100%;
+        padding: 12px 12px 12px 42px;
+        border: 2px solid #86efac;
+        border-radius: 8px;
+        font-size: 16px;
+        color: #14532d;
+        background: #ffffff;
+        box-sizing: border-box;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 6px -1px rgba(34, 197, 94, 0.1);
+    }
+    #manualBarcode:focus {
+        outline: none;
+        border-color: #22c55e;
+        box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.2);
+    }
+    #manualBarcode::placeholder {
+        color: #9ca3af;
+    }
+</style>
+
+<div id="scannerModal" class="modal">
+    <div class="modal-content">
+        <div class="scanner-header">
+            <button class="close-modal-btn" onclick="closeScanner()">✕</button>
+            <h2 id="scannerTitle">📸 Escanear Código</h2>
+            <p>Utiliza la cámara de tu dispositivo o una pistola lectora USB</p>
+        </div>
+        
+        <div id="egresoScannerFields" style="display: none; margin-bottom: 15px; padding: 10px 15px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+            <div style="display: flex; gap: 10px;">
+                <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                    <label style="font-size: 13px; margin-bottom: 3px;">Tipo de Egreso</label>
+                    <select id="scannerTipoEgreso" onchange="toggleScannerDestino()" style="padding: 6px; font-size: 13px;">
+                        <option value="" disabled selected>-- Seleccione --</option>
+                        <option value="Reposicion">Reposición</option>
+                        <option value="Averia">Avería</option>
+                        <option value="Vencimiento">Vencimiento</option>
+                    </select>
+                </div>
+                <div class="form-group" id="scannerDestinoGroup" style="display: none; flex: 1; margin-bottom: 0;">
+                    <label style="font-size: 13px; margin-bottom: 3px;">Destino</label>
+                    <select id="scannerDestino" style="padding: 6px; font-size: 13px;">
+                        <option value="" disabled selected>-- Seleccione Destino --</option>
+                        <option value="Movil 1">Móvil 1</option>
+                        <option value="Movil 2">Móvil 2</option>
+                        <option value="Movil 3">Móvil 3</option>
+                        <option value="Movil 4">Móvil 4</option>
+                        <option value="Movil 5">Móvil 5</option>
+                        <option value="Movil 6">Móvil 6</option>
+                        <option value="Unidad de Rescate">Unidad de Rescate</option>
+                        <option value="PASM">PASM</option>
+                        <option value="PASB">PASB</option>
+                        <option value="Botiquines Avanzada">Botiquines Avanzada</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        
+        <div id="reader"></div>
+        
+        <div class="divider">Ó</div>
+        
+        <div class="usb-scanner-section">
+            <label for="manualBarcode">¿Usas Pistola Lectora USB?</label>
+            <div class="usb-input-container">
+                <i>⌨️</i>
+                <input type="text" id="manualBarcode" placeholder="Haz clic aquí y dispara el escáner..." onkeypress="handleManualScan(event)" autocomplete="off">
+            </div>
+            <p style="font-size: 12px; color: #15803d; margin: 8px 0 0 0;">El código se procesará automáticamente al escanear.</p>
+        </div>
+        
+        <input type="hidden" id="scannerAction">
+    </div>
+</div>
+
+<!-- Modal para Seleccionar Lote -->
+<div id="batchSelectionModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 style="margin: 0; font-size: 20px; color: #1e293b;">Seleccionar Lote</h2>
+            <button class="close-btn" onclick="closeModal('batchSelectionModal')">×</button>
+        </div>
+        <p>El producto escaneado tiene múltiples lotes en inventario. Seleccione de cuál desea hacer el egreso:</p>
+        <div id="batchList" style="display: flex; flex-direction: column; gap: 10px; margin-top: 15px;">
+            <!-- Opciones generadas por JS -->
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Ingreso/Egreso Manual -->
+<div id="manualUpdateModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="manualUpdateTitle" style="margin: 0; font-size: 20px; color: #1e293b;">Actualizar Stock Manualmente</h2>
+            <button class="close-btn" onclick="closeModal('manualUpdateModal')">×</button>
+        </div>
+        <form method="POST" action="{{ url_for('inventarios.inventarios_manual_update') }}">
+            <input type="hidden" name="accion" id="manualUpdateAction">
+            
+            <div id="manualEgresoFields" style="display: none; margin-bottom: 15px; padding: 15px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+                <div class="form-group">
+                    <label>Tipo de Egreso</label>
+                    <select name="tipo_egreso" id="manualTipoEgreso" onchange="toggleManualDestino()">
+                        <option value="" disabled selected>-- Seleccione --</option>
+                        <option value="Reposicion">Reposición</option>
+                        <option value="Averia">Avería</option>
+                        <option value="Vencimiento">Vencimiento</option>
+                    </select>
+                </div>
+                <div class="form-group" id="manualDestinoGroup" style="display: none;">
+                    <label>Destino</label>
+                    <select name="destino" id="manualDestino">
+                        <option value="" disabled selected>-- Seleccione Destino --</option>
+                        <option value="Movil 1">Móvil 1</option>
+                        <option value="Movil 2">Móvil 2</option>
+                        <option value="Movil 3">Móvil 3</option>
+                        <option value="Movil 4">Móvil 4</option>
+                        <option value="Movil 5">Móvil 5</option>
+                        <option value="Movil 6">Móvil 6</option>
+                        <option value="Unidad de Rescate">Unidad de Rescate</option>
+                        <option value="PASM">PASM</option>
+                        <option value="PASB">PASB</option>
+                        <option value="Botiquines Avanzada">Botiquines Avanzada</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Seleccionar Producto</label>
+                <select name="item_id" id="manualProductSelect" required>
+                    <option value="" disabled selected>-- Seleccione un producto --</option>
+                    {% for item in items %}
+                    <option value="{{ item.id }}">{{ item.nombre }} (Stock: {{ item.cantidad }} | Lote: {{ item.lote or 'N/A' }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Cantidad a <span id="manualUpdateLabel"></span></label>
+                <input type="number" name="cantidad" min="1" value="1" required>
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                <button type="submit" class="inv-btn btn-green" id="manualUpdateSubmit">Confirmar</button>
+                <button type="button" class="inv-btn" style="background: #94a3b8;" onclick="closeModal('manualUpdateModal')">Cancelar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Variables del escaner
+    let html5QrcodeScanner = null;
+
+    // --- Funciones del CRUD Modal ---
+    function openModal(mode, data = null) {
+        const modal = document.getElementById('invModal');
+        const form = document.getElementById('invForm');
+        const title = document.getElementById('modalTitle');
+
+        if (mode === 'add') {
+            title.textContent = 'Agregar Nuevo Producto';
+            form.action = "{{ url_for('inventarios.inventarios_add') }}";
+            form.reset();
+        } else if (mode === 'edit' && data) {
+            title.textContent = 'Editar Producto';
+            form.action = "{{ url_for('inventarios.inventarios_edit', item_id=0) }}".replace('0', data.id);
+            document.getElementById('invCodigoBarras').value = data.codigo_barras || '';
+            document.getElementById('invTipo').value = data.tipo;
+            document.getElementById('invNombre').value = data.nombre;
+            document.getElementById('invInvima').value = data.invima || '';
+            document.getElementById('invCantidad').value = data.cantidad;
+            document.getElementById('invLote').value = data.lote || '';
+            document.getElementById('invVencimiento').value = data.fecha_vencimiento || '';
+            document.getElementById('invObservaciones').value = data.observaciones || '';
+        }
+        
+        modal.style.display = 'block';
+    }
+
+    // --- Funciones del Scanner ---
+    function openScanner(accion) {
+        document.getElementById('scannerAction').value = accion;
+        let title = '📸 Escanear';
+        
+        const egresoFields = document.getElementById('egresoScannerFields');
+        if (accion === 'ingreso') {
+            title = '📸 Escanear para INGRESO';
+            egresoFields.style.display = 'none';
+        } else if (accion === 'egreso') {
+            title = '📸 Escanear para EGRESO';
+            egresoFields.style.display = 'block';
+        } else if (accion === 'nuevo') {
+            title = '📸 Escanear NUEVO PRODUCTO';
+            egresoFields.style.display = 'none';
+        }
+        
+        document.getElementById('scannerTitle').textContent = title;
+        document.getElementById('scannerModal').style.display = 'block';
+        
+        // Auto-enfocar el input para pistolas USB
+        setTimeout(() => document.getElementById('manualBarcode').focus(), 100);
+
+        // Iniciar cámara si está disponible
+        if (!html5QrcodeScanner) {
+            html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: {width: 250, height: 250} }, false);
+            html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+        }
+    }
+
+    function closeScanner() {
+        document.getElementById('scannerModal').style.display = 'none';
+        if (html5QrcodeScanner) {
+            html5QrcodeScanner.clear();
+            html5QrcodeScanner = null;
+        }
+        document.getElementById('manualBarcode').value = '';
+    }
+
+    function onScanSuccess(decodedText, decodedResult) {
+        // Pausar el escáner para evitar múltiples lecturas (falla si es escaneo por archivo, por eso el try-catch)
+        if (html5QrcodeScanner) {
+            try { html5QrcodeScanner.pause(); } catch(e) {}
+        }
+        processBarcode(decodedText);
+    }
+
+    function onScanFailure(error) {
+        // ignorar errores de lectura mientras busca
+    }
+
+    function handleManualScan(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            const code = e.target.value.trim();
+            if (code) {
+                processBarcode(code);
+            }
+        }
+    }
+
+    let pendingConfirmationCode = null;
+
+    function processBarcode(codigo, itemId = null) {
+        if (pendingConfirmationCode && !itemId) {
+            if (codigo === pendingConfirmationCode) {
+                alert("Código confirmado. Proceda a registrar el producto.");
+                closeScanner();
+                openModal('add');
+                document.getElementById('invCodigoBarras').value = codigo;
+                pendingConfirmationCode = null;
+            } else {
+                alert("Los códigos no coinciden. Intente de nuevo.");
+                pendingConfirmationCode = null;
+                if (html5QrcodeScanner) {
+                    try { html5QrcodeScanner.resume(); } catch(e) {}
+                }
+                document.getElementById('manualBarcode').value = '';
+                document.getElementById('manualBarcode').focus();
+            }
+            return;
+        }
+
+        const accion = document.getElementById('scannerAction').value;
+        let tipo_egreso = '';
+        let destino = '';
+
+        if (accion === 'egreso') {
+            tipo_egreso = document.getElementById('scannerTipoEgreso').value;
+            if (!tipo_egreso) {
+                alert("Debe seleccionar un Tipo de Egreso antes de escanear.");
+                if (html5QrcodeScanner) {
+                    try { html5QrcodeScanner.resume(); } catch(e) {}
+                }
+                document.getElementById('manualBarcode').value = '';
+                return;
+            }
+            if (tipo_egreso === 'Reposicion') {
+                destino = document.getElementById('scannerDestino').value;
+                if (!destino) {
+                    alert("Debe seleccionar un Destino antes de escanear.");
+                    if (html5QrcodeScanner) {
+                        try { html5QrcodeScanner.resume(); } catch(e) {}
+                    }
+                    document.getElementById('manualBarcode').value = '';
+                    return;
+                }
+            }
+        }
+
+        const formData = new FormData();
+        formData.append('codigo_barras', codigo);
+        formData.append('accion', accion);
+        formData.append('cantidad', 1); // Por defecto 1 por escaneo
+        if (tipo_egreso) formData.append('tipo_egreso', tipo_egreso);
+        if (destino) formData.append('destino', destino);
+        if (itemId) formData.append('item_id', itemId);
+
+        fetch("{{ url_for('inventarios.inventarios_scan') }}", {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                alert(data.message);
+                if (html5QrcodeScanner) {
+                    try { html5QrcodeScanner.resume(); } catch(e) {}
+                }
+                document.getElementById('manualBarcode').value = '';
+                document.getElementById('manualBarcode').focus();
+                // Optionally reload to update background table or keep going
+                // window.location.reload();
+            } else if (data.status === 'multiple_batches') {
+                showBatchSelection(data.items, codigo);
+            } else if (data.is_new) {
+                alert("Producto no registrado. Por favor, realice una nueva lectura del código para confirmar antes de registrar el producto.");
+                pendingConfirmationCode = data.codigo;
+                if (html5QrcodeScanner) {
+                    try { html5QrcodeScanner.resume(); } catch(e) {}
+                }
+                document.getElementById('manualBarcode').value = '';
+                document.getElementById('manualBarcode').focus();
+            } else {
+                alert(data.message);
+                if (html5QrcodeScanner) {
+                    try { html5QrcodeScanner.resume(); } catch(e) {}
+                }
+                document.getElementById('manualBarcode').value = '';
+                document.getElementById('manualBarcode').focus();
+            }
+        })
+        .catch(err => {
+            alert("Ocurrió un error al procesar el código.");
+            if (html5QrcodeScanner) {
+                try { html5QrcodeScanner.resume(); } catch(e) {}
+            }
+            document.getElementById('manualBarcode').value = '';
+        });
+    }
+
+    function showBatchSelection(items, codigo) {
+        const batchList = document.getElementById('batchList');
+        batchList.innerHTML = '';
+        
+        items.forEach(item => {
+            const btn = document.createElement('button');
+            btn.className = 'inv-btn btn-purple';
+            btn.style.width = '100%';
+            btn.style.justifyContent = 'space-between';
+            btn.innerHTML = `<span>Lote: ${item.lote || 'N/A'} (Vence: ${item.fecha_vencimiento || 'N/A'})</span> <span>Stock: ${item.cantidad}</span>`;
+            btn.onclick = () => {
+                closeModal('batchSelectionModal');
+                processBarcode(codigo, item.id);
+            };
+            batchList.appendChild(btn);
+        });
+        
+        document.getElementById('batchSelectionModal').style.display = 'block';
+    }
+
+    function toggleScannerDestino() {
+        const tipo = document.getElementById('scannerTipoEgreso').value;
+        const destinoGroup = document.getElementById('scannerDestinoGroup');
+        if (tipo === 'Reposicion') {
+            destinoGroup.style.display = 'block';
+        } else {
+            destinoGroup.style.display = 'none';
+            document.getElementById('scannerDestino').value = '';
+        }
+    }
+    
+    function toggleManualDestino() {
+        const tipo = document.getElementById('manualTipoEgreso').value;
+        const destinoGroup = document.getElementById('manualDestinoGroup');
+        const destinoSelect = document.getElementById('manualDestino');
+        if (tipo === 'Reposicion') {
+            destinoGroup.style.display = 'block';
+            destinoSelect.required = true;
+        } else {
+            destinoGroup.style.display = 'none';
+            destinoSelect.required = false;
+            destinoSelect.value = '';
+        }
+    }
+
+    // --- Funciones para Actualización Manual ---
+    function openManualUpdate(accion) {
+        document.getElementById('manualUpdateAction').value = accion;
+        
+        const title = document.getElementById('manualUpdateTitle');
+        const label = document.getElementById('manualUpdateLabel');
+        const btn = document.getElementById('manualUpdateSubmit');
+        const egresoFields = document.getElementById('manualEgresoFields');
+        const tipoEgreso = document.getElementById('manualTipoEgreso');
+        
+        if (accion === 'ingreso') {
+            title.textContent = '➕ Ingreso Manual de Stock';
+            label.textContent = 'ingresar';
+            btn.textContent = 'Confirmar Ingreso';
+            btn.className = 'inv-btn btn-green';
+            egresoFields.style.display = 'none';
+            tipoEgreso.required = false;
+        } else {
+            title.textContent = '➖ Egreso Manual de Stock';
+            label.textContent = 'retirar';
+            btn.textContent = 'Confirmar Egreso';
+            btn.className = 'inv-btn btn-red';
+            egresoFields.style.display = 'block';
+            tipoEgreso.required = true;
+        }
+        
+        document.getElementById('manualUpdateModal').style.display = 'block';
+    }
+
+    // Initialize Choices.js
+    let productChoices = null;
+    document.addEventListener('DOMContentLoaded', function() {
+        const el = document.getElementById('manualProductSelect');
+        if(el) {
+            productChoices = new Choices(el, {
+                searchEnabled: true,
+                itemSelectText: '',
+                shouldSort: false,
+                noResultsText: 'No se encontraron productos',
+                noChoicesText: 'No hay opciones',
+                placeholderValue: '-- Seleccione un producto --'
+            });
+        }
+    });
+
+    // Generic closeModal
+    function closeModal(modalId) {
+        document.getElementById(modalId).style.display = 'none';
+    }
+
+    window.onclick = function(event) {
+        if (event.target.classList.contains('modal')) {
+            event.target.style.display = 'none';
+            if (event.target.id === 'scannerModal' && html5QrcodeScanner) {
+                closeScanner();
+            }
+        }
+    }
+
+    // Filtro y Búsqueda
+    const searchInput = document.getElementById('searchInput');
+    const typeFilter = document.getElementById('typeFilter');
+    const dateStart = document.getElementById('dateFilterStart');
+    const dateEnd = document.getElementById('dateFilterEnd');
+    const tableRows = document.querySelectorAll('.inv-table tbody tr');
+
+    function clearDateFilter() {
+        if(dateStart) dateStart.value = '';
+        if(dateEnd) dateEnd.value = '';
+        filterTable();
+    }
+
+    function toggleDateFilter(show) {
+        const container = document.getElementById('dateFilterContainer');
+        if (show) {
+            container.style.display = 'flex';
+        } else {
+            container.style.display = 'none';
+            clearDateFilter();
+        }
+    }
+
+    function filterTable() {
+        const searchTerm = searchInput.value.toLowerCase();
+        const selectedType = typeFilter.value;
+        const startVal = dateStart ? dateStart.value : '';
+        const endVal = dateEnd ? dateEnd.value : '';
+        let totalQty = 0;
+
+        tableRows.forEach(row => {
+            if(row.cells.length === 1) return; // Empty state row
+            
+            const textContent = row.textContent.toLowerCase();
+            const typeCell = row.cells[1].textContent.trim();
+            const dateCell = row.cells[4].textContent.trim(); // Vencimiento is index 4
+            
+            const matchesSearch = textContent.includes(searchTerm);
+            const matchesType = selectedType === 'all' || typeCell.includes(selectedType);
+            
+            let matchesDate = true;
+            if (startVal || endVal) {
+                if (dateCell === 'N/A' || !dateCell) {
+                    matchesDate = false;
+                } else {
+                    if (startVal && dateCell < startVal) matchesDate = false;
+                    if (endVal && dateCell > endVal) matchesDate = false;
+                }
+            }
+
+            if (matchesSearch && matchesType && matchesDate) {
+                row.style.display = '';
+                const qtyStr = row.cells[5].textContent.trim();
+                const qty = parseInt(qtyStr, 10);
+                if(!isNaN(qty)) totalQty += qty;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+        
+        const totalEl = document.getElementById('totalQuantity');
+        if (totalEl) {
+            totalEl.textContent = totalQty;
+        }
+    }
+
+    if (searchInput) searchInput.addEventListener('input', filterTable);
+    if (typeFilter) typeFilter.addEventListener('change', filterTable);
+    if (dateStart) dateStart.addEventListener('change', filterTable);
+    if (dateEnd) dateEnd.addEventListener('change', filterTable);
+    
+    // Call once to initialize total
+    document.addEventListener('DOMContentLoaded', function() {
+        filterTable();
+    });
+</script>
+{% endblock %}
