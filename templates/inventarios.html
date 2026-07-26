@@ -138,6 +138,7 @@
         <button class="inv-btn btn-green" onclick="openManualUpdate('ingreso')">➕ Ingreso Manual</button>
         <button class="inv-btn btn-red" onclick="openManualUpdate('egreso')">➖ Egreso Manual</button>
         <button class="inv-btn btn-purple" onclick="openScanner('nuevo')">✨ Nuevo Producto</button>
+        <button class="inv-btn btn-purple" style="background: #6366f1;" onclick="openCatalogModal()">📋 ITEMS</button>
         <a href="{{ url_for('inventarios.inventarios_movimientos') }}" class="inv-btn" style="background: #334155; text-decoration: none;">📋 Consultar Movimientos</a>
     </div>
 </div>
@@ -150,6 +151,7 @@
             <option value="Dispositivo Médico">Dispositivo Médico</option>
             <option value="Medicamento">Medicamento</option>
             <option value="Cosméticos y Aseo">Cosméticos y Aseo</option>
+            <option value="Control Especial">Control Especial</option>
         </select>
         <a href="{{ url_for('inventarios.inventarios_exportar_excel') }}" class="inv-btn" style="background: #10b981; text-decoration: none; flex: 0 0 auto; white-space: nowrap; padding: 8px 12px; font-size: 13px;">📊 Exportar Excel</a>
     </div>
@@ -167,7 +169,7 @@
         <tr>
             <th onclick="toggleDateFilter(false)" style="cursor: pointer;" title="Ocultar filtro de fechas">Nombre</th>
             <th onclick="toggleDateFilter(false)" style="cursor: pointer;" title="Ocultar filtro de fechas">Tipo</th>
-            <th onclick="toggleDateFilter(false)" style="cursor: pointer;" title="Ocultar filtro de fechas">Invima</th>
+            <th onclick="toggleDateFilter(false)" style="cursor: pointer;" title="Ocultar filtro de fechas">Invima / CUM</th>
             <th onclick="toggleDateFilter(false)" style="cursor: pointer;" title="Ocultar filtro de fechas">Lote</th>
             <th onclick="toggleDateFilter(true)" style="cursor: pointer;" title="Mostrar Filtro de Fechas">Vencimiento</th>
             <th onclick="toggleDateFilter(false)" style="cursor: pointer;" title="Ocultar filtro de fechas">Cantidad</th>
@@ -186,16 +188,21 @@
             <td>
                 {% if item.tipo == 'Dispositivo Médico' %} <span style="color: #0284c7;">🩺 {{ item.tipo }}</span>
                 {% elif item.tipo == 'Medicamento' %} <span style="color: #16a34a;">💊 {{ item.tipo }}</span>
+                {% elif item.tipo == 'Control Especial' %} <span style="color: #9333ea;">{{ item.tipo }}</span>
                 {% else %} <span style="color: #ea580c;">🩹 {{ item.tipo }}</span>
                 {% endif %}
             </td>
-            <td>{{ item.invima or 'N/A' }}</td>
+            <td>
+                {% if item.invima %}<div style="font-size: 13px;"><strong>Invima:</strong> {{ item.invima }}</div>{% endif %}
+                {% if item.cum %}<div style="font-size: 13px;"><strong>CUM:</strong> {{ item.cum }}</div>{% endif %}
+                {% if not item.invima and not item.cum %}<span style="color: #94a3b8;">N/A</span>{% endif %}
+            </td>
             <td>{{ item.lote or 'N/A' }}</td>
-            <td>{{ item.fecha_vencimiento or 'N/A' }}</td>
+            <td data-date="{{ item.fecha_vencimiento or '' }}" class="vencimiento-cell">{{ item.fecha_vencimiento or 'N/A' }}</td>
             <td><strong>{{ item.cantidad }}</strong></td>
             <td>
                 <button class="action-btn btn-edit" onclick='openModal("edit", {{ item | tojson }})'>Editar</button>
-                <form action="{{ url_for('inventarios.inventarios_delete', item_id=item.id) }}" method="POST" style="display:inline;" onsubmit="return confirm('¿Está seguro de eliminar este ítem?');">
+                <form action="{{ url_for('inventarios.inventarios_delete', item_id=item.id) }}" method="POST" style="display:inline;" onsubmit="return confirmDelete(event, this, '¿Eliminar Ítem?', '¿Está seguro de eliminar este ítem del inventario? Esta acción no se puede deshacer.');">
                     <button type="submit" class="action-btn btn-delete">Eliminar</button>
                 </form>
             </td>
@@ -224,12 +231,27 @@
         </div>
         <form id="invForm" method="POST" action="{{ url_for('inventarios.inventarios_add') }}">
             <div class="form-group">
-                <label>Código de Barras / QR (Opcional)</label>
-                <input type="text" name="codigo_barras" id="invCodigoBarras" placeholder="Escanee o digite el código">
+                <label>Código de Barras / QR (Principal)</label>
+                <input type="text" name="codigo_barras" id="invCodigoBarras" placeholder="Escanee o digite el código principal">
+                
+                <label style="display: flex; align-items: center; gap: 8px; margin-top: 10px; font-weight: normal; font-size: 13px; cursor: pointer;">
+                    <input type="checkbox" id="toggleCodigoSecundario" onchange="document.getElementById('codigoSecundarioGroup').style.display = this.checked ? 'block' : 'none'">
+                    Aplica QR / Código de Barras adicional
+                </label>
+            </div>
+            
+            <div class="form-group" id="codigoSecundarioGroup" style="display: none; background: #f8fafc; padding: 10px; border-radius: 6px; border: 1px dashed #cbd5e1; margin-top: -5px; margin-bottom: 15px;">
+                <label style="font-size: 13px;">Código Secundario (Adicional)</label>
+                <input type="text" name="codigo_secundario" id="invCodigoSecundario" placeholder="Escanee o digite el código secundario">
             </div>
             <div class="form-group">
                 <label>Nombre del Ítem</label>
-                <input type="text" name="nombre" id="invNombre" required>
+                <input type="text" name="nombre" id="invNombre" list="catalogoList" onchange="autoFillCatalog()" required>
+                <datalist id="catalogoList">
+                    {% for cat in catalogo %}
+                    <option value="{{ cat.nombre }}" data-tipo="{{ cat.tipo }}" data-invima="{{ cat.invima or '' }}" data-cum="{{ cat.cum or '' }}">
+                    {% endfor %}
+                </datalist>
             </div>
             <div style="display: flex; gap: 10px;">
                 <div class="form-group" style="flex: 1;">
@@ -238,11 +260,16 @@
                         <option value="Dispositivo Médico">Dispositivo Médico</option>
                         <option value="Medicamento">Medicamento</option>
                         <option value="Cosméticos y Aseo">Cosméticos y Aseo</option>
+                        <option value="Control Especial">Control Especial</option>
                     </select>
                 </div>
                 <div class="form-group" style="flex: 1;">
                     <label>Registro Invima</label>
                     <input type="text" name="invima" id="invInvima">
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label>CUM</label>
+                    <input type="text" name="cum" id="invCum">
                 </div>
             </div>
             <div class="form-group">
@@ -268,6 +295,77 @@
                 <button type="button" class="inv-btn" style="background: #94a3b8;" onclick="closeModal('invModal')">Cancelar</button>
             </div>
         </form>
+    </div>
+</div>
+
+<!-- Modal para Catálogo -->
+<div id="catalogModal" class="modal">
+    <div class="modal-content" style="max-width: 1000px; width: 95%;">
+        <div class="modal-header">
+            <h2 style="margin: 0; font-size: 20px; color: #1e293b;">📋 Catálogo de Ítems</h2>
+            <button class="close-btn" onclick="closeModal('catalogModal')">×</button>
+        </div>
+        
+        <form method="POST" action="{{ url_for('inventarios.catalogo_add') }}" style="background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 20px;">
+            <h3 style="margin-top: 0; font-size: 15px; color: #334155;">Agregar Nuevo al Catálogo</h3>
+            <div style="display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap;">
+                <div class="form-group" style="flex: 2; min-width: 250px; margin-bottom: 0;">
+                    <label style="font-size: 13px;">Nombre</label>
+                    <input type="text" name="nombre" required>
+                </div>
+                <div class="form-group" style="flex: 1.5; min-width: 180px; margin-bottom: 0;">
+                    <label style="font-size: 13px;">Tipo</label>
+                    <select name="tipo" required>
+                        <option value="Dispositivo Médico">Dispositivo Médico</option>
+                        <option value="Medicamento">Medicamento</option>
+                        <option value="Cosméticos y Aseo">Cosméticos y Aseo</option>
+                        <option value="Control Especial">Control Especial</option>
+                    </select>
+                </div>
+                <div class="form-group" style="flex: 1; min-width: 120px; margin-bottom: 0;">
+                    <label style="font-size: 13px;">Invima (Opc)</label>
+                    <input type="text" name="invima">
+                </div>
+                <div class="form-group" style="flex: 1; min-width: 120px; margin-bottom: 0;">
+                    <label style="font-size: 13px;">CUM (Opc)</label>
+                    <input type="text" name="cum">
+                </div>
+                <button type="submit" class="inv-btn btn-green" style="height: 38px; padding: 0 20px; margin-bottom: 2px; flex: 0 0 auto;">Añadir</button>
+            </div>
+        </form>
+
+        <div style="max-height: 450px; overflow-y: auto;">
+            <table class="inv-table" style="font-size: 12.5px; white-space: nowrap;">
+                <thead style="position: sticky; top: 0; z-index: 10;">
+                    <tr>
+                        <th style="width: 40%; white-space: normal;">Nombre</th>
+                        <th>Tipo</th>
+                        <th>Invima</th>
+                        <th>CUM</th>
+                        <th style="width: 80px; text-align: center;">Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cat in catalogo %}
+                    <tr>
+                        <td style="white-space: normal; word-break: break-word;"><strong>{{ cat.nombre }}</strong></td>
+                        <td>{{ cat.tipo }}</td>
+                        <td>{{ cat.invima or '-' }}</td>
+                        <td>{{ cat.cum or '-' }}</td>
+                        <td style="text-align: center; padding: 4px;">
+                            <form action="{{ url_for('inventarios.catalogo_delete', item_id=cat.id) }}" method="POST" style="display:inline;" onsubmit="return confirmDelete(event, this, '¿Eliminar del Catálogo?', '¿Está seguro de eliminar este producto del catálogo?');">
+                                <button type="submit" class="action-btn btn-delete" style="padding: 4px 8px; font-size: 11px;">Eliminar</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" style="text-align: center; color: #64748b;">El catálogo está vacío.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 
@@ -493,6 +591,56 @@
     </div>
 </div>
 
+<!-- Modal para Confirmar Ingreso por QR -->
+<div id="qrIngresoModal" class="modal">
+    <div class="modal-content" style="max-width: 500px;">
+        <div class="modal-header">
+            <h2 style="margin: 0; font-size: 20px; color: #1e293b;">Confirmar Ingreso</h2>
+            <button class="close-btn" onclick="closeModal('qrIngresoModal')">×</button>
+        </div>
+        <div style="background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 15px;">
+            <strong id="qrIngresoNombre" style="font-size: 16px; color: #334155; display: block; margin-bottom: 5px;"></strong>
+            <div style="display: flex; gap: 15px; font-size: 13px; color: #64748b;">
+                <span id="qrIngresoTipo"></span>
+                <span id="qrIngresoInvima"></span>
+            </div>
+        </div>
+        
+        <form id="qrIngresoForm" method="POST" action="{{ url_for('inventarios.inventarios_scan_process_ingreso') }}">
+            <input type="hidden" name="codigo_barras" id="qrIngresoCodigo">
+            
+            <div class="form-group">
+                <label>Cantidad a Ingresar</label>
+                <input type="number" name="cantidad" min="1" value="1" required>
+            </div>
+            
+            <div class="form-group">
+                <label>Lote</label>
+                <select name="item_id" id="qrIngresoLoteSelect" onchange="handleQrIngresoLoteChange()" required>
+                    <!-- Options generated by JS -->
+                </select>
+            </div>
+            
+            <div id="qrIngresoNuevoLoteGroup" style="display: none; padding: 10px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 6px; margin-bottom: 15px;">
+                <div class="form-group" style="margin-bottom: 10px;">
+                    <label>Nuevo Lote</label>
+                    <input type="text" name="nuevo_lote" id="qrIngresoNuevoLote">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Fecha de Vencimiento</label>
+                <input type="date" name="fecha_vencimiento" id="qrIngresoFechaVencimiento" required>
+            </div>
+            
+            <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                <button type="submit" class="inv-btn btn-green">Confirmar Ingreso</button>
+                <button type="button" class="inv-btn" style="background: #94a3b8;" onclick="closeModal('qrIngresoModal')">Cancelar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <!-- Modal para Ingreso/Egreso Manual -->
 <div id="manualUpdateModal" class="modal">
     <div class="modal-content">
@@ -566,6 +714,8 @@
             title.textContent = 'Agregar Nuevo Producto';
             form.action = "{{ url_for('inventarios.inventarios_add') }}";
             form.reset();
+            document.getElementById('toggleCodigoSecundario').checked = false;
+            document.getElementById('codigoSecundarioGroup').style.display = 'none';
         } else if (mode === 'edit' && data) {
             title.textContent = 'Editar Producto';
             form.action = "{{ url_for('inventarios.inventarios_edit', item_id=0) }}".replace('0', data.id);
@@ -573,13 +723,72 @@
             document.getElementById('invTipo').value = data.tipo;
             document.getElementById('invNombre').value = data.nombre;
             document.getElementById('invInvima').value = data.invima || '';
+            document.getElementById('invCum').value = data.cum || '';
             document.getElementById('invCantidad').value = data.cantidad;
             document.getElementById('invLote').value = data.lote || '';
             document.getElementById('invVencimiento').value = data.fecha_vencimiento || '';
             document.getElementById('invObservaciones').value = data.observaciones || '';
+            
+            if (data.codigo_secundario) {
+                document.getElementById('toggleCodigoSecundario').checked = true;
+                document.getElementById('codigoSecundarioGroup').style.display = 'block';
+                document.getElementById('invCodigoSecundario').value = data.codigo_secundario;
+            } else {
+                document.getElementById('toggleCodigoSecundario').checked = false;
+                document.getElementById('codigoSecundarioGroup').style.display = 'none';
+                document.getElementById('invCodigoSecundario').value = '';
+            }
         }
         
         modal.style.display = 'block';
+    }
+
+    function openCatalogModal() {
+        document.getElementById('catalogModal').style.display = 'block';
+    }
+
+    function autoFillCatalog() {
+        const input = document.getElementById('invNombre');
+        const list = document.getElementById('catalogoList');
+        if (!list) return;
+        const val = input.value;
+        const options = list.options;
+        for (let i = 0; i < options.length; i++) {
+            if (options[i].value === val) {
+                const tipo = options[i].getAttribute('data-tipo');
+                const invima = options[i].getAttribute('data-invima');
+                const cum = options[i].getAttribute('data-cum');
+                if (tipo) document.getElementById('invTipo').value = tipo;
+                if (invima) document.getElementById('invInvima').value = invima;
+                if (cum) document.getElementById('invCum').value = cum;
+                break;
+            }
+        }
+    }
+
+    function handleQrIngresoLoteChange() {
+        const select = document.getElementById('qrIngresoLoteSelect');
+        const nuevoLoteGroup = document.getElementById('qrIngresoNuevoLoteGroup');
+        const fechaVenc = document.getElementById('qrIngresoFechaVencimiento');
+        
+        if (select.value === 'nuevo_lote') {
+            nuevoLoteGroup.style.display = 'block';
+            document.getElementById('qrIngresoNuevoLote').required = true;
+            fechaVenc.value = '';
+            fechaVenc.readOnly = false;
+        } else {
+            nuevoLoteGroup.style.display = 'none';
+            document.getElementById('qrIngresoNuevoLote').required = false;
+            // Get date from selected option
+            const selectedOption = select.options[select.selectedIndex];
+            if (selectedOption && selectedOption.dataset.vencimiento) {
+                fechaVenc.value = selectedOption.dataset.vencimiento;
+                fechaVenc.readOnly = true;
+            } else {
+                fechaVenc.value = '';
+                fechaVenc.readOnly = false;
+            }
+        }
     }
 
     // --- Funciones del Scanner ---
@@ -648,19 +857,33 @@
     function processBarcode(codigo, itemId = null) {
         if (pendingConfirmationCode && !itemId) {
             if (codigo === pendingConfirmationCode) {
-                alert("Código confirmado. Proceda a registrar el producto.");
-                closeScanner();
-                openModal('add');
-                document.getElementById('invCodigoBarras').value = codigo;
-                pendingConfirmationCode = null;
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Código confirmado',
+                    text: 'Proceda a registrar el producto.',
+                    confirmButtonText: 'Continuar',
+                    customClass: { popup: 'swal2-custom-popup', title: 'swal2-custom-title', confirmButton: 'swal2-custom-confirm' }
+                }).then(() => {
+                    closeScanner();
+                    openModal('add');
+                    document.getElementById('invCodigoBarras').value = codigo;
+                    pendingConfirmationCode = null;
+                });
             } else {
-                alert("Los códigos no coinciden. Intente de nuevo.");
-                pendingConfirmationCode = null;
-                if (html5QrcodeScanner) {
-                    try { html5QrcodeScanner.resume(); } catch(e) {}
-                }
-                document.getElementById('manualBarcode').value = '';
-                document.getElementById('manualBarcode').focus();
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Códigos no coinciden',
+                    text: 'Intente de nuevo.',
+                    confirmButtonText: 'Reintentar',
+                    customClass: { popup: 'swal2-custom-popup', title: 'swal2-custom-title', confirmButton: 'swal2-custom-confirm' }
+                }).then(() => {
+                    pendingConfirmationCode = null;
+                    if (html5QrcodeScanner) {
+                        try { html5QrcodeScanner.resume(); } catch(e) {}
+                    }
+                    document.getElementById('manualBarcode').value = '';
+                    document.getElementById('manualBarcode').focus();
+                });
             }
             return;
         }
@@ -672,21 +895,81 @@
         if (accion === 'egreso') {
             tipo_egreso = document.getElementById('scannerTipoEgreso').value;
             if (!tipo_egreso) {
-                alert("Debe seleccionar un Tipo de Egreso antes de escanear.");
-                if (html5QrcodeScanner) {
-                    try { html5QrcodeScanner.resume(); } catch(e) {}
-                }
-                document.getElementById('manualBarcode').value = '';
+                Swal.fire({
+                    title: 'Tipo de Egreso Requerido',
+                    text: 'Seleccione el motivo del egreso para continuar con el escaneo:',
+                    input: 'select',
+                    inputOptions: {
+                        'Reposicion': 'Reposición',
+                        'Averia': 'Avería',
+                        'Vencimiento': 'Vencimiento'
+                    },
+                    inputPlaceholder: '-- Seleccione --',
+                    showCancelButton: true,
+                    confirmButtonText: 'Continuar',
+                    cancelButtonText: 'Cancelar',
+                    customClass: { popup: 'swal2-custom-popup', title: 'swal2-custom-title', confirmButton: 'swal2-custom-confirm' },
+                    inputValidator: (value) => {
+                        return new Promise((resolve) => {
+                            if (value) resolve();
+                            else resolve('Debe seleccionar una opción');
+                        });
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        document.getElementById('scannerTipoEgreso').value = result.value;
+                        toggleScannerDestino();
+                        processBarcode(codigo, itemId);
+                    } else {
+                        if (html5QrcodeScanner) {
+                            try { html5QrcodeScanner.resume(); } catch(e) {}
+                        }
+                        document.getElementById('manualBarcode').value = '';
+                    }
+                });
                 return;
             }
             if (tipo_egreso === 'Reposicion') {
                 destino = document.getElementById('scannerDestino').value;
                 if (!destino) {
-                    alert("Debe seleccionar un Destino antes de escanear.");
-                    if (html5QrcodeScanner) {
-                        try { html5QrcodeScanner.resume(); } catch(e) {}
-                    }
-                    document.getElementById('manualBarcode').value = '';
+                    Swal.fire({
+                        title: 'Destino Requerido',
+                        text: 'Seleccione el destino de la reposición:',
+                        input: 'select',
+                        inputOptions: {
+                            'Movil 1': 'Móvil 1',
+                            'Movil 2': 'Móvil 2',
+                            'Movil 3': 'Móvil 3',
+                            'Movil 4': 'Móvil 4',
+                            'Movil 5': 'Móvil 5',
+                            'Movil 6': 'Móvil 6',
+                            'Unidad de Rescate': 'Unidad de Rescate',
+                            'PASM': 'PASM',
+                            'PASB': 'PASB',
+                            'Botiquines Avanzada': 'Botiquines Avanzada'
+                        },
+                        inputPlaceholder: '-- Seleccione Destino --',
+                        showCancelButton: true,
+                        confirmButtonText: 'Continuar',
+                        cancelButtonText: 'Cancelar',
+                        customClass: { popup: 'swal2-custom-popup', title: 'swal2-custom-title', confirmButton: 'swal2-custom-confirm' },
+                        inputValidator: (value) => {
+                            return new Promise((resolve) => {
+                                if (value) resolve();
+                                else resolve('Debe seleccionar un destino');
+                            });
+                        }
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            document.getElementById('scannerDestino').value = result.value;
+                            processBarcode(codigo, itemId);
+                        } else {
+                            if (html5QrcodeScanner) {
+                                try { html5QrcodeScanner.resume(); } catch(e) {}
+                            }
+                            document.getElementById('manualBarcode').value = '';
+                        }
+                    });
                     return;
                 }
             }
@@ -695,52 +978,175 @@
         const formData = new FormData();
         formData.append('codigo_barras', codigo);
         formData.append('accion', accion);
-        formData.append('cantidad', 1); // Por defecto 1 por escaneo
-        if (tipo_egreso) formData.append('tipo_egreso', tipo_egreso);
-        if (destino) formData.append('destino', destino);
-        if (itemId) formData.append('item_id', itemId);
+        
+        if (accion === 'ingreso') {
+            // New logic for advanced ingreso
+            fetch("{{ url_for('inventarios.inventarios_scan_info') }}", {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'not_found' || data.is_new) {
+                    // New product confirmation flow
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Producto no registrado',
+                        text: 'Por favor, realice una nueva lectura del código para confirmar antes de registrar el producto.',
+                        confirmButtonText: 'Entendido',
+                        customClass: { popup: 'swal2-custom-popup', title: 'swal2-custom-title', confirmButton: 'swal2-custom-confirm' }
+                    }).then(() => {
+                        pendingConfirmationCode = codigo;
+                        if (html5QrcodeScanner) {
+                            try { html5QrcodeScanner.resume(); } catch(e) {}
+                        }
+                        document.getElementById('manualBarcode').value = '';
+                        document.getElementById('manualBarcode').focus();
+                    });
+                } else if (data.status === 'success') {
+                    // Open confirmation modal
+                    closeScanner(); // Close scanner to show modal
+                    document.getElementById('qrIngresoCodigo').value = codigo;
+                    document.getElementById('qrIngresoNombre').textContent = data.product.nombre;
+                    document.getElementById('qrIngresoTipo').innerHTML = `<strong>Tipo:</strong> ${data.product.tipo}`;
+                    document.getElementById('qrIngresoInvima').innerHTML = `<strong>Invima:</strong> ${data.product.invima || 'N/A'} <strong>CUM:</strong> ${data.product.cum || 'N/A'}`;
+                    
+                    const select = document.getElementById('qrIngresoLoteSelect');
+                    select.innerHTML = '';
+                    
+                    data.batches.forEach(batch => {
+                        const option = document.createElement('option');
+                        option.value = batch.id;
+                        option.textContent = `Lote: ${batch.lote || 'Sin Lote'} (Vence: ${batch.fecha_vencimiento || 'N/A'}) - Stock: ${batch.cantidad}`;
+                        option.dataset.vencimiento = batch.fecha_vencimiento || '';
+                        select.appendChild(option);
+                    });
+                    
+                    const newOption = document.createElement('option');
+                    newOption.value = 'nuevo_lote';
+                    newOption.textContent = '✨ Agregar Nuevo Lote';
+                    select.appendChild(newOption);
+                    
+                    handleQrIngresoLoteChange(); // Initialize fields
+                    document.getElementById('qrIngresoModal').style.display = 'block';
+                }
+            })
+            .catch(err => {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Ocurrió un error al procesar el código.',
+                });
+            });
+            return;
+        }
 
-        fetch("{{ url_for('inventarios.inventarios_scan') }}", {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'success') {
-                alert(data.message);
-                if (html5QrcodeScanner) {
-                    try { html5QrcodeScanner.resume(); } catch(e) {}
+        const executeScanFetch = (form, scanCode) => {
+            fetch("{{ url_for('inventarios.inventarios_scan') }}", {
+                method: 'POST',
+                body: form
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Éxito',
+                        text: data.message,
+                        confirmButtonText: 'Continuar',
+                        customClass: { popup: 'swal2-custom-popup', title: 'swal2-custom-title', confirmButton: 'swal2-custom-confirm' }
+                    }).then(() => {
+                        if (html5QrcodeScanner) {
+                            try { html5QrcodeScanner.resume(); } catch(e) {}
+                        }
+                        document.getElementById('manualBarcode').value = '';
+                        document.getElementById('manualBarcode').focus();
+                    });
+                } else if (data.status === 'multiple_batches') {
+                    showBatchSelection(data.items, scanCode);
+                } else if (data.is_new) {
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Producto no registrado',
+                        text: 'Por favor, realice una nueva lectura del código para confirmar antes de registrar el producto.',
+                        confirmButtonText: 'Entendido',
+                        customClass: { popup: 'swal2-custom-popup', title: 'swal2-custom-title', confirmButton: 'swal2-custom-confirm' }
+                    }).then(() => {
+                        pendingConfirmationCode = data.codigo;
+                        if (html5QrcodeScanner) {
+                            try { html5QrcodeScanner.resume(); } catch(e) {}
+                        }
+                        document.getElementById('manualBarcode').value = '';
+                        document.getElementById('manualBarcode').focus();
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Atención',
+                        text: data.message,
+                        confirmButtonText: 'Entendido',
+                        customClass: { popup: 'swal2-custom-popup', title: 'swal2-custom-title', confirmButton: 'swal2-custom-confirm' }
+                    }).then(() => {
+                        if (html5QrcodeScanner) {
+                            try { html5QrcodeScanner.resume(); } catch(e) {}
+                        }
+                        document.getElementById('manualBarcode').value = '';
+                        document.getElementById('manualBarcode').focus();
+                    });
                 }
-                document.getElementById('manualBarcode').value = '';
-                document.getElementById('manualBarcode').focus();
-                // Optionally reload to update background table or keep going
-                // window.location.reload();
-            } else if (data.status === 'multiple_batches') {
-                showBatchSelection(data.items, codigo);
-            } else if (data.is_new) {
-                alert("Producto no registrado. Por favor, realice una nueva lectura del código para confirmar antes de registrar el producto.");
-                pendingConfirmationCode = data.codigo;
-                if (html5QrcodeScanner) {
-                    try { html5QrcodeScanner.resume(); } catch(e) {}
+            })
+            .catch(err => {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Ocurrió un error al procesar el código.',
+                    confirmButtonText: 'Entendido',
+                    customClass: { popup: 'swal2-custom-popup', title: 'swal2-custom-title', confirmButton: 'swal2-custom-confirm' }
+                }).then(() => {
+                    if (html5QrcodeScanner) {
+                        try { html5QrcodeScanner.resume(); } catch(e) {}
+                    }
+                    document.getElementById('manualBarcode').value = '';
+                });
+            });
+        };
+
+        if (accion === 'egreso') {
+            Swal.fire({
+                title: 'Cantidad a retirar',
+                text: 'Ingrese la cantidad (por defecto 1)',
+                input: 'number',
+                inputValue: 1,
+                inputAttributes: {
+                    min: 1,
+                    step: 1
+                },
+                showCancelButton: true,
+                confirmButtonText: 'Confirmar',
+                cancelButtonText: 'Cancelar',
+                customClass: { popup: 'swal2-custom-popup', title: 'swal2-custom-title', confirmButton: 'swal2-custom-confirm' }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const cantidad = parseInt(result.value) || 1;
+                    formData.append('cantidad', cantidad);
+                    if (tipo_egreso) formData.append('tipo_egreso', tipo_egreso);
+                    if (destino) formData.append('destino', destino);
+                    if (itemId) formData.append('item_id', itemId);
+                    
+                    executeScanFetch(formData, codigo);
+                } else {
+                    if (html5QrcodeScanner) {
+                        try { html5QrcodeScanner.resume(); } catch(e) {}
+                    }
+                    document.getElementById('manualBarcode').value = '';
+                    document.getElementById('manualBarcode').focus();
                 }
-                document.getElementById('manualBarcode').value = '';
-                document.getElementById('manualBarcode').focus();
-            } else {
-                alert(data.message);
-                if (html5QrcodeScanner) {
-                    try { html5QrcodeScanner.resume(); } catch(e) {}
-                }
-                document.getElementById('manualBarcode').value = '';
-                document.getElementById('manualBarcode').focus();
-            }
-        })
-        .catch(err => {
-            alert("Ocurrió un error al procesar el código.");
-            if (html5QrcodeScanner) {
-                try { html5QrcodeScanner.resume(); } catch(e) {}
-            }
-            document.getElementById('manualBarcode').value = '';
-        });
+            });
+        } else {
+            formData.append('cantidad', 1);
+            if (itemId) formData.append('item_id', itemId);
+            executeScanFetch(formData, codigo);
+        }
     }
 
     function showBatchSelection(items, codigo) {
@@ -838,14 +1244,44 @@
         document.getElementById(modalId).style.display = 'none';
     }
 
-    window.onclick = function(event) {
-        if (event.target.classList.contains('modal')) {
-            event.target.style.display = 'none';
-            if (event.target.id === 'scannerModal' && html5QrcodeScanner) {
-                closeScanner();
+    // window.onclick eliminated to prevent closing modal by clicking outside
+    document.getElementById('qrIngresoForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        
+        fetch(this.action, {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                closeModal('qrIngresoModal');
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Éxito',
+                    text: data.message,
+                    confirmButtonText: 'Continuar',
+                    customClass: { popup: 'swal2-custom-popup', title: 'swal2-custom-title', confirmButton: 'swal2-custom-confirm' }
+                }).then(() => {
+                    window.location.reload();
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: data.message,
+                });
             }
-        }
-    }
+        })
+        .catch(err => {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Ocurrió un error al procesar el ingreso.',
+            });
+        });
+    });
 
     // Filtro y Búsqueda
     const searchInput = document.getElementById('searchInput');
@@ -871,18 +1307,22 @@
     }
 
     function filterTable() {
-        const searchTerm = searchInput.value.toLowerCase();
-        const selectedType = typeFilter.value;
+        const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
+        const selectedType = typeFilter ? typeFilter.value : 'all';
         const startVal = dateStart ? dateStart.value : '';
         const endVal = dateEnd ? dateEnd.value : '';
         let totalQty = 0;
+        
+        // Always query fresh rows just in case
+        const currentRows = document.querySelectorAll('.inv-table tbody tr');
 
-        tableRows.forEach(row => {
-            if(row.cells.length === 1) return; // Empty state row
+        currentRows.forEach(row => {
+            if(row.cells.length < 6) return; // Empty state row or invalid row
             
             const textContent = row.textContent.toLowerCase();
             const typeCell = row.cells[1].textContent.trim();
-            const dateCell = row.cells[4].textContent.trim(); // Vencimiento is index 4
+            const dateCellAttr = row.cells[4].getAttribute('data-date');
+            const dateCell = (dateCellAttr && dateCellAttr.trim() !== '') ? dateCellAttr : row.cells[4].textContent.trim();
             
             const matchesSearch = textContent.includes(searchTerm);
             const matchesType = selectedType === 'all' || typeCell.includes(selectedType);
@@ -899,9 +1339,11 @@
 
             if (matchesSearch && matchesType && matchesDate) {
                 row.style.display = '';
-                const qtyStr = row.cells[5].textContent.trim();
+                const qtyStr = row.cells[5].textContent.trim().replace(/[^\d.-]/g, '');
                 const qty = parseInt(qtyStr, 10);
-                if(!isNaN(qty)) totalQty += qty;
+                if(!isNaN(qty)) {
+                    totalQty += qty;
+                }
             } else {
                 row.style.display = 'none';
             }
@@ -913,14 +1355,82 @@
         }
     }
 
+    function colorCodeDates() {
+        const rows = document.querySelectorAll('.inv-table tbody tr');
+        const now = new Date();
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        
+        const threeMonthsFromNow = new Date(today);
+        threeMonthsFromNow.setMonth(today.getMonth() + 3);
+        
+        const sixMonthsFromNow = new Date(today);
+        sixMonthsFromNow.setMonth(today.getMonth() + 6);
+        
+        rows.forEach(row => {
+            if (row.cells.length < 6) return;
+            const cell = row.cells[4];
+            const dateStr = cell.getAttribute('data-date');
+            
+            if (!dateStr || dateStr === 'N/A') return;
+            
+            const parts = dateStr.split('-');
+            if (parts.length !== 3) return;
+            
+            const expDate = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+            
+            if (expDate <= today) {
+                cell.innerHTML = `<span style="background-color: #f5f5f4; color: #78350f; padding: 4px 8px; border-radius: 4px; font-weight: bold; display: inline-block; border: 1px solid #b45309;" title="¡Vencido!">${dateStr}</span>`;
+            } else if (expDate <= threeMonthsFromNow) {
+                cell.innerHTML = `<span style="background-color: #fee2e2; color: #dc2626; padding: 4px 8px; border-radius: 4px; font-weight: bold; display: inline-block; border: 1px solid #f87171;" title="Vence en menos de 3 meses">${dateStr}</span>`;
+            } else if (expDate <= sixMonthsFromNow) {
+                cell.innerHTML = `<span style="background-color: #fef9c3; color: #ca8a04; padding: 4px 8px; border-radius: 4px; font-weight: bold; display: inline-block; border: 1px solid #facc15;" title="Vence en menos de 6 meses">${dateStr}</span>`;
+            } else {
+                cell.innerHTML = `<span style="background-color: #dcfce7; color: #166534; padding: 4px 8px; border-radius: 4px; font-weight: bold; display: inline-block; border: 1px solid #4ade80;" title="Vigente por más de 6 meses">${dateStr}</span>`;
+            }
+        });
+    }
+
     if (searchInput) searchInput.addEventListener('input', filterTable);
     if (typeFilter) typeFilter.addEventListener('change', filterTable);
     if (dateStart) dateStart.addEventListener('change', filterTable);
     if (dateEnd) dateEnd.addEventListener('change', filterTable);
     
+    function confirmDelete(event, formElement, titleText, messageText) {
+        event.preventDefault();
+        Swal.fire({
+            title: titleText,
+            text: messageText,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#94a3b8',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar',
+            customClass: { popup: 'swal2-custom-popup', title: 'swal2-custom-title', confirmButton: 'swal2-custom-confirm' }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                formElement.submit();
+            }
+        });
+        return false;
+    }
+
     // Call once to initialize total
     document.addEventListener('DOMContentLoaded', function() {
         filterTable();
+        colorCodeDates();
+        
+        const manualSelect = document.getElementById('manualProductSelect');
+        if (manualSelect) {
+            new Choices(manualSelect, {
+                searchEnabled: true,
+                itemSelectText: '',
+                noResultsText: 'No se encontraron productos',
+                shouldSort: false,
+                placeholderValue: '-- Seleccione un producto --',
+                searchPlaceholderValue: 'Buscar producto...'
+            });
+        }
     });
 </script>
 {% endblock %}

@@ -730,9 +730,11 @@ def init_db():
         CREATE TABLE IF NOT EXISTS inventarios (
             id INT AUTO_INCREMENT PRIMARY KEY,
             codigo_barras VARCHAR(255),
+            codigo_secundario VARCHAR(255),
             tipo VARCHAR(100) NOT NULL,
             nombre VARCHAR(255) NOT NULL,
             invima VARCHAR(255),
+            cum VARCHAR(255),
             cantidad INT DEFAULT 0,
             unidad_medida VARCHAR(50),
             lote VARCHAR(100),
@@ -742,6 +744,17 @@ def init_db():
             fecha_registro DATETIME DEFAULT CURRENT_TIMESTAMP
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
     """)
+
+    # Crear tabla para el catálogo de inventarios
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS inventarios_catalogo (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            nombre VARCHAR(255) NOT NULL UNIQUE,
+            tipo VARCHAR(100) NOT NULL,
+            invima VARCHAR(255),
+            cum VARCHAR(255)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+    """)
     
     # Dynamic schema migration for inventarios
     cursor_inv = conn.cursor()
@@ -749,8 +762,19 @@ def init_db():
     inv_cols = [row["Field"] for row in cursor_inv.fetchall()]
     if "codigo_barras" not in inv_cols:
         conn.execute("ALTER TABLE inventarios ADD COLUMN codigo_barras VARCHAR(255)")
+    if "codigo_secundario" not in inv_cols:
+        conn.execute("ALTER TABLE inventarios ADD COLUMN codigo_secundario VARCHAR(255)")
     if "invima" not in inv_cols:
         conn.execute("ALTER TABLE inventarios ADD COLUMN invima VARCHAR(255)")
+    if "cum" not in inv_cols:
+        conn.execute("ALTER TABLE inventarios ADD COLUMN cum VARCHAR(255)")
+
+    # Dynamic schema migration for inventarios_catalogo
+    cursor_cat = conn.cursor()
+    cursor_cat.execute("DESCRIBE inventarios_catalogo")
+    cat_cols = [row["Field"] for row in cursor_cat.fetchall()]
+    if "cum" not in cat_cols:
+        conn.execute("ALTER TABLE inventarios_catalogo ADD COLUMN cum VARCHAR(255)")
 
     # Crear tabla para historial de inventarios
     conn.execute("""

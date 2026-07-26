@@ -41,16 +41,63 @@ def check_access():
 @bp_inventarios.route('/', methods=['GET'])
 def inventarios_index():
     conn = get_db()
-    items = conn.execute("SELECT * FROM inventarios ORDER BY tipo, nombre").fetchall()
+    items_raw = conn.execute("SELECT * FROM inventarios ORDER BY tipo, nombre").fetchall()
+    catalogo = conn.execute("SELECT * FROM inventarios_catalogo ORDER BY nombre").fetchall()
     conn.close()
-    return render_template('inventarios.html', items=items)
+    
+    items = []
+    for row in items_raw:
+        item = dict(row)
+        if item.get('fecha_vencimiento') and hasattr(item['fecha_vencimiento'], 'strftime'):
+            item['fecha_vencimiento'] = item['fecha_vencimiento'].strftime('%Y-%m-%d')
+        items.append(item)
+        
+    return render_template('inventarios.html', items=items, catalogo=catalogo)
+
+@bp_inventarios.route('/catalogo/add', methods=['POST'])
+def catalogo_add():
+    nombre = request.form.get('nombre', '').strip().upper()
+    tipo = request.form.get('tipo', '')
+    invima = request.form.get('invima', '')
+    cum = request.form.get('cum', '')
+    
+    if not nombre:
+        flash("El nombre es requerido.", "error")
+        return redirect(url_for('inventarios.inventarios_index'))
+        
+    conn = get_db()
+    existing = conn.execute("SELECT id FROM inventarios_catalogo WHERE nombre = %s", (nombre,)).fetchone()
+    if existing:
+        conn.close()
+        flash("Este ítem ya existe en el catálogo.", "error")
+        return redirect(url_for('inventarios.inventarios_index'))
+        
+    conn.execute("INSERT INTO inventarios_catalogo (nombre, tipo, invima, cum) VALUES (%s, %s, %s, %s)", (nombre, tipo, invima, cum))
+    conn.commit()
+    conn.close()
+    
+    flash("Ítem agregado al catálogo exitosamente.", "success")
+    return redirect(url_for('inventarios.inventarios_index'))
+
+@bp_inventarios.route('/catalogo/delete/<int:item_id>', methods=['POST'])
+def catalogo_delete(item_id):
+    conn = get_db()
+    conn.execute("DELETE FROM inventarios_catalogo WHERE id = %s", (item_id,))
+    conn.commit()
+    conn.close()
+    
+    flash("Ítem eliminado del catálogo.", "success")
+    return redirect(url_for('inventarios.inventarios_index'))
+
 
 @bp_inventarios.route('/add', methods=['POST'])
 def inventarios_add():
     codigo_barras = request.form.get('codigo_barras', '')
+    codigo_secundario = request.form.get('codigo_secundario', '')
     tipo = request.form.get('tipo')
     nombre = request.form.get('nombre')
     invima = request.form.get('invima', '')
+    cum = request.form.get('cum', '')
     cantidad = int(request.form.get('cantidad', 0))
     unidad_medida = request.form.get('unidad_medida', 'Unidades')
     lote = request.form.get('lote', '')
@@ -67,13 +114,18 @@ def inventarios_add():
     if codigo_barras:
         existing = conn.execute("SELECT id FROM inventarios WHERE codigo_barras = %s", (codigo_barras,)).fetchone()
         if existing:
-            flash("El código de barras ya está asignado a otro producto.", "error")
+            flash("El código principal ya está asignado a otro producto.", "error")
+            return redirect(url_for('inventarios.inventarios_index'))
+    if codigo_secundario:
+        existing = conn.execute("SELECT id FROM inventarios WHERE codigo_secundario = %s", (codigo_secundario,)).fetchone()
+        if existing:
+            flash("El código secundario ya está asignado a otro producto.", "error")
             return redirect(url_for('inventarios.inventarios_index'))
 
     conn.execute("""
-        INSERT INTO inventarios (codigo_barras, tipo, nombre, invima, cantidad, unidad_medida, lote, fecha_vencimiento, observaciones, registrado_por)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-    """, (codigo_barras, tipo, nombre, invima, cantidad, unidad_medida, lote, fecha_vencimiento, observaciones, registrado_por))
+        INSERT INTO inventarios (codigo_barras, codigo_secundario, tipo, nombre, invima, cum, cantidad, unidad_medida, lote, fecha_vencimiento, observaciones, registrado_por)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+    """, (codigo_barras, codigo_secundario, tipo, nombre, invima, cum, cantidad, unidad_medida, lote, fecha_vencimiento, observaciones, registrado_por))
     conn.commit()
     conn.close()
     
@@ -83,9 +135,11 @@ def inventarios_add():
 @bp_inventarios.route('/edit/<int:item_id>', methods=['POST'])
 def inventarios_edit(item_id):
     codigo_barras = request.form.get('codigo_barras', '')
+    codigo_secundario = request.form.get('codigo_secundario', '')
     tipo = request.form.get('tipo')
     nombre = request.form.get('nombre')
     invima = request.form.get('invima', '')
+    cum = request.form.get('cum', '')
     cantidad = int(request.form.get('cantidad', 0))
     unidad_medida = request.form.get('unidad_medida', 'Unidades')
     lote = request.form.get('lote', '')
@@ -96,17 +150,25 @@ def inventarios_edit(item_id):
         fecha_vencimiento = None
         
     conn = get_db()
+    
     if codigo_barras:
         existing = conn.execute("SELECT id FROM inventarios WHERE codigo_barras = %s AND id != %s", (codigo_barras, item_id)).fetchone()
         if existing:
-            flash("El código de barras ya está asignado a otro producto.", "error")
+            flash("El código principal ya está asignado a otro producto.", "error")
+            return redirect(url_for('inventarios.inventarios_index'))
+            
+    if codigo_secundario:
+        existing = conn.execute("SELECT id FROM inventarios WHERE codigo_secundario = %s AND id != %s", (codigo_secundario, item_id)).fetchone()
+        if existing:
+            flash("El código secundario ya está asignado a otro producto.", "error")
             return redirect(url_for('inventarios.inventarios_index'))
 
     conn.execute("""
         UPDATE inventarios 
-        SET codigo_barras=%s, tipo=%s, nombre=%s, invima=%s, cantidad=%s, unidad_medida=%s, lote=%s, fecha_vencimiento=%s, observaciones=%s
-        WHERE id=%s
-    """, (codigo_barras, tipo, nombre, invima, cantidad, unidad_medida, lote, fecha_vencimiento, observaciones, item_id))
+        SET codigo_barras = %s, codigo_secundario = %s, tipo = %s, nombre = %s, invima = %s, cum = %s, cantidad = %s, unidad_medida = %s, lote = %s, fecha_vencimiento = %s, observaciones = %s
+        WHERE id = %s
+    """, (codigo_barras, codigo_secundario, tipo, nombre, invima, cum, cantidad, unidad_medida, lote, fecha_vencimiento, observaciones, item_id))
+    
     conn.commit()
     conn.close()
     
@@ -131,12 +193,12 @@ def inventarios_scan():
     else:
         if accion == 'egreso':
             # For egress, find batches with stock > 0
-            items = conn.execute("SELECT * FROM inventarios WHERE codigo_barras = %s AND cantidad > 0", (codigo,)).fetchall()
+            items = conn.execute("SELECT * FROM inventarios WHERE (codigo_barras = %s OR codigo_secundario = %s) AND cantidad > 0", (codigo, codigo)).fetchall()
             # If none have stock > 0, maybe just fetch one to show insufficient stock error
             if not items:
-                items = conn.execute("SELECT * FROM inventarios WHERE codigo_barras = %s", (codigo,)).fetchmany(1)
+                items = conn.execute("SELECT * FROM inventarios WHERE codigo_barras = %s OR codigo_secundario = %s", (codigo, codigo)).fetchmany(1)
         else:
-            items = conn.execute("SELECT * FROM inventarios WHERE codigo_barras = %s", (codigo,)).fetchall()
+            items = conn.execute("SELECT * FROM inventarios WHERE codigo_barras = %s OR codigo_secundario = %s", (codigo, codigo)).fetchall()
 
     if not items:
         conn.close()
@@ -192,6 +254,116 @@ def inventarios_scan():
 
     operacion = "añadido" if accion == 'ingreso' else "retirado"
     return jsonify({"status": "success", "message": f"Se ha {operacion} {cantidad_op} del producto '{item['nombre']}'. Nuevo stock: {nueva_cantidad}"})
+
+@bp_inventarios.route('/scan/info', methods=['POST'])
+def inventarios_scan_info():
+    codigo = request.form.get('codigo_barras')
+    conn = get_db()
+    items = conn.execute("SELECT * FROM inventarios WHERE codigo_barras = %s OR codigo_secundario = %s", (codigo, codigo)).fetchall()
+    conn.close()
+    
+    if not items:
+        return jsonify({
+            "status": "not_found", 
+            "message": "Producto no encontrado. Registre este nuevo producto a continuación.",
+            "is_new": True,
+            "codigo": codigo
+        })
+    
+    batches_list = []
+    for item in items:
+        b_dict = dict(item)
+        if b_dict.get('fecha_vencimiento') and hasattr(b_dict['fecha_vencimiento'], 'strftime'):
+            b_dict['fecha_vencimiento'] = b_dict['fecha_vencimiento'].strftime('%Y-%m-%d')
+        elif b_dict.get('fecha_vencimiento') and isinstance(b_dict['fecha_vencimiento'], str):
+            # Try to handle strings if any
+            try:
+                # If it's already a string in some other format, try to format it, or leave as is if it's YYYY-MM-DD
+                if len(b_dict['fecha_vencimiento']) > 10:
+                    import datetime
+                    # simple fallback if it's not YYYY-MM-DD
+                    pass
+            except Exception:
+                pass
+        batches_list.append(b_dict)
+
+    return jsonify({
+        "status": "success",
+        "product": {
+            "nombre": items[0]['nombre'],
+            "tipo": items[0]['tipo'],
+            "invima": items[0]['invima'],
+            "cum": items[0]['cum']
+        },
+        "batches": batches_list
+    })
+
+@bp_inventarios.route('/scan/process_ingreso', methods=['POST'])
+def inventarios_scan_process_ingreso():
+    try:
+        codigo = request.form.get('codigo_barras')
+        item_id = request.form.get('item_id')
+        cantidad = int(request.form.get('cantidad', 1))
+        nuevo_lote = request.form.get('nuevo_lote')
+        fecha_vencimiento = request.form.get('fecha_vencimiento')
+        
+        # Convert empty strings to None to avoid MySQL strict mode errors
+        if not fecha_vencimiento:
+            fecha_vencimiento = None
+            
+        registrado_por = session['usuario']['nombre']
+        
+        conn = get_db()
+        
+        if item_id == 'nuevo_lote':
+            if not nuevo_lote:
+                conn.close()
+                return jsonify({"status": "error", "message": "Debe especificar un número de lote."})
+                
+            # Get base product info
+            base_item = conn.execute("SELECT * FROM inventarios WHERE codigo_barras = %s OR codigo_secundario = %s LIMIT 1", (codigo, codigo)).fetchone()
+            if not base_item:
+                conn.close()
+                return jsonify({"status": "error", "message": "Producto base no encontrado."})
+                
+            cursor = conn.execute("""
+                INSERT INTO inventarios (codigo_barras, codigo_secundario, tipo, nombre, invima, cum, cantidad, unidad_medida, lote, fecha_vencimiento, observaciones)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """, (base_item['codigo_barras'], base_item['codigo_secundario'], base_item['tipo'], base_item['nombre'], base_item['invima'], base_item['cum'], cantidad, base_item['unidad_medida'], nuevo_lote, fecha_vencimiento, base_item['observaciones']))
+            new_id = cursor.lastrowid
+            
+            # Log to history
+            conn.execute("""
+                INSERT INTO inventarios_historial 
+                (item_id, codigo_barras, nombre, lote, accion, cantidad, registrado_por)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+            """, (new_id, codigo, base_item['nombre'], nuevo_lote, 'ingreso', cantidad, registrado_por))
+            
+            message = f"Se ha añadido {cantidad} del producto '{base_item['nombre']}' con nuevo lote '{nuevo_lote}'."
+        else:
+            item = conn.execute("SELECT * FROM inventarios WHERE id = %s", (item_id,)).fetchone()
+            if not item:
+                conn.close()
+                return jsonify({"status": "error", "message": "Lote no encontrado."})
+                
+            nueva_cantidad = item['cantidad'] + cantidad
+            conn.execute("UPDATE inventarios SET cantidad = %s WHERE id = %s", (nueva_cantidad, item_id))
+            
+            # Log to history
+            conn.execute("""
+                INSERT INTO inventarios_historial 
+                (item_id, codigo_barras, nombre, lote, accion, cantidad, registrado_por)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+            """, (item_id, codigo, item['nombre'], item['lote'], 'ingreso', cantidad, registrado_por))
+            
+            message = f"Se ha añadido {cantidad} al lote '{item['lote']}' del producto '{item['nombre']}'. Nuevo stock: {nueva_cantidad}."
+            
+        conn.commit()
+        conn.close()
+        
+        return jsonify({"status": "success", "message": message})
+    except Exception as e:
+        return jsonify({"status": "error", "message": f"Error interno: {str(e)}"})
 
 @bp_inventarios.route('/manual_update', methods=['POST'])
 def inventarios_manual_update():
@@ -250,7 +422,7 @@ def inventarios_delete(item_id):
 @bp_inventarios.route('/exportar_excel', methods=['GET'])
 def inventarios_exportar_excel():
     conn = get_db()
-    items = conn.execute("SELECT codigo_barras, nombre, tipo, invima, lote, fecha_vencimiento, cantidad, unidad_medida, observaciones FROM inventarios ORDER BY tipo, nombre").fetchall()
+    items = conn.execute("SELECT codigo_barras, nombre, tipo, invima, cum, lote, fecha_vencimiento, cantidad, unidad_medida, observaciones FROM inventarios ORDER BY tipo, nombre").fetchall()
     conn.close()
     
     data = []
@@ -260,6 +432,7 @@ def inventarios_exportar_excel():
             "Nombre": item['nombre'],
             "Tipo": item['tipo'],
             "Registro Invima": item['invima'] or '',
+            "CUM": item['cum'] or '',
             "Lote": item['lote'] or '',
             "Fecha Vencimiento": item['fecha_vencimiento'] or '',
             "Cantidad": item['cantidad'],
