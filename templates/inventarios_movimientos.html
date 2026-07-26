@@ -49,6 +49,16 @@
     .mov-btn:hover {
         opacity: 0.9;
     }
+    @media (max-width: 768px) {
+        .mov-header {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 10px;
+        }
+        .mov-header > div {
+            justify-content: space-between;
+        }
+    }
 </style>
 
 <div class="mov-header">
@@ -63,7 +73,8 @@
     <input type="text" id="searchInput" placeholder="Buscar por producto, responsable, lote, fecha..." style="width: 100%; max-width: 500px; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px;">
 </div>
 
-<table class="mov-table">
+<div class="table-responsive" style="width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; margin-top: 15px;">
+<table class="mov-table" style="margin-top: 0; min-width: 800px;">
     <thead>
         <tr>
             <th>Fecha / Hora</th>
@@ -102,6 +113,7 @@
         {% endfor %}
     </tbody>
 </table>
+</div>
 
 <script>
     const searchInput = document.getElementById('searchInput');
