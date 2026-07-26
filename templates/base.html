@@ -49,6 +49,26 @@
         .swal2-custom-confirm {
             background: linear-gradient(135deg, #10b981, #059669) !important;
         }
+
+        @media (max-width: 768px) {
+            .swal2-custom-popup {
+                width: 92% !important;
+                padding: 15px !important;
+                margin: 0 auto !important;
+            }
+            .swal2-custom-title {
+                font-size: 18px !important;
+            }
+            .swal2-custom-confirm,
+            .swal2-custom-cancel {
+                width: 100% !important;
+                margin-bottom: 10px !important;
+            }
+            .swal2-actions {
+                flex-direction: column !important;
+                width: 100% !important;
+            }
+        }
     </style>
     <!-- Flatpickr: picker 24h para datetime-local -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"

@@ -128,6 +128,41 @@
         width: 100%;
         min-height: 300px;
     }
+    @media (max-width: 768px) {
+        .inv-actions {
+            flex-direction: column;
+            width: 100%;
+        }
+        .inv-actions .inv-btn {
+            width: 100%;
+            justify-content: center;
+        }
+        .filters-container {
+            flex-direction: column !important;
+            align-items: stretch !important;
+        }
+        .modal-content {
+            width: 95% !important;
+            margin: 5% auto !important;
+            padding: 15px !important;
+            max-height: 95vh;
+        }
+        .responsive-flex {
+            flex-direction: column !important;
+            gap: 10px !important;
+        }
+        #formCatalogo > div {
+            flex-direction: column !important;
+            align-items: stretch !important;
+        }
+        #formCatalogo .form-group {
+            margin-bottom: 10px !important;
+        }
+    }
+    .responsive-flex {
+        display: flex;
+        gap: 10px;
+    }
 </style>
 
 <div class="inv-header">
@@ -144,7 +179,7 @@
 </div>
 
 <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
-    <div style="display: flex; gap: 15px; align-items: center; flex-wrap: nowrap;">
+    <div class="filters-container" style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
         <input type="text" id="searchInput" placeholder="Buscar por nombre, código, invima, lote..." style="flex: 3; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px;">
         <select id="typeFilter" style="flex: 1; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px;">
             <option value="all">Todos los tipos</option>
@@ -164,7 +199,8 @@
     </div>
 </div>
 
-<table class="inv-table">
+<div class="table-responsive" style="width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch;">
+<table class="inv-table" style="min-width: 900px;">
     <thead>
         <tr>
             <th onclick="toggleDateFilter(false)" style="cursor: pointer;" title="Ocultar filtro de fechas">Nombre</th>
@@ -221,6 +257,7 @@
         </tr>
     </tfoot>
 </table>
+</div>
 
 <!-- Modal para Agregar/Editar Producto -->
 <div id="invModal" class="modal">
@@ -253,7 +290,7 @@
                     {% endfor %}
                 </datalist>
             </div>
-            <div style="display: flex; gap: 10px;">
+            <div class="responsive-flex">
                 <div class="form-group" style="flex: 1;">
                     <label>Tipo</label>
                     <select name="tipo" id="invTipo" required>
@@ -276,7 +313,7 @@
                 <label>Cantidad Inicial</label>
                 <input type="number" name="cantidad" id="invCantidad" value="0" required>
             </div>
-            <div style="display: flex; gap: 10px;">
+            <div class="responsive-flex">
                 <div class="form-group" style="flex: 1;">
                     <label>Lote</label>
                     <input type="text" name="lote" id="invLote">
@@ -337,8 +374,8 @@
             </div>
         </form>
 
-        <div style="max-height: 450px; overflow-y: auto;">
-            <table class="inv-table" style="font-size: 12.5px; white-space: nowrap;">
+        <div style="max-height: 450px; overflow-y: auto; overflow-x: auto; -webkit-overflow-scrolling: touch;">
+            <table class="inv-table" style="font-size: 12.5px; white-space: nowrap; min-width: 600px;">
                 <thead style="position: sticky; top: 0; z-index: 10;">
                     <tr>
                         <th style="width: 40%; white-space: normal;">Nombre</th>
@@ -589,7 +626,7 @@
             <button class="close-btn" onclick="closeModal('batchSelectionModal')">×</button>
         </div>
         <p>El producto escaneado tiene múltiples lotes en inventario. Seleccione de cuál desea hacer el egreso:</p>
-        <div id="batchList" style="display: flex; flex-direction: column; gap: 10px; margin-top: 15px;">
+        <div id="batchList" class="responsive-flex" style="margin-top: 15px;">
             <!-- Opciones generadas por JS -->
         </div>
     </div>
@@ -604,7 +641,7 @@
         </div>
         <div style="background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 15px;">
             <strong id="qrIngresoNombre" style="font-size: 16px; color: #334155; display: block; margin-bottom: 5px;"></strong>
-            <div style="display: flex; gap: 15px; font-size: 13px; color: #64748b;">
+            <div class="responsive-flex" style="color: #64748b; font-size: 13px;">
                 <span id="qrIngresoTipo"></span>
                 <span id="qrIngresoInvima"></span>
             </div>
@@ -637,7 +674,7 @@
                 <input type="date" name="fecha_vencimiento" id="qrIngresoFechaVencimiento" required>
             </div>
             
-            <div style="display: flex; justify-content: flex-end; gap: 10px;">
+            <div class="responsive-flex" style="justify-content: flex-end;">
                 <button type="submit" class="inv-btn btn-green">Confirmar Ingreso</button>
                 <button type="button" class="inv-btn" style="background: #94a3b8;" onclick="closeModal('qrIngresoModal')">Cancelar</button>
             </div>
@@ -696,7 +733,7 @@
                 <label>Cantidad a <span id="manualUpdateLabel"></span></label>
                 <input type="number" name="cantidad" min="1" value="1" required>
             </div>
-            <div style="display: flex; justify-content: flex-end; gap: 10px;">
+            <div class="responsive-flex" style="justify-content: flex-end;">
                 <button type="submit" class="inv-btn btn-green" id="manualUpdateSubmit">Confirmar</button>
                 <button type="button" class="inv-btn" style="background: #94a3b8;" onclick="closeModal('manualUpdateModal')">Cancelar</button>
             </div>
