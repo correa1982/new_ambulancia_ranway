@@ -927,7 +927,11 @@
 
         // Iniciar cámara si está disponible
         if (!html5QrcodeScanner) {
-            html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: {width: 250, height: 250} }, false);
+            html5QrcodeScanner = new Html5QrcodeScanner("reader", { 
+                fps: 10, 
+                qrbox: {width: 200, height: 200},
+                aspectRatio: window.innerWidth < 768 ? 1.777778 : 1.333334
+            }, false);
             html5QrcodeScanner.render(onScanSuccess, onScanFailure);
         }
     }
