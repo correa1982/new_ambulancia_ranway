@@ -306,16 +306,16 @@
             <button class="close-btn" onclick="closeModal('catalogModal')">×</button>
         </div>
         
-        <form method="POST" action="{{ url_for('inventarios.catalogo_add') }}" style="background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 20px;">
-            <h3 style="margin-top: 0; font-size: 15px; color: #334155;">Agregar Nuevo al Catálogo</h3>
+        <form id="formCatalogo" method="POST" action="{{ url_for('inventarios.catalogo_add') }}" style="background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 20px;">
+            <h3 id="titleCatalogoForm" style="margin-top: 0; font-size: 15px; color: #334155;">Agregar Nuevo al Catálogo</h3>
             <div style="display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap;">
                 <div class="form-group" style="flex: 2; min-width: 250px; margin-bottom: 0;">
                     <label style="font-size: 13px;">Nombre</label>
-                    <input type="text" name="nombre" required>
+                    <input type="text" name="nombre" id="catNombre" required>
                 </div>
                 <div class="form-group" style="flex: 1.5; min-width: 180px; margin-bottom: 0;">
                     <label style="font-size: 13px;">Tipo</label>
-                    <select name="tipo" required>
+                    <select name="tipo" id="catTipo" required>
                         <option value="Dispositivo Médico">Dispositivo Médico</option>
                         <option value="Medicamento">Medicamento</option>
                         <option value="Cosméticos y Aseo">Cosméticos y Aseo</option>
@@ -324,13 +324,16 @@
                 </div>
                 <div class="form-group" style="flex: 1; min-width: 120px; margin-bottom: 0;">
                     <label style="font-size: 13px;">Invima (Opc)</label>
-                    <input type="text" name="invima">
+                    <input type="text" name="invima" id="catInvima">
                 </div>
                 <div class="form-group" style="flex: 1; min-width: 120px; margin-bottom: 0;">
                     <label style="font-size: 13px;">CUM (Opc)</label>
-                    <input type="text" name="cum">
+                    <input type="text" name="cum" id="catCum">
                 </div>
-                <button type="submit" class="inv-btn btn-green" style="height: 38px; padding: 0 20px; margin-bottom: 2px; flex: 0 0 auto;">Añadir</button>
+                <div style="display: flex; gap: 5px;">
+                    <button type="submit" id="btnSubmitCatalogo" class="inv-btn btn-green" style="height: 38px; padding: 0 20px; margin-bottom: 2px; flex: 0 0 auto;">Añadir</button>
+                    <button type="button" id="btnCancelCatalogo" class="inv-btn" style="background: #94a3b8; height: 38px; padding: 0 20px; margin-bottom: 2px; flex: 0 0 auto; display: none;" onclick="resetCatalogoForm()">Cancelar</button>
+                </div>
             </div>
         </form>
 
@@ -353,6 +356,7 @@
                         <td>{{ cat.invima or '-' }}</td>
                         <td>{{ cat.cum or '-' }}</td>
                         <td style="text-align: center; padding: 4px;">
+                            <button type="button" class="action-btn btn-edit" style="padding: 4px 8px; font-size: 11px;" onclick='editarCatalogo({{ cat | tojson }})'>Editar</button>
                             <form action="{{ url_for('inventarios.catalogo_delete', item_id=cat.id) }}" method="POST" style="display:inline;" onsubmit="return confirmDelete(event, this, '¿Eliminar del Catálogo?', '¿Está seguro de eliminar este producto del catálogo?');">
                                 <button type="submit" class="action-btn btn-delete" style="padding: 4px 8px; font-size: 11px;">Eliminar</button>
                             </form>
@@ -745,6 +749,25 @@
 
     function openCatalogModal() {
         document.getElementById('catalogModal').style.display = 'block';
+    }
+
+    function editarCatalogo(cat) {
+        document.getElementById('titleCatalogoForm').textContent = 'Editar Ítem del Catálogo';
+        document.getElementById('formCatalogo').action = "{{ url_for('inventarios.catalogo_edit', item_id=0) }}".replace('0', cat.id);
+        document.getElementById('catNombre').value = cat.nombre;
+        document.getElementById('catTipo').value = cat.tipo;
+        document.getElementById('catInvima').value = cat.invima || '';
+        document.getElementById('catCum').value = cat.cum || '';
+        document.getElementById('btnSubmitCatalogo').textContent = 'Guardar';
+        document.getElementById('btnCancelCatalogo').style.display = 'block';
+    }
+
+    function resetCatalogoForm() {
+        document.getElementById('titleCatalogoForm').textContent = 'Agregar Nuevo al Catálogo';
+        document.getElementById('formCatalogo').action = "{{ url_for('inventarios.catalogo_add') }}";
+        document.getElementById('formCatalogo').reset();
+        document.getElementById('btnSubmitCatalogo').textContent = 'Añadir';
+        document.getElementById('btnCancelCatalogo').style.display = 'none';
     }
 
     function autoFillCatalog() {

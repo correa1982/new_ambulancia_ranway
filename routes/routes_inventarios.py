@@ -79,6 +79,31 @@ def catalogo_add():
     flash("Ítem agregado al catálogo exitosamente.", "success")
     return redirect(url_for('inventarios.inventarios_index'))
 
+@bp_inventarios.route('/catalogo/edit/<int:item_id>', methods=['POST'])
+def catalogo_edit(item_id):
+    nombre = request.form.get('nombre', '').strip().upper()
+    tipo = request.form.get('tipo', '')
+    invima = request.form.get('invima', '')
+    cum = request.form.get('cum', '')
+    
+    if not nombre:
+        flash("El nombre es requerido.", "error")
+        return redirect(url_for('inventarios.inventarios_index'))
+        
+    conn = get_db()
+    existing = conn.execute("SELECT id FROM inventarios_catalogo WHERE nombre = %s AND id != %s", (nombre, item_id)).fetchone()
+    if existing:
+        conn.close()
+        flash("Este ítem ya existe en el catálogo.", "error")
+        return redirect(url_for('inventarios.inventarios_index'))
+        
+    conn.execute("UPDATE inventarios_catalogo SET nombre = %s, tipo = %s, invima = %s, cum = %s WHERE id = %s", (nombre, tipo, invima, cum, item_id))
+    conn.commit()
+    conn.close()
+    
+    flash("Ítem del catálogo actualizado exitosamente.", "success")
+    return redirect(url_for('inventarios.inventarios_index'))
+
 @bp_inventarios.route('/catalogo/delete/<int:item_id>', methods=['POST'])
 def catalogo_delete(item_id):
     conn = get_db()

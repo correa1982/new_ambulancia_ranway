@@ -24,7 +24,7 @@
         font-size: 13px;
     }
     .mov-table th, .mov-table td {
-        padding: 12px 15px;
+        padding: 6px 10px;
         text-align: left;
         border-bottom: 1px solid #e2e8f0;
     }
@@ -81,9 +81,6 @@
             <td>{{ mov.fecha_registro.strftime('%Y-%m-%d %H:%M:%S') if mov.fecha_registro else 'N/A' }}</td>
             <td>
                 <strong>{{ mov.nombre }}</strong>
-                {% if mov.codigo_barras %}
-                <br><span style="color: #64748b; font-size: 11px;">{{ mov.codigo_barras }}</span>
-                {% endif %}
             </td>
             <td>{{ mov.lote or 'N/A' }}</td>
             <td>
