@@ -1,0 +1,1551 @@
+{% extends "base.html" %}
+{% block title %}Inventarios{% endblock %}
+{% block content %}
+<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
+<script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+<style>
+    .inv-header {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+    .inv-title {
+        font-size: 24px;
+        color: #1e3a5f;
+        margin: 0;
+    }
+    .inv-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    .inv-btn {
+        background: #3b82f6;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: background 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .inv-btn:hover { background: #2563eb; }
+    .btn-green { background: #10b981; }
+    .btn-green:hover { background: #059669; }
+    .btn-red { background: #ef4444; }
+    .btn-red:hover { background: #dc2626; }
+    .btn-purple { background: #8b5cf6; }
+    .btn-purple:hover { background: #7c3aed; }
+
+    .inv-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+    }
+    .inv-table th, .inv-table td {
+        padding: 12px 16px;
+        text-align: left;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    .inv-table th {
+        background: #f8fafc;
+        font-weight: bold;
+        color: #475569;
+    }
+    .inv-table tr:hover {
+        background: #f1f5f9;
+    }
+    .action-btn {
+        padding: 4px 8px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: bold;
+    }
+    .btn-edit { background: #eab308; color: white; }
+    .btn-delete { background: #ef4444; color: white; }
+    
+    /* Modal Styles */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.5);
+    }
+    .modal-content {
+        background-color: #fff;
+        margin: 5% auto;
+        padding: 20px;
+        border-radius: 8px;
+        width: 500px;
+        max-width: 90%;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+    .close-btn {
+        background: none;
+        border: none;
+        font-size: 20px;
+        cursor: pointer;
+    }
+    .form-group {
+        margin-bottom: 15px;
+    }
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+        color: #475569;
+    }
+    .form-group input, .form-group select, .form-group textarea {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #cbd5e1;
+        border-radius: 4px;
+        box-sizing: border-box;
+    }
+    #reader {
+        width: 100%;
+        min-height: 300px;
+    }
+    @media (max-width: 768px) {
+        .inv-actions {
+            flex-direction: column;
+            width: 100%;
+        }
+        .inv-actions .inv-btn {
+            width: 100%;
+            justify-content: center;
+        }
+        .filters-container {
+            flex-direction: column !important;
+            align-items: stretch !important;
+        }
+        .modal-content {
+            width: 95% !important;
+            margin: 5% auto !important;
+            padding: 15px !important;
+            max-height: 95vh;
+        }
+        .responsive-flex {
+            flex-direction: column !important;
+            gap: 10px !important;
+        }
+        #formCatalogo > div {
+            flex-direction: column !important;
+            align-items: stretch !important;
+        }
+        #formCatalogo .form-group {
+            margin-bottom: 10px !important;
+        }
+    }
+    .responsive-flex {
+        display: flex;
+        gap: 10px;
+    }
+</style>
+
+<div class="inv-header">
+    <h1 class="inv-title">📦 Módulo de Inventarios</h1>
+    <div class="inv-actions">
+        <button class="inv-btn btn-green" onclick="openScanner('ingreso')">📸 QR Ingreso</button>
+        <button class="inv-btn btn-red" onclick="openScanner('egreso')">📸 QR Egreso</button>
+        <button class="inv-btn btn-green" onclick="openManualUpdate('ingreso')">➕ Ingreso Manual</button>
+        <button class="inv-btn btn-red" onclick="openManualUpdate('egreso')">➖ Egreso Manual</button>
+        <button class="inv-btn btn-purple" onclick="openScanner('nuevo')">✨ Nuevo Producto</button>
+        <button class="inv-btn btn-purple" style="background: #6366f1;" onclick="openCatalogModal()">📋 ITEMS</button>
+        <a href="{{ url_for('inventarios.inventarios_movimientos') }}" class="inv-btn" style="background: #334155; text-decoration: none;">📋 Consultar Movimientos</a>
+    </div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
+    <div class="filters-container" style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+        <input type="text" id="searchInput" placeholder="Buscar por nombre, código, invima, lote..." style="flex: 3; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px;">
+        <select id="typeFilter" style="flex: 1; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px;">
+            <option value="all">Todos los tipos</option>
+            <option value="Dispositivo Médico">Dispositivo Médico</option>
+            <option value="Medicamento">Medicamento</option>
+            <option value="Cosméticos y Aseo">Cosméticos y Aseo</option>
+            <option value="Control Especial">Control Especial</option>
+        </select>
+        <a href="{{ url_for('inventarios.inventarios_exportar_excel') }}" class="inv-btn" style="background: #10b981; text-decoration: none; flex: 0 0 auto; white-space: nowrap; padding: 8px 12px; font-size: 13px;">📊 Exportar Excel</a>
+    </div>
+    <div id="dateFilterContainer" style="display: none; gap: 10px; align-items: center; background: #f8fafc; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0; width: fit-content;">
+        <label style="font-size: 13px; font-weight: bold; color: #475569; margin: 0;">Filtro Vencimiento:</label>
+        <input type="date" id="dateFilterStart" style="padding: 6px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 13px;">
+        <span style="color: #64748b; font-size: 13px;">hasta</span>
+        <input type="date" id="dateFilterEnd" style="padding: 6px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 13px;">
+        <button class="inv-btn" style="background: #94a3b8; padding: 6px 10px; font-size: 12px; min-height: 32px;" onclick="clearDateFilter()">Limpiar</button>
+    </div>
+</div>
+
+<div class="table-responsive" style="width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch;">
+<table class="inv-table" style="min-width: 900px;">
+    <thead>
+        <tr>
+            <th onclick="toggleDateFilter(false)" style="cursor: pointer;" title="Ocultar filtro de fechas">Nombre</th>
+            <th onclick="toggleDateFilter(false)" style="cursor: pointer;" title="Ocultar filtro de fechas">Tipo</th>
+            <th onclick="toggleDateFilter(false)" style="cursor: pointer;" title="Ocultar filtro de fechas">Invima / CUM</th>
+            <th onclick="toggleDateFilter(false)" style="cursor: pointer;" title="Ocultar filtro de fechas">Lote</th>
+            <th onclick="toggleDateFilter(true)" style="cursor: pointer;" title="Mostrar Filtro de Fechas">Vencimiento</th>
+            <th onclick="toggleDateFilter(false)" style="cursor: pointer;" title="Ocultar filtro de fechas">Cantidad</th>
+            <th onclick="toggleDateFilter(false)">Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in items %}
+        <tr>
+            <td>
+                <strong>{{ item.nombre }}</strong>
+                {% if item.codigo_barras %}
+                <br><small style="color: #64748b; font-family: monospace;">{{ item.codigo_barras }}</small>
+                {% endif %}
+            </td>
+            <td>
+                {% if item.tipo == 'Dispositivo Médico' %} <span style="color: #0284c7;">🩺 {{ item.tipo }}</span>
+                {% elif item.tipo == 'Medicamento' %} <span style="color: #16a34a;">💊 {{ item.tipo }}</span>
+                {% elif item.tipo == 'Control Especial' %} <span style="color: #9333ea;">{{ item.tipo }}</span>
+                {% else %} <span style="color: #ea580c;">🩹 {{ item.tipo }}</span>
+                {% endif %}
+            </td>
+            <td>
+                {% if item.invima %}<div style="font-size: 13px;"><strong>Invima:</strong> {{ item.invima }}</div>{% endif %}
+                {% if item.cum %}<div style="font-size: 13px;"><strong>CUM:</strong> {{ item.cum }}</div>{% endif %}
+                {% if not item.invima and not item.cum %}<span style="color: #94a3b8;">N/A</span>{% endif %}
+            </td>
+            <td>{{ item.lote or 'N/A' }}</td>
+            <td data-date="{{ item.fecha_vencimiento or '' }}" class="vencimiento-cell">{{ item.fecha_vencimiento or 'N/A' }}</td>
+            <td><strong>{{ item.cantidad }}</strong></td>
+            <td>
+                <button class="action-btn btn-edit" onclick='openModal("edit", {{ item | tojson }})'>Editar</button>
+                <form action="{{ url_for('inventarios.inventarios_delete', item_id=item.id) }}" method="POST" style="display:inline;" onsubmit="return confirmDelete(event, this, '¿Eliminar Ítem?', '¿Está seguro de eliminar este ítem del inventario? Esta acción no se puede deshacer.');">
+                    <button type="submit" class="action-btn btn-delete">Eliminar</button>
+                </form>
+            </td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="7" style="text-align: center; color: #64748b;">No hay ítems registrados en el inventario.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+    <tfoot>
+        <tr style="background-color: #f8fafc; font-weight: bold; border-top: 2px solid #cbd5e1;">
+            <td colspan="5" style="text-align: right; color: #475569;">CANTIDAD TOTAL:</td>
+            <td id="totalQuantity" style="color: #1e3a5f; font-size: 15px;">0</td>
+            <td></td>
+        </tr>
+    </tfoot>
+</table>
+</div>
+
+<!-- Modal para Agregar/Editar Producto -->
+<div id="invModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="modalTitle" style="margin: 0; font-size: 20px; color: #1e293b;">Agregar Ítem</h2>
+            <button class="close-btn" onclick="closeModal('invModal')">×</button>
+        </div>
+        <form id="invForm" method="POST" action="{{ url_for('inventarios.inventarios_add') }}">
+            <div class="form-group">
+                <label>Código de Barras / QR (Principal)</label>
+                <input type="text" name="codigo_barras" id="invCodigoBarras" placeholder="Escanee o digite el código principal">
+                
+                <label style="display: flex; align-items: center; gap: 8px; margin-top: 10px; font-weight: normal; font-size: 13px; cursor: pointer;">
+                    <input type="checkbox" id="toggleCodigoSecundario" onchange="document.getElementById('codigoSecundarioGroup').style.display = this.checked ? 'block' : 'none'">
+                    Aplica QR / Código de Barras adicional
+                </label>
+            </div>
+            
+            <div class="form-group" id="codigoSecundarioGroup" style="display: none; background: #f8fafc; padding: 10px; border-radius: 6px; border: 1px dashed #cbd5e1; margin-top: -5px; margin-bottom: 15px;">
+                <label style="font-size: 13px;">Código Secundario (Adicional)</label>
+                <input type="text" name="codigo_secundario" id="invCodigoSecundario" placeholder="Escanee o digite el código secundario">
+            </div>
+            <div class="form-group">
+                <label>Nombre del Ítem</label>
+                <input type="text" name="nombre" id="invNombre" list="catalogoList" onchange="autoFillCatalog()" required>
+                <datalist id="catalogoList">
+                    {% for cat in catalogo %}
+                    <option value="{{ cat.nombre }}" data-tipo="{{ cat.tipo }}" data-invima="{{ cat.invima or '' }}" data-cum="{{ cat.cum or '' }}">
+                    {% endfor %}
+                </datalist>
+            </div>
+            <div class="responsive-flex">
+                <div class="form-group" style="flex: 1;">
+                    <label>Tipo</label>
+                    <select name="tipo" id="invTipo" required>
+                        <option value="Dispositivo Médico">Dispositivo Médico</option>
+                        <option value="Medicamento">Medicamento</option>
+                        <option value="Cosméticos y Aseo">Cosméticos y Aseo</option>
+                        <option value="Control Especial">Control Especial</option>
+                    </select>
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label>Registro Invima</label>
+                    <input type="text" name="invima" id="invInvima">
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label>CUM</label>
+                    <input type="text" name="cum" id="invCum">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Cantidad Inicial</label>
+                <input type="number" name="cantidad" id="invCantidad" value="0" required>
+            </div>
+            <div class="responsive-flex">
+                <div class="form-group" style="flex: 1;">
+                    <label>Lote</label>
+                    <input type="text" name="lote" id="invLote">
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label>Fecha de Vencimiento</label>
+                    <input type="date" name="fecha_vencimiento" id="invVencimiento">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Observaciones</label>
+                <textarea name="observaciones" id="invObservaciones" rows="2"></textarea>
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                <button type="submit" class="inv-btn" id="submitBtn">Guardar</button>
+                <button type="button" class="inv-btn" style="background: #94a3b8;" onclick="closeModal('invModal')">Cancelar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal para Catálogo -->
+<div id="catalogModal" class="modal">
+    <div class="modal-content" style="max-width: 1000px; width: 95%;">
+        <div class="modal-header">
+            <h2 style="margin: 0; font-size: 20px; color: #1e293b;">📋 Catálogo de Ítems</h2>
+            <button class="close-btn" onclick="closeModal('catalogModal')">×</button>
+        </div>
+        
+        <form id="formCatalogo" method="POST" action="{{ url_for('inventarios.catalogo_add') }}" style="background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 20px;">
+            <h3 id="titleCatalogoForm" style="margin-top: 0; font-size: 15px; color: #334155;">Agregar Nuevo al Catálogo</h3>
+            <div style="display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap;">
+                <div class="form-group" style="flex: 2; min-width: 250px; margin-bottom: 0;">
+                    <label style="font-size: 13px;">Nombre</label>
+                    <input type="text" name="nombre" id="catNombre" required>
+                </div>
+                <div class="form-group" style="flex: 1.5; min-width: 180px; margin-bottom: 0;">
+                    <label style="font-size: 13px;">Tipo</label>
+                    <select name="tipo" id="catTipo" required>
+                        <option value="Dispositivo Médico">Dispositivo Médico</option>
+                        <option value="Medicamento">Medicamento</option>
+                        <option value="Cosméticos y Aseo">Cosméticos y Aseo</option>
+                        <option value="Control Especial">Control Especial</option>
+                    </select>
+                </div>
+                <div class="form-group" style="flex: 1; min-width: 120px; margin-bottom: 0;">
+                    <label style="font-size: 13px;">Invima (Opc)</label>
+                    <input type="text" name="invima" id="catInvima">
+                </div>
+                <div class="form-group" style="flex: 1; min-width: 120px; margin-bottom: 0;">
+                    <label style="font-size: 13px;">CUM (Opc)</label>
+                    <input type="text" name="cum" id="catCum">
+                </div>
+                <div style="display: flex; gap: 5px;">
+                    <button type="submit" id="btnSubmitCatalogo" class="inv-btn btn-green" style="height: 38px; padding: 0 20px; margin-bottom: 2px; flex: 0 0 auto;">Añadir</button>
+                    <button type="button" id="btnCancelCatalogo" class="inv-btn" style="background: #94a3b8; height: 38px; padding: 0 20px; margin-bottom: 2px; flex: 0 0 auto; display: none;" onclick="resetCatalogoForm()">Cancelar</button>
+                </div>
+            </div>
+        </form>
+
+        <div style="max-height: 450px; overflow-y: auto; overflow-x: auto; -webkit-overflow-scrolling: touch;">
+            <table class="inv-table" style="font-size: 12.5px; white-space: nowrap; min-width: 600px;">
+                <thead style="position: sticky; top: 0; z-index: 10;">
+                    <tr>
+                        <th style="width: 40%; white-space: normal;">Nombre</th>
+                        <th>Tipo</th>
+                        <th>Invima</th>
+                        <th>CUM</th>
+                        <th style="width: 80px; text-align: center;">Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cat in catalogo %}
+                    <tr>
+                        <td style="white-space: normal; word-break: break-word;"><strong>{{ cat.nombre }}</strong></td>
+                        <td>{{ cat.tipo }}</td>
+                        <td>{{ cat.invima or '-' }}</td>
+                        <td>{{ cat.cum or '-' }}</td>
+                        <td style="text-align: center; padding: 4px;">
+                            <button type="button" class="action-btn btn-edit" style="padding: 4px 8px; font-size: 11px;" onclick='editarCatalogo({{ cat | tojson }})'>Editar</button>
+                            <form action="{{ url_for('inventarios.catalogo_delete', item_id=cat.id) }}" method="POST" style="display:inline;" onsubmit="return confirmDelete(event, this, '¿Eliminar del Catálogo?', '¿Está seguro de eliminar este producto del catálogo?');">
+                                <button type="submit" class="action-btn btn-delete" style="padding: 4px 8px; font-size: 11px;">Eliminar</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" style="text-align: center; color: #64748b;">El catálogo está vacío.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Escáner QR (Mejorado) -->
+<style>
+    /* Estilos Premium para el Scanner Modal */
+    #scannerModal .modal-content {
+        max-width: 550px;
+        padding: 30px;
+        border-radius: 16px;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+    }
+    .scanner-header {
+        text-align: center;
+        margin-bottom: 25px;
+        position: relative;
+    }
+    .scanner-header h2 {
+        font-size: 22px;
+        color: #1e293b;
+        font-weight: 800;
+        margin: 0 0 8px 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+    .scanner-header p {
+        color: #64748b;
+        font-size: 14px;
+        margin: 0;
+    }
+    .close-modal-btn {
+        position: absolute;
+        top: -10px;
+        right: -10px;
+        background: #f1f5f9;
+        border: none;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        color: #64748b;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .close-modal-btn:hover {
+        background: #e2e8f0;
+        color: #0f172a;
+    }
+    
+    /* Overrides para html5-qrcode */
+    #reader {
+        border: 2px dashed #cbd5e1 !important;
+        border-radius: 12px;
+        overflow: hidden;
+        background: #f8fafc;
+        padding: 15px 0;
+    }
+    #reader button {
+        background: #3b82f6 !important;
+        color: white !important;
+        border: none !important;
+        padding: 8px 16px !important;
+        border-radius: 6px !important;
+        font-weight: 600 !important;
+        cursor: pointer !important;
+        transition: background 0.2s !important;
+        margin-top: 10px !important;
+    }
+    #reader button:hover {
+        background: #2563eb !important;
+    }
+    #reader a {
+        color: #3b82f6 !important;
+        text-decoration: none !important;
+        font-size: 13px !important;
+    }
+    #reader__dashboard_section_csr span {
+        color: #475569 !important;
+        font-weight: 500 !important;
+    }
+
+    .divider {
+        display: flex;
+        align-items: center;
+        text-align: center;
+        margin: 25px 0;
+        color: #94a3b8;
+        font-size: 13px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    .divider::before, .divider::after {
+        content: '';
+        flex: 1;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    .divider:not(:empty)::before { margin-right: 15px; }
+    .divider:not(:empty)::after { margin-left: 15px; }
+
+    .usb-scanner-section {
+        background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+        padding: 20px;
+        border-radius: 12px;
+        border: 1px solid #bbf7d0;
+        text-align: center;
+    }
+    .usb-scanner-section label {
+        display: block;
+        color: #166534;
+        font-weight: 700;
+        font-size: 15px;
+        margin-bottom: 10px;
+    }
+    .usb-input-container {
+        position: relative;
+        max-width: 350px;
+        margin: 0 auto;
+    }
+    .usb-input-container i {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #22c55e;
+        font-size: 20px;
+    }
+    #manualBarcode {
+        width: 100%;
+        padding: 12px 12px 12px 42px;
+        border: 2px solid #86efac;
+        border-radius: 8px;
+        font-size: 16px;
+        color: #14532d;
+        background: #ffffff;
+        box-sizing: border-box;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 6px -1px rgba(34, 197, 94, 0.1);
+    }
+    #manualBarcode:focus {
+        outline: none;
+        border-color: #22c55e;
+        box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.2);
+    }
+    #manualBarcode::placeholder {
+        color: #9ca3af;
+    }
+    
+    @media (max-width: 768px) {
+        #scannerModal .modal-content {
+            padding: 15px !important;
+            margin: 5px auto !important;
+            max-height: 98vh;
+        }
+        .scanner-header {
+            margin-bottom: 10px !important;
+        }
+        .scanner-header h2 {
+            font-size: 18px !important;
+            margin-bottom: 2px !important;
+        }
+        .scanner-header p {
+            font-size: 11.5px !important;
+        }
+        #reader {
+            min-height: 150px !important;
+            padding: 5px 0 !important;
+        }
+        .divider {
+            margin: 8px 0 !important;
+        }
+        .usb-scanner-section {
+            padding: 10px !important;
+        }
+        .usb-scanner-section label {
+            font-size: 13px !important;
+            margin-bottom: 5px !important;
+        }
+        #manualBarcode {
+            padding: 8px 10px 8px 35px !important;
+            font-size: 14px !important;
+        }
+        .usb-input-container i {
+            font-size: 16px !important;
+            left: 10px !important;
+        }
+        #egresoScannerFields {
+            padding: 8px !important;
+            margin-bottom: 8px !important;
+        }
+        #egresoScannerFields select {
+            padding: 4px !important;
+            font-size: 12px !important;
+        }
+        #egresoScannerFields label {
+            font-size: 11.5px !important;
+        }
+    }
+</style>
+
+<div id="scannerModal" class="modal">
+    <div class="modal-content">
+        <div class="scanner-header">
+            <button class="close-modal-btn" onclick="closeScanner()">✕</button>
+            <h2 id="scannerTitle">📸 Escanear Código</h2>
+            <p>Utiliza la cámara de tu dispositivo o una pistola lectora USB</p>
+        </div>
+        
+        <div id="egresoScannerFields" style="display: none; margin-bottom: 15px; padding: 10px 15px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+            <div style="display: flex; gap: 10px;">
+                <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                    <label style="font-size: 13px; margin-bottom: 3px;">Tipo de Egreso</label>
+                    <select id="scannerTipoEgreso" onchange="toggleScannerDestino()" style="padding: 6px; font-size: 13px;">
+                        <option value="" disabled selected>-- Seleccione --</option>
+                        <option value="Reposicion">Reposición</option>
+                        <option value="Averia">Avería</option>
+                        <option value="Vencimiento">Vencimiento</option>
+                    </select>
+                </div>
+                <div class="form-group" id="scannerDestinoGroup" style="display: none; flex: 1; margin-bottom: 0;">
+                    <label style="font-size: 13px; margin-bottom: 3px;">Destino</label>
+                    <select id="scannerDestino" style="padding: 6px; font-size: 13px;">
+                        <option value="" disabled selected>-- Seleccione Destino --</option>
+                        <option value="Movil 1">Móvil 1</option>
+                        <option value="Movil 2">Móvil 2</option>
+                        <option value="Movil 3">Móvil 3</option>
+                        <option value="Movil 4">Móvil 4</option>
+                        <option value="Movil 5">Móvil 5</option>
+                        <option value="Movil 6">Móvil 6</option>
+                        <option value="Unidad de Rescate">Unidad de Rescate</option>
+                        <option value="PASM">PASM</option>
+                        <option value="PASB">PASB</option>
+                        <option value="Botiquines Avanzada">Botiquines Avanzada</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        
+        <div id="reader"></div>
+        
+        <div class="divider">Ó</div>
+        
+        <div class="usb-scanner-section">
+            <label for="manualBarcode">¿Usas Pistola Lectora USB?</label>
+            <div class="usb-input-container">
+                <i>⌨️</i>
+                <input type="text" id="manualBarcode" placeholder="Haz clic aquí y dispara el escáner..." onkeypress="handleManualScan(event)" autocomplete="off">
+            </div>
+            <p style="font-size: 12px; color: #15803d; margin: 8px 0 0 0;">El código se procesará automáticamente al escanear.</p>
+        </div>
+        
+        <input type="hidden" id="scannerAction">
+    </div>
+</div>
+
+<!-- Modal para Seleccionar Lote -->
+<div id="batchSelectionModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 style="margin: 0; font-size: 20px; color: #1e293b;">Seleccionar Lote</h2>
+            <button class="close-btn" onclick="closeModal('batchSelectionModal')">×</button>
+        </div>
+        <p>El producto escaneado tiene múltiples lotes en inventario. Seleccione de cuál desea hacer el egreso:</p>
+        <div id="batchList" class="responsive-flex" style="margin-top: 15px;">
+            <!-- Opciones generadas por JS -->
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Confirmar Ingreso por QR -->
+<div id="qrIngresoModal" class="modal">
+    <div class="modal-content" style="max-width: 500px;">
+        <div class="modal-header">
+            <h2 style="margin: 0; font-size: 20px; color: #1e293b;">Confirmar Ingreso</h2>
+            <button class="close-btn" onclick="closeModal('qrIngresoModal')">×</button>
+        </div>
+        <div style="background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 15px;">
+            <strong id="qrIngresoNombre" style="font-size: 16px; color: #334155; display: block; margin-bottom: 5px;"></strong>
+            <div class="responsive-flex" style="color: #64748b; font-size: 13px;">
+                <span id="qrIngresoTipo"></span>
+                <span id="qrIngresoInvima"></span>
+            </div>
+        </div>
+        
+        <form id="qrIngresoForm" method="POST" action="{{ url_for('inventarios.inventarios_scan_process_ingreso') }}">
+            <input type="hidden" name="codigo_barras" id="qrIngresoCodigo">
+            
+            <div class="form-group">
+                <label>Cantidad a Ingresar</label>
+                <input type="number" name="cantidad" min="1" value="1" required>
+            </div>
+            
+            <div class="form-group">
+                <label>Lote</label>
+                <select name="item_id" id="qrIngresoLoteSelect" onchange="handleQrIngresoLoteChange()" required>
+                    <!-- Options generated by JS -->
+                </select>
+            </div>
+            
+            <div id="qrIngresoNuevoLoteGroup" style="display: none; padding: 10px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 6px; margin-bottom: 15px;">
+                <div class="form-group" style="margin-bottom: 10px;">
+                    <label>Nuevo Lote</label>
+                    <input type="text" name="nuevo_lote" id="qrIngresoNuevoLote">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Fecha de Vencimiento</label>
+                <input type="date" name="fecha_vencimiento" id="qrIngresoFechaVencimiento" required>
+            </div>
+            
+            <div class="responsive-flex" style="justify-content: flex-end;">
+                <button type="submit" class="inv-btn btn-green">Confirmar Ingreso</button>
+                <button type="button" class="inv-btn" style="background: #94a3b8;" onclick="closeModal('qrIngresoModal')">Cancelar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal para Ingreso/Egreso Manual -->
+<div id="manualUpdateModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="manualUpdateTitle" style="margin: 0; font-size: 20px; color: #1e293b;">Actualizar Stock Manualmente</h2>
+            <button class="close-btn" onclick="closeModal('manualUpdateModal')">×</button>
+        </div>
+        <form method="POST" action="{{ url_for('inventarios.inventarios_manual_update') }}">
+            <input type="hidden" name="accion" id="manualUpdateAction">
+            
+            <div id="manualEgresoFields" style="display: none; margin-bottom: 15px; padding: 15px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+                <div class="form-group">
+                    <label>Tipo de Egreso</label>
+                    <select name="tipo_egreso" id="manualTipoEgreso" onchange="toggleManualDestino()">
+                        <option value="" disabled selected>-- Seleccione --</option>
+                        <option value="Reposicion">Reposición</option>
+                        <option value="Averia">Avería</option>
+                        <option value="Vencimiento">Vencimiento</option>
+                    </select>
+                </div>
+                <div class="form-group" id="manualDestinoGroup" style="display: none;">
+                    <label>Destino</label>
+                    <select name="destino" id="manualDestino">
+                        <option value="" disabled selected>-- Seleccione Destino --</option>
+                        <option value="Movil 1">Móvil 1</option>
+                        <option value="Movil 2">Móvil 2</option>
+                        <option value="Movil 3">Móvil 3</option>
+                        <option value="Movil 4">Móvil 4</option>
+                        <option value="Movil 5">Móvil 5</option>
+                        <option value="Movil 6">Móvil 6</option>
+                        <option value="Unidad de Rescate">Unidad de Rescate</option>
+                        <option value="PASM">PASM</option>
+                        <option value="PASB">PASB</option>
+                        <option value="Botiquines Avanzada">Botiquines Avanzada</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Seleccionar Producto</label>
+                <select name="item_id" id="manualProductSelect" required>
+                    <option value="" disabled selected>-- Seleccione un producto --</option>
+                    {% for item in items %}
+                    <option value="{{ item.id }}">{{ item.nombre }} (Stock: {{ item.cantidad }} | Lote: {{ item.lote or 'N/A' }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Cantidad a <span id="manualUpdateLabel"></span></label>
+                <input type="number" name="cantidad" min="1" value="1" required>
+            </div>
+            <div class="responsive-flex" style="justify-content: flex-end;">
+                <button type="submit" class="inv-btn btn-green" id="manualUpdateSubmit">Confirmar</button>
+                <button type="button" class="inv-btn" style="background: #94a3b8;" onclick="closeModal('manualUpdateModal')">Cancelar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Variables del escaner
+    let html5QrcodeScanner = null;
+
+    // --- Funciones del CRUD Modal ---
+    function openModal(mode, data = null) {
+        const modal = document.getElementById('invModal');
+        const form = document.getElementById('invForm');
+        const title = document.getElementById('modalTitle');
+
+        if (mode === 'add') {
+            title.textContent = 'Agregar Nuevo Producto';
+            form.action = "{{ url_for('inventarios.inventarios_add') }}";
+            form.reset();
+            document.getElementById('toggleCodigoSecundario').checked = false;
+            document.getElementById('codigoSecundarioGroup').style.display = 'none';
+        } else if (mode === 'edit' && data) {
+            title.textContent = 'Editar Producto';
+            form.action = "{{ url_for('inventarios.inventarios_edit', item_id=0) }}".replace('0', data.id);
+            document.getElementById('invCodigoBarras').value = data.codigo_barras || '';
+            document.getElementById('invTipo').value = data.tipo;
+            document.getElementById('invNombre').value = data.nombre;
+            document.getElementById('invInvima').value = data.invima || '';
+            document.getElementById('invCum').value = data.cum || '';
+            document.getElementById('invCantidad').value = data.cantidad;
+            document.getElementById('invLote').value = data.lote || '';
+            document.getElementById('invVencimiento').value = data.fecha_vencimiento || '';
+            document.getElementById('invObservaciones').value = data.observaciones || '';
+            
+            if (data.codigo_secundario) {
+                document.getElementById('toggleCodigoSecundario').checked = true;
+                document.getElementById('codigoSecundarioGroup').style.display = 'block';
+                document.getElementById('invCodigoSecundario').value = data.codigo_secundario;
+            } else {
+                document.getElementById('toggleCodigoSecundario').checked = false;
+                document.getElementById('codigoSecundarioGroup').style.display = 'none';
+                document.getElementById('invCodigoSecundario').value = '';
+            }
+        }
+        
+        modal.style.display = 'block';
+    }
+
+    function openCatalogModal() {
+        document.getElementById('catalogModal').style.display = 'block';
+    }
+
+    function editarCatalogo(cat) {
+        document.getElementById('titleCatalogoForm').textContent = 'Editar Ítem del Catálogo';
+        document.getElementById('formCatalogo').action = "{{ url_for('inventarios.catalogo_edit', item_id=0) }}".replace('0', cat.id);
+        document.getElementById('catNombre').value = cat.nombre;
+        document.getElementById('catTipo').value = cat.tipo;
+        document.getElementById('catInvima').value = cat.invima || '';
+        document.getElementById('catCum').value = cat.cum || '';
+        document.getElementById('btnSubmitCatalogo').textContent = 'Guardar';
+        document.getElementById('btnCancelCatalogo').style.display = 'block';
+    }
+
+    function resetCatalogoForm() {
+        document.getElementById('titleCatalogoForm').textContent = 'Agregar Nuevo al Catálogo';
+        document.getElementById('formCatalogo').action = "{{ url_for('inventarios.catalogo_add') }}";
+        document.getElementById('formCatalogo').reset();
+        document.getElementById('btnSubmitCatalogo').textContent = 'Añadir';
+        document.getElementById('btnCancelCatalogo').style.display = 'none';
+    }
+
+    function autoFillCatalog() {
+        const input = document.getElementById('invNombre');
+        const list = document.getElementById('catalogoList');
+        if (!list) return;
+        const val = input.value;
+        const options = list.options;
+        for (let i = 0; i < options.length; i++) {
+            if (options[i].value === val) {
+                const tipo = options[i].getAttribute('data-tipo');
+                const invima = options[i].getAttribute('data-invima');
+                const cum = options[i].getAttribute('data-cum');
+                if (tipo) document.getElementById('invTipo').value = tipo;
+                if (invima) document.getElementById('invInvima').value = invima;
+                if (cum) document.getElementById('invCum').value = cum;
+                break;
+            }
+        }
+    }
+
+    function handleQrIngresoLoteChange() {
+        const select = document.getElementById('qrIngresoLoteSelect');
+        const nuevoLoteGroup = document.getElementById('qrIngresoNuevoLoteGroup');
+        const fechaVenc = document.getElementById('qrIngresoFechaVencimiento');
+        
+        if (select.value === 'nuevo_lote') {
+            nuevoLoteGroup.style.display = 'block';
+            document.getElementById('qrIngresoNuevoLote').required = true;
+            fechaVenc.value = '';
+            fechaVenc.readOnly = false;
+        } else {
+            nuevoLoteGroup.style.display = 'none';
+            document.getElementById('qrIngresoNuevoLote').required = false;
+            // Get date from selected option
+            const selectedOption = select.options[select.selectedIndex];
+            if (selectedOption && selectedOption.dataset.vencimiento) {
+                fechaVenc.value = selectedOption.dataset.vencimiento;
+                fechaVenc.readOnly = true;
+            } else {
+                fechaVenc.value = '';
+                fechaVenc.readOnly = false;
+            }
+        }
+    }
+
+    // --- Funciones del Scanner ---
+    function openScanner(accion) {
+        document.getElementById('scannerAction').value = accion;
+        let title = '📸 Escanear';
+        
+        const egresoFields = document.getElementById('egresoScannerFields');
+        if (accion === 'ingreso') {
+            title = '📸 Escanear para INGRESO';
+            egresoFields.style.display = 'none';
+        } else if (accion === 'egreso') {
+            title = '📸 Escanear para EGRESO';
+            egresoFields.style.display = 'block';
+        } else if (accion === 'nuevo') {
+            title = '📸 Escanear NUEVO PRODUCTO';
+            egresoFields.style.display = 'none';
+        }
+        
+        document.getElementById('scannerTitle').textContent = title;
+        document.getElementById('scannerModal').style.display = 'block';
+        
+        // Auto-enfocar el input para pistolas USB
+        setTimeout(() => document.getElementById('manualBarcode').focus(), 100);
+
+        // Iniciar cámara si está disponible
+        if (!html5QrcodeScanner) {
+            html5QrcodeScanner = new Html5QrcodeScanner("reader", { 
+                fps: 10, 
+                qrbox: {width: 200, height: 200},
+                aspectRatio: window.innerWidth < 768 ? 1.777778 : 1.333334
+            }, false);
+            html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+        }
+    }
+
+    function closeScanner() {
+        document.getElementById('scannerModal').style.display = 'none';
+        if (html5QrcodeScanner) {
+            html5QrcodeScanner.clear();
+            html5QrcodeScanner = null;
+        }
+        document.getElementById('manualBarcode').value = '';
+    }
+
+    function onScanSuccess(decodedText, decodedResult) {
+        // Pausar el escáner para evitar múltiples lecturas (falla si es escaneo por archivo, por eso el try-catch)
+        if (html5QrcodeScanner) {
+            try { html5QrcodeScanner.pause(); } catch(e) {}
+        }
+        processBarcode(decodedText);
+    }
+
+    function onScanFailure(error) {
+        // ignorar errores de lectura mientras busca
+    }
+
+    function handleManualScan(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            const code = e.target.value.trim();
+            if (code) {
+                processBarcode(code);
+            }
+        }
+    }
+
+    let pendingConfirmationCode = null;
+
+    function processBarcode(codigo, itemId = null) {
+        if (pendingConfirmationCode && !itemId) {
+            if (codigo === pendingConfirmationCode) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Código confirmado',
+                    text: 'Proceda a registrar el producto.',
+                    confirmButtonText: 'Continuar',
+                    customClass: { popup: 'swal2-custom-popup', title: 'swal2-custom-title', confirmButton: 'swal2-custom-confirm' }
+                }).then(() => {
+                    closeScanner();
+                    openModal('add');
+                    document.getElementById('invCodigoBarras').value = codigo;
+                    pendingConfirmationCode = null;
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Códigos no coinciden',
+                    text: 'Intente de nuevo.',
+                    confirmButtonText: 'Reintentar',
+                    customClass: { popup: 'swal2-custom-popup', title: 'swal2-custom-title', confirmButton: 'swal2-custom-confirm' }
+                }).then(() => {
+                    pendingConfirmationCode = null;
+                    if (html5QrcodeScanner) {
+                        try { html5QrcodeScanner.resume(); } catch(e) {}
+                    }
+                    document.getElementById('manualBarcode').value = '';
+                    document.getElementById('manualBarcode').focus();
+                });
+            }
+            return;
+        }
+
+        const accion = document.getElementById('scannerAction').value;
+        let tipo_egreso = '';
+        let destino = '';
+
+        if (accion === 'egreso') {
+            tipo_egreso = document.getElementById('scannerTipoEgreso').value;
+            if (!tipo_egreso) {
+                Swal.fire({
+                    title: 'Tipo de Egreso Requerido',
+                    text: 'Seleccione el motivo del egreso para continuar con el escaneo:',
+                    input: 'select',
+                    inputOptions: {
+                        'Reposicion': 'Reposición',
+                        'Averia': 'Avería',
+                        'Vencimiento': 'Vencimiento'
+                    },
+                    inputPlaceholder: '-- Seleccione --',
+                    showCancelButton: true,
+                    confirmButtonText: 'Continuar',
+                    cancelButtonText: 'Cancelar',
+                    customClass: { popup: 'swal2-custom-popup', title: 'swal2-custom-title', confirmButton: 'swal2-custom-confirm' },
+                    inputValidator: (value) => {
+                        return new Promise((resolve) => {
+                            if (value) resolve();
+                            else resolve('Debe seleccionar una opción');
+                        });
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        document.getElementById('scannerTipoEgreso').value = result.value;
+                        toggleScannerDestino();
+                        processBarcode(codigo, itemId);
+                    } else {
+                        if (html5QrcodeScanner) {
+                            try { html5QrcodeScanner.resume(); } catch(e) {}
+                        }
+                        document.getElementById('manualBarcode').value = '';
+                    }
+                });
+                return;
+            }
+            if (tipo_egreso === 'Reposicion') {
+                destino = document.getElementById('scannerDestino').value;
+                if (!destino) {
+                    Swal.fire({
+                        title: 'Destino Requerido',
+                        text: 'Seleccione el destino de la reposición:',
+                        input: 'select',
+                        inputOptions: {
+                            'Movil 1': 'Móvil 1',
+                            'Movil 2': 'Móvil 2',
+                            'Movil 3': 'Móvil 3',
+                            'Movil 4': 'Móvil 4',
+                            'Movil 5': 'Móvil 5',
+                            'Movil 6': 'Móvil 6',
+                            'Unidad de Rescate': 'Unidad de Rescate',
+                            'PASM': 'PASM',
+                            'PASB': 'PASB',
+                            'Botiquines Avanzada': 'Botiquines Avanzada'
+                        },
+                        inputPlaceholder: '-- Seleccione Destino --',
+                        showCancelButton: true,
+                        confirmButtonText: 'Continuar',
+                        cancelButtonText: 'Cancelar',
+                        customClass: { popup: 'swal2-custom-popup', title: 'swal2-custom-title', confirmButton: 'swal2-custom-confirm' },
+                        inputValidator: (value) => {
+                            return new Promise((resolve) => {
+                                if (value) resolve();
+                                else resolve('Debe seleccionar un destino');
+                            });
+                        }
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            document.getElementById('scannerDestino').value = result.value;
+                            processBarcode(codigo, itemId);
+                        } else {
+                            if (html5QrcodeScanner) {
+                                try { html5QrcodeScanner.resume(); } catch(e) {}
+                            }
+                            document.getElementById('manualBarcode').value = '';
+                        }
+                    });
+                    return;
+                }
+            }
+        }
+
+        const formData = new FormData();
+        formData.append('codigo_barras', codigo);
+        formData.append('accion', accion);
+        
+        if (accion === 'ingreso') {
+            // New logic for advanced ingreso
+            fetch("{{ url_for('inventarios.inventarios_scan_info') }}", {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'not_found' || data.is_new) {
+                    // New product confirmation flow
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Producto no registrado',
+                        text: 'Por favor, realice una nueva lectura del código para confirmar antes de registrar el producto.',
+                        confirmButtonText: 'Entendido',
+                        customClass: { popup: 'swal2-custom-popup', title: 'swal2-custom-title', confirmButton: 'swal2-custom-confirm' }
+                    }).then(() => {
+                        pendingConfirmationCode = codigo;
+                        if (html5QrcodeScanner) {
+                            try { html5QrcodeScanner.resume(); } catch(e) {}
+                        }
+                        document.getElementById('manualBarcode').value = '';
+                        document.getElementById('manualBarcode').focus();
+                    });
+                } else if (data.status === 'success') {
+                    // Open confirmation modal
+                    closeScanner(); // Close scanner to show modal
+                    document.getElementById('qrIngresoCodigo').value = codigo;
+                    document.getElementById('qrIngresoNombre').textContent = data.product.nombre;
+                    document.getElementById('qrIngresoTipo').innerHTML = `<strong>Tipo:</strong> ${data.product.tipo}`;
+                    document.getElementById('qrIngresoInvima').innerHTML = `<strong>Invima:</strong> ${data.product.invima || 'N/A'} <strong>CUM:</strong> ${data.product.cum || 'N/A'}`;
+                    
+                    const select = document.getElementById('qrIngresoLoteSelect');
+                    select.innerHTML = '';
+                    
+                    data.batches.forEach(batch => {
+                        const option = document.createElement('option');
+                        option.value = batch.id;
+                        option.textContent = `Lote: ${batch.lote || 'Sin Lote'} (Vence: ${batch.fecha_vencimiento || 'N/A'}) - Stock: ${batch.cantidad}`;
+                        option.dataset.vencimiento = batch.fecha_vencimiento || '';
+                        select.appendChild(option);
+                    });
+                    
+                    const newOption = document.createElement('option');
+                    newOption.value = 'nuevo_lote';
+                    newOption.textContent = '✨ Agregar Nuevo Lote';
+                    select.appendChild(newOption);
+                    
+                    handleQrIngresoLoteChange(); // Initialize fields
+                    document.getElementById('qrIngresoModal').style.display = 'block';
+                }
+            })
+            .catch(err => {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Ocurrió un error al procesar el código.',
+                });
+            });
+            return;
+        }
+
+        const executeScanFetch = (form, scanCode) => {
+            fetch("{{ url_for('inventarios.inventarios_scan') }}", {
+                method: 'POST',
+                body: form
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Éxito',
+                        text: data.message,
+                        confirmButtonText: 'Continuar',
+                        customClass: { popup: 'swal2-custom-popup', title: 'swal2-custom-title', confirmButton: 'swal2-custom-confirm' }
+                    }).then(() => {
+                        if (html5QrcodeScanner) {
+                            try { html5QrcodeScanner.resume(); } catch(e) {}
+                        }
+                        document.getElementById('manualBarcode').value = '';
+                        document.getElementById('manualBarcode').focus();
+                    });
+                } else if (data.status === 'multiple_batches') {
+                    showBatchSelection(data.items, scanCode);
+                } else if (data.is_new) {
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Producto no registrado',
+                        text: 'Por favor, realice una nueva lectura del código para confirmar antes de registrar el producto.',
+                        confirmButtonText: 'Entendido',
+                        customClass: { popup: 'swal2-custom-popup', title: 'swal2-custom-title', confirmButton: 'swal2-custom-confirm' }
+                    }).then(() => {
+                        pendingConfirmationCode = data.codigo;
+                        if (html5QrcodeScanner) {
+                            try { html5QrcodeScanner.resume(); } catch(e) {}
+                        }
+                        document.getElementById('manualBarcode').value = '';
+                        document.getElementById('manualBarcode').focus();
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Atención',
+                        text: data.message,
+                        confirmButtonText: 'Entendido',
+                        customClass: { popup: 'swal2-custom-popup', title: 'swal2-custom-title', confirmButton: 'swal2-custom-confirm' }
+                    }).then(() => {
+                        if (html5QrcodeScanner) {
+                            try { html5QrcodeScanner.resume(); } catch(e) {}
+                        }
+                        document.getElementById('manualBarcode').value = '';
+                        document.getElementById('manualBarcode').focus();
+                    });
+                }
+            })
+            .catch(err => {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Ocurrió un error al procesar el código.',
+                    confirmButtonText: 'Entendido',
+                    customClass: { popup: 'swal2-custom-popup', title: 'swal2-custom-title', confirmButton: 'swal2-custom-confirm' }
+                }).then(() => {
+                    if (html5QrcodeScanner) {
+                        try { html5QrcodeScanner.resume(); } catch(e) {}
+                    }
+                    document.getElementById('manualBarcode').value = '';
+                });
+            });
+        };
+
+        if (accion === 'egreso') {
+            Swal.fire({
+                title: 'Cantidad a retirar',
+                text: 'Ingrese la cantidad (por defecto 1)',
+                input: 'number',
+                inputValue: 1,
+                inputAttributes: {
+                    min: 1,
+                    step: 1
+                },
+                showCancelButton: true,
+                confirmButtonText: 'Confirmar',
+                cancelButtonText: 'Cancelar',
+                customClass: { popup: 'swal2-custom-popup', title: 'swal2-custom-title', confirmButton: 'swal2-custom-confirm' }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const cantidad = parseInt(result.value) || 1;
+                    formData.append('cantidad', cantidad);
+                    if (tipo_egreso) formData.append('tipo_egreso', tipo_egreso);
+                    if (destino) formData.append('destino', destino);
+                    if (itemId) formData.append('item_id', itemId);
+                    
+                    executeScanFetch(formData, codigo);
+                } else {
+                    if (html5QrcodeScanner) {
+                        try { html5QrcodeScanner.resume(); } catch(e) {}
+                    }
+                    document.getElementById('manualBarcode').value = '';
+                    document.getElementById('manualBarcode').focus();
+                }
+            });
+        } else {
+            formData.append('cantidad', 1);
+            if (itemId) formData.append('item_id', itemId);
+            executeScanFetch(formData, codigo);
+        }
+    }
+
+    function showBatchSelection(items, codigo) {
+        const batchList = document.getElementById('batchList');
+        batchList.innerHTML = '';
+        
+        items.forEach(item => {
+            const btn = document.createElement('button');
+            btn.className = 'inv-btn btn-purple';
+            btn.style.width = '100%';
+            btn.style.justifyContent = 'space-between';
+            btn.innerHTML = `<span>Lote: ${item.lote || 'N/A'} (Vence: ${item.fecha_vencimiento || 'N/A'})</span> <span>Stock: ${item.cantidad}</span>`;
+            btn.onclick = () => {
+                closeModal('batchSelectionModal');
+                processBarcode(codigo, item.id);
+            };
+            batchList.appendChild(btn);
+        });
+        
+        document.getElementById('batchSelectionModal').style.display = 'block';
+    }
+
+    function toggleScannerDestino() {
+        const tipo = document.getElementById('scannerTipoEgreso').value;
+        const destinoGroup = document.getElementById('scannerDestinoGroup');
+        if (tipo === 'Reposicion') {
+            destinoGroup.style.display = 'block';
+        } else {
+            destinoGroup.style.display = 'none';
+            document.getElementById('scannerDestino').value = '';
+        }
+    }
+    
+    function toggleManualDestino() {
+        const tipo = document.getElementById('manualTipoEgreso').value;
+        const destinoGroup = document.getElementById('manualDestinoGroup');
+        const destinoSelect = document.getElementById('manualDestino');
+        if (tipo === 'Reposicion') {
+            destinoGroup.style.display = 'block';
+            destinoSelect.required = true;
+        } else {
+            destinoGroup.style.display = 'none';
+            destinoSelect.required = false;
+            destinoSelect.value = '';
+        }
+    }
+
+    // --- Funciones para Actualización Manual ---
+    function openManualUpdate(accion) {
+        document.getElementById('manualUpdateAction').value = accion;
+        
+        const title = document.getElementById('manualUpdateTitle');
+        const label = document.getElementById('manualUpdateLabel');
+        const btn = document.getElementById('manualUpdateSubmit');
+        const egresoFields = document.getElementById('manualEgresoFields');
+        const tipoEgreso = document.getElementById('manualTipoEgreso');
+        
+        if (accion === 'ingreso') {
+            title.textContent = '➕ Ingreso Manual de Stock';
+            label.textContent = 'ingresar';
+            btn.textContent = 'Confirmar Ingreso';
+            btn.className = 'inv-btn btn-green';
+            egresoFields.style.display = 'none';
+            tipoEgreso.required = false;
+        } else {
+            title.textContent = '➖ Egreso Manual de Stock';
+            label.textContent = 'retirar';
+            btn.textContent = 'Confirmar Egreso';
+            btn.className = 'inv-btn btn-red';
+            egresoFields.style.display = 'block';
+            tipoEgreso.required = true;
+        }
+        
+        document.getElementById('manualUpdateModal').style.display = 'block';
+    }
+
+    // Initialize Choices.js
+    let productChoices = null;
+    document.addEventListener('DOMContentLoaded', function() {
+        const el = document.getElementById('manualProductSelect');
+        if(el) {
+            productChoices = new Choices(el, {
+                searchEnabled: true,
+                itemSelectText: '',
+                shouldSort: false,
+                noResultsText: 'No se encontraron productos',
+                noChoicesText: 'No hay opciones',
+                placeholderValue: '-- Seleccione un producto --'
+            });
+        }
+    });
+
+    // Generic closeModal
+    function closeModal(modalId) {
+        document.getElementById(modalId).style.display = 'none';
+    }
+
+    // window.onclick eliminated to prevent closing modal by clicking outside
+    document.getElementById('qrIngresoForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        
+        fetch(this.action, {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                closeModal('qrIngresoModal');
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Éxito',
+                    text: data.message,
+                    confirmButtonText: 'Continuar',
+                    customClass: { popup: 'swal2-custom-popup', title: 'swal2-custom-title', confirmButton: 'swal2-custom-confirm' }
+                }).then(() => {
+                    window.location.reload();
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: data.message,
+                });
+            }
+        })
+        .catch(err => {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Ocurrió un error al procesar el ingreso.',
+            });
+        });
+    });
+
+    // Filtro y Búsqueda
+    const searchInput = document.getElementById('searchInput');
+    const typeFilter = document.getElementById('typeFilter');
+    const dateStart = document.getElementById('dateFilterStart');
+    const dateEnd = document.getElementById('dateFilterEnd');
+    const tableRows = document.querySelectorAll('.inv-table tbody tr');
+
+    function clearDateFilter() {
+        if(dateStart) dateStart.value = '';
+        if(dateEnd) dateEnd.value = '';
+        filterTable();
+    }
+
+    function toggleDateFilter(show) {
+        const container = document.getElementById('dateFilterContainer');
+        if (show) {
+            container.style.display = 'flex';
+        } else {
+            container.style.display = 'none';
+            clearDateFilter();
+        }
+    }
+
+    function filterTable() {
+        const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
+        const selectedType = typeFilter ? typeFilter.value : 'all';
+        const startVal = dateStart ? dateStart.value : '';
+        const endVal = dateEnd ? dateEnd.value : '';
+        let totalQty = 0;
+        
+        // Always query fresh rows just in case
+        const currentRows = document.querySelectorAll('.inv-table tbody tr');
+
+        currentRows.forEach(row => {
+            if(row.cells.length < 6) return; // Empty state row or invalid row
+            
+            const textContent = row.textContent.toLowerCase();
+            const typeCell = row.cells[1].textContent.trim();
+            const dateCellAttr = row.cells[4].getAttribute('data-date');
+            const dateCell = (dateCellAttr && dateCellAttr.trim() !== '') ? dateCellAttr : row.cells[4].textContent.trim();
+            
+            const matchesSearch = textContent.includes(searchTerm);
+            const matchesType = selectedType === 'all' || typeCell.includes(selectedType);
+            
+            let matchesDate = true;
+            if (startVal || endVal) {
+                if (dateCell === 'N/A' || !dateCell) {
+                    matchesDate = false;
+                } else {
+                    if (startVal && dateCell < startVal) matchesDate = false;
+                    if (endVal && dateCell > endVal) matchesDate = false;
+                }
+            }
+
+            if (matchesSearch && matchesType && matchesDate) {
+                row.style.display = '';
+                const qtyStr = row.cells[5].textContent.trim().replace(/[^\d.-]/g, '');
+                const qty = parseInt(qtyStr, 10);
+                if(!isNaN(qty)) {
+                    totalQty += qty;
+                }
+            } else {
+                row.style.display = 'none';
+            }
+        });
+        
+        const totalEl = document.getElementById('totalQuantity');
+        if (totalEl) {
+            totalEl.textContent = totalQty;
+        }
+    }
+
+    function colorCodeDates() {
+        const rows = document.querySelectorAll('.inv-table tbody tr');
+        const now = new Date();
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        
+        const threeMonthsFromNow = new Date(today);
+        threeMonthsFromNow.setMonth(today.getMonth() + 3);
+        
+        const sixMonthsFromNow = new Date(today);
+        sixMonthsFromNow.setMonth(today.getMonth() + 6);
+        
+        rows.forEach(row => {
+            if (row.cells.length < 6) return;
+            const cell = row.cells[4];
+            const dateStr = cell.getAttribute('data-date');
+            
+            if (!dateStr || dateStr === 'N/A') return;
+            
+            const parts = dateStr.split('-');
+            if (parts.length !== 3) return;
+            
+            const expDate = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+            
+            if (expDate <= today) {
+                cell.innerHTML = `<span style="background-color: #f5f5f4; color: #78350f; padding: 4px 8px; border-radius: 4px; font-weight: bold; display: inline-block; border: 1px solid #b45309;" title="¡Vencido!">${dateStr}</span>`;
+            } else if (expDate <= threeMonthsFromNow) {
+                cell.innerHTML = `<span style="background-color: #fee2e2; color: #dc2626; padding: 4px 8px; border-radius: 4px; font-weight: bold; display: inline-block; border: 1px solid #f87171;" title="Vence en menos de 3 meses">${dateStr}</span>`;
+            } else if (expDate <= sixMonthsFromNow) {
+                cell.innerHTML = `<span style="background-color: #fef9c3; color: #ca8a04; padding: 4px 8px; border-radius: 4px; font-weight: bold; display: inline-block; border: 1px solid #facc15;" title="Vence en menos de 6 meses">${dateStr}</span>`;
+            } else {
+                cell.innerHTML = `<span style="background-color: #dcfce7; color: #166534; padding: 4px 8px; border-radius: 4px; font-weight: bold; display: inline-block; border: 1px solid #4ade80;" title="Vigente por más de 6 meses">${dateStr}</span>`;
+            }
+        });
+    }
+
+    if (searchInput) searchInput.addEventListener('input', filterTable);
+    if (typeFilter) typeFilter.addEventListener('change', filterTable);
+    if (dateStart) dateStart.addEventListener('change', filterTable);
+    if (dateEnd) dateEnd.addEventListener('change', filterTable);
+    
+    function confirmDelete(event, formElement, titleText, messageText) {
+        event.preventDefault();
+        Swal.fire({
+            title: titleText,
+            text: messageText,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#94a3b8',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar',
+            customClass: { popup: 'swal2-custom-popup', title: 'swal2-custom-title', confirmButton: 'swal2-custom-confirm' }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                formElement.submit();
+            }
+        });
+        return false;
+    }
+
+    // Call once to initialize total
+    document.addEventListener('DOMContentLoaded', function() {
+        filterTable();
+        colorCodeDates();
+        
+        const manualSelect = document.getElementById('manualProductSelect');
+        if (manualSelect) {
+            new Choices(manualSelect, {
+                searchEnabled: true,
+                itemSelectText: '',
+                noResultsText: 'No se encontraron productos',
+                shouldSort: false,
+                placeholderValue: '-- Seleccione un producto --',
+                searchPlaceholderValue: 'Buscar producto...'
+            });
+        }
+    });
+</script>
+{% endblock %}
