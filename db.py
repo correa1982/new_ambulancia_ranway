@@ -647,6 +647,15 @@ def init_db():
               rethus tinyint(1) DEFAULT 0,
               acta_grado tinyint(1) DEFAULT 0,
               tarjeta_profesional tinyint(1) DEFAULT 0,
+              cedula_150 tinyint(1) DEFAULT 0,
+              cert_bancario tinyint(1) DEFAULT 0,
+              banco_nombre varchar(255) DEFAULT NULL,
+              banco_cuenta varchar(255) DEFAULT NULL,
+              cert_pension tinyint(1) DEFAULT 0,
+              pension_nombre varchar(255) DEFAULT NULL,
+              cert_eps tinyint(1) DEFAULT 0,
+              eps_nombre varchar(255) DEFAULT NULL,
+              examen_fecha date DEFAULT NULL,
               activo tinyint(1) DEFAULT 1,
               PRIMARY KEY (id)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
@@ -658,6 +667,153 @@ def init_db():
         ths_columns = [row["Field"] for row in cursor.fetchall()]
         if "perfil" not in ths_columns:
             conn.execute(f"ALTER TABLE {ths_table} ADD COLUMN perfil VARCHAR(50)")
+        if "cedula_150" not in ths_columns:
+            conn.execute(f"ALTER TABLE {ths_table} ADD COLUMN cedula_150 tinyint(1) DEFAULT 0")
+        if "cert_bancario" not in ths_columns:
+            conn.execute(f"ALTER TABLE {ths_table} ADD COLUMN cert_bancario tinyint(1) DEFAULT 0")
+            conn.execute(f"ALTER TABLE {ths_table} ADD COLUMN banco_nombre varchar(255) DEFAULT NULL")
+            conn.execute(f"ALTER TABLE {ths_table} ADD COLUMN banco_cuenta varchar(255) DEFAULT NULL")
+            conn.execute(f"ALTER TABLE {ths_table} ADD COLUMN cert_pension tinyint(1) DEFAULT 0")
+            conn.execute(f"ALTER TABLE {ths_table} ADD COLUMN pension_nombre varchar(255) DEFAULT NULL")
+            conn.execute(f"ALTER TABLE {ths_table} ADD COLUMN cert_eps tinyint(1) DEFAULT 0")
+            conn.execute(f"ALTER TABLE {ths_table} ADD COLUMN eps_nombre varchar(255) DEFAULT NULL")
+        if "examen_fecha" not in ths_columns:
+            conn.execute(f"ALTER TABLE {ths_table} ADD COLUMN examen_fecha date DEFAULT NULL")
+    
+    # Crear tabla para licencias de conducción de tripulantes
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS ths_licencias_conduccion (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            identificacion VARCHAR(255) NOT NULL,
+            categoria VARCHAR(50) NOT NULL,
+            fecha_vencimiento DATE NOT NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+    """)
+    
+    # Crear tabla para vacunas de tripulantes
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS ths_vacunas (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            identificacion VARCHAR(255) NOT NULL,
+            vacuna VARCHAR(100) NOT NULL,
+            dosis VARCHAR(50) NOT NULL,
+            fecha_aplicacion DATE NOT NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+    """)
+    
+    # Crear tabla para historial de contratos de tripulantes
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS ths_contratos (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            identificacion VARCHAR(255) NOT NULL,
+            tipo_contrato VARCHAR(50) DEFAULT 'Definido',
+            duracion_meses INT DEFAULT NULL,
+            fecha_inicio DATE NOT NULL,
+            fecha_fin DATE NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+    """)
+    
+    # Crear tabla para certificados adicionales dinámicos
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS ths_certificados_adicionales (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            identificacion VARCHAR(255) NOT NULL,
+            nombre_certificado VARCHAR(255) NOT NULL,
+            fecha_realizacion DATE NOT NULL,
+            vigencia INT NOT NULL,
+            unidad_vigencia VARCHAR(20) NOT NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+    """)
+    
+    # Crear tabla para inventarios
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS inventarios (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            codigo_barras VARCHAR(255),
+            codigo_secundario VARCHAR(255),
+            tipo VARCHAR(100) NOT NULL,
+            nombre VARCHAR(255) NOT NULL,
+            invima VARCHAR(255),
+            cum VARCHAR(255),
+            cantidad INT DEFAULT 0,
+            unidad_medida VARCHAR(50),
+            lote VARCHAR(100),
+            fecha_vencimiento DATE NULL,
+            observaciones TEXT,
+            registrado_por VARCHAR(255),
+            fecha_registro DATETIME DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+    """)
+
+    # Crear tabla para el catálogo de inventarios
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS inventarios_catalogo (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            nombre VARCHAR(255) NOT NULL,
+            tipo VARCHAR(100) NOT NULL,
+            invima VARCHAR(255),
+            cum VARCHAR(255)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+    """)
+    
+    # Dynamic schema migration for inventarios
+    cursor_inv = conn.cursor()
+    cursor_inv.execute("DESCRIBE inventarios")
+    inv_cols = [row["Field"] for row in cursor_inv.fetchall()]
+    if "codigo_barras" not in inv_cols:
+        conn.execute("ALTER TABLE inventarios ADD COLUMN codigo_barras VARCHAR(255)")
+    if "codigo_secundario" not in inv_cols:
+        conn.execute("ALTER TABLE inventarios ADD COLUMN codigo_secundario VARCHAR(255)")
+    if "invima" not in inv_cols:
+        conn.execute("ALTER TABLE inventarios ADD COLUMN invima VARCHAR(255)")
+    if "cum" not in inv_cols:
+        conn.execute("ALTER TABLE inventarios ADD COLUMN cum VARCHAR(255)")
+
+    # Dynamic schema migration for inventarios_catalogo
+    cursor_cat = conn.cursor()
+    cursor_cat.execute("DESCRIBE inventarios_catalogo")
+    cat_cols = [row["Field"] for row in cursor_cat.fetchall()]
+    if "cum" not in cat_cols:
+        conn.execute("ALTER TABLE inventarios_catalogo ADD COLUMN cum VARCHAR(255)")
+        
+    # Drop UNIQUE constraint on nombre if it exists
+    try:
+        conn.execute("ALTER TABLE inventarios_catalogo DROP INDEX nombre")
+    except Exception:
+        pass
+
+    # Crear tabla para historial de inventarios
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS inventarios_historial (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            item_id INT NOT NULL,
+            codigo_barras VARCHAR(255),
+            nombre VARCHAR(255) NOT NULL,
+            lote VARCHAR(100),
+            accion VARCHAR(50) NOT NULL, -- 'ingreso' o 'egreso'
+            cantidad INT NOT NULL,
+            tipo_egreso VARCHAR(100), -- 'Reposicion', 'Averia', 'Vencimiento'
+            destino VARCHAR(255),
+            registrado_por VARCHAR(255),
+            fecha_registro DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (item_id) REFERENCES inventarios(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+    """)
+
+    
+    # Dynamic schema migration for ths_contratos
+    cursor_c = conn.cursor()
+    cursor_c.execute("DESCRIBE ths_contratos")
+    c_cols = [row["Field"] for row in cursor_c.fetchall()]
+    if "tipo_contrato" not in c_cols:
+        conn.execute("ALTER TABLE ths_contratos ADD COLUMN tipo_contrato VARCHAR(50) DEFAULT 'Definido'")
+    if "duracion_meses" not in c_cols:
+        conn.execute("ALTER TABLE ths_contratos ADD COLUMN duracion_meses INT DEFAULT NULL")
+    
+    try:
+        conn.execute("ALTER TABLE ths_contratos MODIFY fecha_fin DATE NULL")
+    except Exception:
+        pass
     
     # Dynamic schema migration for usuarios
     cursor = conn.cursor()
