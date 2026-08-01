@@ -775,10 +775,30 @@
                 <label>Seleccionar Producto</label>
                 <select name="item_id" id="manualProductSelect" required>
                     <option value="" disabled selected>-- Seleccione un producto --</option>
+                    <optgroup label="Inventario Actual">
                     {% for item in items %}
-                    <option value="{{ item.id }}">{{ item.nombre }} (Stock: {{ item.cantidad }} | Lote: {{ item.lote or 'N/A' }})</option>
+                    <option value="inv_{{ item.id }}">{{ item.nombre }} (Stock: {{ item.cantidad }} | Lote: {{ item.lote or 'N/A' }})</option>
                     {% endfor %}
+                    </optgroup>
+                    <optgroup label="Catálogo (Nuevo Ingreso)">
+                    {% for cat in catalogo %}
+                    <option value="cat_{{ cat.id }}">{{ cat.nombre }} (Catálogo)</option>
+                    {% endfor %}
+                    </optgroup>
                 </select>
+            </div>
+            <div id="manualNewProductFields" style="display: none; background: #f0fdf4; padding: 10px; border-radius: 6px; border: 1px solid #bbf7d0; margin-bottom: 15px;">
+                <p style="font-size: 12px; color: #166534; margin-top: 0; margin-bottom: 8px;"><strong>Nota:</strong> Está ingresando un producto nuevo desde el catálogo.</p>
+                <div class="responsive-flex">
+                    <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                        <label style="font-size: 13px;">Lote (Opcional)</label>
+                        <input type="text" name="lote" id="manualLote">
+                    </div>
+                    <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                        <label style="font-size: 13px;">Vencimiento (Opcional)</label>
+                        <input type="date" name="fecha_vencimiento" id="manualVencimiento">
+                    </div>
+                </div>
             </div>
             <div class="form-group">
                 <label>Cantidad a <span id="manualUpdateLabel"></span></label>
@@ -1326,6 +1346,13 @@
             btn.className = 'inv-btn btn-green';
             egresoFields.style.display = 'none';
             tipoEgreso.required = false;
+            
+            // Si el select tiene valor de catálogo, mostrar los campos
+            const manualSelect = document.getElementById('manualProductSelect');
+            const newFields = document.getElementById('manualNewProductFields');
+            if (manualSelect && manualSelect.value && manualSelect.value.startsWith('cat_') && newFields) {
+                newFields.style.display = 'block';
+            }
         } else {
             title.textContent = '➖ Egreso Manual de Stock';
             label.textContent = 'retirar';
@@ -1333,6 +1360,9 @@
             btn.className = 'inv-btn btn-red';
             egresoFields.style.display = 'block';
             tipoEgreso.required = true;
+            
+            const newFields = document.getElementById('manualNewProductFields');
+            if (newFields) newFields.style.display = 'none';
         }
         
         document.getElementById('manualUpdateModal').style.display = 'block';
@@ -1544,6 +1574,18 @@
                 shouldSort: false,
                 placeholderValue: '-- Seleccione un producto --',
                 searchPlaceholderValue: 'Buscar producto...'
+            });
+            
+            manualSelect.addEventListener('change', function() {
+                const val = this.value;
+                const newFields = document.getElementById('manualNewProductFields');
+                const accion = document.getElementById('manualUpdateAction').value;
+                
+                if (val && val.startsWith('cat_') && accion === 'ingreso') {
+                    if (newFields) newFields.style.display = 'block';
+                } else {
+                    if (newFields) newFields.style.display = 'none';
+                }
             });
         }
     });
