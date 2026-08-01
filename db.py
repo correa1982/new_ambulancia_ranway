@@ -749,7 +749,7 @@ def init_db():
     conn.execute("""
         CREATE TABLE IF NOT EXISTS inventarios_catalogo (
             id INT AUTO_INCREMENT PRIMARY KEY,
-            nombre VARCHAR(255) NOT NULL UNIQUE,
+            nombre VARCHAR(255) NOT NULL,
             tipo VARCHAR(100) NOT NULL,
             invima VARCHAR(255),
             cum VARCHAR(255)
@@ -775,6 +775,12 @@ def init_db():
     cat_cols = [row["Field"] for row in cursor_cat.fetchall()]
     if "cum" not in cat_cols:
         conn.execute("ALTER TABLE inventarios_catalogo ADD COLUMN cum VARCHAR(255)")
+        
+    # Drop UNIQUE constraint on nombre if it exists
+    try:
+        conn.execute("ALTER TABLE inventarios_catalogo DROP INDEX nombre")
+    except Exception:
+        pass
 
     # Crear tabla para historial de inventarios
     conn.execute("""
