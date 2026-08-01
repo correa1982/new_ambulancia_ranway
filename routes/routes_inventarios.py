@@ -392,14 +392,53 @@ def inventarios_scan_process_ingreso():
 
 @bp_inventarios.route('/manual_update', methods=['POST'])
 def inventarios_manual_update():
-    item_id = request.form.get('item_id')
+    item_id_raw = request.form.get('item_id', '')
     accion = request.form.get('accion') # 'ingreso' o 'egreso'
     cantidad_op = int(request.form.get('cantidad', 1))
     tipo_egreso = request.form.get('tipo_egreso', '')
     destino = request.form.get('destino', '')
+    lote = request.form.get('lote', '')
+    fecha_vencimiento = request.form.get('fecha_vencimiento')
+
+    if not fecha_vencimiento:
+        fecha_vencimiento = None
 
     conn = get_db()
-    item = conn.execute("SELECT * FROM inventarios WHERE id = %s", (item_id,)).fetchone()
+    
+    is_catalog = item_id_raw.startswith('cat_')
+    real_id = item_id_raw.replace('inv_', '').replace('cat_', '')
+    
+    if is_catalog:
+        if accion == 'egreso':
+            flash("No puede hacer egreso de un producto que aún no está en el inventario.", "error")
+            return redirect(url_for('inventarios.inventarios_index'))
+            
+        cat_item = conn.execute("SELECT * FROM inventarios_catalogo WHERE id = %s", (real_id,)).fetchone()
+        if not cat_item:
+            flash("Producto de catálogo no encontrado.", "error")
+            return redirect(url_for('inventarios.inventarios_index'))
+            
+        registrado_por = session['usuario']['nombre']
+        cursor = conn.execute("""
+            INSERT INTO inventarios (codigo_barras, codigo_secundario, tipo, nombre, invima, cum, cantidad, unidad_medida, lote, fecha_vencimiento, observaciones, registrado_por)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """, ('', '', cat_item['tipo'], cat_item['nombre'], cat_item['invima'], cat_item['cum'], cantidad_op, 'Unidades', lote, fecha_vencimiento, '', registrado_por))
+        new_id = cursor.lastrowid
+        
+        conn.execute("""
+            INSERT INTO inventarios_historial 
+            (item_id, codigo_barras, nombre, lote, accion, cantidad, tipo_egreso, destino, registrado_por)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """, (
+            new_id, '', cat_item['nombre'], lote, 
+            accion, cantidad_op, '', '', registrado_por
+        ))
+        conn.commit()
+        conn.close()
+        flash(f"Producto '{cat_item['nombre']}' ingresado desde el catálogo exitosamente. Stock: {cantidad_op}", "success")
+        return redirect(url_for('inventarios.inventarios_index'))
+
+    item = conn.execute("SELECT * FROM inventarios WHERE id = %s", (real_id,)).fetchone()
     
     if not item:
         flash("Producto no encontrado.", "error")
