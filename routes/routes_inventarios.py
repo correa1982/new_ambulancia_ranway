@@ -66,10 +66,10 @@ def catalogo_add():
         return redirect(url_for('inventarios.inventarios_index'))
         
     conn = get_db()
-    existing = conn.execute("SELECT id FROM inventarios_catalogo WHERE nombre = %s", (nombre,)).fetchone()
+    existing = conn.execute("SELECT id FROM inventarios_catalogo WHERE nombre = %s AND invima = %s", (nombre, invima)).fetchone()
     if existing:
         conn.close()
-        flash("Este ítem ya existe en el catálogo.", "error")
+        flash("Este ítem ya existe en el catálogo con el mismo registro Invima.", "error")
         return redirect(url_for('inventarios.inventarios_index'))
         
     conn.execute("INSERT INTO inventarios_catalogo (nombre, tipo, invima, cum) VALUES (%s, %s, %s, %s)", (nombre, tipo, invima, cum))
@@ -91,10 +91,10 @@ def catalogo_edit(item_id):
         return redirect(url_for('inventarios.inventarios_index'))
         
     conn = get_db()
-    existing = conn.execute("SELECT id FROM inventarios_catalogo WHERE nombre = %s AND id != %s", (nombre, item_id)).fetchone()
+    existing = conn.execute("SELECT id FROM inventarios_catalogo WHERE nombre = %s AND invima = %s AND id != %s", (nombre, invima, item_id)).fetchone()
     if existing:
         conn.close()
-        flash("Este ítem ya existe en el catálogo.", "error")
+        flash("Este ítem ya existe en el catálogo con el mismo registro Invima.", "error")
         return redirect(url_for('inventarios.inventarios_index'))
         
     conn.execute("UPDATE inventarios_catalogo SET nombre = %s, tipo = %s, invima = %s, cum = %s WHERE id = %s", (nombre, tipo, invima, cum, item_id))
