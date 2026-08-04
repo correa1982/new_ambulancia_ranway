@@ -341,15 +341,15 @@ def inventarios_scan_process_ingreso():
         conn = get_db()
         
         if item_id == 'nuevo_lote':
-            if not nuevo_lote:
-                conn.close()
-                return jsonify({"status": "error", "message": "Debe especificar un número de lote."})
-                
             # Get base product info
             base_item = conn.execute("SELECT * FROM inventarios WHERE codigo_barras = %s OR codigo_secundario = %s LIMIT 1", (codigo, codigo)).fetchone()
             if not base_item:
                 conn.close()
                 return jsonify({"status": "error", "message": "Producto base no encontrado."})
+                
+            if not nuevo_lote and base_item['tipo'] not in ['Cosméticos y Aseo', 'Material Esteril']:
+                conn.close()
+                return jsonify({"status": "error", "message": "Debe especificar un número de lote."})
                 
             cursor = conn.execute("""
                 INSERT INTO inventarios (codigo_barras, codigo_secundario, tipo, nombre, invima, cum, cantidad, unidad_medida, lote, fecha_vencimiento, observaciones)

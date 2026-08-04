@@ -187,6 +187,7 @@
             <option value="Medicamento">Medicamento</option>
             <option value="Cosméticos y Aseo">Cosméticos y Aseo</option>
             <option value="Control Especial">Control Especial</option>
+            <option value="Material Esteril">Material Esteril</option>
         </select>
         <a href="{{ url_for('inventarios.inventarios_exportar_excel') }}" class="inv-btn" style="background: #10b981; text-decoration: none; flex: 0 0 auto; white-space: nowrap; padding: 8px 12px; font-size: 13px;">📊 Exportar Excel</a>
     </div>
@@ -298,6 +299,7 @@
                         <option value="Medicamento">Medicamento</option>
                         <option value="Cosméticos y Aseo">Cosméticos y Aseo</option>
                         <option value="Control Especial">Control Especial</option>
+                        <option value="Material Esteril">Material Esteril</option>
                     </select>
                 </div>
                 <div class="form-group" style="flex: 1;">
@@ -357,6 +359,7 @@
                         <option value="Medicamento">Medicamento</option>
                         <option value="Cosméticos y Aseo">Cosméticos y Aseo</option>
                         <option value="Control Especial">Control Especial</option>
+                        <option value="Material Esteril">Material Esteril</option>
                     </select>
                 </div>
                 <div class="form-group" style="flex: 1; min-width: 120px; margin-bottom: 0;">
@@ -901,12 +904,15 @@
         const select = document.getElementById('qrIngresoLoteSelect');
         const nuevoLoteGroup = document.getElementById('qrIngresoNuevoLoteGroup');
         const fechaVenc = document.getElementById('qrIngresoFechaVencimiento');
+        const tipoText = document.getElementById('qrIngresoTipo').textContent || '';
+        const isOptionalType = tipoText.includes('Cosméticos y Aseo') || tipoText.includes('Material Esteril');
         
         if (select.value === 'nuevo_lote') {
             nuevoLoteGroup.style.display = 'block';
-            document.getElementById('qrIngresoNuevoLote').required = true;
+            document.getElementById('qrIngresoNuevoLote').required = !isOptionalType;
             fechaVenc.value = '';
             fechaVenc.readOnly = false;
+            fechaVenc.required = !isOptionalType;
         } else {
             nuevoLoteGroup.style.display = 'none';
             document.getElementById('qrIngresoNuevoLote').required = false;
@@ -915,9 +921,11 @@
             if (selectedOption && selectedOption.dataset.vencimiento) {
                 fechaVenc.value = selectedOption.dataset.vencimiento;
                 fechaVenc.readOnly = true;
+                fechaVenc.required = false;
             } else {
                 fechaVenc.value = '';
                 fechaVenc.readOnly = false;
+                fechaVenc.required = !isOptionalType;
             }
         }
     }
@@ -1451,6 +1459,8 @@
         }
     }
 
+    let isControlEspecialUnlocked = false;
+    
     function filterTable() {
         const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
         const selectedType = typeFilter ? typeFilter.value : 'all';
@@ -1470,7 +1480,20 @@
             const dateCell = (dateCellAttr && dateCellAttr.trim() !== '') ? dateCellAttr : row.cells[4].textContent.trim();
             
             const matchesSearch = textContent.includes(searchTerm);
-            const matchesType = selectedType === 'all' || typeCell.includes(selectedType);
+            
+            const isItemControlEspecial = typeCell.includes('Control Especial');
+            let matchesType = false;
+            
+            if (isItemControlEspecial) {
+                // Solo mostrar si el filtro es exactamente Control Especial y está desbloqueado
+                if (selectedType === 'Control Especial' && isControlEspecialUnlocked) {
+                    matchesType = true;
+                } else {
+                    matchesType = false;
+                }
+            } else {
+                matchesType = selectedType === 'all' || typeCell.includes(selectedType);
+            }
             
             let matchesDate = true;
             if (startVal || endVal) {
@@ -1536,7 +1559,63 @@
     }
 
     if (searchInput) searchInput.addEventListener('input', filterTable);
-    if (typeFilter) typeFilter.addEventListener('change', filterTable);
+    if (typeFilter) {
+        let controlEspecialClickCount = 0;
+        
+        typeFilter.addEventListener('change', function(e) {
+            if (this.value === 'Control Especial' && !isControlEspecialUnlocked) {
+                controlEspecialClickCount++;
+                
+                if (controlEspecialClickCount >= 2) {
+                    Swal.fire({
+                        title: 'Acceso Restringido',
+                        text: 'Ingrese la clave para ver ítems de Control Especial',
+                        input: 'password',
+                        inputAttributes: {
+                            autocapitalize: 'off',
+                            autocorrect: 'off'
+                        },
+                        showCancelButton: true,
+                        confirmButtonText: 'Desbloquear',
+                        cancelButtonText: 'Cancelar',
+                        customClass: { popup: 'swal2-custom-popup', title: 'swal2-custom-title', confirmButton: 'swal2-custom-confirm' }
+                    }).then((result) => {
+                        if (result.isConfirmed && result.value === 's0c0rr1st4s') {
+                            isControlEspecialUnlocked = true;
+                            controlEspecialClickCount = 0;
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Desbloqueado',
+                                text: 'Puede visualizar el inventario de Control Especial.',
+                                timer: 1500,
+                                showConfirmButton: false
+                            });
+                            filterTable();
+                        } else {
+                            if (result.isConfirmed) {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Clave Incorrecta',
+                                    text: 'No tiene acceso a esta información.'
+                                });
+                            }
+                            this.value = 'all'; 
+                            controlEspecialClickCount = 0; // Reset so they have to do the trick again
+                            filterTable();
+                        }
+                    });
+                } else {
+                    // Primera vez que se selecciona, no mostrar popup, simplemente filtrar (quedará oculto)
+                    filterTable();
+                }
+            } else {
+                if (this.value !== 'Control Especial') {
+                    isControlEspecialUnlocked = false; 
+                }
+                filterTable();
+            }
+        });
+    }
     if (dateStart) dateStart.addEventListener('change', filterTable);
     if (dateEnd) dateEnd.addEventListener('change', filterTable);
     
