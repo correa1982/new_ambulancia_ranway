@@ -147,6 +147,9 @@ const PWA = (() => {
         registro.datos = datos;
         registro.dedupe_key = generarDedupeKey(datos);
         registro.fecha_actualizacion = new Date().toISOString();
+        if (datos.accion === 'finalizar') {
+          registro.sincronizado = 0;
+        }
         const putReq = store.put(registro);
         putReq.onsuccess = () => resolve(id);
         putReq.onerror = e2 => reject(e2.target.error);
@@ -306,7 +309,8 @@ const PWA = (() => {
       const seenDedupe = new Set();
 
       for (const registro of pendientes) {
-        if (registro.dedupe_key && seenDedupe.has(registro.dedupe_key)) {
+        if (registro.dedupe_key && seenDedupe.has(registro.dedupe_key)
+            && !(registro.datos && registro.datos.accion === 'finalizar')) {
           await marcarSincronizado(registro.id);
           omitidos++;
           continue;
@@ -485,26 +489,37 @@ if ('serviceWorker' in navigator) {
       const reg = await navigator.serviceWorker.register('/sw.js?v=60', { scope: '/' });
       console.log('[PWA] Service Worker registrado:', reg.scope);
 
-      if (reg.installing) {
-          mostrarToast('Descargando plataforma para uso sin conexion...', 'info');
-      } else if (reg.active) {
-          mostrarToast('Sistema Offline preparado y activo.', 'success');
-      }
-
       reg.addEventListener('updatefound', () => {
         const newWorker = reg.installing;
         if (newWorker) {
             newWorker.addEventListener('statechange', () => {
-                if (newWorker.state === 'installed') {
-                    if (navigator.serviceWorker.controller) {
-                        mostrarToast('Actualizacion del modo Offline lista.', 'info');
-                    } else {
-                        mostrarToast('Descarga completada. Ya puedes desconectarte de internet de forma segura.', 'success');
-                    }
+                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                    mostrarToast('Actualización del modo Offline lista.', 'info');
                 }
             });
         }
       });
+
+      const avisarOfflineListo = async () => {
+        if (sessionStorage.getItem('pwa_offline_avisado')) return;
+        sessionStorage.setItem('pwa_offline_avisado', '1');
+        const cacheOk = await verificarPrecache();
+        mostrarToast(
+          cacheOk
+            ? 'Sistema Offline preparado y activo.'
+            : 'Modo Offline preparado con advertencias. Revisa la consola.',
+          cacheOk ? 'success' : 'warning'
+        );
+      };
+
+      if (navigator.serviceWorker.controller) {
+        await avisarOfflineListo();
+      } else {
+        navigator.serviceWorker.addEventListener('controllerchange', avisarOfflineListo, { once: true });
+        setTimeout(async () => {
+          if (navigator.serviceWorker.controller) await avisarOfflineListo();
+        }, 8000);
+      }
 
       navigator.serviceWorker.addEventListener('message', event => {
         if (event.data?.type === 'SYNC_SUCCESS') {
@@ -516,6 +531,25 @@ if ('serviceWorker' in navigator) {
       console.error('[PWA] Error registrando SW:', err);
     }
   });
+}
+
+async function verificarPrecache() {
+  try {
+    const cacheKeys = await caches.keys();
+    const esenciales = ['/', '/static/pwa-offline.js?v=59', '/static/css/styles.css', '/static/offline.html?v=3'];
+    for (const url of esenciales) {
+      let encontrado = false;
+      for (const key of cacheKeys) {
+        const cache = await caches.open(key);
+        if (await cache.match(url)) { encontrado = true; break; }
+      }
+      if (!encontrado) return false;
+    }
+    return true;
+  } catch (e) {
+    console.warn('[PWA] No se pudo verificar el precache:', e);
+    return false;
+  }
 }
 
 
