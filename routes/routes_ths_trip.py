@@ -206,7 +206,7 @@ def register_routes(app):
             c['dias_restantes'] = 0
             c['dias_vencido'] = 0
             
-            if c.get('tipo_contrato') != 'Indefinido':
+            if c.get('tipo_contrato') not in ['Indefinido', 'Indeterminado']:
                 try:
                     if isinstance(c['fecha_fin'], str) and c['fecha_fin']:
                         ff = datetime.strptime(c['fecha_fin'], '%Y-%m-%d').date()
