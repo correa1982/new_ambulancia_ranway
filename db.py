@@ -784,6 +784,32 @@ def init_db():
 
     # Crear tabla para historial de inventarios
     conn.execute("""
+        CREATE TABLE IF NOT EXISTS programacion_operativa (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            tipo_evento VARCHAR(255) NOT NULL,
+            nombre_evento VARCHAR(255) NOT NULL,
+            fecha DATE NOT NULL,
+            hora_inicio VARCHAR(50) NOT NULL,
+            hora_finalizacion VARCHAR(50),
+            lugar VARCHAR(255),
+            contacto VARCHAR(255),
+            recursos_tecnicos TEXT,
+            fecha_registro DATETIME DEFAULT CURRENT_TIMESTAMP,
+            registrado_por INT
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+    """)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS programacion_operativa_integrantes (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            programacion_id INT NOT NULL,
+            nombre VARCHAR(255) NOT NULL,
+            rol_variable VARCHAR(255),
+            orden INT,
+            FOREIGN KEY (programacion_id) REFERENCES programacion_operativa(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+    """)
+
+    conn.execute("""
         CREATE TABLE IF NOT EXISTS inventarios_historial (
             id INT AUTO_INCREMENT PRIMARY KEY,
             item_id INT NOT NULL,
@@ -1339,8 +1365,32 @@ def init_db():
         usuarios_cols = [row["Field"] for row in cursor.fetchall()]
         if "fecha_validez" not in usuarios_cols:
             conn.execute("ALTER TABLE usuarios ADD COLUMN fecha_validez DATE DEFAULT NULL")
+        if "permiso_programacion_operativa" not in usuarios_cols:
+            conn.execute("ALTER TABLE usuarios ADD COLUMN permiso_programacion_operativa TINYINT(1) DEFAULT 0")
     except Exception as e:
         print("Error al migrar la tabla usuarios:", e)
+
+    # Migrations for programacion_operativa
+    try:
+        cursor.execute("DESCRIBE programacion_operativa")
+        po_cols = [row["Field"] for row in cursor.fetchall()]
+        if "columnas_layout" not in po_cols:
+            conn.execute("ALTER TABLE programacion_operativa ADD COLUMN columnas_layout INT DEFAULT 3")
+        if "confirmado" not in po_cols:
+            conn.execute("ALTER TABLE programacion_operativa ADD COLUMN confirmado TINYINT(1) DEFAULT 0")
+        if "tarifa_asistencial" not in po_cols:
+            conn.execute("ALTER TABLE programacion_operativa ADD COLUMN tarifa_asistencial INT DEFAULT 0")
+        if "tarifa_conductor" not in po_cols:
+            conn.execute("ALTER TABLE programacion_operativa ADD COLUMN tarifa_conductor INT DEFAULT 0")
+            
+        cursor.execute("DESCRIBE programacion_operativa_integrantes")
+        poi_cols = [row["Field"] for row in cursor.fetchall()]
+        if "unidad_nombre" not in poi_cols:
+            conn.execute("ALTER TABLE programacion_operativa_integrantes ADD COLUMN unidad_nombre VARCHAR(255) DEFAULT NULL")
+        if "asistio" not in poi_cols:
+            conn.execute("ALTER TABLE programacion_operativa_integrantes ADD COLUMN asistio TINYINT(1) DEFAULT 1")
+    except Exception as e:
+        print("Error al migrar tablas programacion_operativa:", e)
 
     # Dynamic migration for vehiculos table
     try:

@@ -1,0 +1,303 @@
+{% extends "base.html" %}
+{% block title %}Explorador de Programación Operativa{% endblock %}
+{% block content %}
+
+<style>
+.header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #e2e8f0;
+    padding-bottom: 12px;
+}
+.main-card {
+    background: white;
+    padding: 24px;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+    margin-bottom: 24px;
+    border: 1px solid #e2e8f0;
+    overflow-x: auto;
+}
+.table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.table th {
+    background-color: #f8fafc;
+    color: #475569;
+    font-weight: 600;
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 2px solid #cbd5e1;
+}
+.table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid #e2e8f0;
+    color: #1e293b;
+    vertical-align: top;
+}
+.btn-primary {
+    background-color: #2563eb;
+    color: white;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-block;
+}
+.btn-primary:hover {
+    background-color: #1d4ed8;
+}
+.tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    background-color: #e0f2fe;
+    color: #0369a1;
+    margin-bottom: 4px;
+}
+.integrante-list {
+    margin: 0;
+    padding-left: 20px;
+}
+.integrante-list li {
+    font-size: 13px;
+}
+.modal-overlay {
+    position: fixed; top:0; left:0; width:100%; height:100%;
+    background: rgba(0,0,0,0.5); display:none; justify-content:center; align-items:center; z-index:1000;
+}
+.modal-content {
+    background: white; padding: 24px; border-radius: 12px;
+    width: 90%; max-width: 500px;
+    max-height: 90vh; overflow-y: auto;
+}
+.checkbox-item {
+    display: flex; align-items: center; padding: 8px; border-bottom: 1px solid #e2e8f0;
+}
+.checkbox-item input[type="checkbox"] {
+    margin-right: 12px; width: 18px; height: 18px;
+}
+</style>
+
+<div class="header-row">
+    <h2 style="margin:0; color:#1e3a5f; display:flex; align-items:center; gap:8px;">
+        <i class="ph ph-folder-open" style="color:#7e22ce;"></i> Explorador de Programación Operativa
+    </h2>
+    
+    <form method="GET" action="{{ url_for('programacion_operativa_explorador') }}" style="display:flex; gap:10px; align-items:center;">
+        <label for="fecha_filtro" style="font-size:14px; color:#475569; font-weight:600;">Fecha del Evento:</label>
+        <input type="date" name="fecha_filtro" id="fecha_filtro" value="{{ fecha_filtro }}" style="padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px;">
+        <button type="submit" class="btn-primary" style="padding: 8px 16px;">Buscar</button>
+        {% if fecha_filtro %}
+            <a href="{{ url_for('programacion_operativa_explorador') }}" class="btn-primary" style="background-color: #ef4444; padding: 8px 16px;">Limpiar</a>
+        {% endif %}
+    </form>
+    
+    <div style="display:flex; gap:10px;">
+        <button type="button" class="btn-primary" style="background-color: #10b981;" onclick="document.getElementById('modalExportar').style.display='flex'">
+            <i class="ph ph-file-csv" style="margin-right:4px;"></i> Exportar Pagos
+        </button>
+        <a href="{{ url_for('programacion_operativa') }}" class="btn-primary">+ Nueva Programación</a>
+    </div>
+</div>
+
+<!-- Modal Exportar Pagos -->
+<div id="modalExportar" class="modal-overlay">
+    <div class="modal-content" style="max-width: 400px;">
+        <h3 style="margin-top:0; color:#1e3a5f;">Exportar Pagos a Excel</h3>
+        <p style="font-size:14px; color:#64748b;">Selecciona el rango de fechas de los eventos que deseas exportar.</p>
+        <form method="GET" action="{{ url_for('programacion_operativa_exportar_pagos') }}">
+            <div style="margin-bottom:16px;">
+                <label style="font-size:12px; font-weight:600; color:#475569;">Fecha de Inicio</label>
+                <input type="date" name="fecha_inicio" required style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:4px; margin-top:4px;">
+            </div>
+            <div style="margin-bottom:20px;">
+                <label style="font-size:12px; font-weight:600; color:#475569;">Fecha de Fin</label>
+                <input type="date" name="fecha_fin" required style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:4px; margin-top:4px;">
+            </div>
+            
+            <div style="display:flex; justify-content:flex-end; gap:10px;">
+                <button type="button" class="btn-primary" style="background-color:#94a3b8;" onclick="document.getElementById('modalExportar').style.display='none'">Cancelar</button>
+                <button type="submit" class="btn-primary" style="background-color:#10b981;" onclick="setTimeout(()=>document.getElementById('modalExportar').style.display='none', 500)">Descargar Excel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="main-card">
+    {% if eventos %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Tipo Evento</th>
+                <th>Nombre del Evento</th>
+                <th>Fecha y Hora</th>
+                <th>Integrantes Asignados</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ev in eventos %}
+            <tr {% if ev.confirmado %}style="background-color: #f0fdf4;"{% endif %}>
+                <td>#{{ ev.id }}</td>
+                <td>
+                    <span class="tag">{{ ev.tipo_evento }}</span>
+                    {% if ev.confirmado %}
+                        <div style="margin-top:4px;"><span class="tag" style="background-color:#dcfce3; color:#166534;"><i class="ph ph-check-circle"></i> Confirmado</span></div>
+                    {% endif %}
+                </td>
+                <td><strong>{{ ev.nombre_evento }}</strong></td>
+                <td>
+                    {{ ev.fecha }}<br>
+                    <small style="color:#64748b;">
+                        Inicio: {{ ev.hora_inicio }} <br>
+                        {% if ev.hora_finalizacion %}Fin: {{ ev.hora_finalizacion }}{% endif %}
+                    </small>
+                </td>
+                <td>
+                    {% if ev.tipo_evento == 'Operativo Completo' %}
+                        {% set ns = namespace(current_unidad=None) %}
+                        {% for integrante in ev.integrantes %}
+                            {% if integrante.unidad_nombre != ns.current_unidad %}
+                                {% if ns.current_unidad != None %}</ul>{% endif %}
+                                <div style="font-size:12px; font-weight:700; color:#475569; margin-top:4px;">{{ integrante.unidad_nombre }}</div>
+                                <ul class="integrante-list" style="margin-bottom:4px; list-style-type:none; padding-left:10px; border-left:2px solid #cbd5e1;">
+                                {% set ns.current_unidad = integrante.unidad_nombre %}
+                            {% endif %}
+                            <li><span style="color:#64748b; font-size:11px;">{{ integrante.rol_variable }}</span> <span {% if ev.confirmado and integrante.asistio == 0 %}style="text-decoration: line-through; color: #ef4444;"{% endif %}>{{ integrante.nombre }}</span></li>
+                        {% endfor %}
+                        {% if ns.current_unidad != None %}</ul>{% endif %}
+                    {% else %}
+                        <ol class="integrante-list">
+                        {% for integrante in ev.integrantes %}
+                            <li><strong>{{ integrante.rol_variable }}</strong> - <span {% if ev.confirmado and integrante.asistio == 0 %}style="text-decoration: line-through; color: #ef4444;"{% endif %}>{{ integrante.nombre }}</span></li>
+                        {% endfor %}
+                        </ol>
+                    {% endif %}
+                </td>
+                <td style="display:flex; flex-direction:column; gap:8px;">
+                    <button class="btn-primary" style="padding: 6px 12px; font-size: 12px; background-color:#10b981;" onclick="alert('Funcionalidad de impresión en desarrollo.')">Imprimir / PDF</button>
+                    
+                    {% if ev.confirmado %}
+                        <button class="btn-primary" style="padding: 6px 12px; font-size: 12px; background-color:#f59e0b;" onclick="document.getElementById('modalConfirmar-{{ev.id}}').style.display='flex'">Editar Confirmación</button>
+                    {% else %}
+                        <button class="btn-primary" style="padding: 6px 12px; font-size: 12px; background-color:#3b82f6;" onclick="document.getElementById('modalConfirmar-{{ev.id}}').style.display='flex'">Confirmar Asistencia</button>
+                    {% endif %}
+                </td>
+            </tr>
+            
+            <!-- Modal para confirmar asistencia de este evento -->
+            <div id="modalConfirmar-{{ev.id}}" class="modal-overlay">
+                <div class="modal-content">
+                    <h3 style="margin-top:0; color:#1e3a5f;">Confirmar Asistencia - #{{ ev.id }}</h3>
+                    <p style="font-size:14px; color:#64748b;">Desmarca a las personas que NO asistieron al evento.</p>
+                    <form method="POST" action="{{ url_for('programacion_operativa_confirmar') }}">
+                        <input type="hidden" name="evento_id" value="{{ ev.id }}">
+                        
+                        <div style="margin-bottom:16px; display:flex; gap:10px;">
+                            <div style="flex:1;">
+                                <label style="font-size:12px; font-weight:600; color:#475569;">Hora Inicio</label>
+                                <input type="time" name="hora_inicio" id="hora_inicio_{{ev.id}}" value="{{ ev.hora_inicio }}" style="width:100%; padding:6px; border:1px solid #cbd5e1; border-radius:4px;" onchange="calcularDuracion({{ev.id}})">
+                            </div>
+                            <div style="flex:1;">
+                                <label style="font-size:12px; font-weight:600; color:#475569;">Hora Fin</label>
+                                <input type="time" name="hora_finalizacion" id="hora_fin_{{ev.id}}" value="{{ ev.hora_finalizacion }}" style="width:100%; padding:6px; border:1px solid #cbd5e1; border-radius:4px;" onchange="calcularDuracion({{ev.id}})">
+                            </div>
+                            <div style="flex:1; display:flex; flex-direction:column; justify-content:flex-end;">
+                                <span style="font-size:12px; font-weight:600; color:#475569;">Duración</span>
+                                <span id="duracion_{{ev.id}}" style="font-size:14px; font-weight:700; color:#2563eb;">--:--</span>
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom:16px; background:#f8fafc; padding:12px; border-radius:6px; border:1px solid #e2e8f0;">
+                            <label style="font-size:12px; font-weight:600; color:#475569; display:block; margin-bottom:8px;">Tarifas (Valor por perfil)</label>
+                            <div style="display:flex; gap:10px; align-items:center;">
+                                <div style="flex:1;">
+                                    <small style="color:#64748b;">Asistencial (APH, ENF...)</small>
+                                    <input type="number" name="tarifa_asistencial" id="tarifa_asistencial_{{ev.id}}" value="{{ ev.tarifa_asistencial or 0 }}" style="width:100%; padding:6px; border:1px solid #cbd5e1; border-radius:4px;">
+                                </div>
+                                <div style="flex:1;">
+                                    <small style="color:#64748b;">Conductor / Otros</small>
+                                    <input type="number" name="tarifa_conductor" id="tarifa_conductor_{{ev.id}}" value="{{ ev.tarifa_conductor or 0 }}" style="width:100%; padding:6px; border:1px solid #cbd5e1; border-radius:4px;">
+                                </div>
+                            </div>
+                            <button type="button" class="btn-primary" style="background-color:#e2e8f0; color:#475569; padding:4px 8px; font-size:11px; margin-top:8px; width:100%; text-align:center;" onclick="igualarTarifas({{ev.id}})">⬇️ Aplicar tarifa asistencial también al conductor</button>
+                        </div>
+                        
+                        <div style="margin-bottom:20px; border-top:1px solid #e2e8f0; padding-top:10px;">
+                            {% for integrante in ev.integrantes %}
+                                <label class="checkbox-item">
+                                    <input type="checkbox" name="asistio[]" value="{{ integrante.id }}" {% if (not ev.confirmado) or (ev.confirmado and integrante.asistio == 1) %}checked{% endif %}>
+                                    <span style="font-size:14px; font-weight:600;">{{ integrante.nombre }}</span>
+                                    <span style="font-size:12px; color:#64748b; margin-left:8px;">({{ integrante.rol_variable }}{% if integrante.unidad_nombre %} - {{ integrante.unidad_nombre }}{% endif %})</span>
+                                </label>
+                            {% endfor %}
+                        </div>
+                        
+                        <div style="display:flex; justify-content:flex-end; gap:10px;">
+                            <button type="button" class="btn-primary" style="background-color:#94a3b8;" onclick="document.getElementById('modalConfirmar-{{ev.id}}').style.display='none'">Cancelar</button>
+                            <button type="submit" class="btn-primary">Guardar Confirmación</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div style="text-align: center; padding: 40px;">
+        <i class="ph ph-files" style="font-size: 48px; color: #cbd5e1;"></i>
+        <h3 style="color: #64748b; margin-top: 10px;">No hay programaciones registradas</h3>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    function calcularDuracion(id) {
+        const hInicio = document.getElementById(`hora_inicio_${id}`).value;
+        const hFin = document.getElementById(`hora_fin_${id}`).value;
+        const spanDur = document.getElementById(`duracion_${id}`);
+        
+        if (hInicio && hFin) {
+            const [h1, m1] = hInicio.split(':').map(Number);
+            const [h2, m2] = hFin.split(':').map(Number);
+            
+            let totalMins1 = h1 * 60 + m1;
+            let totalMins2 = h2 * 60 + m2;
+            
+            // Si termina al día siguiente
+            if (totalMins2 < totalMins1) {
+                totalMins2 += 24 * 60;
+            }
+            
+            const diff = totalMins2 - totalMins1;
+            const hours = Math.floor(diff / 60);
+            const mins = diff % 60;
+            
+            spanDur.textContent = `${hours}h ${mins}m`;
+        } else {
+            spanDur.textContent = "--:--";
+        }
+    }
+    
+    function igualarTarifas(id) {
+        const vAsistencial = document.getElementById(`tarifa_asistencial_${id}`).value;
+        document.getElementById(`tarifa_conductor_${id}`).value = vAsistencial;
+    }
+    
+    document.addEventListener("DOMContentLoaded", () => {
+        {% for ev in eventos %}
+            calcularDuracion({{ev.id}});
+        {% endfor %}
+    });
+</script>
+
+{% endblock %}
