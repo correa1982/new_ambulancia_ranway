@@ -87,6 +87,7 @@ def register_routes(app):
                     "requiere_cambio_clave": user["requiere_cambio_clave"],
                     "formularios_acceso": formularios_acceso,
                     "permiso_ths_sga": user.get("permiso_ths_sga"),
+                    "permiso_programacion_operativa": user.get("permiso_programacion_operativa"),
                 }
                 return redirect(url_for("seleccionar_perfil"))
 
@@ -118,7 +119,8 @@ def register_routes(app):
                 "perfil": perfil_unico,
                 "requiere_cambio_clave": user["requiere_cambio_clave"],
                 "formularios_acceso": formularios_acceso_list,
-                "permiso_ths_sga": user.get("permiso_ths_sga")
+                "permiso_ths_sga": user.get("permiso_ths_sga"),
+                "permiso_programacion_operativa": user.get("permiso_programacion_operativa")
             }
             session.permanent = True
             
@@ -173,6 +175,7 @@ def register_routes(app):
                 "requiere_cambio_clave": pendiente["requiere_cambio_clave"],
                 "formularios_acceso": formularios_acceso_list,
                 "permiso_ths_sga": pendiente.get("permiso_ths_sga"),
+                "permiso_programacion_operativa": pendiente.get("permiso_programacion_operativa"),
             }
             session.permanent = True
             # Clean up temp data
@@ -572,6 +575,10 @@ def register_routes(app):
             firma = request.form.get("firma", "").strip()
             correo = request.form.get("correo", "").strip()
             
+            permiso_programacion_operativa = 1 if request.form.get("permiso_programacion_operativa") == "on" else 0
+            if session.get("usuario") and session["usuario"]["id"] != 1:
+                permiso_programacion_operativa = 0
+            
             formularios_acceso_dict = {}
             for p in perfiles_list:
                 formularios_acceso_dict[p] = request.form.getlist(f"formularios_acceso_{p}")
@@ -597,9 +604,9 @@ def register_routes(app):
                     hashed_identificacion = generate_password_hash(identificacion)
                     fecha_validez = request.form.get("fecha_validez", "").strip() or None
                     conn.execute("""
-                        INSERT INTO usuarios (nombre, identificacion, registro_medico, rol, perfil, activo, firma, contrasena, requiere_cambio_clave, formularios_acceso, correo, fecha_validez)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?)
-                    """, (nombre, identificacion, registro_medico, rol, perfil, activo, firma, hashed_identificacion, formularios_acceso, correo, fecha_validez))
+                        INSERT INTO usuarios (nombre, identificacion, registro_medico, rol, perfil, activo, firma, contrasena, requiere_cambio_clave, formularios_acceso, correo, fecha_validez, permiso_programacion_operativa)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?)
+                    """, (nombre, identificacion, registro_medico, rol, perfil, activo, firma, hashed_identificacion, formularios_acceso, correo, fecha_validez, permiso_programacion_operativa))
                     conn.commit()
                     flash("Usuario creado exitosamente. La contraseña inicial es su número de identificación.", "success")
                     conn.close()
@@ -631,6 +638,11 @@ def register_routes(app):
             activo = int(request.form.get("activo", 1))
             firma = request.form.get("firma", "").strip()
             correo = request.form.get("correo", "").strip()
+            
+            if session.get("usuario") and session["usuario"]["id"] == 1:
+                permiso_programacion_operativa = 1 if request.form.get("permiso_programacion_operativa") == "on" else 0
+            else:
+                permiso_programacion_operativa = user.get("permiso_programacion_operativa", 0)
             
             # Recuperar permisos antiguos por si el usuario que edita no es admin real
             old_acc_dict = {}
@@ -670,9 +682,9 @@ def register_routes(app):
                     fecha_validez = request.form.get("fecha_validez", "").strip() or None
                     conn.execute("""
                         UPDATE usuarios
-                        SET nombre = ?, identificacion = ?, registro_medico = ?, rol = ?, perfil = ?, activo = ?, firma = ?, formularios_acceso = ?, correo = ?, fecha_validez = ?
+                        SET nombre = ?, identificacion = ?, registro_medico = ?, rol = ?, perfil = ?, activo = ?, firma = ?, formularios_acceso = ?, correo = ?, fecha_validez = ?, permiso_programacion_operativa = ?
                         WHERE id = ?
-                    """, (nombre, identificacion, registro_medico, rol, perfil, activo, firma, formularios_acceso, correo, fecha_validez, user_id))
+                    """, (nombre, identificacion, registro_medico, rol, perfil, activo, firma, formularios_acceso, correo, fecha_validez, permiso_programacion_operativa, user_id))
                     conn.commit()
                     flash("Usuario actualizado exitosamente.", "success")
                     conn.close()
