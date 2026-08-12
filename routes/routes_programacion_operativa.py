@@ -19,6 +19,7 @@ def register_routes(app):
             hora_finalizacion = request.form.get("hora_finalizacion", "").strip()
             lugar = request.form.get("lugar", "").strip()
             contacto = request.form.get("contacto", "").strip()
+            coordina = request.form.get("coordina", "").strip()
             recursos_tecnicos = request.form.get("recursos_tecnicos", "").strip()
             registrado_por = session["usuario"]["id"]
             
@@ -30,9 +31,9 @@ def register_routes(app):
             
             cursor = conn.execute("""
                 INSERT INTO programacion_operativa 
-                (tipo_evento, nombre_evento, fecha, hora_inicio, hora_finalizacion, lugar, contacto, recursos_tecnicos, registrado_por, columnas_layout)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (tipo_evento, nombre_evento, fecha, hora_inicio, hora_finalizacion, lugar, contacto, recursos_tecnicos, registrado_por, columnas_layout))
+                (tipo_evento, nombre_evento, fecha, hora_inicio, hora_finalizacion, lugar, contacto, coordina, recursos_tecnicos, registrado_por, columnas_layout)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (tipo_evento, nombre_evento, fecha, hora_inicio, hora_finalizacion, lugar, contacto, coordina, recursos_tecnicos, registrado_por, columnas_layout))
             programacion_id = cursor.lastrowid
             
             if tipo_evento == "Tripulacion Basica":
@@ -71,9 +72,9 @@ def register_routes(app):
                             if nombre:
                                 conn.execute("""
                                     INSERT INTO programacion_operativa_integrantes 
-                                    (programacion_id, nombre, rol_variable, orden, unidad_nombre, unidad_tipo)
-                                    VALUES (?, ?, ?, ?, ?, ?)
-                                """, (programacion_id, nombre, rol, i+1, u_nombre, u_tipo))
+                                    (programacion_id, nombre, rol_variable, orden, unidad_nombre)
+                                    VALUES (?, ?, ?, ?, ?)
+                                """, (programacion_id, nombre, rol, i+1, u_nombre))
                     offset += u_count
             conn.commit()
             conn.close()
@@ -101,10 +102,15 @@ def register_routes(app):
             return redirect(url_for("dashboard"))
             
         conn = get_db()
-        fecha_filtro = request.args.get('fecha_filtro', '').strip()
+        fecha_desde = request.args.get('fecha_desde', '').strip()
+        fecha_hasta = request.args.get('fecha_hasta', '').strip()
         
-        if fecha_filtro:
-            eventos = conn.execute("SELECT * FROM programacion_operativa WHERE fecha = ? ORDER BY id DESC", (fecha_filtro,)).fetchall()
+        if fecha_desde and fecha_hasta:
+            eventos = conn.execute("SELECT * FROM programacion_operativa WHERE fecha >= ? AND fecha <= ? ORDER BY fecha DESC, id DESC", (fecha_desde, fecha_hasta)).fetchall()
+        elif fecha_desde:
+            eventos = conn.execute("SELECT * FROM programacion_operativa WHERE fecha >= ? ORDER BY fecha DESC, id DESC", (fecha_desde,)).fetchall()
+        elif fecha_hasta:
+            eventos = conn.execute("SELECT * FROM programacion_operativa WHERE fecha <= ? ORDER BY fecha DESC, id DESC", (fecha_hasta,)).fetchall()
         else:
             eventos = conn.execute("SELECT * FROM programacion_operativa ORDER BY id DESC").fetchall()
         
@@ -112,7 +118,101 @@ def register_routes(app):
             evento["integrantes"] = conn.execute("SELECT * FROM programacion_operativa_integrantes WHERE programacion_id = ? ORDER BY orden", (evento["id"],)).fetchall()
             
         conn.close()
-        return render_template("programacion_operativa_explorador.html", eventos=eventos, usuario=session["usuario"], fecha_filtro=fecha_filtro)
+        return render_template("programacion_operativa_explorador.html", eventos=eventos, usuario=session["usuario"], fecha_desde=fecha_desde, fecha_hasta=fecha_hasta)
+
+    @app.route("/programacion_operativa/imprimir/<int:evento_id>")
+    @login_required
+    def programacion_operativa_imprimir(evento_id):
+        if not session.get("usuario") or (not session["usuario"].get("permiso_programacion_operativa") and str(session["usuario"].get("id")) != '1'):
+            return "No tienes permiso.", 403
+            
+        conn = get_db()
+        evento = conn.execute("SELECT * FROM programacion_operativa WHERE id = ?", (evento_id,)).fetchone()
+        if not evento:
+            conn.close()
+            return "Evento no encontrado", 404
+            
+        integrantes = conn.execute("SELECT * FROM programacion_operativa_integrantes WHERE programacion_id = ? ORDER BY orden", (evento["id"],)).fetchall()
+        conn.close()
+        
+        # Formatear la fecha
+        import locale
+        from datetime import datetime
+        try:
+            locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
+        except:
+            try:
+                locale.setlocale(locale.LC_TIME, 'es_CO.utf8')
+            except:
+                pass # Fallback to default if locales not found
+                
+        fecha_obj = evento['fecha']
+        if isinstance(fecha_obj, str):
+            try:
+                fecha_obj = datetime.strptime(fecha_obj, '%Y-%m-%d')
+            except:
+                pass
+                
+        fecha_formateada = ""
+        mes_ano = ""
+        if isinstance(fecha_obj, datetime) or hasattr(fecha_obj, 'strftime'):
+            # Convert to uppercase
+            meses = ['ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE']
+            dias = ['LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES', 'SÁBADO', 'DOMINGO']
+            mes_str = meses[fecha_obj.month - 1]
+            dia_semana_str = dias[fecha_obj.weekday()]
+            
+            fecha_formateada = f"{mes_str} {fecha_obj.day} ({dia_semana_str})"
+            mes_ano = f"{mes_str} {fecha_obj.year}"
+            
+        def format_12h(time_str):
+            if not time_str or time_str.strip() == '':
+                return ''
+            try:
+                # Si ya tiene am/pm no hacer nada
+                if 'am' in time_str.lower() or 'pm' in time_str.lower():
+                    return time_str
+                parts = time_str.split(':')
+                h = int(parts[0])
+                m = int(parts[1])
+                suffix = 'am' if h < 12 else 'pm'
+                h_12 = h if h <= 12 else h - 12
+                if h_12 == 0: h_12 = 12
+                return f"{h_12}:{m:02d} {suffix}"
+            except:
+                return time_str
+                
+        # Modificamos el diccionario de evento para mostrar las horas formateadas en la plantilla
+        evento_dict = dict(evento)
+        evento_dict['hora_inicio'] = format_12h(evento_dict.get('hora_inicio', ''))
+        evento_dict['hora_finalizacion'] = format_12h(evento_dict.get('hora_finalizacion', ''))
+
+        unidades = []
+        if evento_dict.get('tipo_evento') == 'Operativo Completo':
+            unidad_dict = {}
+            for ing in integrantes:
+                u_nombre = ing.get('unidad_nombre') or 'UNIDAD'
+                if u_nombre not in unidad_dict:
+                    unidad_dict[u_nombre] = []
+                unidad_dict[u_nombre].append(ing)
+            for k, v in unidad_dict.items():
+                unidades.append({'nombre': k, 'integrantes': v})
+
+        # Alternative date format: DOMINGO 24 DE MAYO
+        fecha_completo = ""
+        if isinstance(fecha_obj, datetime) or hasattr(fecha_obj, 'strftime'):
+            fecha_completo = f"{dia_semana_str} {fecha_obj.day} DE {mes_str}"
+
+        context = {
+            'evento': evento_dict,
+            'integrantes': integrantes,
+            'unidades': unidades,
+            'fecha_formateada': fecha_formateada,
+            'fecha_completo': fecha_completo,
+            'mes_ano': mes_ano
+        }
+        
+        return render_template("programacion_operativa_imprimir.html", **context)
 
     @app.route("/programacion_operativa/confirmar", methods=["POST"])
     @login_required
@@ -127,12 +227,14 @@ def register_routes(app):
         hora_finalizacion = request.form.get("hora_finalizacion", "").strip()
         
         try:
-            tarifa_asistencial = int(request.form.get("tarifa_asistencial", 0))
+            val_asis = request.form.get("tarifa_asistencial", "0").replace(".", "").replace(",", "")
+            tarifa_asistencial = int(val_asis) if val_asis else 0
         except:
             tarifa_asistencial = 0
             
         try:
-            tarifa_conductor = int(request.form.get("tarifa_conductor", 0))
+            val_cond = request.form.get("tarifa_conductor", "0").replace(".", "").replace(",", "")
+            tarifa_conductor = int(val_cond) if val_cond else 0
         except:
             tarifa_conductor = 0
         
@@ -167,6 +269,122 @@ def register_routes(app):
             
         return redirect(url_for("programacion_operativa_explorador"))
 
+    from flask import jsonify
+
+    @app.route("/api/check_programacion_conflict", methods=["POST"])
+    @login_required
+    def check_programacion_conflict():
+        data = request.get_json()
+        if not data:
+            return jsonify({"conflictos": []})
+            
+        fecha = data.get('fecha')
+        hora_inicio = data.get('hora_inicio')
+        hora_finalizacion = data.get('hora_finalizacion')
+        nombres = data.get('nombres', [])
+        ignore_evento_id = data.get('ignore_evento_id')
+        
+        if not fecha or not nombres:
+            return jsonify({"conflictos": []})
+            
+        conn = get_db()
+        try:
+            query = """
+                SELECT po.id, po.nombre_evento, po.hora_inicio, po.hora_finalizacion, poi.nombre 
+                FROM programacion_operativa po
+                JOIN programacion_operativa_integrantes poi ON po.id = poi.programacion_id
+                WHERE po.fecha = ?
+            """
+            params = [fecha]
+            
+            if ignore_evento_id:
+                query += " AND po.id != ?"
+                params.append(ignore_evento_id)
+                
+            rows = conn.execute(query, params).fetchall()
+            
+            conflictos = []
+            for r in rows:
+                if r['nombre'] in nombres:
+                    h_i = r['hora_inicio']
+                    h_f = r['hora_finalizacion'] or "23:59"
+                    
+                    req_h_i = hora_inicio or "00:00"
+                    req_h_f = hora_finalizacion or "23:59"
+                    
+                    if req_h_i < h_f and req_h_f > h_i:
+                        conflictos.append({
+                            "nombre": r['nombre'],
+                            "evento": r['nombre_evento'],
+                            "hora_inicio": h_i,
+                            "hora_finalizacion": h_f
+                        })
+            return jsonify({"conflictos": conflictos})
+        except Exception as e:
+            print("Error checking conflict:", e)
+            return jsonify({"conflictos": []})
+        finally:
+            conn.close()
+
+    @app.route("/programacion_operativa/editar_integrantes", methods=["POST"])
+    @login_required
+    def programacion_operativa_editar_integrantes():
+        if not session.get("usuario") or (not session["usuario"].get("permiso_programacion_operativa") and str(session["usuario"].get("id")) != '1'):
+            return "No autorizado", 403
+            
+        evento_id = request.form.get("evento_id")
+        if not evento_id:
+            flash("Error: No se proporcionó el ID del evento.", "error")
+            return redirect(url_for("programacion_operativa_explorador"))
+            
+        integrante_ids = request.form.getlist("integrante_id[]")
+        nombres = request.form.getlist("nombre[]")
+        roles = request.form.getlist("rol_variable[]")
+        unidades = request.form.getlist("unidad_nombre[]")
+        
+        conn = get_db()
+        try:
+            # Delete those not in the current list
+            valid_ids = [i for i in integrante_ids if i.isdigit() and i != '0']
+            if valid_ids:
+                placeholders = ",".join("?" * len(valid_ids))
+                conn.execute(f"DELETE FROM programacion_operativa_integrantes WHERE programacion_id = ? AND id NOT IN ({placeholders})", [evento_id] + valid_ids)
+            else:
+                conn.execute("DELETE FROM programacion_operativa_integrantes WHERE programacion_id = ?", (evento_id,))
+                
+            # Update or Insert
+            for i in range(len(nombres)):
+                nombre = nombres[i].strip()
+                if not nombre:
+                    continue
+                rol = roles[i].strip() if i < len(roles) else ""
+                unidad = unidades[i].strip() if i < len(unidades) else ""
+                i_id = integrante_ids[i] if i < len(integrante_ids) else "0"
+                
+                if i_id.isdigit() and i_id != '0':
+                    # Update
+                    conn.execute("""
+                        UPDATE programacion_operativa_integrantes 
+                        SET nombre = ?, rol_variable = ?, unidad_nombre = ?
+                        WHERE id = ? AND programacion_id = ?
+                    """, (nombre, rol, unidad, i_id, evento_id))
+                else:
+                    # Insert
+                    conn.execute("""
+                        INSERT INTO programacion_operativa_integrantes (programacion_id, nombre, rol_variable, unidad_nombre, orden)
+                        VALUES (?, ?, ?, ?, ?)
+                    """, (evento_id, nombre, rol, unidad, i+1))
+                    
+            conn.commit()
+            flash("Integrantes actualizados correctamente.", "success")
+        except Exception as e:
+            conn.rollback()
+            flash(f"Error al actualizar integrantes: {e}", "error")
+        finally:
+            conn.close()
+            
+        return redirect(url_for("programacion_operativa_explorador"))
+
     @app.route("/programacion_operativa/exportar_pagos")
     @login_required
     def programacion_operativa_exportar_pagos():
@@ -183,13 +401,10 @@ def register_routes(app):
                 po.id as evento_id,
                 po.fecha,
                 po.nombre_evento,
-                po.hora_inicio,
-                po.hora_finalizacion,
                 po.tarifa_asistencial,
                 po.tarifa_conductor,
                 poi.nombre as integrante_nombre,
-                poi.rol_variable as rol,
-                poi.unidad_nombre
+                poi.rol_variable as rol
             FROM programacion_operativa po
             JOIN programacion_operativa_integrantes poi ON po.id = poi.programacion_id
             WHERE po.confirmado = 1 
@@ -199,54 +414,98 @@ def register_routes(app):
             ORDER BY po.fecha ASC, po.id ASC
         """
         filas = conn.execute(query, (fecha_inicio, fecha_fin)).fetchall()
-        conn.close()
         
-        import csv
-        import io
-        from flask import Response
-        
-        si = io.StringIO()
-        cw = csv.writer(si, delimiter=';')
-        
-        cw.writerow(['ID Evento', 'Fecha', 'Evento', 'Unidad', 'Integrante', 'Rol', 'Duracion (Horas)', 'Total a Pagar'])
+        # Obtener datos del último archivo de nómina para mapear nombres a identificacion, nombres, apellidos
+        ultima_nomina = conn.execute("SELECT id FROM nomina ORDER BY id DESC LIMIT 1").fetchone()
+        mapa_empleados = {}
+        if ultima_nomina:
+            empleados = conn.execute("SELECT identificacion, nombres, apellidos, codigo FROM nomina_empleados WHERE nomina_id = ?", (ultima_nomina["id"],)).fetchall()
+            for emp in empleados:
+                # Usar el nombre completo como llave de busqueda simple (asumiendo que poi.nombre coincide con nombres + apellidos o solo nombres)
+                llave1 = f"{emp['nombres']} {emp['apellidos']}".strip().upper()
+                llave2 = emp['nombres'].strip().upper() if emp['nombres'] else ""
+                mapa_empleados[llave1] = emp
+                if llave2:
+                    mapa_empleados[llave2] = emp
+
+        # Agrupar datos por integrante y evento
+        datos_agrupados = {}
+        eventos_unicos = []
+        eventos_set = set()
         
         for fila in filas:
-            h_inicio = fila['hora_inicio']
-            h_fin = fila['hora_finalizacion']
-            horas = 0
-            if h_inicio and h_fin:
-                try:
-                    h1, m1 = map(int, h_inicio.split(':'))
-                    h2, m2 = map(int, h_fin.split(':'))
-                    mins1 = h1 * 60 + m1
-                    mins2 = h2 * 60 + m2
-                    if mins2 < mins1:
-                        mins2 += 24 * 60
-                    horas = (mins2 - mins1) / 60.0
-                except:
-                    pass
-                    
+            integrante = fila['integrante_nombre'].strip()
+            fecha = fila['fecha']
+            nombre_evento = fila['nombre_evento'] or "Evento"
+            evento_id = fila['evento_id']
             rol = fila['rol'] or ""
+            
+            # Llave unica para la columna del evento
+            llave_evento = f"{fecha} - {nombre_evento} (#{evento_id})"
+            
+            if llave_evento not in eventos_set:
+                eventos_set.add(llave_evento)
+                eventos_unicos.append(llave_evento)
+            
             tarifa = 0
             if rol.upper() == 'COND' or rol.strip() == '':
                 tarifa = fila['tarifa_conductor'] or 0
             else:
                 tarifa = fila['tarifa_asistencial'] or 0
                 
-            cw.writerow([
-                f"#{fila['evento_id']}",
-                fila['fecha'],
-                fila['nombre_evento'],
-                fila['unidad_nombre'] or 'Básica',
-                fila['integrante_nombre'],
-                rol,
-                round(horas, 2),
-                tarifa
-            ])
+            if integrante not in datos_agrupados:
+                datos_agrupados[integrante] = {}
+                
+            datos_agrupados[integrante][llave_evento] = datos_agrupados[integrante].get(llave_evento, 0) + tarifa
+
+        conn.close()
+        
+        import io
+        import openpyxl
+        from flask import send_file
+        
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = "Pagos"
+        
+        headers = ['CODIGO', 'IDENTIFICACION', 'NOMBRES', 'APELLIDOS'] + eventos_unicos + ['TOTAL']
+        ws.append(headers)
+        
+        for integrante, pagos_por_evento in datos_agrupados.items():
+            llave_busqueda = integrante.upper()
+            emp_data = mapa_empleados.get(llave_busqueda)
             
-        output = si.getvalue().encode('utf-8-sig')
-        return Response(
-            output,
-            mimetype="text/csv",
-            headers={"Content-Disposition": f"attachment;filename=Pagos_Operativos_{fecha_inicio}_a_{fecha_fin}.csv"}
+            if emp_data:
+                codigo = emp_data['codigo']
+                identificacion = emp_data['identificacion']
+                nombres = emp_data['nombres']
+                apellidos = emp_data['apellidos']
+            else:
+                codigo = ""
+                identificacion = ""
+                # Intentar separar el nombre si no se encuentra
+                partes = integrante.split(" ", 1)
+                nombres = partes[0]
+                apellidos = partes[1] if len(partes) > 1 else ""
+                
+            fila_excel = [codigo, identificacion, nombres, apellidos]
+            
+            total = 0
+            for evento in eventos_unicos:
+                valor = pagos_por_evento.get(evento, 0)
+                fila_excel.append(valor)
+                total += valor
+                
+            fila_excel.append(total)
+            ws.append(fila_excel)
+            
+        excel_io = io.BytesIO()
+        wb.save(excel_io)
+        excel_io.seek(0)
+        
+        return send_file(
+            excel_io,
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            as_attachment=True,
+            download_name=f'Exportar_Pagos_{fecha_inicio}_al_{fecha_fin}.xlsx'
         )

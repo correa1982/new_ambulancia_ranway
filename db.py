@@ -1382,6 +1382,8 @@ def init_db():
             conn.execute("ALTER TABLE programacion_operativa ADD COLUMN tarifa_asistencial INT DEFAULT 0")
         if "tarifa_conductor" not in po_cols:
             conn.execute("ALTER TABLE programacion_operativa ADD COLUMN tarifa_conductor INT DEFAULT 0")
+        if "coordina" not in po_cols:
+            conn.execute("ALTER TABLE programacion_operativa ADD COLUMN coordina VARCHAR(255) DEFAULT NULL")
             
         cursor.execute("DESCRIBE programacion_operativa_integrantes")
         poi_cols = [row["Field"] for row in cursor.fetchall()]

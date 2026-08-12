@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Imprimir Evento #{{ evento.id }} - RAPA</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,700;1,700&display=swap');
+        
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            margin: 0;
+            padding: 40px;
+            color: #000;
+            background: #fff;
+            line-height: 1.5;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .no-print {
+            position: fixed;
+            top: 20px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            z-index: 100;
+        }
+
+        .content-wrapper {
+            max-width: 100%;
+            margin: 0 auto;
+        }
+
+        .header-section {
+            text-align: center;
+            font-weight: 700;
+            font-style: italic;
+            font-size: 28px;
+            margin-bottom: 60px;
+            line-height: 1.4;
+        }
+
+        .list-section {
+            font-size: 24px;
+            margin-bottom: 80px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .list-section ol {
+            list-style-type: decimal;
+            margin: 0;
+            padding-left: 20px;
+            text-align: left;
+        }
+
+        .list-section li {
+            margin-bottom: 15px;
+        }
+
+        .footer-section {
+            text-align: center;
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .footer-section p {
+            margin: 8px 0;
+        }
+        
+        .footer-section .recursos {
+            font-size: 22px;
+            font-weight: 400;
+            margin-bottom: 30px;
+        }
+        
+        .footer-section .mes-ano {
+            font-style: italic;
+            margin-top: 15px;
+            font-size: 16px;
+        }
+
+        /* Utilidad para forzar mayúsculas según la imagen */
+        .uppercase {
+            text-transform: uppercase;
+        }
+
+        @media print {
+            @page { size: landscape; margin: 0; }
+            body { 
+                padding: 0; 
+                margin: 0;
+                justify-content: center;
+            }
+            .no-print { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="no-print">
+        <button onclick="window.print()" style="padding: 10px 20px; background-color: #3b82f6; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">Imprimir / Guardar PDF</button>
+        <button onclick="window.close()" style="padding: 10px 20px; background-color: #e2e8f0; color: #1e293b; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; margin-left: 10px;">Cerrar</button>
+    </div>
+
+    <div class="content-wrapper uppercase">
+        {% if evento.tipo_evento == 'Operativo Completo' %}
+            
+            <div class="header-section" style="margin-bottom: 50px; font-style: normal; font-size: 24px;">
+                <div>EVENTO: {{ evento.nombre_evento }}</div>
+                <div style="font-weight: 700;">{{ fecha_completo }}</div>
+                <div>HORA SEDE : {{ evento.hora_inicio }} &nbsp; COORDINA: {{ evento.coordina or evento.contacto }}</div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat({{ evento.columnas_layout or 3 }}, 1fr); gap: 40px; margin-bottom: 70px; font-size: 18px;">
+                {% for unidad in unidades %}
+                <div>
+                    <div style="font-weight: 700; font-size: 20px; margin-bottom: 10px; border-bottom: 1px solid #ccc; padding-bottom: 5px;">
+                        {{ unidad.nombre }}
+                    </div>
+                    {% for integrante in unidad.integrantes %}
+                    <div style="margin-bottom: 8px;">
+                        {{ integrante.nombre }}{% if integrante.rol_variable %}. {{ integrante.rol_variable }}{% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endfor %}
+            </div>
+
+            <div style="font-weight: 700; font-size: 18px; text-align: left; line-height: 1.6;">
+                {% if evento.contacto %}<div>{{ evento.contacto }}</div>{% endif %}
+                {% if evento.lugar %}<div>{{ evento.lugar }}</div>{% endif %}
+                <div>FINALIZACION EVENTO.: {{ evento.hora_finalizacion }}</div>
+            </div>
+
+        {% else %}
+        
+            <div class="header-section">
+                <div>EVENTO {{ evento.nombre_evento }}.</div>
+                <div>FECHA {{ fecha_formateada }}</div>
+                <div>HORA SEDE: {{ evento.hora_inicio }}</div>
+            </div>
+
+            <div class="list-section">
+                <ol>
+                    {% for integrante in integrantes %}
+                    <li>{{ integrante.nombre }}. {{ integrante.rol_variable }} {{ integrante.unidad_nombre or '' }}</li>
+                    {% endfor %}
+                </ol>
+            </div>
+
+            <div class="footer-section">
+                {% if evento.recursos_tecnicos %}
+                <div class="recursos">
+                    RECURSOS TÉCNICOS. ({{ evento.recursos_tecnicos }})
+                </div>
+                {% endif %}
+                
+                <p>HORA DE TERMINACIÓN DEL SERVICIO: {{ evento.hora_finalizacion }}</p>
+                
+                {% if evento.lugar %}
+                <p>LUGAR ({{ evento.lugar }})</p>
+                {% endif %}
+                
+                {% if evento.contacto %}
+                <p>CONTACTO: {{ evento.contacto }}</p>
+                {% endif %}
+                
+                <p class="mes-ano">{{ mes_ano }}</p>
+            </div>
+            
+        {% endif %}
+    </div>
+
+    <script>
+        window.onload = function() {
+            // window.print();
+        }
+    </script>
+</body>
+</html>
