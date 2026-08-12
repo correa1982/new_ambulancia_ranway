@@ -40,13 +40,25 @@ def register_routes(app):
                 nombres = request.form.getlist("integrante_nombre[]")
                 roles = request.form.getlist("integrante_rol[]")
                 
+                basica_tipo = request.form.get("basica_tipo_ambulancia", "").strip()
+                basica_num = request.form.get("basica_numero_movil", "").strip()
+                
+                u_nombre = ""
+                if basica_tipo or basica_num:
+                    if basica_tipo:
+                        u_nombre = f"AMB. {basica_tipo}"
+                        if basica_num:
+                            u_nombre += f" {basica_num}"
+                    else:
+                        u_nombre = basica_num
+                
                 for i, nombre in enumerate(nombres):
                     if nombre.strip():
                         rol = roles[i] if i < len(roles) else ""
                         conn.execute("""
-                            INSERT INTO programacion_operativa_integrantes (programacion_id, nombre, rol_variable, orden)
-                            VALUES (?, ?, ?, ?)
-                        """, (programacion_id, nombre.strip(), rol.strip(), i+1))
+                            INSERT INTO programacion_operativa_integrantes (programacion_id, nombre, rol_variable, orden, unidad_nombre)
+                            VALUES (?, ?, ?, ?, ?)
+                        """, (programacion_id, nombre.strip(), rol.strip(), i+1, u_nombre))
             elif tipo_evento == "Operativo Completo":
                 unidad_nombres = request.form.getlist("unidad_nombre[]")
                 unidad_tipos = request.form.getlist("unidad_tipo[]")

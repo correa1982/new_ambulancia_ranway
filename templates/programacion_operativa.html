@@ -160,6 +160,21 @@
             </div>
             
             <div id="seccion_basica">
+                <div class="row row-2" style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom: 20px;">
+                    <div class="form-group">
+                        <label>AMBULANCIA TAM - TAB</label>
+                        <select name="basica_tipo_ambulancia" id="basica_tipo_ambulancia" onchange="generarIntegrantesBasica()">
+                            <option value="">Seleccione...</option>
+                            <option value="TAM">TAM</option>
+                            <option value="TAB">TAB</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>N° DE MÓVIL (Ej: M-1)</label>
+                        <input type="text" name="basica_numero_movil" id="basica_numero_movil" placeholder="M-1">
+                    </div>
+                </div>
+                
                 <div class="section-title">INTEGRANTES DE LA TRIPULACIÓN</div>
                 <div id="integrantes-container">
                     <!-- Se generan desde JS -->
@@ -304,6 +319,77 @@
             </div>
             <div class="form-group" style="margin-bottom:0; display:flex; align-items:flex-end;">
                 ${integranteCount > 1 ? `<button type="button" class="btn-danger-light" onclick="removeIntegrante(${integranteCount})">X</button>` : `<div style="width:42px;"></div>`}
+            </div>
+        `;
+        
+        container.appendChild(row);
+    }
+    
+    function generarIntegrantesBasica() {
+        const tipo = document.getElementById("basica_tipo_ambulancia").value;
+        const container = document.getElementById("integrantes-container");
+        
+        container.innerHTML = "";
+        integranteCount = 0;
+        
+        if (tipo === "TAM") {
+            addIntegranteEspecifico("COND", true);
+            addIntegranteEspecifico("MED", true);
+            addIntegranteEspecifico("APH, AUX ENF, ENF", false);
+        } else if (tipo === "TAB") {
+            addIntegranteEspecifico("COND", true);
+            addIntegranteEspecifico("APH, AUX ENF, ENF", true);
+            addIntegranteEspecifico("APH, AUX ENF, ENF", false);
+        } else {
+            // Predeterminado
+            addIntegrante("COND ");
+            addIntegrante("");
+        }
+    }
+
+    function addIntegranteEspecifico(tipoRol, esObligatorio) {
+        integranteCount++;
+        const container = document.getElementById("integrantes-container");
+        const row = document.createElement("div");
+        row.className = "integrante-row";
+        row.id = `integrante-${integranteCount}`;
+        
+        let selectOptions = '';
+        if (tipoRol === "COND") {
+            selectOptions = '<option value="COND" selected>COND</option>';
+        } else if (tipoRol === "MED") {
+            selectOptions = '<option value="MED" selected>MED</option>';
+        } else if (tipoRol === "APH, AUX ENF, ENF") {
+            selectOptions = `
+                <option value="">Seleccione rol${esObligatorio ? '' : ' (opcional)'}...</option>
+                <option value="APH">APH</option>
+                <option value="AUX ENF">AUX ENF</option>
+                <option value="ENF">ENF</option>
+            `;
+        } else {
+            selectOptions = `
+                <option value="">Seleccione rol...</option>
+                <option value="${tipoRol}">${tipoRol}</option>
+            `;
+        }
+        
+        const rolHtml = `
+            <div class="form-group" style="margin-bottom:0;">
+                <label>Rol/Variable <span style="color:red">*</span></label>
+                <select name="integrante_rol[]" style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px;" required>
+                    ${selectOptions}
+                </select>
+            </div>
+        `;
+        
+        row.innerHTML = `
+            ${rolHtml}
+            <div class="form-group" style="margin-bottom:0;">
+                <label>Personal (Buscar) ${esObligatorio ? '<span style="color:red">*</span>' : ''}</label>
+                <input type="text" name="integrante_nombre[]" list="lista_empleados" placeholder="Seleccione de la lista..." ${esObligatorio ? 'required' : ''}>
+            </div>
+            <div class="form-group" style="margin-bottom:0; display:flex; align-items:flex-end;">
+                <button type="button" class="btn-danger-light" onclick="removeIntegrante(${integranteCount})">X</button>
             </div>
         `;
         
