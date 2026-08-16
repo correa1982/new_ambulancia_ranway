@@ -188,6 +188,7 @@
             <option value="Cosméticos y Aseo">Cosméticos y Aseo</option>
             <option value="Control Especial">Control Especial</option>
             <option value="Material Esteril">Material Esteril</option>
+            <option value="Reactivo de Diagnostico in vitro">Reactivo de Diagnóstico in vitro</option>
         </select>
         <a href="{{ url_for('inventarios.inventarios_exportar_excel') }}" class="inv-btn" style="background: #10b981; text-decoration: none; flex: 0 0 auto; white-space: nowrap; padding: 8px 12px; font-size: 13px;">📊 Exportar Excel</a>
     </div>
@@ -226,6 +227,7 @@
                 {% if item.tipo == 'Dispositivo Médico' %} <span style="color: #0284c7;">🩺 {{ item.tipo }}</span>
                 {% elif item.tipo == 'Medicamento' %} <span style="color: #16a34a;">💊 {{ item.tipo }}</span>
                 {% elif item.tipo == 'Control Especial' %} <span style="color: #9333ea;">{{ item.tipo }}</span>
+                {% elif item.tipo == 'Reactivo de Diagnostico in vitro' %} <span style="color: #eab308;">🧪 {{ item.tipo }}</span>
                 {% else %} <span style="color: #ea580c;">🩹 {{ item.tipo }}</span>
                 {% endif %}
             </td>
@@ -300,6 +302,7 @@
                         <option value="Cosméticos y Aseo">Cosméticos y Aseo</option>
                         <option value="Control Especial">Control Especial</option>
                         <option value="Material Esteril">Material Esteril</option>
+                        <option value="Reactivo de Diagnostico in vitro">Reactivo de Diagnóstico in vitro</option>
                     </select>
                 </div>
                 <div class="form-group" style="flex: 1;">
@@ -360,6 +363,7 @@
                         <option value="Cosméticos y Aseo">Cosméticos y Aseo</option>
                         <option value="Control Especial">Control Especial</option>
                         <option value="Material Esteril">Material Esteril</option>
+                        <option value="Reactivo de Diagnostico in vitro">Reactivo de Diagnóstico in vitro</option>
                     </select>
                 </div>
                 <div class="form-group" style="flex: 1; min-width: 120px; margin-bottom: 0;">
