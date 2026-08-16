@@ -45,11 +45,39 @@ def inventarios_index():
     catalogo = conn.execute("SELECT * FROM inventarios_catalogo ORDER BY nombre").fetchall()
     conn.close()
     
+    # Pre-calculate max quantity for each product name
+    max_quantities = {}
+    for row in items_raw:
+        nombre = row['nombre']
+        qty = row['cantidad']
+        if nombre not in max_quantities:
+            max_quantities[nombre] = qty
+        elif qty > max_quantities[nombre]:
+            max_quantities[nombre] = qty
+            
     items = []
+    seen_zero_names = set()
     for row in items_raw:
         item = dict(row)
+        
         if item.get('fecha_vencimiento') and hasattr(item['fecha_vencimiento'], 'strftime'):
             item['fecha_vencimiento'] = item['fecha_vencimiento'].strftime('%Y-%m-%d')
+            
+        nombre = item['nombre']
+        
+        if item['cantidad'] == 0:
+            if max_quantities.get(nombre, 0) > 0:
+                # Hide this lot because there is another lot with quantity > 0
+                continue
+            else:
+                # No lots have quantity > 0. Show this one but without lot and expiration date
+                item['lote'] = ''
+                item['fecha_vencimiento'] = ''
+                # Only show one entry if there are multiple 0-quantity lots for the same product
+                if nombre in seen_zero_names:
+                    continue
+                seen_zero_names.add(nombre)
+                
         items.append(item)
         
     return render_template('inventarios.html', items=items, catalogo=catalogo)
