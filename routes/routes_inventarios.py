@@ -548,9 +548,24 @@ def inventarios_exportar_excel():
 @bp_inventarios.route('/movimientos', methods=['GET'])
 def inventarios_movimientos():
     conn = get_db()
-    movimientos = conn.execute("SELECT * FROM inventarios_historial ORDER BY fecha_registro DESC").fetchall()
+    
+    page = request.args.get('page', 1, type=int)
+    per_page = 50
+    offset = (page - 1) * per_page
+    
+    total = conn.execute("SELECT COUNT(*) FROM inventarios_historial").fetchone()[0]
+    
+    movimientos = conn.execute(
+        "SELECT * FROM inventarios_historial ORDER BY fecha_registro DESC LIMIT %s OFFSET %s",
+        (per_page, offset)
+    ).fetchall()
+    
     conn.close()
-    return render_template('inventarios_movimientos.html', movimientos=movimientos)
+    
+    import math
+    total_pages = math.ceil(total / per_page) if total > 0 else 1
+    
+    return render_template('inventarios_movimientos.html', movimientos=movimientos, page=page, total_pages=total_pages)
 
 @bp_inventarios.route('/movimientos/exportar', methods=['GET'])
 def inventarios_movimientos_exportar():
