@@ -80,7 +80,28 @@ def inventarios_index():
                 
         items.append(item)
         
-    return render_template('inventarios.html', items=items, catalogo=catalogo)
+    is_superadmin = False
+    if session.get("usuario") and session["usuario"].get("rol_real") == "admin":
+        is_superadmin = True
+        
+    # Calcular alertas de stock mínimo
+    total_stocks = {}
+    for row in items_raw:
+        nombre = row['nombre']
+        total_stocks[nombre] = total_stocks.get(nombre, 0) + row['cantidad']
+        
+    min_stocks = {c['nombre']: c.get('existencia_minima', 0) for c in catalogo}
+    alertas = []
+    for nombre, qty in total_stocks.items():
+        min_stock = min_stocks.get(nombre, 0)
+        if min_stock > 0 and qty <= min_stock:
+            alertas.append({
+                "nombre": nombre,
+                "cantidad": qty,
+                "minimo": min_stock
+            })
+        
+    return render_template('inventarios.html', items=items, catalogo=catalogo, is_superadmin=is_superadmin, alertas=alertas)
 
 @bp_inventarios.route('/catalogo/add', methods=['POST'])
 def catalogo_add():
@@ -130,6 +151,27 @@ def catalogo_edit(item_id):
     conn.close()
     
     flash("Ítem del catálogo actualizado exitosamente.", "success")
+    return redirect(url_for('inventarios.inventarios_index'))
+
+@bp_inventarios.route('/catalogo/update_min_stock', methods=['POST'])
+def catalogo_update_min_stock():
+    if not (session.get("usuario") and session["usuario"].get("rol_real") == "admin"):
+        flash("No tiene permisos para realizar esta acción.", "error")
+        return redirect(url_for('inventarios.inventarios_index'))
+        
+    conn = get_db()
+    for key, value in request.form.items():
+        if key.startswith('min_stock_'):
+            try:
+                item_id = int(key.replace('min_stock_', ''))
+                min_stock = int(value)
+                conn.execute("UPDATE inventarios_catalogo SET existencia_minima = %s WHERE id = %s", (min_stock, item_id))
+            except Exception:
+                continue
+    
+    conn.commit()
+    conn.close()
+    flash("Existencias mínimas actualizadas exitosamente.", "success")
     return redirect(url_for('inventarios.inventarios_index'))
 
 @bp_inventarios.route('/catalogo/delete/<int:item_id>', methods=['POST'])

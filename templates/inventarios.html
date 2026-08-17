@@ -174,9 +174,29 @@
         <button class="inv-btn btn-red" onclick="openManualUpdate('egreso')">➖ Egreso Manual</button>
         <button class="inv-btn btn-purple" onclick="openScanner('nuevo')">✨ Nuevo Producto</button>
         <button class="inv-btn btn-purple" style="background: #6366f1;" onclick="openCatalogModal()">📋 ITEMS</button>
+        {% if is_superadmin %}
+        <button class="inv-btn" style="background: #eab308; color: #1e293b;" onclick="openMinStockModal()">⚠️ Parametrizar Existencias Mínimas</button>
+        {% endif %}
         <a href="{{ url_for('inventarios.inventarios_movimientos') }}" class="inv-btn" style="background: #334155; text-decoration: none;">📋 Consultar Movimientos</a>
     </div>
 </div>
+
+{% if alertas %}
+<div id="alertas-stock" style="background-color: #fef2f2; border: 1px solid #ef4444; color: #b91c1c; padding: 15px; margin-bottom: 20px; border-radius: 8px; position: relative;">
+    <h3 style="margin-top: 0; margin-bottom: 10px; font-size: 16px;">⚠️ Alertas de Stock Mínimo</h3>
+    <ul style="margin: 0; padding-left: 20px; font-size: 14px;">
+        {% for alerta in alertas %}
+        <li><strong>{{ alerta.nombre }}</strong>: Stock total es {{ alerta.cantidad }} (Mínimo permitido: {{ alerta.minimo }})</li>
+        {% endfor %}
+    </ul>
+</div>
+<script>
+    setTimeout(function() {
+        var alertDiv = document.getElementById('alertas-stock');
+        if(alertDiv) { alertDiv.style.display = 'none'; }
+    }, 10000);
+</script>
+{% endif %}
 
 <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
     <div class="filters-container" style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
@@ -416,6 +436,50 @@
         </div>
     </div>
 </div>
+
+{% if is_superadmin %}
+<!-- Modal para Parametrizar Existencias Mínimas -->
+<div id="minStockModal" class="modal">
+    <div class="modal-content" style="max-width: 800px; width: 95%;">
+        <div class="modal-header">
+            <h2 style="margin: 0; font-size: 20px; color: #1e293b;">⚠️ Parametrizar Existencias Mínimas</h2>
+            <button class="close-btn" onclick="closeModal('minStockModal')">×</button>
+        </div>
+        
+        <form method="POST" action="{{ url_for('inventarios.catalogo_update_min_stock') }}">
+            <div style="max-height: 500px; overflow-y: auto; overflow-x: auto; -webkit-overflow-scrolling: touch; margin-bottom: 20px;">
+                <table class="inv-table" style="font-size: 13px; min-width: 600px;">
+                    <thead style="position: sticky; top: 0; z-index: 10;">
+                        <tr>
+                            <th style="width: 50%;">Nombre del Producto</th>
+                            <th style="width: 25%;">Tipo</th>
+                            <th style="width: 25%; text-align: center;">Stock Mínimo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for cat in catalogo %}
+                        <tr>
+                            <td><strong>{{ cat.nombre }}</strong></td>
+                            <td>{{ cat.tipo }}</td>
+                            <td style="text-align: center;">
+                                <input type="number" name="min_stock_{{ cat.id }}" value="{{ cat.existencia_minima|default(0) }}" min="0" style="width: 100px; text-align: center; padding: 5px; border: 1px solid #cbd5e1; border-radius: 4px;">
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="3" style="text-align: center; color: #64748b;">El catálogo está vacío. Registre productos primero.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div style="text-align: right;">
+                <button type="submit" class="inv-btn btn-green">💾 Guardar Cambios</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endif %}
 
 <!-- Modal para Escáner QR (Mejorado) -->
 <style>
@@ -883,6 +947,10 @@
         document.getElementById('formCatalogo').reset();
         document.getElementById('btnSubmitCatalogo').textContent = 'Añadir';
         document.getElementById('btnCancelCatalogo').style.display = 'none';
+    }
+
+    function openMinStockModal() {
+        document.getElementById('minStockModal').style.display = 'block';
     }
 
     function autoFillCatalog() {
