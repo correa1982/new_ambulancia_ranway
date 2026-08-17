@@ -576,7 +576,8 @@ def register_routes(app):
             correo = request.form.get("correo", "").strip()
             
             permiso_programacion_operativa = 1 if request.form.get("permiso_programacion_operativa") == "on" else 0
-            if session.get("usuario") and session["usuario"]["id"] != 1:
+            can_assign = session.get("usuario") and (session["usuario"]["id"] == 1 or (session["usuario"].get("rol") == "admin" and session["usuario"].get("permiso_programacion_operativa") == 1))
+            if not can_assign:
                 permiso_programacion_operativa = 0
             
             formularios_acceso_dict = {}
@@ -639,7 +640,8 @@ def register_routes(app):
             firma = request.form.get("firma", "").strip()
             correo = request.form.get("correo", "").strip()
             
-            if session.get("usuario") and session["usuario"]["id"] == 1:
+            can_assign = session.get("usuario") and (session["usuario"]["id"] == 1 or (session["usuario"].get("rol") == "admin" and session["usuario"].get("permiso_programacion_operativa") == 1))
+            if can_assign:
                 permiso_programacion_operativa = 1 if request.form.get("permiso_programacion_operativa") == "on" else 0
             else:
                 permiso_programacion_operativa = user.get("permiso_programacion_operativa", 0)

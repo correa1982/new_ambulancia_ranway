@@ -494,22 +494,25 @@
             let isOptional = false;
             
             if (tipo === 'Avanzada') {
-                opciones = ['APH', 'AUX ENF', 'ENF'];
+                opciones = ['APH', 'AUX ENF', 'ENF', 'SOC'];
             } else if (tipo === 'Ambulancia') {
                 // Initial defaults before TAM/TAB is chosen
                 if (i === 1) opciones = ['COND'];
                 else if (i === 2) opciones = ['MED', 'APH', 'AUX ENF', 'ENF'];
-                else { opciones = ['APH', 'AUX ENF', 'ENF']; isOptional = true; }
+                else { opciones = ['APH', 'AUX ENF', 'ENF', 'SOC']; isOptional = true; }
             } else if (tipo === 'Moto') {
                 if (i === 1) opciones = ['COND', 'APH', 'AUX ENF', 'ENF'];
+                else if (i === 2) opciones = ['APH', 'AUX ENF', 'ENF', 'SOC', 'MED'];
                 else opciones = ['APH', 'AUX ENF', 'ENF'];
             } else if (tipo === 'PASM') {
                 if (i === 1) opciones = ['MED'];
                 else if (i === 2) opciones = ['APH', 'ENF', 'AUX ENF'];
+                else if (i === 3) { opciones = ['APH', 'ENF', 'AUX ENF', 'SOC']; isOptional = true; }
                 else { opciones = ['APH', 'ENF', 'AUX ENF']; isOptional = true; }
             } else if (tipo === 'PASB') {
                 if (i === 1) opciones = ['APH', 'ENF', 'AUX ENF'];
-                else if (i === 2) { opciones = ['APH', 'ENF', 'AUX ENF']; isOptional = true; }
+                else if (i === 2) { opciones = ['APH', 'ENF', 'AUX ENF', 'SOC']; isOptional = true; }
+                else if (i === 3) { opciones = ['APH', 'ENF', 'AUX ENF', 'SOC']; isOptional = true; }
                 else { opciones = ['APH', 'ENF', 'AUX ENF']; isOptional = true; }
             }
             
@@ -581,7 +584,7 @@
             } else if (val === 'TAB') {
                 setOpts(s1, ['COND'], true);
                 setOpts(s2, ['APH', 'AUX ENF', 'ENF'], true);
-                setOpts(s3, ['APH', 'AUX ENF', 'ENF'], false);
+                setOpts(s3, ['APH', 'AUX ENF', 'ENF', 'SOC'], false);
                 if (s3) s3.parentElement.nextElementSibling.querySelector('input').required = false;
             }
         } else {

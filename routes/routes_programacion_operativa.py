@@ -442,11 +442,25 @@ def register_routes(app):
 
         # Agrupar datos por integrante y evento
         datos_agrupados = {}
+        # Pre-llenar con todos los empleados de la nómina
+        if ultima_nomina:
+            for emp in empleados:
+                llave_oficial = f"{emp['nombres']} {emp['apellidos']}".strip().upper()
+                datos_agrupados[llave_oficial] = {}
+
         eventos_unicos = []
         eventos_set = set()
         
         for fila in filas:
-            integrante = fila['integrante_nombre'].strip()
+            integrante_orig = fila['integrante_nombre'].strip()
+            integrante = integrante_orig.upper()
+            
+            # Mapear al nombre oficial si es posible para evitar duplicados
+            if integrante not in datos_agrupados:
+                emp_data = mapa_empleados.get(integrante)
+                if emp_data:
+                    integrante = f"{emp_data['nombres']} {emp_data['apellidos']}".strip().upper()
+            
             fecha = fila['fecha']
             nombre_evento = fila['nombre_evento'] or "Evento"
             evento_id = fila['evento_id']
@@ -460,7 +474,10 @@ def register_routes(app):
                 eventos_unicos.append(llave_evento)
             
             tarifa = 0
-            if rol.upper() == 'COND' or rol.strip() == '':
+            rol_upper = rol.upper().strip()
+            if rol_upper == 'MED':
+                tarifa = 0
+            elif rol_upper in ['COND', 'SOC'] or rol_upper == '':
                 tarifa = fila['tarifa_conductor'] or 0
             else:
                 tarifa = fila['tarifa_asistencial'] or 0
@@ -480,7 +497,7 @@ def register_routes(app):
         ws = wb.active
         ws.title = "Pagos"
         
-        headers = ['CODIGO', 'IDENTIFICACION', 'NOMBRES', 'APELLIDOS'] + eventos_unicos + ['TOTAL']
+        headers = ['NUMERO DE IDENTIFICACION', 'NOMBRES', 'APELLIDOS', 'CODIGO'] + eventos_unicos + ['TOTAL']
         ws.append(headers)
         
         for integrante, pagos_por_evento in datos_agrupados.items():
@@ -500,7 +517,7 @@ def register_routes(app):
                 nombres = partes[0]
                 apellidos = partes[1] if len(partes) > 1 else ""
                 
-            fila_excel = [codigo, identificacion, nombres, apellidos]
+            fila_excel = [identificacion, nombres, apellidos, codigo]
             
             total = 0
             for evento in eventos_unicos:
