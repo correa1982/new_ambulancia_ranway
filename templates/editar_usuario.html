@@ -45,7 +45,7 @@
                 <label>Fecha de Validez</label>
                 <input onclick="this.showPicker()" type="date" name="fecha_validez" value="{{ user.fecha_validez or '' }}" placeholder="Sin límite">
             </div>
-            {% if session.usuario.get('id')|string == '1' %}
+            {% if session.usuario.get('id')|string == '1' or (session.usuario.get('rol') == 'admin' and session.usuario.get('permiso_programacion_operativa')) %}
             <div>
                 <label style="color:#6366f1;">Permiso Especial</label>
                 <label style="display:flex; align-items:center; gap:5px; margin-top:8px; cursor:pointer;">

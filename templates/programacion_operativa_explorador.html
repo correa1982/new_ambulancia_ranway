@@ -235,11 +235,11 @@ table.table th, table.table td {
                         <div style="margin-bottom:16px; display:flex; gap:10px;">
                             <div style="flex:1;">
                                 <label style="font-size:12px; font-weight:600; color:#475569;">Hora Inicio</label>
-                                <input type="text" class="timepicker-12h" name="hora_inicio" id="hora_inicio_{{ev.id}}" value="{{ ev.hora_inicio }}" style="width:100%; padding:6px; border:1px solid #cbd5e1; border-radius:4px;" onchange="calcularDuracion({{ev.id}})">
+                                <input type="text" class="timepicker-12h" name="hora_inicio" id="hora_inicio_{{ev.id}}" value="{{ ev.hora_inicio }}" style="width:100%; padding:6px; border:1px solid #cbd5e1; border-radius:4px;" onchange="calcularDuracion({{ev.id}}, true)">
                             </div>
                             <div style="flex:1;">
                                 <label style="font-size:12px; font-weight:600; color:#475569;">Hora Fin</label>
-                                <input type="text" class="timepicker-12h" name="hora_finalizacion" id="hora_fin_{{ev.id}}" value="{{ ev.hora_finalizacion }}" style="width:100%; padding:6px; border:1px solid #cbd5e1; border-radius:4px;" onchange="calcularDuracion({{ev.id}})">
+                                <input type="text" class="timepicker-12h" name="hora_finalizacion" id="hora_fin_{{ev.id}}" value="{{ ev.hora_finalizacion }}" style="width:100%; padding:6px; border:1px solid #cbd5e1; border-radius:4px;" onchange="calcularDuracion({{ev.id}}, true)">
                             </div>
                             <div style="flex:1; display:flex; flex-direction:column; justify-content:flex-end;">
                                 <span style="font-size:12px; font-weight:600; color:#475569;">Duración</span>
@@ -259,7 +259,9 @@ table.table th, table.table td {
                                     <input type="text" name="tarifa_conductor" id="tarifa_conductor_{{ev.id}}" value="{{ '{:,.0f}'.format(ev.tarifa_conductor or 0).replace(',', '.') if (ev.tarifa_conductor or 0) > 0 else 0 }}" style="width:100%; padding:6px; border:1px solid #cbd5e1; border-radius:4px;" oninput="formatMiles(this)">
                                 </div>
                             </div>
-                            <button type="button" style="background-color: #f8fafc; color: #1e293b; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px 12px; font-size: 12px; font-weight: 600; margin-top: 10px; width: 100%; text-align: center; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 1px 2px rgba(0,0,0,0.05);" onmouseover="this.style.backgroundColor='#f1f5f9'; this.style.borderColor='#94a3b8';" onmouseout="this.style.backgroundColor='#f8fafc'; this.style.borderColor='#cbd5e1';" onclick="igualarTarifas({{ev.id}})">⬇️ Aplicar tarifa asistencial también al conductor</button>
+                            <button type="button" class="btn-primary" style="margin-top: 10px; width: 100%; display: flex; justify-content: center; align-items: center; gap: 6px;" onclick="igualarTarifas({{ev.id}})">
+                                <i class="ph ph-arrow-circle-down" style="font-size: 16px;"></i> Aplicar tarifa integral a los diferentes perfiles
+                            </button>
                         </div>
                         
                         <div style="margin-bottom:20px; border-top:1px solid #e2e8f0; padding-top:10px;">
@@ -336,10 +338,12 @@ table.table th, table.table td {
 </div>
 
 <script>
-    function calcularDuracion(id) {
+    function calcularDuracion(id, isUserAction = false) {
         const hInicio = document.getElementById(`hora_inicio_${id}`).value;
         const hFin = document.getElementById(`hora_fin_${id}`).value;
         const spanDur = document.getElementById(`duracion_${id}`);
+        const inputAsistencial = document.getElementById(`tarifa_asistencial_${id}`);
+        const inputConductor = document.getElementById(`tarifa_conductor_${id}`);
         
         if (hInicio && hFin) {
             const [h1, m1] = hInicio.split(':').map(Number);
@@ -358,6 +362,27 @@ table.table th, table.table td {
             const mins = diff % 60;
             
             spanDur.textContent = `${hours}h ${mins}m`;
+            
+            // Asignar valores sugeridos si están en 0, si son los valores sugeridos por defecto, o si el usuario cambia la hora
+            if (inputAsistencial && inputConductor) {
+                const valA = inputAsistencial.value;
+                const isZeroOrEmpty = valA === '0' || valA === '';
+                const isKnown = valA === '90.000' || valA === '100.000' || valA === '80.000';
+                
+                if (isZeroOrEmpty || isKnown || isUserAction) {
+                    const totalHours = diff / 60;
+                    if (totalHours <= 10.99) { // menor de 10 horas
+                        inputAsistencial.value = '90.000';
+                        inputConductor.value = '80.000';
+                    } else if (totalHours >= 11 && totalHours <= 14.01) { // mayor de 11 horas
+                        inputAsistencial.value = '100.000';
+                        inputConductor.value = '90.000';
+                    } else if (totalHours > 14.01) { // mayor de 14 horas
+                        inputAsistencial.value = '';
+                        inputConductor.value = '';
+                    }
+                }
+            }
         } else {
             spanDur.textContent = "--:--";
         }
