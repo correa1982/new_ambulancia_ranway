@@ -1711,10 +1711,83 @@
         return false;
     }
 
+    function checkExpiringItems() {
+        const rows = document.querySelectorAll('.inv-table tbody tr');
+        const now = new Date();
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        
+        let expiringItems = [];
+
+        rows.forEach(row => {
+            if (row.cells.length < 6) return;
+            const nameCell = row.cells[0];
+            const nameEl = nameCell.querySelector('strong');
+            if (!nameEl) return;
+            const name = nameEl.textContent.trim();
+            
+            const dateCell = row.cells[4];
+            const dateStr = dateCell.getAttribute('data-date');
+            
+            if (!dateStr || dateStr === 'N/A') return;
+            
+            const parts = dateStr.split('-');
+            if (parts.length !== 3) return;
+            
+            const expDate = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+            
+            const timeDiff = expDate.getTime() - today.getTime();
+            const diffDays = Math.ceil(timeDiff / (1000 * 3600 * 24));
+            
+            if (diffDays >= 0 && diffDays <= 30) {
+                expiringItems.push({ name: name, days: diffDays });
+            }
+        });
+
+        if (expiringItems.length > 0) {
+            const alertDiv = document.createElement('div');
+            alertDiv.style.position = 'fixed';
+            alertDiv.style.bottom = '20px';
+            alertDiv.style.right = '20px';
+            alertDiv.style.backgroundColor = '#fffbeb';
+            alertDiv.style.border = '1px solid #f59e0b';
+            alertDiv.style.color = '#b45309';
+            alertDiv.style.padding = '15px 20px';
+            alertDiv.style.borderRadius = '8px';
+            alertDiv.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)';
+            alertDiv.style.zIndex = '9999';
+            alertDiv.style.maxWidth = '400px';
+            alertDiv.style.fontFamily = 'system-ui, -apple-system, sans-serif';
+            
+            let content = '<div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #fcd34d; padding-bottom: 8px; margin-bottom: 10px;">';
+            content += '<h4 style="margin: 0; font-size: 16px; display: flex; align-items: center; gap: 8px;">⏳ Próximos a Vencer</h4>';
+            content += '<button onclick="this.parentElement.parentElement.remove()" style="background: none; border: none; cursor: pointer; font-size: 18px; color: #b45309; padding: 0; line-height: 1;">&times;</button></div>';
+            content += '<ul style="margin: 0; padding-left: 20px; font-size: 14px; max-height: 250px; overflow-y: auto;">';
+            
+            expiringItems.forEach(item => {
+                content += `<li style="margin-bottom: 6px;"><strong>${item.name}</strong>: vence en <span style="font-weight: bold;">${item.days}</span> día(s)</li>`;
+            });
+            content += '</ul>';
+            
+            alertDiv.innerHTML = content;
+            document.body.appendChild(alertDiv);
+            
+            setTimeout(() => {
+                if(alertDiv && alertDiv.parentElement) {
+                    alertDiv.style.opacity = '0';
+                    alertDiv.style.transition = 'opacity 0.5s ease';
+                    setTimeout(() => {
+                        if(alertDiv.parentElement) alertDiv.remove();
+                    }, 500);
+                }
+            }, 10000);
+        }
+    }
+
     // Call once to initialize total
     document.addEventListener('DOMContentLoaded', function() {
         filterTable();
         colorCodeDates();
+        checkExpiringItems();
         
         const manualSelect = document.getElementById('manualProductSelect');
         if (manualSelect) {
