@@ -752,7 +752,8 @@ def init_db():
             nombre VARCHAR(255) NOT NULL,
             tipo VARCHAR(100) NOT NULL,
             invima VARCHAR(255),
-            cum VARCHAR(255)
+            cum VARCHAR(255),
+            existencia_minima INT DEFAULT 0
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
     """)
     
@@ -775,6 +776,8 @@ def init_db():
     cat_cols = [row["Field"] for row in cursor_cat.fetchall()]
     if "cum" not in cat_cols:
         conn.execute("ALTER TABLE inventarios_catalogo ADD COLUMN cum VARCHAR(255)")
+    if "existencia_minima" not in cat_cols:
+        conn.execute("ALTER TABLE inventarios_catalogo ADD COLUMN existencia_minima INT DEFAULT 0")
         
     # Drop UNIQUE constraint on nombre if it exists
     try:
