@@ -45,14 +45,63 @@ def inventarios_index():
     catalogo = conn.execute("SELECT * FROM inventarios_catalogo ORDER BY nombre").fetchall()
     conn.close()
     
+    # Pre-calculate max quantity for each product name
+    max_quantities = {}
+    for row in items_raw:
+        nombre = row['nombre']
+        qty = row['cantidad']
+        if nombre not in max_quantities:
+            max_quantities[nombre] = qty
+        elif qty > max_quantities[nombre]:
+            max_quantities[nombre] = qty
+            
     items = []
+    seen_zero_names = set()
     for row in items_raw:
         item = dict(row)
+        
         if item.get('fecha_vencimiento') and hasattr(item['fecha_vencimiento'], 'strftime'):
             item['fecha_vencimiento'] = item['fecha_vencimiento'].strftime('%Y-%m-%d')
+            
+        nombre = item['nombre']
+        
+        if item['cantidad'] == 0:
+            if max_quantities.get(nombre, 0) > 0:
+                # Hide this lot because there is another lot with quantity > 0
+                continue
+            else:
+                # No lots have quantity > 0. Show this one but without lot and expiration date
+                item['lote'] = ''
+                item['fecha_vencimiento'] = ''
+                # Only show one entry if there are multiple 0-quantity lots for the same product
+                if nombre in seen_zero_names:
+                    continue
+                seen_zero_names.add(nombre)
+                
         items.append(item)
         
-    return render_template('inventarios.html', items=items, catalogo=catalogo)
+    is_superadmin = False
+    if session.get("usuario") and session["usuario"].get("rol_real") == "admin":
+        is_superadmin = True
+        
+    # Calcular alertas de stock mínimo
+    total_stocks = {}
+    for row in items_raw:
+        nombre = row['nombre']
+        total_stocks[nombre] = total_stocks.get(nombre, 0) + row['cantidad']
+        
+    min_stocks = {c['nombre']: c.get('existencia_minima', 0) for c in catalogo}
+    alertas = []
+    for nombre, qty in total_stocks.items():
+        min_stock = min_stocks.get(nombre, 0)
+        if min_stock > 0 and qty <= min_stock:
+            alertas.append({
+                "nombre": nombre,
+                "cantidad": qty,
+                "minimo": min_stock
+            })
+        
+    return render_template('inventarios.html', items=items, catalogo=catalogo, is_superadmin=is_superadmin, alertas=alertas)
 
 @bp_inventarios.route('/catalogo/add', methods=['POST'])
 def catalogo_add():
@@ -102,6 +151,27 @@ def catalogo_edit(item_id):
     conn.close()
     
     flash("Ítem del catálogo actualizado exitosamente.", "success")
+    return redirect(url_for('inventarios.inventarios_index'))
+
+@bp_inventarios.route('/catalogo/update_min_stock', methods=['POST'])
+def catalogo_update_min_stock():
+    if not (session.get("usuario") and session["usuario"].get("rol_real") == "admin"):
+        flash("No tiene permisos para realizar esta acción.", "error")
+        return redirect(url_for('inventarios.inventarios_index'))
+        
+    conn = get_db()
+    for key, value in request.form.items():
+        if key.startswith('min_stock_'):
+            try:
+                item_id = int(key.replace('min_stock_', ''))
+                min_stock = int(value)
+                conn.execute("UPDATE inventarios_catalogo SET existencia_minima = %s WHERE id = %s", (min_stock, item_id))
+            except Exception:
+                continue
+    
+    conn.commit()
+    conn.close()
+    flash("Existencias mínimas actualizadas exitosamente.", "success")
     return redirect(url_for('inventarios.inventarios_index'))
 
 @bp_inventarios.route('/catalogo/delete/<int:item_id>', methods=['POST'])
@@ -520,9 +590,24 @@ def inventarios_exportar_excel():
 @bp_inventarios.route('/movimientos', methods=['GET'])
 def inventarios_movimientos():
     conn = get_db()
-    movimientos = conn.execute("SELECT * FROM inventarios_historial ORDER BY fecha_registro DESC").fetchall()
+    
+    page = request.args.get('page', 1, type=int)
+    per_page = 50
+    offset = (page - 1) * per_page
+    
+    total = conn.execute("SELECT COUNT(*) FROM inventarios_historial").fetchone()[0]
+    
+    movimientos = conn.execute(
+        "SELECT * FROM inventarios_historial ORDER BY fecha_registro DESC LIMIT %s OFFSET %s",
+        (per_page, offset)
+    ).fetchall()
+    
     conn.close()
-    return render_template('inventarios_movimientos.html', movimientos=movimientos)
+    
+    import math
+    total_pages = math.ceil(total / per_page) if total > 0 else 1
+    
+    return render_template('inventarios_movimientos.html', movimientos=movimientos, page=page, total_pages=total_pages)
 
 @bp_inventarios.route('/movimientos/exportar', methods=['GET'])
 def inventarios_movimientos_exportar():

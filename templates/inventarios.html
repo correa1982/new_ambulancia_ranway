@@ -174,9 +174,29 @@
         <button class="inv-btn btn-red" onclick="openManualUpdate('egreso')">➖ Egreso Manual</button>
         <button class="inv-btn btn-purple" onclick="openScanner('nuevo')">✨ Nuevo Producto</button>
         <button class="inv-btn btn-purple" style="background: #6366f1;" onclick="openCatalogModal()">📋 ITEMS</button>
+        {% if is_superadmin %}
+        <button class="inv-btn" style="background: #eab308; color: #1e293b;" onclick="openMinStockModal()">⚠️ Parametrizar Existencias Mínimas</button>
+        {% endif %}
         <a href="{{ url_for('inventarios.inventarios_movimientos') }}" class="inv-btn" style="background: #334155; text-decoration: none;">📋 Consultar Movimientos</a>
     </div>
 </div>
+
+{% if alertas %}
+<div id="alertas-stock" style="background-color: #fef2f2; border: 1px solid #ef4444; color: #b91c1c; padding: 15px; margin-bottom: 20px; border-radius: 8px; position: relative;">
+    <h3 style="margin-top: 0; margin-bottom: 10px; font-size: 16px;">⚠️ Alertas de Stock Mínimo</h3>
+    <ul style="margin: 0; padding-left: 20px; font-size: 14px;">
+        {% for alerta in alertas %}
+        <li><strong>{{ alerta.nombre }}</strong>: Stock total es {{ alerta.cantidad }} (Mínimo permitido: {{ alerta.minimo }})</li>
+        {% endfor %}
+    </ul>
+</div>
+<script>
+    setTimeout(function() {
+        var alertDiv = document.getElementById('alertas-stock');
+        if(alertDiv) { alertDiv.style.display = 'none'; }
+    }, 10000);
+</script>
+{% endif %}
 
 <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
     <div class="filters-container" style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
@@ -188,6 +208,7 @@
             <option value="Cosméticos y Aseo">Cosméticos y Aseo</option>
             <option value="Control Especial">Control Especial</option>
             <option value="Material Esteril">Material Esteril</option>
+            <option value="Reactivo de Diagnostico in vitro">Reactivo de Diagnóstico in vitro</option>
         </select>
         <a href="{{ url_for('inventarios.inventarios_exportar_excel') }}" class="inv-btn" style="background: #10b981; text-decoration: none; flex: 0 0 auto; white-space: nowrap; padding: 8px 12px; font-size: 13px;">📊 Exportar Excel</a>
     </div>
@@ -226,6 +247,7 @@
                 {% if item.tipo == 'Dispositivo Médico' %} <span style="color: #0284c7;">🩺 {{ item.tipo }}</span>
                 {% elif item.tipo == 'Medicamento' %} <span style="color: #16a34a;">💊 {{ item.tipo }}</span>
                 {% elif item.tipo == 'Control Especial' %} <span style="color: #9333ea;">{{ item.tipo }}</span>
+                {% elif item.tipo == 'Reactivo de Diagnostico in vitro' %} <span style="color: #eab308;">🧪 {{ item.tipo }}</span>
                 {% else %} <span style="color: #ea580c;">🩹 {{ item.tipo }}</span>
                 {% endif %}
             </td>
@@ -300,6 +322,7 @@
                         <option value="Cosméticos y Aseo">Cosméticos y Aseo</option>
                         <option value="Control Especial">Control Especial</option>
                         <option value="Material Esteril">Material Esteril</option>
+                        <option value="Reactivo de Diagnostico in vitro">Reactivo de Diagnóstico in vitro</option>
                     </select>
                 </div>
                 <div class="form-group" style="flex: 1;">
@@ -360,6 +383,7 @@
                         <option value="Cosméticos y Aseo">Cosméticos y Aseo</option>
                         <option value="Control Especial">Control Especial</option>
                         <option value="Material Esteril">Material Esteril</option>
+                        <option value="Reactivo de Diagnostico in vitro">Reactivo de Diagnóstico in vitro</option>
                     </select>
                 </div>
                 <div class="form-group" style="flex: 1; min-width: 120px; margin-bottom: 0;">
@@ -412,6 +436,50 @@
         </div>
     </div>
 </div>
+
+{% if is_superadmin %}
+<!-- Modal para Parametrizar Existencias Mínimas -->
+<div id="minStockModal" class="modal">
+    <div class="modal-content" style="max-width: 800px; width: 95%;">
+        <div class="modal-header">
+            <h2 style="margin: 0; font-size: 20px; color: #1e293b;">⚠️ Parametrizar Existencias Mínimas</h2>
+            <button class="close-btn" onclick="closeModal('minStockModal')">×</button>
+        </div>
+        
+        <form method="POST" action="{{ url_for('inventarios.catalogo_update_min_stock') }}">
+            <div style="max-height: 500px; overflow-y: auto; overflow-x: auto; -webkit-overflow-scrolling: touch; margin-bottom: 20px;">
+                <table class="inv-table" style="font-size: 13px; min-width: 600px;">
+                    <thead style="position: sticky; top: 0; z-index: 10;">
+                        <tr>
+                            <th style="width: 50%;">Nombre del Producto</th>
+                            <th style="width: 25%;">Tipo</th>
+                            <th style="width: 25%; text-align: center;">Stock Mínimo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for cat in catalogo %}
+                        <tr>
+                            <td><strong>{{ cat.nombre }}</strong></td>
+                            <td>{{ cat.tipo }}</td>
+                            <td style="text-align: center;">
+                                <input type="number" name="min_stock_{{ cat.id }}" value="{{ cat.existencia_minima|default(0) }}" min="0" style="width: 100px; text-align: center; padding: 5px; border: 1px solid #cbd5e1; border-radius: 4px;">
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="3" style="text-align: center; color: #64748b;">El catálogo está vacío. Registre productos primero.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div style="text-align: right;">
+                <button type="submit" class="inv-btn btn-green">💾 Guardar Cambios</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endif %}
 
 <!-- Modal para Escáner QR (Mejorado) -->
 <style>
@@ -879,6 +947,10 @@
         document.getElementById('formCatalogo').reset();
         document.getElementById('btnSubmitCatalogo').textContent = 'Añadir';
         document.getElementById('btnCancelCatalogo').style.display = 'none';
+    }
+
+    function openMinStockModal() {
+        document.getElementById('minStockModal').style.display = 'block';
     }
 
     function autoFillCatalog() {
@@ -1639,10 +1711,83 @@
         return false;
     }
 
+    function checkExpiringItems() {
+        const rows = document.querySelectorAll('.inv-table tbody tr');
+        const now = new Date();
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        
+        let expiringItems = [];
+
+        rows.forEach(row => {
+            if (row.cells.length < 6) return;
+            const nameCell = row.cells[0];
+            const nameEl = nameCell.querySelector('strong');
+            if (!nameEl) return;
+            const name = nameEl.textContent.trim();
+            
+            const dateCell = row.cells[4];
+            const dateStr = dateCell.getAttribute('data-date');
+            
+            if (!dateStr || dateStr === 'N/A') return;
+            
+            const parts = dateStr.split('-');
+            if (parts.length !== 3) return;
+            
+            const expDate = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+            
+            const timeDiff = expDate.getTime() - today.getTime();
+            const diffDays = Math.ceil(timeDiff / (1000 * 3600 * 24));
+            
+            if (diffDays >= 0 && diffDays <= 30) {
+                expiringItems.push({ name: name, days: diffDays });
+            }
+        });
+
+        if (expiringItems.length > 0) {
+            const alertDiv = document.createElement('div');
+            alertDiv.style.position = 'fixed';
+            alertDiv.style.bottom = '20px';
+            alertDiv.style.right = '20px';
+            alertDiv.style.backgroundColor = '#fffbeb';
+            alertDiv.style.border = '1px solid #f59e0b';
+            alertDiv.style.color = '#b45309';
+            alertDiv.style.padding = '15px 20px';
+            alertDiv.style.borderRadius = '8px';
+            alertDiv.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)';
+            alertDiv.style.zIndex = '9999';
+            alertDiv.style.maxWidth = '400px';
+            alertDiv.style.fontFamily = 'system-ui, -apple-system, sans-serif';
+            
+            let content = '<div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #fcd34d; padding-bottom: 8px; margin-bottom: 10px;">';
+            content += '<h4 style="margin: 0; font-size: 16px; display: flex; align-items: center; gap: 8px;">⏳ Próximos a Vencer</h4>';
+            content += '<button onclick="this.parentElement.parentElement.remove()" style="background: none; border: none; cursor: pointer; font-size: 18px; color: #b45309; padding: 0; line-height: 1;">&times;</button></div>';
+            content += '<ul style="margin: 0; padding-left: 20px; font-size: 14px; max-height: 250px; overflow-y: auto;">';
+            
+            expiringItems.forEach(item => {
+                content += `<li style="margin-bottom: 6px;"><strong>${item.name}</strong>: vence en <span style="font-weight: bold;">${item.days}</span> día(s)</li>`;
+            });
+            content += '</ul>';
+            
+            alertDiv.innerHTML = content;
+            document.body.appendChild(alertDiv);
+            
+            setTimeout(() => {
+                if(alertDiv && alertDiv.parentElement) {
+                    alertDiv.style.opacity = '0';
+                    alertDiv.style.transition = 'opacity 0.5s ease';
+                    setTimeout(() => {
+                        if(alertDiv.parentElement) alertDiv.remove();
+                    }, 500);
+                }
+            }, 10000);
+        }
+    }
+
     // Call once to initialize total
     document.addEventListener('DOMContentLoaded', function() {
         filterTable();
         colorCodeDates();
+        checkExpiringItems();
         
         const manualSelect = document.getElementById('manualProductSelect');
         if (manualSelect) {
