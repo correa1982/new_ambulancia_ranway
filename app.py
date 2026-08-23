@@ -271,6 +271,7 @@ from routes.routes_ths_sga import register_routes as register_ths_sga
 from routes.routes_ths_trip import register_routes as register_ths_trip
 from routes.routes_ths_soc import register_routes as register_ths_soc
 from routes.routes_inventarios import register_routes as register_inventarios
+from routes.routes_programacion_operativa import register_routes as register_programacion_operativa
 
 # Registrar todas las rutas
 register_auth(app)
@@ -288,6 +289,7 @@ register_ths_sga(app)
 register_ths_trip(app)
 register_ths_soc(app)
 register_inventarios(app)
+register_programacion_operativa(app)
 
 if __name__ == "__main__":
     

@@ -1,0 +1,759 @@
+{% extends "base.html" %}
+{% block title %}Programación Operativa{% endblock %}
+{% block content %}
+<style>
+.header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #e2e8f0;
+    padding-bottom: 12px;
+}
+.main-card {
+    background: white;
+    padding: 16px;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+    margin-bottom: 16px;
+    border: 1px solid #e2e8f0;
+}
+.form-group {
+    margin-bottom: 10px;
+}
+.form-group label {
+    display: block;
+    margin-bottom: 4px;
+    font-weight: 700;
+    font-size: 11px;
+    color: #475569;
+}
+.form-group input, .form-group select, .form-group textarea {
+    width: 100%;
+    padding: 6px 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 13px;
+    color: #1e293b;
+    background-color: #f8fafc;
+}
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+}
+.btn-primary {
+    background-color: #2563eb;
+    color: white;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-block;
+    transition: background-color 0.2s;
+}
+.btn-primary:hover {
+    background-color: #1d4ed8;
+}
+.btn-light-custom {
+    background-color: #f1f5f9 !important;
+    color: #0f172a !important;
+    padding: 8px 16px;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s;
+    text-decoration: none;
+    display: inline-block;
+}
+.btn-light-custom:hover {
+    background-color: #e2e8f0 !important;
+}
+.btn-danger-light {
+    background-color: #fee2e2 !important;
+    color: #b91c1c !important;
+    padding: 8px 16px;
+    border: 1px solid #fca5a5 !important;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+}
+.btn-danger-light:hover {
+    background-color: #fecaca !important;
+}
+.integrante-row {
+    display: grid;
+    grid-template-columns: 1fr 2fr auto;
+    gap: 8px;
+    margin-bottom: 6px;
+    align-items: end;
+}
+.section-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #1e3a5f;
+    margin-top: 16px;
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #e2e8f0;
+}
+</style>
+
+<div class="header-row">
+    <h2 style="margin:0; color:#1e3a5f; display:flex; align-items:center; gap:8px;">
+        <i class="ph ph-calendar-plus" style="color:#7e22ce;"></i> Programación Operativa
+    </h2>
+    <a href="{{ url_for('programacion_operativa_explorador') }}" class="btn-light-custom">Ver Explorador</a>
+</div>
+
+<div class="main-card">
+    <form method="POST" action="{{ url_for('programacion_operativa') }}" id="form-programacion">
+        <div class="form-group">
+            <label for="tipo_evento">Tipo de Evento a Programar <span style="color:red">*</span></label>
+            <select name="tipo_evento" id="tipo_evento" required onchange="toggleForm()">
+                <option value="">Seleccione una opción...</option>
+                <option value="Tripulacion Basica">Tripulación Básica</option>
+                <option value="Operativo Completo">Operativo Completo</option>
+            </select>
+        </div>
+        
+        <!-- Contenedor dinámico -->
+        <div id="dynamic_fields" style="display: none; margin-top:20px;">
+            <div class="row row-2" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                <div class="form-group">
+                    <label>NOMBRE DEL EVENTO <span style="color:red">*</span></label>
+                    <input type="text" name="nombre_evento" id="nombre_evento" placeholder="Ej: CORBESHOW MEDELLIN 2026">
+                </div>
+                <div class="form-group">
+                    <label>FECHA <span style="color:red">*</span></label>
+                    <input onclick="this.showPicker()" type="date" name="fecha" id="fecha">
+                </div>
+            </div>
+            
+            <div class="row row-2" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                <div class="form-group">
+                    <label>HORA INICIO (HORA SEDE) <span style="color:red">*</span></label>
+                    <input type="text" class="timepicker" name="hora_inicio" id="hora_inicio" placeholder="Seleccione hora">
+                </div>
+                <div class="form-group">
+                    <label>HORA DE FINALIZACIÓN</label>
+                    <input type="text" class="timepicker" name="hora_finalizacion" id="hora_finalizacion" placeholder="Seleccione hora">
+                </div>
+            </div>
+            
+            <div class="row row-2" id="lugar_contacto_row" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px;">
+                <div class="form-group">
+                    <label>LUGAR</label>
+                    <input type="text" name="lugar" id="lugar" placeholder="Ej: PLAZA MAYOR PABELLON AZUL">
+                </div>
+                <div class="form-group" id="contacto_group">
+                    <label>CONTACTO</label>
+                    <input type="text" name="contacto" id="contacto" placeholder="Ej: DIANA BERMUDEZ">
+                </div>
+                <div class="form-group" id="coordina_group">
+                    <label>COORDINA</label>
+                    <input type="text" name="coordina" id="coordina" placeholder="Ej: FELIPE GAVIRIA">
+                </div>
+            </div>
+            
+            <div id="seccion_basica">
+                <div class="row row-2" style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom: 20px;">
+                    <div class="form-group">
+                        <label>AMBULANCIA TAM - TAB</label>
+                        <select name="basica_tipo_ambulancia" id="basica_tipo_ambulancia" onchange="generarIntegrantesBasica()">
+                            <option value="">Seleccione...</option>
+                            <option value="TAM">TAM</option>
+                            <option value="TAB">TAB</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>N° DE MÓVIL (Ej: M-1)</label>
+                        <input type="text" name="basica_numero_movil" id="basica_numero_movil" placeholder="M-1">
+                    </div>
+                </div>
+                
+                <div class="section-title">INTEGRANTES DE LA TRIPULACIÓN</div>
+                <div id="integrantes-container">
+                    <!-- Se generan desde JS -->
+                </div>
+                <button type="button" class="btn-light-custom" onclick="addIntegrante()" style="margin-bottom: 20px;">
+                    + Agregar otro integrante
+                </button>
+            </div>
+            
+            <div id="seccion_completo" style="display: none;">
+                <div class="section-title">CONFIGURACIÓN DE DISEÑO</div>
+                <div class="form-group" style="max-width: 200px;">
+                    <label>COLUMNAS EN EL DISEÑO (PDF)</label>
+                    <input type="number" name="columnas_layout" id="columnas_layout" value="3" min="1" max="6" oninput="actualizarColumnas()" onchange="actualizarColumnas()">
+                </div>
+                
+                <div class="section-title">UNIDADES DEL OPERATIVO</div>
+                <div style="display:flex; gap:10px; margin-bottom:20px; flex-wrap: wrap;">
+                    <button type="button" class="btn-light-custom" onclick="addUnidad('Avanzada')">+ Agregar Avanzada</button>
+                    <button type="button" class="btn-light-custom" onclick="addUnidad('Ambulancia')">+ Agregar Ambulancia</button>
+                    <button type="button" class="btn-light-custom" onclick="addUnidad('Moto')">+ Agregar Moto</button>
+                    <button type="button" class="btn-light-custom" onclick="addUnidad('PASM')">+ Agregar PASM</button>
+                    <button type="button" class="btn-light-custom" onclick="addUnidad('PASB')">+ Agregar PASB</button>
+                </div>
+                
+                <div id="unidades-container" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap:16px;">
+                    <!-- Bloques de unidades -->
+                </div>
+            </div>
+            
+            <input type="hidden" name="recursos_tecnicos" id="recursos_tecnicos" value="RECURSOS TÉCNICOS. (CAMILLA PLEGABLE-1, TABLA-1, BOTIQUIN TRAUMA-1, BOTIQUIN BASICO-1, RADIOS-1)">
+            
+            <button type="submit" class="btn-primary" style="width: 100%; margin-top:10px;">Guardar Programación</button>
+        </div>
+    </form>
+</div>
+
+<!-- Datalist para autocompletado de personal de nómina -->
+<datalist id="lista_empleados">
+    {% for emp in empleados %}
+    <option value="{{ emp }}">
+    {% endfor %}
+</datalist>
+
+<script>
+    let integranteCount = 0;
+    let unidadCount = {
+        avanzada: 0,
+        moto: 0,
+        ambulancia: 0,
+        pasm: 0,
+        pasb: 0
+    };
+    let globalUnidadIndex = 0; // Para los IDs de las unidades en DOM
+
+    function toggleForm() {
+        const tipo = document.getElementById("tipo_evento").value;
+        const container = document.getElementById("dynamic_fields");
+        const seccionBasica = document.getElementById("seccion_basica");
+        const seccionCompleto = document.getElementById("seccion_completo");
+        const coordinaGroup = document.getElementById("coordina_group");
+        const rowLugarContacto = document.getElementById("lugar_contacto_row");
+        
+        if (tipo === "Tripulacion Basica") {
+            container.style.display = "block";
+            seccionBasica.style.display = "block";
+            seccionCompleto.style.display = "none";
+            coordinaGroup.style.display = "none";
+            rowLugarContacto.style.gridTemplateColumns = "1fr 1fr";
+            // Require fields
+            document.getElementById("nombre_evento").required = true;
+            document.getElementById("fecha").required = true;
+            document.getElementById("hora_inicio").required = true;
+            
+            // Render default 2 members if empty
+            if(integranteCount === 0) {
+                addIntegrante("COND ");
+                addIntegrante("");
+            }
+        } else if (tipo === "Operativo Completo") {
+            container.style.display = "block";
+            seccionBasica.style.display = "none";
+            seccionCompleto.style.display = "block";
+            coordinaGroup.style.display = "block";
+            rowLugarContacto.style.gridTemplateColumns = "1fr 1fr 1fr";
+            
+            // Require fields
+            document.getElementById("nombre_evento").required = true;
+            document.getElementById("fecha").required = true;
+            document.getElementById("hora_inicio").required = true;
+            
+            // Aplicar estilo de columnas inicial
+            actualizarColumnas();
+        } else {
+            container.style.display = "none";
+            document.getElementById("nombre_evento").required = false;
+            document.getElementById("fecha").required = false;
+            document.getElementById("hora_inicio").required = false;
+        }
+    }
+    
+    function addIntegrante(defaultRol = "") {
+        integranteCount++;
+        const container = document.getElementById("integrantes-container");
+        
+        const row = document.createElement("div");
+        row.className = "integrante-row";
+        row.id = `integrante-${integranteCount}`;
+        
+        let selectOptions = '';
+        if (integranteCount === 1) {
+            selectOptions = '<option value="COND" selected>COND</option>';
+        } else if (integranteCount === 2) {
+            selectOptions = `
+                <option value="">Seleccione rol (opcional)...</option>
+                <option value="MED">MED</option>
+                <option value="APH">APH</option>
+                <option value="AUX ENF">AUX ENF</option>
+            `;
+        } else {
+            selectOptions = `
+                <option value="">Seleccione rol (opcional)...</option>
+                <option value="APH">APH</option>
+                <option value="AUX ENF">AUX ENF</option>
+            `;
+        }
+        
+        const rolHtmlEditable = `
+            <div class="form-group" style="margin-bottom:0;">
+                <label>Rol/Variable</label>
+                <select name="integrante_rol[]" style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px;">
+                    ${selectOptions}
+                </select>
+            </div>
+        `;
+        
+        row.innerHTML = `
+            ${rolHtmlEditable}
+            <div class="form-group" style="margin-bottom:0;">
+                <label>Personal (Buscar) <span style="color:red">*</span></label>
+                <input type="text" name="integrante_nombre[]" list="lista_empleados" placeholder="Seleccione de la lista..." required>
+            </div>
+            <div class="form-group" style="margin-bottom:0; display:flex; align-items:flex-end;">
+                ${integranteCount > 1 ? `<button type="button" class="btn-danger-light" onclick="removeIntegrante(${integranteCount})">X</button>` : `<div style="width:42px;"></div>`}
+            </div>
+        `;
+        
+        container.appendChild(row);
+    }
+    
+    function generarIntegrantesBasica() {
+        const tipo = document.getElementById("basica_tipo_ambulancia").value;
+        const container = document.getElementById("integrantes-container");
+        
+        container.innerHTML = "";
+        integranteCount = 0;
+        
+        if (tipo === "TAM") {
+            addIntegranteEspecifico("COND", true);
+            addIntegranteEspecifico("MED", true);
+            addIntegranteEspecifico("APH, AUX ENF, ENF", false);
+        } else if (tipo === "TAB") {
+            addIntegranteEspecifico("COND", true);
+            addIntegranteEspecifico("APH, AUX ENF, ENF", true);
+            addIntegranteEspecifico("APH, AUX ENF, ENF", false);
+        } else {
+            // Predeterminado
+            addIntegrante("COND ");
+            addIntegrante("");
+        }
+    }
+
+    function addIntegranteEspecifico(tipoRol, esObligatorio) {
+        integranteCount++;
+        const container = document.getElementById("integrantes-container");
+        const row = document.createElement("div");
+        row.className = "integrante-row";
+        row.id = `integrante-${integranteCount}`;
+        
+        let selectOptions = '';
+        if (tipoRol === "COND") {
+            selectOptions = '<option value="COND" selected>COND</option>';
+        } else if (tipoRol === "MED") {
+            selectOptions = '<option value="MED" selected>MED</option>';
+        } else if (tipoRol === "APH, AUX ENF, ENF") {
+            selectOptions = `
+                <option value="">Seleccione rol${esObligatorio ? '' : ' (opcional)'}...</option>
+                <option value="APH">APH</option>
+                <option value="AUX ENF">AUX ENF</option>
+                <option value="ENF">ENF</option>
+            `;
+        } else {
+            selectOptions = `
+                <option value="">Seleccione rol...</option>
+                <option value="${tipoRol}">${tipoRol}</option>
+            `;
+        }
+        
+        const rolHtml = `
+            <div class="form-group" style="margin-bottom:0;">
+                <label>Rol/Variable <span style="color:red">*</span></label>
+                <select name="integrante_rol[]" style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px;" required>
+                    ${selectOptions}
+                </select>
+            </div>
+        `;
+        
+        row.innerHTML = `
+            ${rolHtml}
+            <div class="form-group" style="margin-bottom:0;">
+                <label>Personal (Buscar) ${esObligatorio ? '<span style="color:red">*</span>' : ''}</label>
+                <input type="text" name="integrante_nombre[]" list="lista_empleados" placeholder="Seleccione de la lista..." ${esObligatorio ? 'required' : ''}>
+            </div>
+            <div class="form-group" style="margin-bottom:0; display:flex; align-items:flex-end;">
+                <button type="button" class="btn-danger-light" onclick="removeIntegrante(${integranteCount})">X</button>
+            </div>
+        `;
+        
+        container.appendChild(row);
+    }
+    
+    function removeIntegrante(id) {
+        const row = document.getElementById(`integrante-${id}`);
+        if(row) row.remove();
+    }
+
+    function removeUnidad(id) {
+        const row = document.getElementById(`unidad-${id}`);
+        if(row) row.remove();
+    }
+
+    function addUnidad(tipo) {
+        globalUnidadIndex++;
+        const container = document.getElementById("unidades-container");
+        
+        let titulo = "";
+        let campos = 0;
+        let esAmbulancia = false;
+        
+        if (tipo === 'Avanzada') {
+            unidadCount.avanzada++;
+            titulo = `E. INTERVENCION. ${unidadCount.avanzada}`;
+            campos = 4;
+        } else if (tipo === 'Ambulancia') {
+            unidadCount.ambulancia++;
+            titulo = `AMB. TAM / TAB`; // Se ajustará
+            campos = 3;
+            esAmbulancia = true;
+        } else if (tipo === 'Moto') {
+            unidadCount.moto++;
+            titulo = `MOTO ${unidadCount.moto}`;
+            campos = 2;
+        } else if (tipo === 'PASM') {
+            unidadCount.pasm++;
+            titulo = `PAS-M ${unidadCount.pasm}`;
+            campos = 3;
+        } else if (tipo === 'PASB') {
+            unidadCount.pasb++;
+            titulo = `PAS-B ${unidadCount.pasb}`;
+            campos = 3;
+        }
+
+        const div = document.createElement("div");
+        div.className = "main-card";
+        div.style.marginBottom = "0";
+        div.id = `unidad-${globalUnidadIndex}`;
+        div.style.position = "relative";
+        
+        // Atributos para Drag and Drop
+        div.draggable = true;
+        div.style.cursor = "grab";
+        div.addEventListener('dragstart', handleDragStart);
+        div.addEventListener('dragover', handleDragOver);
+        div.addEventListener('dragenter', handleDragEnter);
+        div.addEventListener('dragleave', handleDragLeave);
+        div.addEventListener('drop', handleDrop);
+        div.addEventListener('dragend', handleDragEnd);
+        
+        // El input hidden que guarda el nombre de la unidad para procesarlo en el backend
+        let html = `
+            <button type="button" class="btn-danger-light" style="position:absolute; top:10px; right:10px; padding:4px 8px; font-size:10px;" onclick="removeUnidad(${globalUnidadIndex})">X</button>
+            <div class="section-title" style="margin-top:0;">${titulo}</div>
+        `;
+        
+        if (esAmbulancia) {
+            html += `
+                <div style="display:flex; gap:10px;">
+                    <div class="form-group" style="flex:2;">
+                        <label>TIPO DE AMBULANCIA <span style="color:red">*</span></label>
+                        <select onchange="actualizarNombreAmbulancia(this, ${globalUnidadIndex})" required>
+                            <option value="">Seleccione...</option>
+                            <option value="TAM">TAM</option>
+                            <option value="TAB">TAB</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="flex:1;">
+                        <label>N° (Ej: M-1)</label>
+                        <input type="text" id="num_amb_${globalUnidadIndex}" placeholder="M-1" oninput="actualizarNombreAmbulancia(document.querySelector('#unidad-${globalUnidadIndex} select'), ${globalUnidadIndex})">
+                    </div>
+                </div>
+                <input type="hidden" name="unidad_nombre[]" id="unidad_nombre_${globalUnidadIndex}" value="">
+                <input type="hidden" name="unidad_tipo[]" value="Ambulancia">
+                <input type="hidden" name="unidad_campos_count[]" value="${campos}">
+            `;
+        } else {
+            html += `
+                <input type="hidden" name="unidad_nombre[]" value="${titulo}">
+                <input type="hidden" name="unidad_tipo[]" value="${tipo}">
+                <input type="hidden" name="unidad_campos_count[]" value="${campos}">
+            `;
+        }
+
+        html += `<div style="margin-top:16px;">`;
+        for (let i = 1; i <= campos; i++) {
+            // Generar opciones dinámicas según reglas
+            let opciones = [];
+            let isOptional = false;
+            
+            if (tipo === 'Avanzada') {
+                opciones = ['APH', 'AUX ENF', 'ENF', 'SOC'];
+            } else if (tipo === 'Ambulancia') {
+                // Initial defaults before TAM/TAB is chosen
+                if (i === 1) opciones = ['COND'];
+                else if (i === 2) opciones = ['MED', 'APH', 'AUX ENF', 'ENF'];
+                else { opciones = ['APH', 'AUX ENF', 'ENF', 'SOC']; isOptional = true; }
+            } else if (tipo === 'Moto') {
+                if (i === 1) opciones = ['COND', 'APH', 'AUX ENF', 'ENF'];
+                else if (i === 2) opciones = ['APH', 'AUX ENF', 'ENF', 'SOC', 'MED'];
+                else opciones = ['APH', 'AUX ENF', 'ENF'];
+            } else if (tipo === 'PASM') {
+                if (i === 1) opciones = ['MED'];
+                else if (i === 2) opciones = ['APH', 'ENF', 'AUX ENF'];
+                else if (i === 3) { opciones = ['APH', 'ENF', 'AUX ENF', 'SOC']; isOptional = true; }
+                else { opciones = ['APH', 'ENF', 'AUX ENF']; isOptional = true; }
+            } else if (tipo === 'PASB') {
+                if (i === 1) opciones = ['APH', 'ENF', 'AUX ENF'];
+                else if (i === 2) { opciones = ['APH', 'ENF', 'AUX ENF', 'SOC']; isOptional = true; }
+                else if (i === 3) { opciones = ['APH', 'ENF', 'AUX ENF', 'SOC']; isOptional = true; }
+                else { opciones = ['APH', 'ENF', 'AUX ENF']; isOptional = true; }
+            }
+            
+            let selectOptions = isOptional ? `<option value="">Seleccione rol (opcional)...</option>` : `<option value="">Seleccione rol...</option>`;
+            // Si solo hay una opción (como COND en ambulancia 1), dejarla pre-seleccionada
+            if (opciones.length === 1) {
+                selectOptions = `<option value="${opciones[0]}" selected>${opciones[0]}</option>`;
+            } else {
+                for (let opt of opciones) {
+                    selectOptions += `<option value="${opt}">${opt}</option>`;
+                }
+            }
+            
+            html += `
+                <div class="integrante-row" style="grid-template-columns: 1fr 1fr;">
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label>Rol ${i}</label>
+                        <select name="unidad_integrante_rol[]" id="rol_select_${globalUnidadIndex}_${i}" style="width:100%; padding: 6px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 11px;">
+                            ${selectOptions}
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label>Personal ${i} <span style="color:red">*</span></label>
+                        <input type="text" name="unidad_integrante_nombre[]" list="lista_empleados" placeholder="Buscar..." ${isOptional ? '' : 'required'}>
+                    </div>
+                </div>
+            `;
+        }
+        html += `</div>`;
+        div.innerHTML = html;
+        container.appendChild(div);
+    }
+
+    function actualizarNombreAmbulancia(select, index) {
+        if (!select) return;
+        const val = select.value;
+        const hiddenInput = document.getElementById(`unidad_nombre_${index}`);
+        const div = document.getElementById(`unidad-${index}`);
+        const titleDiv = div.querySelector('.section-title');
+        const numInput = document.getElementById(`num_amb_${index}`);
+        
+        const numVal = (numInput && numInput.value.trim() !== '') ? ` ${numInput.value.trim()}` : '';
+        
+        if (val) {
+            const nombre = `AMB. ${val}${numVal}`;
+            hiddenInput.value = nombre;
+            titleDiv.textContent = nombre;
+            
+            // Lógica de roles
+            const s1 = document.getElementById(`rol_select_${index}_1`);
+            const s2 = document.getElementById(`rol_select_${index}_2`);
+            const s3 = document.getElementById(`rol_select_${index}_3`);
+            
+            const setOpts = (sel, opts, req) => {
+                if (!sel) return;
+                sel.innerHTML = req ? '' : '<option value="">Seleccione rol (opcional)...</option>';
+                if (opts.length === 1) {
+                    sel.innerHTML += `<option value="${opts[0]}" selected>${opts[0]}</option>`;
+                } else {
+                    opts.forEach(o => sel.innerHTML += `<option value="${o}">${o}</option>`);
+                }
+            };
+            
+            if (val === 'TAM') {
+                setOpts(s1, ['COND'], true);
+                setOpts(s2, ['MED'], true);
+                setOpts(s3, ['APH', 'AUX ENF', 'ENF'], true);
+                if (s3) s3.parentElement.nextElementSibling.querySelector('input').required = true;
+            } else if (val === 'TAB') {
+                setOpts(s1, ['COND'], true);
+                setOpts(s2, ['APH', 'AUX ENF', 'ENF'], true);
+                setOpts(s3, ['APH', 'AUX ENF', 'ENF', 'SOC'], false);
+                if (s3) s3.parentElement.nextElementSibling.querySelector('input').required = false;
+            }
+        } else {
+            hiddenInput.value = "";
+            titleDiv.textContent = "AMB. TAM / TAB" + numVal;
+        }
+    }
+
+    function actualizarColumnas() {
+        const numCols = document.getElementById('columnas_layout').value || 3;
+        const container = document.getElementById("unidades-container");
+        container.style.gridTemplateColumns = `repeat(${numCols}, 1fr)`;
+    }
+
+    // Funciones de arrastrar y soltar (Drag and Drop)
+    let draggedItem = null;
+
+    function handleDragStart(e) {
+        draggedItem = this;
+        e.dataTransfer.effectAllowed = 'move';
+        // Hack para Firefox
+        e.dataTransfer.setData('text/plain', '');
+        this.style.opacity = '0.5';
+    }
+
+    function handleDragOver(e) {
+        if (e.preventDefault) {
+            e.preventDefault(); 
+        }
+        e.dataTransfer.dropEffect = 'move';
+        return false;
+    }
+
+    function handleDragEnter(e) {
+        this.style.border = '2px dashed #2563eb';
+    }
+
+    function handleDragLeave(e) {
+        this.style.border = '1px solid #e2e8f0';
+    }
+
+    function handleDrop(e) {
+        if (e.stopPropagation) {
+            e.stopPropagation(); 
+        }
+        if (draggedItem !== this) {
+            const container = document.getElementById("unidades-container");
+            const allItems = Array.from(container.children);
+            const draggedIndex = allItems.indexOf(draggedItem);
+            const targetIndex = allItems.indexOf(this);
+            
+            if (draggedIndex < targetIndex) {
+                container.insertBefore(draggedItem, this.nextSibling);
+            } else {
+                container.insertBefore(draggedItem, this);
+            }
+        }
+        this.style.border = '1px solid #e2e8f0';
+        return false;
+    }
+
+    function handleDragEnd(e) {
+        this.style.opacity = '1';
+        const container = document.getElementById("unidades-container");
+        Array.from(container.children).forEach(item => {
+            item.style.border = '1px solid #e2e8f0';
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof flatpickr !== 'undefined') {
+            flatpickr(".timepicker", {
+                enableTime: true,
+                noCalendar: true,
+                dateFormat: "H:i",
+                time_24hr: true
+            });
+            
+            document.getElementById('form-programacion').addEventListener('submit', async function(e) {
+                e.preventDefault(); // Detenemos el envío por defecto para hacer validaciones
+                
+                const form = this;
+                const tipoEvento = document.getElementById('tipo_evento').value;
+                let inputs;
+                
+                if (tipoEvento === 'Operativo Completo') {
+                    inputs = document.querySelectorAll('input[name="unidad_integrante_nombre[]"]');
+                } else if (tipoEvento === 'Tripulacion Basica') {
+                    inputs = document.querySelectorAll('input[name="integrante_nombre[]"]');
+                } else {
+                    form.submit();
+                    return;
+                }
+                
+                const values = [];
+                const nombres = [];
+                
+                for (let input of inputs) {
+                    const val = input.value.trim();
+                    if (val !== '') {
+                        if (values.includes(val)) {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Personal Duplicado',
+                                text: 'La persona "' + val + '" ya está agregada dos veces en este formulario.',
+                                confirmButtonColor: '#3b82f6'
+                            });
+                            return;
+                        }
+                        values.push(val);
+                        nombres.push(val);
+                    }
+                }
+                
+                if (nombres.length === 0) {
+                    form.submit();
+                    return;
+                }
+                
+                const fecha = document.getElementById('fecha').value;
+                const horaInicio = document.getElementById('hora_inicio').value;
+                const horaFinalizacion = document.getElementById('hora_finalizacion').value;
+                
+                try {
+                    const response = await fetch('/api/check_programacion_conflict', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            fecha: fecha,
+                            hora_inicio: horaInicio,
+                            hora_finalizacion: horaFinalizacion,
+                            nombres: nombres
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    if (data.conflictos && data.conflictos.length > 0) {
+                        let htmlMsg = '<div style="text-align:left; font-size:14px; max-height:200px; overflow-y:auto;">';
+                        data.conflictos.forEach(c => {
+                            htmlMsg += `<b>${c.nombre}</b> está programado/a en <b>${c.evento}</b> (${c.hora_inicio} a ${c.hora_finalizacion})<br><br>`;
+                        });
+                        htmlMsg += '</div><p style="margin-top:10px;">¿Deseas ignorar la alerta y guardarlo de todas formas en ambos lugares?</p>';
+                        
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Cruce de Horarios Detectado',
+                            html: htmlMsg,
+                            showCancelButton: true,
+                            confirmButtonColor: '#3b82f6',
+                            cancelButtonColor: '#ef4444',
+                            confirmButtonText: 'Sí, continuar',
+                            cancelButtonText: 'Revisar'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                form.submit();
+                            }
+                        });
+                    } else {
+                        form.submit();
+                    }
+                } catch (error) {
+                    console.error('Error al consultar conflictos:', error);
+                    form.submit(); // En caso de error de red, permitir el submit
+                }
+            });
+        }
+    });
+</script>
+
+{% endblock %}
