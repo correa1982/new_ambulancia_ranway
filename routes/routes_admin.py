@@ -622,7 +622,6 @@ def register_routes(app):
         conn.close()
         
         # Formatear la respuesta
-        from flask import jsonify
         for p in pacientes:
             p['nombre_completo'] = f"{p.get('primer_nombre','')} {p.get('segundo_nombre','')} {p.get('primer_apellido','')} {p.get('segundo_apellido','')}".replace("  ", " ").strip()
             

@@ -84,7 +84,7 @@ def register_routes(app, serializer, TIPOS_DOCUMENTO, TIPOS_AFILIACION, ASEGURAD
                 parts = offline_dedupe_key.split("|")
                 if len(parts) >= 5:
                     existing = conn.execute(
-                        """SELECT id FROM pacientes
+                        """SELECT id, finalizado FROM pacientes
                            WHERE tipo_documento = ? AND identificacion_paciente = ?
                              AND primer_nombre = ? AND primer_apellido = ?
                              AND fecha_inicio_atencion = ?
@@ -92,8 +92,11 @@ def register_routes(app, serializer, TIPOS_DOCUMENTO, TIPOS_AFILIACION, ASEGURAD
                         (parts[0], parts[1], parts[3], parts[4], parts[2])
                     ).fetchone()
                     if existing:
-                        conn.close()
-                        return jsonify({"status": "success", "deduplicated": True}), 200
+                        if accion == "finalizar" and existing["finalizado"] != 1:
+                            paciente_id = existing["id"]
+                        else:
+                            conn.close()
+                            return jsonify({"status": "success", "deduplicated": True}), 200
 
             # Perform server-side validation only when finalizing
             errors = []
@@ -110,7 +113,6 @@ def register_routes(app, serializer, TIPOS_DOCUMENTO, TIPOS_AFILIACION, ASEGURAD
             if errors:
                 if is_offline_sync:
                     conn.close()
-                    from flask import jsonify
                     return jsonify({"status": "error", "errors": errors}), 400
                     
                 for err in errors:
@@ -344,7 +346,6 @@ def register_routes(app, serializer, TIPOS_DOCUMENTO, TIPOS_AFILIACION, ASEGURAD
             conn.close()
 
             if is_offline_sync:
-                from flask import jsonify
                 return jsonify({"status": "success"}), 200
 
             if finalizado == 1:
@@ -499,7 +500,7 @@ def register_routes(app, serializer, TIPOS_DOCUMENTO, TIPOS_AFILIACION, ASEGURAD
                 parts = offline_dedupe_key.split("|")
                 if len(parts) >= 5:
                     existing_mci = conn.execute(
-                        """SELECT id FROM pacientes
+                        """SELECT id, finalizado FROM pacientes
                            WHERE tipo_documento = ? AND identificacion_paciente = ?
                              AND primer_nombre = ? AND primer_apellido = ?
                              AND fecha_inicio_atencion = ?
@@ -507,8 +508,11 @@ def register_routes(app, serializer, TIPOS_DOCUMENTO, TIPOS_AFILIACION, ASEGURAD
                         (parts[0], parts[1], parts[3], parts[4], parts[2])
                     ).fetchone()
                     if existing_mci:
-                        conn.close()
-                        return jsonify({"status": "success", "deduplicated": True}), 200
+                        if accion == "finalizar" and existing_mci["finalizado"] != 1:
+                            paciente_id = existing_mci["id"]
+                        else:
+                            conn.close()
+                            return jsonify({"status": "success", "deduplicated": True}), 200
             
             user_info = conn.execute(
                 "SELECT * FROM usuarios WHERE identificacion = ?",
