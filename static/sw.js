@@ -141,7 +141,11 @@ async function sincronizarRegistros() {
       const formData = new FormData();
       for (const [key, value] of Object.entries(registro.datos)) {
         if (value !== null && value !== undefined && value !== '') {
-          formData.append(key, value);
+          if (Array.isArray(value)) {
+            value.forEach(v => formData.append(key, v));
+          } else {
+            formData.append(key, value);
+          }
         }
       }
 
