@@ -3,7 +3,7 @@
 //  Versión: 1.0.8
 // ═══════════════════════════════════════════════════════════
 
-const CACHE_NAME = 'ambulacia-v86';
+const CACHE_NAME = 'ambulacia-v87';
 const OFFLINE_DB  = 'ambulacia-offline';
 const SW_FETCH_TIMEOUT = 30000;
 
@@ -29,7 +29,6 @@ const STATIC_ASSETS = [
   '/registros',
   '/pendientes',
   '/pendientes/checklists',
-  '/static/css/styles.css',
   '/static/manifest.json',
   '/static/offline.html?v=3',
   '/static/pwa-offline.js?v=59',
@@ -39,6 +38,9 @@ const STATIC_ASSETS = [
   '/static/data/barrios_medellin.json',
   '/static/data/divipola_estructurado.json'
 ];
+// Nota: '/static/css/styles.css' se elimino del precache (el archivo no existe;
+// los estilos van inline en base.html). Mantener la entrada provocaba que
+// verificarPrecache() siempre fallara y avisara de "advertencias".
 
 // ── Instalación: cachear assets estáticos ─────────────────
 self.addEventListener('install', event => {
