@@ -333,7 +333,11 @@ const PWA = (() => {
 
             for (const [key, val] of Object.entries(registro.datos)) {
               if (val !== null && val !== undefined && val !== '') {
-                formData.append(key, val);
+                if (Array.isArray(val)) {
+                  val.forEach(v => formData.append(key, v));
+                } else {
+                  formData.append(key, val);
+                }
               }
             }
 
