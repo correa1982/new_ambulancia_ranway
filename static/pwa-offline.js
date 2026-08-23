@@ -540,7 +540,7 @@ if ('serviceWorker' in navigator) {
 async function verificarPrecache() {
   try {
     const cacheKeys = await caches.keys();
-    const esenciales = ['/', '/static/pwa-offline.js?v=59', '/static/css/styles.css', '/static/offline.html?v=3'];
+    const esenciales = ['/', '/static/pwa-offline.js?v=59', '/static/offline.html?v=3'];
     for (const url of esenciales) {
       let encontrado = false;
       for (const key of cacheKeys) {

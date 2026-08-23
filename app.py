@@ -19,7 +19,22 @@ app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 Compress(app)
 
 # Usamos os.urandom como respaldo seguro en caso de que falte en el .env
-app.secret_key = os.getenv("SECRET_KEY", os.urandom(24))
+_secret_key = os.getenv("SECRET_KEY")
+if not _secret_key:
+    app.logger.warning(
+        "SECRET_KEY no configurada: se genera una temporal y las sesiones se "
+        "invalidaran en cada reinicio. Define SECRET_KEY en el entorno."
+    )
+    _secret_key = os.urandom(24)
+app.secret_key = _secret_key
+
+_en_produccion = bool(os.getenv("RAILWAY_ENVIRONMENT"))
+app.config.update(
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SAMESITE="Lax",
+    SESSION_COOKIE_SECURE=_en_produccion,
+    MAX_CONTENT_LENGTH=16 * 1024 * 1024,
+)
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 86400
 app.permanent_session_lifetime = timedelta(minutes=30)
 

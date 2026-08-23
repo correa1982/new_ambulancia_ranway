@@ -1120,7 +1120,7 @@ def init_db():
         pass
 
  
-    conn.execute("UPDATE usuarios SET contrasena = identificacion WHERE contrasena IS NULL OR contrasena = ''")
+    conn.execute("UPDATE usuarios SET contrasena = identificacion, requiere_cambio_clave = 1 WHERE contrasena IS NULL OR contrasena = ''")
     
     # Migrar contraseñas en texto plano a hashes seguros
     usuarios_plain = conn.execute("SELECT id, contrasena FROM usuarios WHERE contrasena NOT LIKE 'scrypt:%' AND contrasena NOT LIKE 'pbkdf2:%'").fetchall()
@@ -1134,7 +1134,7 @@ def init_db():
     if not admin_exists:
         conn.execute("""
             INSERT INTO usuarios (nombre, identificacion, registro_medico, rol, perfil, activo, firma, contrasena, requiere_cambio_clave, correo)
-            VALUES ('Administrador', 'admin', 'admin', 'admin', ?, 1, '', ?, 0, '')
+            VALUES ('Administrador', 'admin', 'admin', 'admin', ?, 1, '', ?, 1, '')
         """, (json.dumps(["Administrador"]), admin_pass_hashed))
     else:
         # Asegurarnos de que el administrador tenga rol y perfil correctos. 
