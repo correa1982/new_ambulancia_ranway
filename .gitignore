@@ -11,3 +11,7 @@ test*.txt
 scratch_ths_sga.txt
 output_search.txt
 desarrollo.sql
+scratch/
+package/
+vosk.tgz
+static/uploads/
