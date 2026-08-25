@@ -603,7 +603,7 @@ def inventarios_movimientos():
     """).fetchone()
     total = row['total'] if row else 0
     
-    movimientos = conn.execute("""
+    movimientos_raw = conn.execute("""
         SELECT ih.* 
         FROM inventarios_historial ih
         LEFT JOIN inventarios i ON ih.item_id = i.id
@@ -612,6 +612,18 @@ def inventarios_movimientos():
     """, (per_page, offset)).fetchall()
     
     conn.close()
+    
+    movimientos = []
+    for mov in movimientos_raw:
+        mov_dict = dict(mov)
+        if mov_dict.get('fecha_registro'):
+            if hasattr(mov_dict['fecha_registro'], 'strftime'):
+                mov_dict['fecha_registro_fmt'] = mov_dict['fecha_registro'].strftime('%Y-%m-%d %H:%M:%S')
+            else:
+                mov_dict['fecha_registro_fmt'] = str(mov_dict['fecha_registro'])
+        else:
+            mov_dict['fecha_registro_fmt'] = 'N/A'
+        movimientos.append(mov_dict)
     
     import math
     total_pages = math.ceil(total / per_page) if total > 0 else 1
@@ -632,7 +644,14 @@ def inventarios_movimientos_exportar():
     
     data = []
     for mov in movimientos:
-        fecha_str = mov['fecha_registro'].strftime('%Y-%m-%d %H:%M:%S') if mov['fecha_registro'] else 'N/A'
+        if mov.get('fecha_registro'):
+            if hasattr(mov['fecha_registro'], 'strftime'):
+                fecha_str = mov['fecha_registro'].strftime('%Y-%m-%d %H:%M:%S')
+            else:
+                fecha_str = str(mov['fecha_registro'])
+        else:
+            fecha_str = 'N/A'
+            
         data.append({
             "Fecha / Hora": fecha_str,
             "Producto": mov['nombre'],
