@@ -595,12 +595,21 @@ def inventarios_movimientos():
     per_page = 50
     offset = (page - 1) * per_page
     
-    total = conn.execute("SELECT COUNT(*) FROM inventarios_historial").fetchone()[0]
+    row = conn.execute("""
+        SELECT COUNT(ih.id) as total 
+        FROM inventarios_historial ih
+        LEFT JOIN inventarios i ON ih.item_id = i.id
+        WHERE i.tipo != 'Control Especial' OR i.tipo IS NULL
+    """).fetchone()
+    total = row['total'] if row else 0
     
-    movimientos = conn.execute(
-        "SELECT * FROM inventarios_historial ORDER BY fecha_registro DESC LIMIT %s OFFSET %s",
-        (per_page, offset)
-    ).fetchall()
+    movimientos = conn.execute("""
+        SELECT ih.* 
+        FROM inventarios_historial ih
+        LEFT JOIN inventarios i ON ih.item_id = i.id
+        WHERE i.tipo != 'Control Especial' OR i.tipo IS NULL
+        ORDER BY ih.fecha_registro DESC LIMIT %s OFFSET %s
+    """, (per_page, offset)).fetchall()
     
     conn.close()
     
@@ -612,7 +621,13 @@ def inventarios_movimientos():
 @bp_inventarios.route('/movimientos/exportar', methods=['GET'])
 def inventarios_movimientos_exportar():
     conn = get_db()
-    movimientos = conn.execute("SELECT * FROM inventarios_historial ORDER BY fecha_registro DESC").fetchall()
+    movimientos = conn.execute("""
+        SELECT ih.* 
+        FROM inventarios_historial ih
+        LEFT JOIN inventarios i ON ih.item_id = i.id
+        WHERE i.tipo != 'Control Especial' OR i.tipo IS NULL
+        ORDER BY ih.fecha_registro DESC
+    """).fetchall()
     conn.close()
     
     data = []
