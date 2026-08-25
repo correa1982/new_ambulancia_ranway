@@ -478,6 +478,8 @@ def inventarios_manual_update():
     is_catalog = item_id_raw.startswith('cat_')
     real_id = item_id_raw.replace('inv_', '').replace('cat_', '')
     
+    invima_form = request.form.get('invima')
+
     if is_catalog:
         if accion == 'egreso':
             flash("No puede hacer egreso de un producto que aún no está en el inventario.", "error")
@@ -489,10 +491,14 @@ def inventarios_manual_update():
             return redirect(url_for('inventarios.inventarios_index'))
             
         registrado_por = session['usuario']['nombre']
+        
+        # Usar el invima del formulario si se proporcionó, si no usar el del catálogo
+        invima_final = invima_form if invima_form is not None else cat_item['invima']
+        
         cursor = conn.execute("""
             INSERT INTO inventarios (codigo_barras, codigo_secundario, tipo, nombre, invima, cum, cantidad, unidad_medida, lote, fecha_vencimiento, observaciones, registrado_por)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-        """, ('', '', cat_item['tipo'], cat_item['nombre'], cat_item['invima'], cat_item['cum'], cantidad_op, 'Unidades', lote, fecha_vencimiento, '', registrado_por))
+        """, ('', '', cat_item['tipo'], cat_item['nombre'], invima_final, cat_item['cum'], cantidad_op, 'Unidades', lote, fecha_vencimiento, '', registrado_por))
         new_id = cursor.lastrowid
         
         conn.execute("""
