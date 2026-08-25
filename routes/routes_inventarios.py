@@ -603,13 +603,13 @@ def inventarios_movimientos():
     """).fetchone()
     total = row['total'] if row else 0
     
-    movimientos_raw = conn.execute("""
+    movimientos_raw = conn.execute(f"""
         SELECT ih.* 
         FROM inventarios_historial ih
         LEFT JOIN inventarios i ON ih.item_id = i.id
         WHERE i.tipo != 'Control Especial' OR i.tipo IS NULL
-        ORDER BY ih.fecha_registro DESC LIMIT %s OFFSET %s
-    """, (per_page, offset)).fetchall()
+        ORDER BY ih.fecha_registro DESC LIMIT {per_page} OFFSET {offset}
+    """).fetchall()
     
     conn.close()
     

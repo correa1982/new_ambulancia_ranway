@@ -829,7 +829,28 @@ def init_db():
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
     """)
 
-    
+    # Dynamic schema migration for inventarios_historial
+    try:
+        cursor_ih = conn.cursor()
+        cursor_ih.execute("DESCRIBE inventarios_historial")
+        ih_cols = [row["Field"] for row in cursor_ih.fetchall()]
+        if "codigo_barras" not in ih_cols:
+            conn.execute("ALTER TABLE inventarios_historial ADD COLUMN codigo_barras VARCHAR(255)")
+        if "nombre" not in ih_cols:
+            conn.execute("ALTER TABLE inventarios_historial ADD COLUMN nombre VARCHAR(255) NOT NULL")
+        if "lote" not in ih_cols:
+            conn.execute("ALTER TABLE inventarios_historial ADD COLUMN lote VARCHAR(100)")
+        if "tipo_egreso" not in ih_cols:
+            conn.execute("ALTER TABLE inventarios_historial ADD COLUMN tipo_egreso VARCHAR(100)")
+        if "destino" not in ih_cols:
+            conn.execute("ALTER TABLE inventarios_historial ADD COLUMN destino VARCHAR(255)")
+        if "registrado_por" not in ih_cols:
+            conn.execute("ALTER TABLE inventarios_historial ADD COLUMN registrado_por VARCHAR(255)")
+        if "fecha_registro" not in ih_cols:
+            conn.execute("ALTER TABLE inventarios_historial ADD COLUMN fecha_registro DATETIME DEFAULT CURRENT_TIMESTAMP")
+    except Exception:
+        pass
+        
     # Dynamic schema migration for ths_contratos
     cursor_c = conn.cursor()
     cursor_c.execute("DESCRIBE ths_contratos")
