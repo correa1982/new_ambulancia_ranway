@@ -589,46 +589,50 @@ def inventarios_exportar_excel():
     )
 @bp_inventarios.route('/movimientos', methods=['GET'])
 def inventarios_movimientos():
-    conn = get_db()
-    
-    page = request.args.get('page', 1, type=int)
-    per_page = 50
-    offset = (page - 1) * per_page
-    
-    row = conn.execute("""
-        SELECT COUNT(ih.id) as total 
-        FROM inventarios_historial ih
-        LEFT JOIN inventarios i ON ih.item_id = i.id
-        WHERE i.tipo != 'Control Especial' OR i.tipo IS NULL
-    """).fetchone()
-    total = row['total'] if row else 0
-    
-    movimientos_raw = conn.execute(f"""
-        SELECT ih.* 
-        FROM inventarios_historial ih
-        LEFT JOIN inventarios i ON ih.item_id = i.id
-        WHERE i.tipo != 'Control Especial' OR i.tipo IS NULL
-        ORDER BY ih.fecha_registro DESC LIMIT {per_page} OFFSET {offset}
-    """).fetchall()
-    
-    conn.close()
-    
-    movimientos = []
-    for mov in movimientos_raw:
-        mov_dict = dict(mov)
-        if mov_dict.get('fecha_registro'):
-            if hasattr(mov_dict['fecha_registro'], 'strftime'):
-                mov_dict['fecha_registro_fmt'] = mov_dict['fecha_registro'].strftime('%Y-%m-%d %H:%M:%S')
+    try:
+        conn = get_db()
+        
+        page = request.args.get('page', 1, type=int)
+        per_page = 50
+        offset = (page - 1) * per_page
+        
+        row = conn.execute("""
+            SELECT COUNT(ih.id) as total 
+            FROM inventarios_historial ih
+            LEFT JOIN inventarios i ON ih.item_id = i.id
+            WHERE i.tipo != 'Control Especial' OR i.tipo IS NULL
+        """).fetchone()
+        total = int(row['total']) if row and row.get('total') is not None else 0
+        
+        movimientos_raw = conn.execute(f"""
+            SELECT ih.* 
+            FROM inventarios_historial ih
+            LEFT JOIN inventarios i ON ih.item_id = i.id
+            WHERE i.tipo != 'Control Especial' OR i.tipo IS NULL
+            ORDER BY ih.fecha_registro DESC LIMIT {per_page} OFFSET {offset}
+        """).fetchall()
+        
+        conn.close()
+        
+        movimientos = []
+        for mov in movimientos_raw:
+            mov_dict = dict(mov)
+            if mov_dict.get('fecha_registro'):
+                if hasattr(mov_dict['fecha_registro'], 'strftime'):
+                    mov_dict['fecha_registro_fmt'] = mov_dict['fecha_registro'].strftime('%Y-%m-%d %H:%M:%S')
+                else:
+                    mov_dict['fecha_registro_fmt'] = str(mov_dict['fecha_registro'])
             else:
-                mov_dict['fecha_registro_fmt'] = str(mov_dict['fecha_registro'])
-        else:
-            mov_dict['fecha_registro_fmt'] = 'N/A'
-        movimientos.append(mov_dict)
-    
-    import math
-    total_pages = math.ceil(total / per_page) if total > 0 else 1
-    
-    return render_template('inventarios_movimientos.html', movimientos=movimientos, page=page, total_pages=total_pages)
+                mov_dict['fecha_registro_fmt'] = 'N/A'
+            movimientos.append(mov_dict)
+        
+        import math
+        total_pages = math.ceil(total / per_page) if total > 0 else 1
+        
+        return render_template('inventarios_movimientos.html', movimientos=movimientos, page=page, total_pages=total_pages)
+    except Exception as e:
+        import traceback
+        return f"<h3>Error in /movimientos:</h3><pre>{traceback.format_exc()}</pre>", 500
 
 @bp_inventarios.route('/movimientos/exportar', methods=['GET'])
 def inventarios_movimientos_exportar():
