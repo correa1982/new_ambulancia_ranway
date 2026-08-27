@@ -89,7 +89,7 @@
     <tbody>
         {% for mov in movimientos %}
         <tr>
-            <td>{{ mov.fecha_registro.strftime('%Y-%m-%d %H:%M:%S') if mov.fecha_registro else 'N/A' }}</td>
+            <td>{{ mov.fecha_registro_fmt }}</td>
             <td>
                 <strong>{{ mov.nombre }}</strong>
             </td>
