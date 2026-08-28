@@ -122,9 +122,11 @@ def register_routes(app):
                     lic['alerta_15'] = 0 <= days_left <= 15
                     lic['vencida'] = days_left < 0
                     lic['dias_vencido'] = abs(days_left) if days_left < 0 else 0
+                    lic['fecha_vencimiento'] = fecha_v.strftime('%Y-%m-%d')
                 else:
                     lic['vencida'] = False
                     lic['alerta_15'] = False
+                    lic['fecha_vencimiento'] = ''
             except:
                 lic['vencida'] = False
                 lic['alerta_15'] = False
@@ -137,6 +139,11 @@ def register_routes(app):
         for vac in vacunas:
             if vac['identificacion'] not in vacunas_by_id:
                 vacunas_by_id[vac['identificacion']] = []
+            if vac.get('fecha_aplicacion') and not isinstance(vac['fecha_aplicacion'], str):
+                try:
+                    vac['fecha_aplicacion'] = vac['fecha_aplicacion'].strftime('%Y-%m-%d')
+                except:
+                    pass
             vacunas_by_id[vac['identificacion']].append(vac)
 
         # Get adicionales
@@ -173,6 +180,7 @@ def register_routes(app):
                         expira = None
                         
                     ca['expira'] = expira.strftime('%Y-%m-%d') if expira else 'N/A'
+                    ca['fecha_realizacion'] = fecha_obj.strftime('%Y-%m-%d')
                     if expira:
                         days_left = (expira - datetime.now().date()).days
                         ca['dias_restantes'] = days_left
@@ -186,6 +194,7 @@ def register_routes(app):
                     ca['expira'] = 'N/A'
                     ca['vencido'] = False
                     ca['alerta_15'] = False
+                    ca['fecha_realizacion'] = ''
             else:
                 ca['expira'] = 'N/A'
                 ca['vencido'] = False
@@ -206,6 +215,12 @@ def register_routes(app):
             c['dias_restantes'] = 0
             c['dias_vencido'] = 0
             
+            if c.get('fecha_inicio') and not isinstance(c['fecha_inicio'], str):
+                try:
+                    c['fecha_inicio'] = c['fecha_inicio'].strftime('%Y-%m-%d')
+                except:
+                    c['fecha_inicio'] = str(c['fecha_inicio'])
+            
             if c.get('tipo_contrato') not in ['Indefinido', 'Indeterminado']:
                 try:
                     if isinstance(c['fecha_fin'], str) and c['fecha_fin']:
@@ -219,8 +234,16 @@ def register_routes(app):
                         c['alerta_45'] = 0 <= days_left <= 45
                         c['vencido'] = days_left < 0
                         c['dias_vencido'] = abs(days_left) if days_left < 0 else 0
+                        c['fecha_fin'] = ff.strftime('%Y-%m-%d')
                 except:
                     pass
+            else:
+                if c.get('fecha_fin') and not isinstance(c['fecha_fin'], str):
+                    try:
+                        c['fecha_fin'] = c['fecha_fin'].strftime('%Y-%m-%d')
+                    except:
+                        pass
+                        
             contratos_by_id[c['identificacion']].append(c)
 
         for record in records:
@@ -332,6 +355,13 @@ def register_routes(app):
             conn.execute("DELETE FROM ths_certificados_adicionales WHERE identificacion = ?", (identificacion,))
             flash(f"Registro de {nombres} actualizado exitosamente.", "success")
         else:
+            # Verificar si ya existe un registro con esta identificación
+            existing = conn.execute("SELECT id FROM ths_trip_records WHERE identificacion = ?", (identificacion,)).fetchone()
+            if existing:
+                flash(f"Error: La identificación {identificacion} ya se encuentra registrada.", "error")
+                conn.close()
+                return redirect(url_for("admin_ths_trip"))
+                
             conn.execute(
                 """INSERT INTO ths_trip_records (
                     identificacion, nombres, apellidos, perfil,
