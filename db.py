@@ -810,6 +810,19 @@ def init_db():
     """)
 
     conn.execute("""
+        CREATE TABLE IF NOT EXISTS personal_operativo (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            cedula VARCHAR(255) NOT NULL,
+            nombres VARCHAR(255) NOT NULL,
+            apellidos VARCHAR(255) NOT NULL,
+            codigo_fecha VARCHAR(50),
+            perfiles VARCHAR(255),
+            fecha_registro DATETIME DEFAULT CURRENT_TIMESTAMP,
+            registrado_por INT
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+    """)
+
+    conn.execute("""
         CREATE TABLE IF NOT EXISTS inventarios_historial (
             id INT AUTO_INCREMENT PRIMARY KEY,
             item_id INT NOT NULL,
@@ -1558,6 +1571,33 @@ def init_db():
         if name not in veh_idx:
             try: conn.execute(sql)
             except: pass
+
+    # Dynamic migration for personal_operativo
+    try:
+        cursor = conn.cursor()
+        cursor.execute("DESCRIBE personal_operativo")
+        po_cols = [row["Field"] for row in cursor.fetchall()]
+        if "registro" not in po_cols:
+            conn.execute("ALTER TABLE personal_operativo ADD COLUMN registro VARCHAR(255)")
+    except Exception as e:
+        print("Error al migrar la tabla personal_operativo:", e)
+
+    # Dynamic migration for programacion_operativa
+    try:
+        cursor = conn.cursor()
+        cursor.execute("DESCRIBE programacion_operativa")
+        po_cols = [row["Field"] for row in cursor.fetchall()]
+        nuevos_campos = [
+            "hora_inicio_pcu", "hora_apertura_puertas", "hora_inicio_evento",
+            "hora_finalizacion_pcu", "hora_llegada_aph", "hora_retiro_aph",
+            "cantidad_recurso_humano", "cantidad_ambulancias",
+            "total_asistentes", "total_pacientes"
+        ]
+        for c in nuevos_campos:
+            if c not in po_cols:
+                conn.execute(f"ALTER TABLE programacion_operativa ADD COLUMN {c} VARCHAR(255)")
+    except Exception as e:
+        print("Error al migrar la tabla programacion_operativa:", e)
 
     conn.commit()
     conn.close()
