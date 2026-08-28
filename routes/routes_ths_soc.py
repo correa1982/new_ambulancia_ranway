@@ -143,6 +143,12 @@ def register_routes(app):
             )
             flash(f"Registro de {nombres} actualizado exitosamente.", "success")
         else:
+            existing = conn.execute("SELECT id FROM ths_soc_records WHERE identificacion = ?", (identificacion,)).fetchone()
+            if existing:
+                flash(f"Error: La identificación {identificacion} ya se encuentra registrada.", "error")
+                conn.close()
+                return redirect(url_for("admin_ths_soc"))
+                
             conn.execute(
                 """INSERT INTO ths_soc_records (
                     identificacion, nombres, apellidos, perfil,

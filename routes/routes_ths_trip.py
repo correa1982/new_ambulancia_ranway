@@ -355,6 +355,13 @@ def register_routes(app):
             conn.execute("DELETE FROM ths_certificados_adicionales WHERE identificacion = ?", (identificacion,))
             flash(f"Registro de {nombres} actualizado exitosamente.", "success")
         else:
+            # Verificar si ya existe un registro con esta identificación
+            existing = conn.execute("SELECT id FROM ths_trip_records WHERE identificacion = ?", (identificacion,)).fetchone()
+            if existing:
+                flash(f"Error: La identificación {identificacion} ya se encuentra registrada.", "error")
+                conn.close()
+                return redirect(url_for("admin_ths_trip"))
+                
             conn.execute(
                 """INSERT INTO ths_trip_records (
                     identificacion, nombres, apellidos, perfil,
