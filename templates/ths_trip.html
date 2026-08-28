@@ -498,7 +498,7 @@ function editRecord(btn) {
         try {
             const lics = JSON.parse(licsJson);
             lics.forEach(l => {
-                addLicenciaRow(l.categoria, l.fecha_vencimiento);
+                addLicenciaRow(l.categoria || '', l.fecha_vencimiento || '');
             });
         } catch (e) {}
     }
@@ -510,7 +510,7 @@ function editRecord(btn) {
         try {
             const vacs = JSON.parse(vacsJson);
             vacs.forEach(v => {
-                addVacunaRow(v.vacuna, v.dosis, v.fecha_aplicacion);
+                addVacunaRow(v.vacuna || '', v.dosis || '', v.fecha_aplicacion || '');
             });
         } catch (e) {}
     }
@@ -522,7 +522,7 @@ function editRecord(btn) {
         try {
             const certs = JSON.parse(certAdicJson);
             certs.forEach(c => {
-                addCertAdicRow(c.nombre_certificado, c.fecha_realizacion, c.vigencia, c.unidad_vigencia);
+                addCertAdicRow(c.nombre_certificado || '', c.fecha_realizacion || '', c.vigencia || '', c.unidad_vigencia || 'años');
             });
         } catch (e) {}
     }
@@ -534,7 +534,7 @@ function editRecord(btn) {
         try {
             const conts = JSON.parse(contJson);
             conts.forEach(c => {
-                addContratoRow(c.tipo_contrato || 'Definido', c.duracion_meses || '', c.fecha_inicio, c.fecha_fin);
+                addContratoRow(c.tipo_contrato || 'Definido', c.duracion_meses || '', c.fecha_inicio || '', c.fecha_fin || '');
             });
         } catch (e) {}
     }
