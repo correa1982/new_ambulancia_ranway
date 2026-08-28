@@ -20,21 +20,61 @@ def register_routes(app):
             lugar = request.form.get("lugar", "").strip()
             contacto = request.form.get("contacto", "").strip()
             coordina = request.form.get("coordina", "").strip()
+            
+            if tipo_evento in ["FUTBOL", "Concierto Estadio", "Concierto Macarena"]:
+                contacto = request.form.get("representante_pcu", "").strip()
+                coordina = request.form.get("coordinador_terreno", "").strip()
+                
             recursos_tecnicos = request.form.get("recursos_tecnicos", "").strip()
             registrado_por = session["usuario"]["id"]
+            
+            try:
+                conn.execute("ALTER TABLE programacion_operativa ADD COLUMN estado VARCHAR(50) DEFAULT 'FINALIZADO'")
+            except:
+                pass
+                
+            estado = request.form.get("estado_programacion", "FINALIZADO")
             
             columnas_layout = request.form.get("columnas_layout", "3")
             try:
                 columnas_layout = int(columnas_layout)
             except:
                 columnas_layout = 3
+                
+            hora_inicio_pcu = request.form.get("hora_inicio_pcu", "").strip()
+            hora_apertura_puertas = request.form.get("hora_apertura_puertas", "").strip()
+            hora_inicio_evento = request.form.get("hora_inicio_evento", "").strip()
+            hora_finalizacion_pcu = request.form.get("hora_finalizacion_pcu", "").strip()
+            hora_llegada_aph = request.form.get("hora_llegada_aph", "").strip()
+            hora_retiro_aph = request.form.get("hora_retiro_aph", "").strip()
+            cantidad_recurso_humano = request.form.get("cantidad_recurso_humano", "").strip()
+            cantidad_ambulancias = request.form.get("cantidad_ambulancias", "").strip()
+            total_asistentes = request.form.get("total_asistentes", "").strip()
+            total_pacientes = request.form.get("total_pacientes", "").strip()
+            programacion_id = request.form.get("programacion_id")
             
-            cursor = conn.execute("""
-                INSERT INTO programacion_operativa 
-                (tipo_evento, nombre_evento, fecha, hora_inicio, hora_finalizacion, lugar, contacto, coordina, recursos_tecnicos, registrado_por, columnas_layout)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (tipo_evento, nombre_evento, fecha, hora_inicio, hora_finalizacion, lugar, contacto, coordina, recursos_tecnicos, registrado_por, columnas_layout))
-            programacion_id = cursor.lastrowid
+            if programacion_id:
+                # Update existing
+                conn.execute("""
+                    UPDATE programacion_operativa SET
+                    tipo_evento=?, nombre_evento=?, fecha=?, hora_inicio=?, hora_finalizacion=?, lugar=?, contacto=?, coordina=?, recursos_tecnicos=?, registrado_por=?, columnas_layout=?, estado=?,
+                    hora_inicio_pcu=?, hora_apertura_puertas=?, hora_inicio_evento=?, hora_finalizacion_pcu=?, hora_llegada_aph=?, hora_retiro_aph=?, cantidad_recurso_humano=?, cantidad_ambulancias=?, total_asistentes=?, total_pacientes=?
+                    WHERE id=?
+                """, (tipo_evento, nombre_evento, fecha, hora_inicio, hora_finalizacion, lugar, contacto, coordina, recursos_tecnicos, registrado_por, columnas_layout, estado,
+                      hora_inicio_pcu, hora_apertura_puertas, hora_inicio_evento, hora_finalizacion_pcu, hora_llegada_aph, hora_retiro_aph, cantidad_recurso_humano, cantidad_ambulancias, total_asistentes, total_pacientes, programacion_id))
+                
+                # Delete existing members to replace them
+                conn.execute("DELETE FROM programacion_operativa_integrantes WHERE programacion_id=?", (programacion_id,))
+            else:
+                cursor = conn.execute("""
+                    INSERT INTO programacion_operativa 
+                    (tipo_evento, nombre_evento, fecha, hora_inicio, hora_finalizacion, lugar, contacto, coordina, recursos_tecnicos, registrado_por, columnas_layout, estado,
+                     hora_inicio_pcu, hora_apertura_puertas, hora_inicio_evento, hora_finalizacion_pcu, hora_llegada_aph, hora_retiro_aph, cantidad_recurso_humano, cantidad_ambulancias, total_asistentes, total_pacientes)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, (tipo_evento, nombre_evento, fecha, hora_inicio, hora_finalizacion, lugar, contacto, coordina, recursos_tecnicos, registrado_por, columnas_layout, estado,
+                      hora_inicio_pcu, hora_apertura_puertas, hora_inicio_evento, hora_finalizacion_pcu, hora_llegada_aph, hora_retiro_aph, cantidad_recurso_humano, cantidad_ambulancias, total_asistentes, total_pacientes))
+                programacion_id = cursor.lastrowid
+            
             
             if tipo_evento == "Tripulacion Basica":
                 nombres = request.form.getlist("integrante_nombre[]")
@@ -59,7 +99,7 @@ def register_routes(app):
                             INSERT INTO programacion_operativa_integrantes (programacion_id, nombre, rol_variable, orden, unidad_nombre)
                             VALUES (?, ?, ?, ?, ?)
                         """, (programacion_id, nombre.strip(), rol.strip(), i+1, u_nombre))
-            elif tipo_evento == "Operativo Completo":
+            elif tipo_evento in ["Operativo Completo", "FUTBOL", "Concierto Estadio", "Concierto Macarena"]:
                 unidad_nombres = request.form.getlist("unidad_nombre[]")
                 unidad_tipos = request.form.getlist("unidad_tipo[]")
                 unidad_counts = request.form.getlist("unidad_campos_count[]")
@@ -93,18 +133,139 @@ def register_routes(app):
             flash("Programación operativa guardada correctamente.", "success")
             return redirect(url_for("programacion_operativa_explorador"))
             
-        # Cargar personal de nómina
-        # Obtener última nómina
-        ultima_nomina = conn.execute("SELECT id FROM nomina ORDER BY id DESC LIMIT 1").fetchone()
-        
-        empleados = []
-        if ultima_nomina:
-            empleados_rows = conn.execute("SELECT DISTINCT nombres, apellidos FROM nomina_empleados WHERE nomina_id = ? ORDER BY nombres, apellidos", (ultima_nomina["id"],)).fetchall()
-            for row in empleados_rows:
-                empleados.append(f"{row['nombres']} {row['apellidos']}".strip())
+        # Obtener personal de la nueva tabla personal_operativo
+        personal_op = conn.execute("SELECT nombres, apellidos, perfiles FROM personal_operativo ORDER BY nombres, apellidos").fetchall()
+        empleados_por_perfil = {
+            "COND": [],
+            "MED": [],
+            "APH": [],
+            "AUX ENF": [],
+            "ENF": [],
+            "SOC": [],
+            "SIN_ROL": []
+        }
+        for p in personal_op:
+            nombre = f"{p['nombres']} {p['apellidos']}".strip()
+            perfiles_str = p['perfiles'] or ""
+            perfiles_list = [perf.strip() for perf in perfiles_str.split(',') if perf.strip()]
+            
+            if not perfiles_list:
+                empleados_por_perfil["SIN_ROL"].append(nombre)
+            else:
+                for perf in perfiles_list:
+                    if perf in empleados_por_perfil:
+                        empleados_por_perfil[perf].append(nombre)
+                    else:
+                        if nombre not in empleados_por_perfil["SIN_ROL"]:
+                            empleados_por_perfil["SIN_ROL"].append(nombre)
+                            
+        # Asegurar valores únicos y ordenados por si acaso
+        for k in empleados_por_perfil:
+            empleados_por_perfil[k] = sorted(list(set(empleados_por_perfil[k])))
                 
         conn.close()
-        return render_template("programacion_operativa.html", usuario=session["usuario"], empleados=empleados)
+        return render_template("programacion_operativa.html", usuario=session["usuario"], empleados_por_perfil=empleados_por_perfil)
+
+    @app.route("/programacion_operativa/editar/<int:id>")
+    @login_required
+    def programacion_operativa_editar(id):
+        if not session.get("usuario") or (not session["usuario"].get("permiso_programacion_operativa") and str(session["usuario"].get("id")) != '1'):
+            flash("No tienes permiso.", "error")
+            return redirect(url_for("dashboard"))
+            
+        conn = get_db()
+        evento = conn.execute("SELECT * FROM programacion_operativa WHERE id = ?", (id,)).fetchone()
+        if not evento:
+            conn.close()
+            flash("Evento no encontrado.", "error")
+            return redirect(url_for("programacion_operativa_explorador"))
+            
+        integrantes = conn.execute("SELECT * FROM programacion_operativa_integrantes WHERE programacion_id = ? ORDER BY id", (id,)).fetchall()
+        
+        import json
+        evento_dict = dict(evento)
+        integrantes_list = [dict(i) for i in integrantes]
+        
+        personal_op = conn.execute("SELECT nombres, apellidos, perfiles FROM personal_operativo ORDER BY nombres, apellidos").fetchall()
+        empleados_por_perfil = {
+            "COND": [], "MED": [], "APH": [], "AUX ENF": [], "ENF": [], "SOC": [], "SIN_ROL": []
+        }
+        for p in personal_op:
+            nombre = f"{p['nombres']} {p['apellidos']}".strip()
+            perfiles_str = p['perfiles'] or ""
+            perfiles_list = [perf.strip() for perf in perfiles_str.split(',') if perf.strip()]
+            
+            if not perfiles_list:
+                empleados_por_perfil["SIN_ROL"].append(nombre)
+            else:
+                for perf in perfiles_list:
+                    if perf in empleados_por_perfil:
+                        empleados_por_perfil[perf].append(nombre)
+                    else:
+                        if nombre not in empleados_por_perfil["SIN_ROL"]:
+                            empleados_por_perfil["SIN_ROL"].append(nombre)
+                            
+        for k in empleados_por_perfil:
+            empleados_por_perfil[k] = sorted(list(set(empleados_por_perfil[k])))
+            
+        conn.close()
+        
+        return render_template(
+            "programacion_operativa.html", 
+            usuario=session["usuario"], 
+            empleados_por_perfil=empleados_por_perfil,
+            evento_a_editar=evento_dict,
+            integrantes_a_editar=json.dumps(integrantes_list)
+        )
+
+
+    @app.route("/api/verificar_disponibilidad", methods=["POST"])
+    @login_required
+    def verificar_disponibilidad():
+        from flask import jsonify
+        data = request.get_json()
+        nombre = data.get("nombre", "").strip()
+        fecha = data.get("fecha", "").strip()
+        hora_inicio_nueva = data.get("hora_inicio", "").strip()
+        hora_fin_nueva = data.get("hora_finalizacion", "").strip()
+        
+        if not nombre or not fecha or not hora_inicio_nueva:
+            return jsonify({"cruce": False})
+            
+        conn = get_db()
+        # Verificar si hay programaciones para ese nombre en esa fecha
+        query = """
+            SELECT po.nombre_evento, po.hora_inicio, po.hora_finalizacion
+            FROM programacion_operativa po
+            JOIN programacion_operativa_integrantes poi ON po.id = poi.programacion_id
+            WHERE poi.nombre = ? AND po.fecha = ?
+        """
+        rows = conn.execute(query, (nombre, fecha)).fetchall()
+        conn.close()
+        
+        eventos_cruce = []
+        for r in rows:
+            h_ini_exist = r['hora_inicio']
+            h_fin_exist = r['hora_finalizacion']
+            
+            # Simple lógica para cruce
+            fin_exist_cmp = h_fin_exist if h_fin_exist else "24:00"
+            if fin_exist_cmp == "00:00": fin_exist_cmp = "24:00"
+            
+            fin_nuevo_cmp = hora_fin_nueva if hora_fin_nueva else "24:00"
+            if fin_nuevo_cmp == "00:00": fin_nuevo_cmp = "24:00"
+            
+            if h_ini_exist < fin_nuevo_cmp and fin_exist_cmp > hora_inicio_nueva:
+                horario = f"de {h_ini_exist}"
+                if h_fin_exist:
+                    horario += f" a {h_fin_exist}"
+                eventos_cruce.append(f"'{r['nombre_evento']}' ({horario})")
+            
+        if eventos_cruce:
+            msj = f"El integrante {nombre} tiene un cruce de horario en: " + ", ".join(eventos_cruce) + ". ¿Deseas mantenerlo asignado?"
+            return jsonify({"cruce": True, "mensaje": msj})
+            
+        return jsonify({"cruce": False})
 
     @app.route("/programacion_operativa/explorador")
     @login_required
@@ -145,7 +306,32 @@ def register_routes(app):
             return "Evento no encontrado", 404
             
         integrantes = conn.execute("SELECT * FROM programacion_operativa_integrantes WHERE programacion_id = ? ORDER BY orden", (evento["id"],)).fetchall()
+        
+        # Enriquecer integrantes con cédula y registro para formato FUTBOL/Concierto/Excel
+        personal_db = conn.execute("SELECT nombres, apellidos, cedula, codigo_fecha, registro, perfiles FROM personal_operativo").fetchall()
         conn.close()
+        
+        personal_lookup = {}
+        for p in personal_db:
+            nombre_completo = f"{p['nombres']} {p['apellidos']}".strip().upper()
+            personal_lookup[nombre_completo] = {
+                'cedula': p['cedula'],
+                'codigo_fecha': p['codigo_fecha'],
+                'registro': p['registro'],
+                'perfiles': p['perfiles']
+            }
+            nombre_solo = p['nombres'].strip().upper()
+            if nombre_solo and nombre_solo not in personal_lookup:
+                personal_lookup[nombre_solo] = personal_lookup[nombre_completo]
+
+        # Convertir a lista de diccionarios para poder modificarlos
+        integrantes = [dict(ing) for ing in integrantes]
+        for ing in integrantes:
+            nombre_ing = ing.get('nombre', '').strip().upper()
+            info_personal = personal_lookup.get(nombre_ing, {})
+            ing['cedula'] = info_personal.get('cedula', '')
+            ing['registro'] = info_personal.get('registro', '')
+            ing['perfiles'] = info_personal.get('perfiles', '')
         
         # Formatear la fecha
         import locale
@@ -200,15 +386,24 @@ def register_routes(app):
         evento_dict['hora_finalizacion'] = format_12h(evento_dict.get('hora_finalizacion', ''))
 
         unidades = []
-        if evento_dict.get('tipo_evento') == 'Operativo Completo':
-            unidad_dict = {}
+        if evento_dict.get('tipo_evento') in ['Operativo Completo', 'FUTBOL', 'Concierto Estadio', 'Concierto Macarena']:
+            last_u_nombre = None
+            current_unidad = None
             for ing in integrantes:
                 u_nombre = ing.get('unidad_nombre') or 'UNIDAD'
-                if u_nombre not in unidad_dict:
-                    unidad_dict[u_nombre] = []
-                unidad_dict[u_nombre].append(ing)
-            for k, v in unidad_dict.items():
-                unidades.append({'nombre': k, 'integrantes': v})
+                
+                # Para evitar agrupar unidades del mismo nombre que están separadas, y agrupar las contiguas
+                if u_nombre != last_u_nombre:
+                    if current_unidad:
+                        unidades.append(current_unidad)
+                    current_unidad = {'nombre': u_nombre, 'integrantes': []}
+                    last_u_nombre = u_nombre
+                    
+                if ing.get('nombre') != 'PAGE_BREAK_DUMMY':
+                    current_unidad['integrantes'].append(ing)
+            
+            if current_unidad:
+                unidades.append(current_unidad)
 
         # Alternative date format: DOMINGO 24 DE MAYO
         fecha_completo = ""
