@@ -1,6 +1,8 @@
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash, jsonify, send_file
 import io
 import pandas as pd
+import zoneinfo
+from datetime import datetime
 from db import get_db
 from utils import login_required
 
@@ -624,10 +626,19 @@ def inventarios_movimientos():
         for mov in movimientos_raw:
             mov_dict = dict(mov)
             if mov_dict.get('fecha_registro'):
-                if hasattr(mov_dict['fecha_registro'], 'strftime'):
-                    mov_dict['fecha_registro_fmt'] = mov_dict['fecha_registro'].strftime('%Y-%m-%d %H:%M:%S')
+                fecha = mov_dict['fecha_registro']
+                if hasattr(fecha, 'strftime'):
+                    if fecha.tzinfo is None:
+                        fecha = fecha.replace(tzinfo=zoneinfo.ZoneInfo("UTC"))
+                    fecha_str = fecha.astimezone(zoneinfo.ZoneInfo("America/Bogota")).strftime('%Y-%m-%d %H:%M:%S')
                 else:
-                    mov_dict['fecha_registro_fmt'] = str(mov_dict['fecha_registro'])
+                    try:
+                        dt = datetime.strptime(str(fecha).split('.')[0], '%Y-%m-%d %H:%M:%S')
+                        dt = dt.replace(tzinfo=zoneinfo.ZoneInfo("UTC"))
+                        fecha_str = dt.astimezone(zoneinfo.ZoneInfo("America/Bogota")).strftime('%Y-%m-%d %H:%M:%S')
+                    except Exception:
+                        fecha_str = str(fecha)
+                mov_dict['fecha_registro_fmt'] = fecha_str
             else:
                 mov_dict['fecha_registro_fmt'] = 'N/A'
             movimientos.append(mov_dict)
@@ -655,10 +666,18 @@ def inventarios_movimientos_exportar():
     data = []
     for mov in movimientos:
         if mov.get('fecha_registro'):
-            if hasattr(mov['fecha_registro'], 'strftime'):
-                fecha_str = mov['fecha_registro'].strftime('%Y-%m-%d %H:%M:%S')
+            fecha = mov['fecha_registro']
+            if hasattr(fecha, 'strftime'):
+                if fecha.tzinfo is None:
+                    fecha = fecha.replace(tzinfo=zoneinfo.ZoneInfo("UTC"))
+                fecha_str = fecha.astimezone(zoneinfo.ZoneInfo("America/Bogota")).strftime('%Y-%m-%d %H:%M:%S')
             else:
-                fecha_str = str(mov['fecha_registro'])
+                try:
+                    dt = datetime.strptime(str(fecha).split('.')[0], '%Y-%m-%d %H:%M:%S')
+                    dt = dt.replace(tzinfo=zoneinfo.ZoneInfo("UTC"))
+                    fecha_str = dt.astimezone(zoneinfo.ZoneInfo("America/Bogota")).strftime('%Y-%m-%d %H:%M:%S')
+                except Exception:
+                    fecha_str = str(fecha)
         else:
             fecha_str = 'N/A'
             
