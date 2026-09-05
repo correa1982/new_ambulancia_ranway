@@ -7,6 +7,8 @@ from constants import TIPOS_DOCUMENTO, TIPOS_AFILIACION, ASEGURADORAS
 from db import get_db, init_db, close_all
 from utils import calcular_edad, login_required, admin_required, get_user_info
 from itsdangerous import URLSafeSerializer, BadSignature
+from flask_apscheduler import APScheduler
+from backup_service import send_backup_email
 
 from dotenv import load_dotenv
 load_dotenv(os.path.join(os.path.dirname(__file__), '.env'))
@@ -40,7 +42,118 @@ app.permanent_session_lifetime = timedelta(minutes=30)
 
 serializer = URLSafeSerializer(app.secret_key)
 
+# Configurar el scheduler para backups.
+# OJO: NO se inicia aqui. Se inicia de forma perezosa en la primera peticion
+# (dentro del worker de gunicorn activo), porque iniciarlo en el import del
+# modulo con gunicorn/--preload hace que la hebra muera con el fork y los
+# jobs periodicos nunca se ejecuten (los manuales si, por ser por request).
+class BackupSchedulerConfig:
+    SCHEDULER_API_ENABLED = False
+    SCHEDULER_JOB_DEFAULTS = {
+        "coalesce": True,
+        "max_instances": 1,
+        "misfire_grace_time": 900,
+    }
+
+app.config.from_object(BackupSchedulerConfig())
+
+scheduler = APScheduler()
+scheduler.init_app(app)
+app.scheduler = scheduler
+
+_BACKUP_UNIT_MAP = {
+    "Minutos": "minutes", "minutos": "minutes", "minute": "minutes",
+    "Horas": "hours", "horas": "hours", "hour": "hours",
+    "Días": "days", "dias": "days", "día": "days", "day": "days",
+}
+
+
+def _safe_int(value, default):
+    try:
+        return max(int(value), 1)
+    except (TypeError, ValueError):
+        return default
+
+
+def job_send_backup():
+    with app.app_context():
+        try:
+            send_backup_email()
+        finally:
+            try:
+                clear_config_cache()
+            except Exception:
+                pass
+
+
+def init_scheduler():
+    backup_interval_value = _safe_int(os.getenv("BACKUP_INTERVAL_HOURS", 12), 12)
+    backup_interval_unit = "Horas"
+
+    conn = None
+    try:
+        conn = get_db()
+        row = conn.execute("SELECT valor FROM configuracion WHERE clave = 'backup_interval_value'").fetchone()
+        if row and row["valor"]:
+            backup_interval_value = _safe_int(row["valor"], backup_interval_value)
+        row = conn.execute("SELECT valor FROM configuracion WHERE clave = 'backup_interval_unit'").fetchone()
+        if row and row["valor"]:
+            backup_interval_unit = row["valor"]
+    except Exception:
+        pass
+    finally:
+        if conn is not None:
+            try:
+                conn.close()
+            except Exception:
+                pass
+
+    unit = _BACKUP_UNIT_MAP.get(backup_interval_unit, "hours")
+    trigger_kwargs = {unit: backup_interval_value}
+
+    scheduler.add_job(
+        id="backup_job",
+        func=job_send_backup,
+        trigger="interval",
+        replace_existing=True,
+        misfire_grace_time=900,
+        coalesce=True,
+        max_instances=1,
+        **trigger_kwargs,
+    )
+    print(f"Scheduler: backup programado cada {backup_interval_value} {backup_interval_unit}.")
+
 _db_initialized = False
+_scheduler_started = False
+
+@app.before_request
+def ensure_scheduler_started():
+    global _scheduler_started
+    if _scheduler_started:
+        return
+    try:
+        # Con multiples workers cada uno iniciaria su propio scheduler y
+        # enviamos el backup N veces; en ese caso se recomienda un proceso
+        # dedicado (scheduler_worker.py) y desactivar el scheduler web.
+        if os.getenv("DISABLE_SCHEDULER") == "1":
+            _scheduler_started = True
+            return
+        try:
+            if float(os.getenv("WEB_CONCURRENCY", "1")) > 1:
+                app.logger.info("Scheduler desactivado en web: WEB_CONCURRENCY > 1 (usa scheduler_worker.py).")
+                _scheduler_started = True
+                return
+        except (TypeError, ValueError):
+            pass
+
+        init_scheduler()
+        if not scheduler.running:
+            scheduler.start()
+        app.logger.info("Scheduler de backups iniciado (lazy, en worker activo).")
+    except Exception as exc:
+        app.logger.error("No se pudo iniciar el scheduler de backups: %s", exc)
+    finally:
+        _scheduler_started = True
 
 @app.before_request
 def ensure_db_initialized():
@@ -307,6 +420,9 @@ register_ths_soc(app)
 register_inventarios(app)
 register_programacion_operativa(app)
 register_personal_operativo(app)
+
+# Programar el backup periódico (lee frecuencia de BD/entorno)
+init_scheduler()
 
 if __name__ == "__main__":
     

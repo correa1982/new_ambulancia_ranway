@@ -71,6 +71,96 @@
                 </div>
             </div>
         </div>
+</fieldset>
+
+<fieldset style="margin-bottom: 25px; border: 1px solid #cbd5e0; border-radius: 8px; padding: 20px;">
+    <legend style="color: #ea580c; font-weight: bold;">Configuración de Copias de Seguridad (Backup)</legend>
+    <div class="row" style="display: none;">
+        <div>
+            <label>Servidor SMTP (Host)</label>
+            <input type="text" name="smtp_host" value="{{ institucion.smtp_host }}" placeholder="Ej. smtp.gmail.com">
+        </div>
+        <div>
+            <label>Puerto SMTP</label>
+            <input type="number" name="smtp_port" value="{{ institucion.smtp_port if institucion.smtp_port else 587 }}" placeholder="Ej. 587">
+        </div>
+    </div>
+    <div class="row">
+        <div>
+            <label>Correo Remitente (Desde donde se envía)</label>
+            <input type="email" name="smtp_user" value="{{ institucion.smtp_user }}" placeholder="Ej. tu-correo@gmail.com">
+        </div>
+        <div>
+            <label>Contraseña de Aplicación (16 dígitos)</label>
+            <input type="password" name="smtp_password" value="{{ institucion.smtp_password }}" placeholder="****************">
+        </div>
+    </div>
+    
+    <div style="margin-top: 15px;">
+        <label style="font-weight: bold; margin-bottom: 10px; display: block;">3. ¿A qué correos se deben enviar las copias de seguridad de la base de datos?</label>
+        
+        <div style="background-color: #f8fafc; padding: 10px; font-size: 13px; font-weight: bold; color: #475569; display: grid; grid-template-columns: 1fr auto; border-bottom: 1px solid #e2e8f0; text-transform: uppercase;">
+            <div>CORREO DESTINO (BACKUP)</div>
+            <div style="width: 80px; text-align: center;">ACCIÓN</div>
+        </div>
+        
+        <div id="backup-emails-list" style="margin-top: 10px;">
+            {% set dest_emails = (institucion.backup_email_dest or "").split(",") %}
+            {% set dest_emails = dest_emails | map('trim') | reject('equalto', '') | list %}
+            {% if not dest_emails %}
+                {% set dest_emails = [''] %}
+            {% endif %}
+            
+            {% for email in dest_emails %}
+            <div class="backup-email-item" style="display: grid; grid-template-columns: 1fr auto; gap: 15px; align-items: center; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid #f1f5f9;">
+                <input type="email" name="backup_email_dest[]" value="{{ email }}" placeholder="ejemplo@correo.com" style="margin-bottom: 0;">
+                <button type="button" class="remove-backup-email btn" style="margin: 0; padding: 8px 16px; background-color: #ef4444; color: white; border: none; border-radius: 20px; font-weight: bold; width: 80px;">Quitar</button>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div style="display: grid; grid-template-columns: 1fr auto; gap: 15px; align-items: center; margin-bottom: 10px;">
+            <input type="email" id="new_backup_email" placeholder="ejemplo@correo.com" style="margin-bottom: 0;">
+            <button type="button" id="add-backup-email" class="btn" style="margin: 0; padding: 8px 16px; background-color: #10b981; color: white; border: none; border-radius: 20px; font-weight: bold; width: 80px;">Añadir</button>
+        </div>
+    </div>
+
+    <div style="margin-top: 25px;">
+        <label style="font-weight: bold; margin-bottom: 15px; display: block;">4. ¿Cada cuánto tiempo se debe realizar y enviar la copia de seguridad?</label>
+        
+        <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px;">
+            <span style="font-weight: bold; color: #1e293b;">Frecuencia:</span>
+            <input type="number" name="backup_interval_value" min="1" value="{{ institucion.backup_interval_value if institucion.backup_interval_value else 12 }}" required style="width: 150px; margin-bottom: 0;">
+            <select name="backup_interval_unit" style="width: 150px; margin-bottom: 0; padding: 8px; border: 1px solid #22c55e; border-radius: 4px; outline: none;">
+                <option value="Minutos" {% if institucion.backup_interval_unit == 'Minutos' %}selected{% endif %}>Minutos</option>
+                <option value="Horas" {% if not institucion.backup_interval_unit or institucion.backup_interval_unit == 'Horas' %}selected{% endif %}>Horas</option>
+                <option value="Días" {% if institucion.backup_interval_unit == 'Días' %}selected{% endif %}>Días</option>
+            </select>
+        </div>
+        
+        <div style="display: flex; gap: 15px;">
+            <!-- El guardado se hará con el botón general, pero podemos dejar un botón verde llamativo que envíe el formulario -->
+            <button type="button" id="btn-enviar-ahora" class="btn" style="margin:0; box-sizing: border-box; height: 40px; background: #f59e0b; color:white; border:none; padding:0 20px; border-radius:20px; font-weight:bold; font-size:14px; cursor:pointer;">Enviar Backup Ahora</button>
+        </div>
+
+        {% if institucion.backup_last_run %}
+        <div style="margin-top:18px; padding:14px 16px; border-radius:12px; background:#f8fafc; border:1px solid #e2e8f0; font-size:13px; color:#0f172a;">
+            <div style="font-weight:700; margin-bottom:8px;">Último backup</div>
+            <div style="display:grid; grid-template-columns:auto 1fr; gap:5px 12px;">
+                <span style="color:#64748b;">Fecha:</span><span>{{ institucion.backup_last_run }}</span>
+                <span style="color:#64748b;">Estado:</span>
+                <span style="font-weight:600; color:{{ '#16a34a' if institucion.backup_last_status == 'OK' else '#dc2626' }};">
+                    {{ 'Exitoso' if institucion.backup_last_status == 'OK' else 'Error' }}
+                </span>
+                {% if institucion.backup_last_error %}
+                <span style="color:#64748b;">Detalle:</span><span style="color:#dc2626;">{{ institucion.backup_last_error }}</span>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</fieldset>
+
         <div style="display: flex; gap: 10px; margin-top: 15px;">
             <a href="{{ url_for('dashboard') }}" style="margin:0; box-sizing: border-box; height: 44px; font-family: inherit; background:#6b7280; color:white; text-decoration:none; border:none; padding:0 24px; border-radius:10px; font-weight:600; font-size:14px; display:inline-flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(107,114,128,0.2);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(107,114,128,0.3)'" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 6px -1px rgba(107,114,128,0.2)'">
                 <i class="ph ph-arrow-left" style="font-size:18px;"></i> Volver
@@ -139,6 +229,64 @@ if (habilitacionesList && addHabilitacionButton) {
                 item.remove();
             }
         }
+    });
+}
+
+// --- Backup Emails Logic ---
+const backupEmailsList = document.getElementById('backup-emails-list');
+const addBackupEmailBtn = document.getElementById('add-backup-email');
+const newBackupEmailInput = document.getElementById('new_backup_email');
+
+if (addBackupEmailBtn && backupEmailsList && newBackupEmailInput) {
+    addBackupEmailBtn.addEventListener('click', () => {
+        const email = newBackupEmailInput.value.trim();
+        if (email) {
+            const row = document.createElement('div');
+            row.className = 'backup-email-item';
+            row.style.cssText = 'display: grid; grid-template-columns: 1fr auto; gap: 15px; align-items: center; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid #f1f5f9;';
+            row.innerHTML = `
+                <input type="email" name="backup_email_dest[]" value="${email}" style="margin-bottom: 0;" readonly>
+                <button type="button" class="remove-backup-email btn" style="margin: 0; padding: 8px 16px; background-color: #ef4444; color: white; border: none; border-radius: 20px; font-weight: bold; width: 80px;">Quitar</button>
+            `;
+            backupEmailsList.appendChild(row);
+            newBackupEmailInput.value = '';
+        }
+    });
+
+    backupEmailsList.addEventListener('click', (event) => {
+        if (event.target.classList.contains('remove-backup-email')) {
+            const item = event.target.closest('.backup-email-item');
+            if (item) {
+                item.remove();
+            }
+        }
+    });
+}
+
+// --- Enviar Backup Ahora ---
+const btnEnviarAhora = document.getElementById('btn-enviar-ahora');
+if (btnEnviarAhora) {
+    btnEnviarAhora.addEventListener('click', () => {
+        btnEnviarAhora.innerText = 'Enviando...';
+        btnEnviarAhora.disabled = true;
+        
+        fetch('/admin/backup/enviar_ahora', {
+            method: 'POST'
+        })
+        .then(res => res.json())
+        .then(data => {
+            alert(data.message || 'Proceso finalizado.');
+            if (data.success) {
+                window.location.reload();
+            }
+        })
+        .catch(err => {
+            alert('Error al ejecutar el envío manual.');
+        })
+        .finally(() => {
+            btnEnviarAhora.innerText = 'Enviar Backup Ahora';
+            btnEnviarAhora.disabled = false;
+        });
     });
 }
 </script>
