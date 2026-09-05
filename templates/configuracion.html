@@ -4,9 +4,9 @@
 <h1>⚙️ Configuración Institucional</h1>
 <p>Administre los datos y el logotipo de la institución que aparecerán en los reportes.</p>
 
+<form method="POST" action="{{ url_for('configurar_institucion') }}" id="institution-form" enctype="multipart/form-data">
 <fieldset style="margin-bottom: 25px; border: 1px solid #cbd5e0; border-radius: 8px;">
     <legend style="color: #2b6cb0; font-weight: bold;">Configuración de la Institución (Logo y Datos)</legend>
-    <form method="POST" action="{{ url_for('configurar_institucion') }}" id="institution-form" enctype="multipart/form-data">
 
         <div class="row">
             <div>
@@ -120,7 +120,7 @@
         </div>
         
         <div style="display: grid; grid-template-columns: 1fr auto; gap: 15px; align-items: center; margin-bottom: 10px;">
-            <input type="email" id="new_backup_email" placeholder="ejemplo@correo.com" style="margin-bottom: 0;">
+            <input type="email" id="new_backup_email" name="backup_email_dest[]" placeholder="ejemplo@correo.com" style="margin-bottom: 0;">
             <button type="button" id="add-backup-email" class="btn" style="margin: 0; padding: 8px 16px; background-color: #10b981; color: white; border: none; border-radius: 20px; font-weight: bold; width: 80px;">Añadir</button>
         </div>
     </div>
@@ -169,8 +169,8 @@
                 <i class="ph ph-floppy-disk" style="font-size:18px;"></i> Guardar Cambios
             </button>
         </div>
-    </form>
 </fieldset>
+</form>
 
 <script>
 // --- Logo Upload Logic ---
