@@ -87,6 +87,8 @@ def register_routes(app):
                 flash(f"Error al guardar el formulario: {e}", "error")
             finally:
                 conn.close()
+            if request.form.get("_offline_sync") == "1":
+                return jsonify({"status": "success"})
             return redirect(url_for("registros_atencion_vehiculo"))
 
         # GET: Render form
@@ -239,6 +241,8 @@ def register_routes(app):
                 flash(f"Error al actualizar: {e}", "error")
             finally:
                 conn.close()
+            if request.form.get("_offline_sync") == "1":
+                return jsonify({"status": "success"})
             return redirect(url_for("registros_atencion_vehiculo"))
             
         grupos_equipos_db = conn.execute(

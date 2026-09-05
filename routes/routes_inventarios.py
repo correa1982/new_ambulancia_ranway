@@ -1,6 +1,8 @@
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash, jsonify, send_file
 import io
 import pandas as pd
+import zoneinfo
+from datetime import datetime
 from db import get_db
 from utils import login_required
 
@@ -478,6 +480,8 @@ def inventarios_manual_update():
     is_catalog = item_id_raw.startswith('cat_')
     real_id = item_id_raw.replace('inv_', '').replace('cat_', '')
     
+    invima_form = request.form.get('invima')
+
     if is_catalog:
         if accion == 'egreso':
             flash("No puede hacer egreso de un producto que aún no está en el inventario.", "error")
@@ -489,10 +493,14 @@ def inventarios_manual_update():
             return redirect(url_for('inventarios.inventarios_index'))
             
         registrado_por = session['usuario']['nombre']
+        
+        # Usar el invima del formulario si se proporcionó, si no usar el del catálogo
+        invima_final = invima_form if invima_form is not None else cat_item['invima']
+        
         cursor = conn.execute("""
             INSERT INTO inventarios (codigo_barras, codigo_secundario, tipo, nombre, invima, cum, cantidad, unidad_medida, lote, fecha_vencimiento, observaciones, registrado_por)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-        """, ('', '', cat_item['tipo'], cat_item['nombre'], cat_item['invima'], cat_item['cum'], cantidad_op, 'Unidades', lote, fecha_vencimiento, '', registrado_por))
+        """, ('', '', cat_item['tipo'], cat_item['nombre'], invima_final, cat_item['cum'], cantidad_op, 'Unidades', lote, fecha_vencimiento, '', registrado_por))
         new_id = cursor.lastrowid
         
         conn.execute("""
@@ -589,35 +597,90 @@ def inventarios_exportar_excel():
     )
 @bp_inventarios.route('/movimientos', methods=['GET'])
 def inventarios_movimientos():
-    conn = get_db()
-    
-    page = request.args.get('page', 1, type=int)
-    per_page = 50
-    offset = (page - 1) * per_page
-    
-    total = conn.execute("SELECT COUNT(*) FROM inventarios_historial").fetchone()[0]
-    
-    movimientos = conn.execute(
-        "SELECT * FROM inventarios_historial ORDER BY fecha_registro DESC LIMIT %s OFFSET %s",
-        (per_page, offset)
-    ).fetchall()
-    
-    conn.close()
-    
-    import math
-    total_pages = math.ceil(total / per_page) if total > 0 else 1
-    
-    return render_template('inventarios_movimientos.html', movimientos=movimientos, page=page, total_pages=total_pages)
+    try:
+        conn = get_db()
+        
+        page = request.args.get('page', 1, type=int)
+        per_page = 50
+        offset = (page - 1) * per_page
+        
+        row = conn.execute("""
+            SELECT COUNT(ih.id) as total 
+            FROM inventarios_historial ih
+            LEFT JOIN inventarios i ON ih.item_id = i.id
+            WHERE i.tipo != 'Control Especial' OR i.tipo IS NULL
+        """).fetchone()
+        total = int(row['total']) if row and row.get('total') is not None else 0
+        
+        movimientos_raw = conn.execute(f"""
+            SELECT ih.* 
+            FROM inventarios_historial ih
+            LEFT JOIN inventarios i ON ih.item_id = i.id
+            WHERE i.tipo != 'Control Especial' OR i.tipo IS NULL
+            ORDER BY ih.fecha_registro DESC LIMIT {per_page} OFFSET {offset}
+        """).fetchall()
+        
+        conn.close()
+        
+        movimientos = []
+        for mov in movimientos_raw:
+            mov_dict = dict(mov)
+            if mov_dict.get('fecha_registro'):
+                fecha = mov_dict['fecha_registro']
+                if hasattr(fecha, 'strftime'):
+                    if fecha.tzinfo is None:
+                        fecha = fecha.replace(tzinfo=zoneinfo.ZoneInfo("UTC"))
+                    fecha_str = fecha.astimezone(zoneinfo.ZoneInfo("America/Bogota")).strftime('%Y-%m-%d %H:%M:%S')
+                else:
+                    try:
+                        dt = datetime.strptime(str(fecha).split('.')[0], '%Y-%m-%d %H:%M:%S')
+                        dt = dt.replace(tzinfo=zoneinfo.ZoneInfo("UTC"))
+                        fecha_str = dt.astimezone(zoneinfo.ZoneInfo("America/Bogota")).strftime('%Y-%m-%d %H:%M:%S')
+                    except Exception:
+                        fecha_str = str(fecha)
+                mov_dict['fecha_registro_fmt'] = fecha_str
+            else:
+                mov_dict['fecha_registro_fmt'] = 'N/A'
+            movimientos.append(mov_dict)
+        
+        import math
+        total_pages = math.ceil(total / per_page) if total > 0 else 1
+        
+        return render_template('inventarios_movimientos.html', movimientos=movimientos, page=page, total_pages=total_pages)
+    except Exception as e:
+        import traceback
+        return f"<h3>Error in /movimientos:</h3><pre>{traceback.format_exc()}</pre>", 500
 
 @bp_inventarios.route('/movimientos/exportar', methods=['GET'])
 def inventarios_movimientos_exportar():
     conn = get_db()
-    movimientos = conn.execute("SELECT * FROM inventarios_historial ORDER BY fecha_registro DESC").fetchall()
+    movimientos = conn.execute("""
+        SELECT ih.* 
+        FROM inventarios_historial ih
+        LEFT JOIN inventarios i ON ih.item_id = i.id
+        WHERE i.tipo != 'Control Especial' OR i.tipo IS NULL
+        ORDER BY ih.fecha_registro DESC
+    """).fetchall()
     conn.close()
     
     data = []
     for mov in movimientos:
-        fecha_str = mov['fecha_registro'].strftime('%Y-%m-%d %H:%M:%S') if mov['fecha_registro'] else 'N/A'
+        if mov.get('fecha_registro'):
+            fecha = mov['fecha_registro']
+            if hasattr(fecha, 'strftime'):
+                if fecha.tzinfo is None:
+                    fecha = fecha.replace(tzinfo=zoneinfo.ZoneInfo("UTC"))
+                fecha_str = fecha.astimezone(zoneinfo.ZoneInfo("America/Bogota")).strftime('%Y-%m-%d %H:%M:%S')
+            else:
+                try:
+                    dt = datetime.strptime(str(fecha).split('.')[0], '%Y-%m-%d %H:%M:%S')
+                    dt = dt.replace(tzinfo=zoneinfo.ZoneInfo("UTC"))
+                    fecha_str = dt.astimezone(zoneinfo.ZoneInfo("America/Bogota")).strftime('%Y-%m-%d %H:%M:%S')
+                except Exception:
+                    fecha_str = str(fecha)
+        else:
+            fecha_str = 'N/A'
+            
         data.append({
             "Fecha / Hora": fecha_str,
             "Producto": mov['nombre'],

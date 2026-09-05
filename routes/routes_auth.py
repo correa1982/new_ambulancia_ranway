@@ -1,5 +1,7 @@
 import json
 import os
+import time
+import threading
 import unicodedata
 from datetime import datetime, date
 from flask import render_template, request, redirect, url_for, session, flash, jsonify
@@ -7,6 +9,32 @@ from db import get_db
 from utils import login_required, admin_required, calcular_edad, get_user_info, hoy
 from itsdangerous import URLSafeSerializer, BadSignature
 from werkzeug.security import generate_password_hash, check_password_hash
+
+_login_failures = {}
+_login_lock = threading.Lock()
+_LOGIN_MAX_INTENTOS = 5
+_LOGIN_VENTANA_SEGUNDOS = 300
+
+
+def _login_bloqueado(clave):
+    ahora_ts = time.time()
+    with _login_lock:
+        intentos = [t for t in _login_failures.get(clave, []) if ahora_ts - t < _LOGIN_VENTANA_SEGUNDOS]
+        if intentos:
+            _login_failures[clave] = intentos
+        else:
+            _login_failures.pop(clave, None)
+        return len(intentos) >= _LOGIN_MAX_INTENTOS
+
+
+def _registrar_fallo_login(clave):
+    with _login_lock:
+        _login_failures.setdefault(clave, []).append(time.time())
+
+
+def _limpiar_fallos_login(clave):
+    with _login_lock:
+        _login_failures.pop(clave, None)
 
 def register_routes(app):
     @app.route("/", methods=["GET", "POST"])
@@ -22,6 +50,11 @@ def register_routes(app):
                 flash("Todos los campos son obligatorios.", "error")
                 return render_template("login.html")
 
+            clave_intentos = f"{request.remote_addr}:{identificacion}"
+            if _login_bloqueado(clave_intentos):
+                flash("Demasiados intentos fallidos. Espere unos minutos e intente de nuevo.", "error")
+                return render_template("login.html")
+
             conn = get_db()
             user = conn.execute(
                 "SELECT * FROM usuarios WHERE identificacion = ?", (identificacion,)
@@ -29,6 +62,7 @@ def register_routes(app):
 
             if user:
                 if not check_password_hash(user["contrasena"], contrasena):
+                    _registrar_fallo_login(clave_intentos)
                     flash("Credenciales incorrectas.", "error")
                     conn.close()
                     return render_template("login.html")
@@ -37,7 +71,7 @@ def register_routes(app):
                     flash("Su usuario se encuentra deshabilitado. Por favor contacte al administrador.", "error")
                     conn.close()
                     return render_template("login.html")
-                
+
                 if user.get("fecha_validez"):
                     from datetime import date
                     validez = user["fecha_validez"]
@@ -54,11 +88,13 @@ def register_routes(app):
                             conn.close()
                             return render_template("login.html")
             else:
+                _registrar_fallo_login(clave_intentos)
                 flash("Usuario no registrado. Comuníquese con el administrador para registrarse.", "error")
                 conn.close()
                 return render_template("login.html")
 
             conn.close()
+            _limpiar_fallos_login(clave_intentos)
 
             try:
                 formularios_acceso_raw = user["formularios_acceso"]

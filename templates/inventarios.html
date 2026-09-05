@@ -84,17 +84,17 @@
         width: 100%;
         height: 100%;
         background-color: rgba(0,0,0,0.5);
+        overflow-y: auto;
     }
     .modal-content {
         background-color: #fff;
-        margin: 5% auto;
+        margin: 5% auto 50px auto;
         padding: 20px;
         border-radius: 8px;
         width: 500px;
         max-width: 90%;
         box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        max-height: 90vh;
-        overflow-y: auto;
+        overflow: visible;
     }
     .modal-header {
         display: flex;
@@ -842,9 +842,9 @@
                 </div>
             </div>
 
-            <div class="form-group">
+            <div class="form-group" id="manualSelectIngresoContainer">
                 <label>Seleccionar Producto</label>
-                <select name="item_id" id="manualProductSelect" required>
+                <select name="item_id" id="manualProductSelectIngreso" required>
                     <option value="" disabled selected>-- Seleccione un producto --</option>
                     <optgroup label="Inventario Actual">
                     {% for item in items %}
@@ -853,7 +853,20 @@
                     </optgroup>
                     <optgroup label="Catálogo (Nuevo Ingreso)">
                     {% for cat in catalogo %}
-                    <option value="cat_{{ cat.id }}">{{ cat.nombre }} (Catálogo)</option>
+                    <option value="cat_{{ cat.id }}" data-invima="{{ cat.invima or '' }}">{{ cat.nombre }} (Catálogo)</option>
+                    {% endfor %}
+                    </optgroup>
+                </select>
+            </div>
+            <div class="form-group" id="manualSelectEgresoContainer" style="display: none;">
+                <label>Seleccionar Producto</label>
+                <select id="manualProductSelectEgreso" required>
+                    <option value="" disabled selected>-- Seleccione un producto --</option>
+                    <optgroup label="Inventario Actual">
+                    {% for item in items %}
+                        {% if item.cantidad > 0 %}
+                        <option value="inv_{{ item.id }}">{{ item.nombre }} (Stock: {{ item.cantidad }} | Lote: {{ item.lote or 'N/A' }})</option>
+                        {% endif %}
                     {% endfor %}
                     </optgroup>
                 </select>
@@ -861,6 +874,10 @@
             <div id="manualNewProductFields" style="display: none; background: #f0fdf4; padding: 10px; border-radius: 6px; border: 1px solid #bbf7d0; margin-bottom: 15px;">
                 <p style="font-size: 12px; color: #166534; margin-top: 0; margin-bottom: 8px;"><strong>Nota:</strong> Está ingresando un producto nuevo desde el catálogo.</p>
                 <div class="responsive-flex">
+                    <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                        <label style="font-size: 13px;">INVIMA (Opcional)</label>
+                        <input type="text" name="invima" id="manualInvima">
+                    </div>
                     <div class="form-group" style="flex: 1; margin-bottom: 0;">
                         <label style="font-size: 13px;">Lote (Opcional)</label>
                         <input type="text" name="lote" id="manualLote">
@@ -1419,6 +1436,12 @@
         const egresoFields = document.getElementById('manualEgresoFields');
         const tipoEgreso = document.getElementById('manualTipoEgreso');
         
+        const selectIngresoContainer = document.getElementById('manualSelectIngresoContainer');
+        const selectEgresoContainer = document.getElementById('manualSelectEgresoContainer');
+        const selectIngreso = document.getElementById('manualProductSelectIngreso');
+        const selectEgreso = document.getElementById('manualProductSelectEgreso');
+        const newFields = document.getElementById('manualNewProductFields');
+
         if (accion === 'ingreso') {
             title.textContent = '➕ Ingreso Manual de Stock';
             label.textContent = 'ingresar';
@@ -1427,11 +1450,18 @@
             egresoFields.style.display = 'none';
             tipoEgreso.required = false;
             
+            selectIngresoContainer.style.display = 'block';
+            selectEgresoContainer.style.display = 'none';
+            selectIngreso.setAttribute('name', 'item_id');
+            selectEgreso.removeAttribute('name');
+            if (productChoicesIngreso) productChoicesIngreso.enable();
+            if (productChoicesEgreso) productChoicesEgreso.disable();
+
             // Si el select tiene valor de catálogo, mostrar los campos
-            const manualSelect = document.getElementById('manualProductSelect');
-            const newFields = document.getElementById('manualNewProductFields');
-            if (manualSelect && manualSelect.value && manualSelect.value.startsWith('cat_') && newFields) {
+            if (selectIngreso && selectIngreso.value && selectIngreso.value.startsWith('cat_') && newFields) {
                 newFields.style.display = 'block';
+            } else if (newFields) {
+                newFields.style.display = 'none';
             }
         } else {
             title.textContent = '➖ Egreso Manual de Stock';
@@ -1441,7 +1471,13 @@
             egresoFields.style.display = 'block';
             tipoEgreso.required = true;
             
-            const newFields = document.getElementById('manualNewProductFields');
+            selectIngresoContainer.style.display = 'none';
+            selectEgresoContainer.style.display = 'block';
+            selectEgreso.setAttribute('name', 'item_id');
+            selectIngreso.removeAttribute('name');
+            if (productChoicesEgreso) productChoicesEgreso.enable();
+            if (productChoicesIngreso) productChoicesIngreso.disable();
+
             if (newFields) newFields.style.display = 'none';
         }
         
@@ -1449,11 +1485,31 @@
     }
 
     // Initialize Choices.js
-    let productChoices = null;
+    let productChoicesIngreso = null;
+    let productChoicesEgreso = null;
     document.addEventListener('DOMContentLoaded', function() {
-        const el = document.getElementById('manualProductSelect');
-        if(el) {
-            productChoices = new Choices(el, {
+        const elIngreso = document.getElementById('manualProductSelectIngreso');
+        if(elIngreso) {
+            productChoicesIngreso = new Choices(elIngreso, {
+                searchEnabled: true,
+                itemSelectText: '',
+                shouldSort: false,
+                noResultsText: 'No se encontraron productos',
+                noChoicesText: 'No hay opciones',
+                placeholderValue: '-- Seleccione un producto --'
+            });
+            elIngreso.addEventListener('change', function() {
+                const newFields = document.getElementById('manualNewProductFields');
+                if (this.value && this.value.startsWith('cat_') && newFields) {
+                    newFields.style.display = 'block';
+                } else if (newFields) {
+                    newFields.style.display = 'none';
+                }
+            });
+        }
+        const elEgreso = document.getElementById('manualProductSelectEgreso');
+        if(elEgreso) {
+            productChoicesEgreso = new Choices(elEgreso, {
                 searchEnabled: true,
                 itemSelectText: '',
                 shouldSort: false,
@@ -1806,7 +1862,16 @@
                 const accion = document.getElementById('manualUpdateAction').value;
                 
                 if (val && val.startsWith('cat_') && accion === 'ingreso') {
-                    if (newFields) newFields.style.display = 'block';
+                    if (newFields) {
+                        newFields.style.display = 'block';
+                        
+                        // Set the invima data
+                        const selectedOption = this.querySelector('option[value="' + val + '"]');
+                        const invimaInput = document.getElementById('manualInvima');
+                        if (selectedOption && invimaInput) {
+                            invimaInput.value = selectedOption.getAttribute('data-invima') || '';
+                        }
+                    }
                 } else {
                     if (newFields) newFields.style.display = 'none';
                 }

@@ -1,0 +1,335 @@
+{% extends "base.html" %}
+{% block title %}Personal Operativo{% endblock %}
+{% block content %}
+<style>
+.header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #e2e8f0;
+    padding-bottom: 12px;
+}
+.main-card {
+    background: white;
+    padding: 16px;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+    margin-bottom: 16px;
+    border: 1px solid #e2e8f0;
+}
+.btn-primary {
+    background-color: #2563eb;
+    color: white;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    text-decoration: none;
+    transition: background-color 0.2s;
+}
+.btn-primary:hover {
+    background-color: #1d4ed8;
+}
+.btn-success {
+    background-color: #16a34a;
+    color: white;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    text-decoration: none;
+    transition: background-color 0.2s;
+}
+.btn-success:hover {
+    background-color: #15803d;
+}
+.btn-light {
+    background-color: #f1f5f9;
+    color: #0f172a;
+    padding: 10px 16px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    text-decoration: none;
+    transition: background-color 0.2s;
+}
+.btn-light:hover {
+    background-color: #e2e8f0;
+}
+.btn-sm {
+    padding: 4px 8px;
+    font-size: 12px;
+}
+.form-group {
+    margin-bottom: 12px;
+}
+.form-group label {
+    display: block;
+    margin-bottom: 4px;
+    font-weight: 600;
+    font-size: 13px;
+    color: #475569;
+}
+.form-group input, .form-group select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+}
+table.dataTable {
+    width: 100% !important;
+}
+</style>
+
+<div class="header-row">
+    <h2 style="margin:0; color:#1e3a5f; display:flex; align-items:center; gap:8px;">
+        <i class="ph ph-users" style="color:#7e22ce;"></i> Panel de Personal Operativo
+    </h2>
+    <div style="display:flex; gap:10px;">
+        <button class="btn-primary" onclick="abrirModalAgregar()"><i class="ph ph-plus"></i> Agregar Manual</button>
+        <button class="btn-light" onclick="document.getElementById('importar-form').style.display='block'"><i class="ph ph-upload-simple"></i> Importar Excel</button>
+        <a href="{{ url_for('personal_operativo_exportar') }}" class="btn-success"><i class="ph ph-download-simple"></i> Exportar</a>
+        <a href="{{ url_for('programacion_operativa') }}" class="btn-light"><i class="ph ph-arrow-left"></i> Volver a Programación</a>
+    </div>
+</div>
+
+<div id="importar-form" class="main-card" style="display:none; background:#f8fafc;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <h3 style="margin:0; color:#1e3a5f;">Importar Personal desde Excel</h3>
+        <button onclick="document.getElementById('importar-form').style.display='none'" style="background:none; border:none; cursor:pointer;">&times;</button>
+    </div>
+    <form action="{{ url_for('personal_operativo_importar') }}" method="POST" enctype="multipart/form-data" style="display:flex; gap:10px; align-items:flex-end;">
+        <div style="flex:1;">
+            <label style="display:block; font-size:12px; font-weight:bold; margin-bottom:4px;">Archivo .xlsx</label>
+            <input type="file" name="archivo_excel" accept=".xlsx" required style="width:100%; padding:8px; background:white; border:1px solid #cbd5e1; border-radius:6px;">
+        </div>
+        <button type="submit" class="btn-success">Subir e Importar</button>
+    </form>
+    <p style="font-size:12px; color:#64748b; margin-top:8px; margin-bottom:0;">El archivo Excel debe tener las siguientes columnas en la primera fila (pueden estar en cualquier orden, pero deben llamarse así): <b>Cédula, Nombres, Apellidos, Código, Registro, Perfiles</b>.</p>
+</div>
+
+<div class="main-card">
+    <div class="table-responsive">
+        <table id="tabla-personal" class="display" style="width:100%">
+            <thead>
+                <tr>
+                    <th>Cédula</th>
+                    <th>Nombres</th>
+                    <th>Apellidos</th>
+                    <th>Código/Fecha</th>
+                    <th>Registro</th>
+                    <th>Perfiles</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in personal %}
+                <tr>
+                    <td>{{ p.cedula }}</td>
+                    <td>{{ p.nombres }}</td>
+                    <td>{{ p.apellidos }}</td>
+                    <td>{{ p.codigo_fecha }}</td>
+                    <td>{{ p.registro }}</td>
+                    <td>{{ p.perfiles }}</td>
+                    <td>
+                        <button class="btn-light btn-sm" onclick="editarPersona({{ p.id }}, '{{ p.cedula }}', '{{ p.nombres }}', '{{ p.apellidos }}', '{{ p.codigo_fecha }}', '{{ p.registro }}', '{{ p.perfiles }}')"><i class="ph ph-pencil"></i></button>
+                        <button class="btn-light btn-sm" style="color:red; border-color:red;" onclick="eliminarPersona({{ p.id }})"><i class="ph ph-trash"></i></button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal para agregar/editar personal -->
+<div id="modalPersonal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+    <div style="background:white; padding:20px; border-radius:12px; width:400px; max-width:90%;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+            <h3 style="margin:0; color:#1e3a5f;" id="modal-title">Agregar Personal</h3>
+            <button type="button" onclick="cerrarModalPersonal()" class="btn-light btn-sm" style="font-size:14px; border:none; background:transparent; color:#64748b;"><i class="ph ph-x"></i> Cerrar</button>
+        </div>
+        <form id="formAgregarPersonal">
+            <input type="hidden" id="p_id">
+            <div class="form-group">
+                <label>Cédula <span style="color:red">*</span></label>
+                <input type="text" id="p_cedula" required>
+            </div>
+            <div class="form-group">
+                <label>Nombres <span style="color:red">*</span></label>
+                <input type="text" id="p_nombres" required>
+            </div>
+            <div class="form-group">
+                <label>Apellidos <span style="color:red">*</span></label>
+                <input type="text" id="p_apellidos" required>
+            </div>
+            <div class="form-group">
+                <label>Código (Fecha)</label>
+                <input type="text" id="p_codigo_fecha" placeholder="DD/MM/YYYY">
+            </div>
+            <div class="form-group">
+                <label>Registro</label>
+                <input type="text" id="p_registro">
+            </div>
+            <div class="form-group">
+                <label>Perfil (es)</label>
+                <div id="p_perfiles" style="display: flex; flex-direction: column; gap: 4px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; max-height: 140px; overflow-y: auto; background: #f8fafc; text-align: left;">
+                    <label style="display: flex; align-items: center; gap: 8px; margin: 0; cursor: pointer; padding: 4px; font-weight: normal; justify-content: flex-start;">
+                        <input type="checkbox" name="perfiles_chk" value="COND" style="width: auto; margin: 0;"> Conductor (COND)
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; margin: 0; cursor: pointer; padding: 4px; font-weight: normal; justify-content: flex-start;">
+                        <input type="checkbox" name="perfiles_chk" value="MED" style="width: auto; margin: 0;"> Médico (MED)
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; margin: 0; cursor: pointer; padding: 4px; font-weight: normal; justify-content: flex-start;">
+                        <input type="checkbox" name="perfiles_chk" value="APH" style="width: auto; margin: 0;"> APH
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; margin: 0; cursor: pointer; padding: 4px; font-weight: normal; justify-content: flex-start;">
+                        <input type="checkbox" name="perfiles_chk" value="AUX ENF" style="width: auto; margin: 0;"> Auxiliar Enf (AUX ENF)
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; margin: 0; cursor: pointer; padding: 4px; font-weight: normal; justify-content: flex-start;">
+                        <input type="checkbox" name="perfiles_chk" value="ENF" style="width: auto; margin: 0;"> Enfermero (ENF)
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; margin: 0; cursor: pointer; padding: 4px; font-weight: normal; justify-content: flex-start;">
+                        <input type="checkbox" name="perfiles_chk" value="SOC" style="width: auto; margin: 0;"> Socorrista (SOC)
+                    </label>
+                </div>
+            </div>
+            <div style="display:flex; gap:10px; margin-top:16px;">
+                <button type="button" onclick="cerrarModalPersonal()" class="btn-light" style="flex:1; justify-content:center;">Cancelar</button>
+                <button type="button" onclick="guardarPersonal()" class="btn-primary" style="flex:1; justify-content:center;">Guardar Persona</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- jQuery y DataTables -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+
+<script>
+$(document).ready(function() {
+    $('#tabla-personal').DataTable({
+        "language": {
+            "url": "//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json"
+        },
+        "order": [[ 1, "asc" ]],
+        "pageLength": 25
+    });
+});
+
+function abrirModalAgregar() {
+    document.getElementById("modal-title").innerText = "Agregar Personal";
+    document.getElementById("formAgregarPersonal").reset();
+    document.getElementById("p_id").value = "";
+    document.getElementById("modalPersonal").style.display = "flex";
+}
+
+function editarPersona(id, cedula, nombres, apellidos, codigo, registro, perfiles_str) {
+    document.getElementById("modal-title").innerText = "Editar Personal";
+    document.getElementById("formAgregarPersonal").reset();
+    
+    document.getElementById("p_id").value = id;
+    document.getElementById("p_cedula").value = cedula;
+    document.getElementById("p_nombres").value = nombres;
+    document.getElementById("p_apellidos").value = apellidos;
+    document.getElementById("p_codigo_fecha").value = codigo;
+    document.getElementById("p_registro").value = registro;
+    
+    const perfilesArr = perfiles_str.split(',').map(s => s.trim());
+    const checkboxes = document.querySelectorAll('input[name="perfiles_chk"]');
+    checkboxes.forEach(chk => {
+        chk.checked = perfilesArr.includes(chk.value);
+    });
+    
+    document.getElementById("modalPersonal").style.display = "flex";
+}
+
+function cerrarModalPersonal() {
+    document.getElementById("modalPersonal").style.display = "none";
+}
+
+async function guardarPersonal() {
+    const id = document.getElementById("p_id").value;
+    const cedula = document.getElementById("p_cedula").value;
+    const nombres = document.getElementById("p_nombres").value;
+    const apellidos = document.getElementById("p_apellidos").value;
+    const codigo_fecha = document.getElementById("p_codigo_fecha").value;
+    const registro = document.getElementById("p_registro").value;
+    
+    const checkboxes = document.querySelectorAll('input[name="perfiles_chk"]:checked');
+    const perfiles = Array.from(checkboxes).map(chk => chk.value);
+    
+    if(!cedula || !nombres || !apellidos) {
+        Swal.fire('Error', 'Debe llenar la cédula, nombres y apellidos', 'error');
+        return;
+    }
+    
+    try {
+        const res = await fetch("{{ url_for('personal_operativo_guardar') }}", {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({id, cedula, nombres, apellidos, codigo_fecha, registro, perfiles})
+        });
+        const data = await res.json();
+        
+        if(data.success) {
+            Swal.fire('Éxito', 'Personal guardado correctamente', 'success').then(() => {
+                window.location.reload();
+            });
+        } else {
+            Swal.fire('Error', data.error || 'No se pudo guardar', 'error');
+        }
+    } catch(err) {
+        Swal.fire('Error', 'Hubo un problema de conexión', 'error');
+    }
+}
+
+async function eliminarPersona(id) {
+    Swal.fire({
+        title: '¿Estás seguro?',
+        text: "No podrás revertir esta acción.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar'
+    }).then(async (result) => {
+        if (result.isConfirmed) {
+            try {
+                const res = await fetch("{{ url_for('personal_operativo_eliminar') }}", {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({id})
+                });
+                const data = await res.json();
+                
+                if(data.success) {
+                    Swal.fire('Eliminado', 'El registro ha sido eliminado', 'success').then(() => {
+                        window.location.reload();
+                    });
+                } else {
+                    Swal.fire('Error', data.error || 'No se pudo eliminar', 'error');
+                }
+            } catch(err) {
+                Swal.fire('Error', 'Hubo un problema de conexión', 'error');
+            }
+        }
+    });
+}
+</script>
+{% endblock %}
