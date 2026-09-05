@@ -465,7 +465,7 @@ def register_routes(app):
                     else:
                         trigger_kwargs['hours'] = val
                         
-                    current_app.scheduler.reschedule_job('backup_job', trigger='interval', **trigger_kwargs)
+                    current_app.scheduler._scheduler.reschedule_job('backup_job', trigger='interval', **trigger_kwargs)
                 except Exception as e:
                     print(f"No se pudo reprogramar el backup_job: {e}")
 
