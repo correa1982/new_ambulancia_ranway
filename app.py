@@ -42,7 +42,11 @@ app.permanent_session_lifetime = timedelta(minutes=30)
 
 serializer = URLSafeSerializer(app.secret_key)
 
-# Configurar e iniciar el scheduler para backups
+# Configurar el scheduler para backups.
+# OJO: NO se inicia aqui. Se inicia de forma perezosa en la primera peticion
+# (dentro del worker de gunicorn activo), porque iniciarlo en el import del
+# modulo con gunicorn/--preload hace que la hebra muera con el fork y los
+# jobs periodicos nunca se ejecuten (los manuales si, por ser por request).
 class BackupSchedulerConfig:
     SCHEDULER_API_ENABLED = False
     SCHEDULER_JOB_DEFAULTS = {
@@ -55,7 +59,6 @@ app.config.from_object(BackupSchedulerConfig())
 
 scheduler = APScheduler()
 scheduler.init_app(app)
-scheduler.start()
 app.scheduler = scheduler
 
 _BACKUP_UNIT_MAP = {
@@ -121,6 +124,36 @@ def init_scheduler():
     print(f"Scheduler: backup programado cada {backup_interval_value} {backup_interval_unit}.")
 
 _db_initialized = False
+_scheduler_started = False
+
+@app.before_request
+def ensure_scheduler_started():
+    global _scheduler_started
+    if _scheduler_started:
+        return
+    try:
+        # Con multiples workers cada uno iniciaria su propio scheduler y
+        # enviamos el backup N veces; en ese caso se recomienda un proceso
+        # dedicado (scheduler_worker.py) y desactivar el scheduler web.
+        if os.getenv("DISABLE_SCHEDULER") == "1":
+            _scheduler_started = True
+            return
+        try:
+            if float(os.getenv("WEB_CONCURRENCY", "1")) > 1:
+                app.logger.info("Scheduler desactivado en web: WEB_CONCURRENCY > 1 (usa scheduler_worker.py).")
+                _scheduler_started = True
+                return
+        except (TypeError, ValueError):
+            pass
+
+        init_scheduler()
+        if not scheduler.running:
+            scheduler.start()
+        app.logger.info("Scheduler de backups iniciado (lazy, en worker activo).")
+    except Exception as exc:
+        app.logger.error("No se pudo iniciar el scheduler de backups: %s", exc)
+    finally:
+        _scheduler_started = True
 
 @app.before_request
 def ensure_db_initialized():
