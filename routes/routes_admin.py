@@ -428,6 +428,47 @@ def register_routes(app):
                 conn.execute("REPLACE INTO configuracion (clave, valor) VALUES ('habilitaciones', ?)", ("[]",))
                 conn.execute("REPLACE INTO configuracion (clave, valor) VALUES ('habilitacion', ?)", ("",))
                 
+            backup_email_dests = request.form.getlist("backup_email_dest[]")
+            backup_email_dest_str = ",".join([e.strip() for e in backup_email_dests if e.strip()])
+            
+            backup_interval_value = request.form.get("backup_interval_value", "12").strip()
+            backup_interval_unit = request.form.get("backup_interval_unit", "Horas").strip()
+            
+            smtp_host = request.form.get("smtp_host", "").strip()
+            smtp_port = request.form.get("smtp_port", "").strip()
+            smtp_user = request.form.get("smtp_user", "").strip()
+            smtp_password = request.form.get("smtp_password", "").strip()
+            
+            conn.execute("REPLACE INTO configuracion (clave, valor) VALUES ('backup_email_dest', ?)", (backup_email_dest_str,))
+            conn.execute("REPLACE INTO configuracion (clave, valor) VALUES ('backup_interval_value', ?)", (backup_interval_value,))
+            conn.execute("REPLACE INTO configuracion (clave, valor) VALUES ('backup_interval_unit', ?)", (backup_interval_unit,))
+            
+            if smtp_host:
+                conn.execute("REPLACE INTO configuracion (clave, valor) VALUES ('smtp_host', ?)", (smtp_host,))
+            if smtp_port:
+                conn.execute("REPLACE INTO configuracion (clave, valor) VALUES ('smtp_port', ?)", (smtp_port,))
+            if smtp_user:
+                conn.execute("REPLACE INTO configuracion (clave, valor) VALUES ('smtp_user', ?)", (smtp_user,))
+            if smtp_password:
+                conn.execute("REPLACE INTO configuracion (clave, valor) VALUES ('smtp_password', ?)", (smtp_password,))
+                
+            # Intentar reprogramar el scheduler si está disponible
+            from flask import current_app
+            if hasattr(current_app, 'scheduler'):
+                try:
+                    val = int(backup_interval_value)
+                    trigger_kwargs = {}
+                    if backup_interval_unit == 'Minutos':
+                        trigger_kwargs['minutes'] = val
+                    elif backup_interval_unit == 'Días':
+                        trigger_kwargs['days'] = val
+                    else:
+                        trigger_kwargs['hours'] = val
+                        
+                    current_app.scheduler.reschedule_job('backup_job', trigger='interval', **trigger_kwargs)
+                except Exception as e:
+                    print(f"No se pudo reprogramar el backup_job: {e}")
+
             if logo_file and logo_file.filename:
                 import os
                 from datetime import datetime
@@ -475,7 +516,8 @@ def register_routes(app):
             flash(f"Error al guardar: {e}", "error")
         finally:
             conn.close()
-            return redirect(url_for("configuracion"))
+            
+        return redirect(url_for("configuracion"))
 
     @app.route("/configuracion", methods=["GET"])
     @login_required
@@ -890,3 +932,18 @@ def register_routes(app):
         )
         return response
 
+    @app.route("/admin/backup/enviar_ahora", methods=["POST"])
+    @login_required
+    @admin_required
+    def enviar_backup_ahora():
+        from flask import current_app, jsonify
+        from backup_service import send_backup_email
+
+        ok, msg = send_backup_email()
+
+        try:
+            current_app.clear_config_cache()
+        except Exception:
+            pass
+
+        return jsonify({"success": ok, "message": msg})
