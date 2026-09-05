@@ -1,0 +1,1244 @@
+{% extends "base.html" %}
+{% block title %}Programación Operativa{% endblock %}
+{% block content %}
+<style>
+.header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #e2e8f0;
+    padding-bottom: 12px;
+}
+.main-card {
+    background: white;
+    padding: 16px;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+    margin-bottom: 16px;
+    border: 1px solid #e2e8f0;
+}
+.form-group {
+    margin-bottom: 10px;
+}
+.form-group label {
+    display: block;
+    margin-bottom: 4px;
+    font-weight: 700;
+    font-size: 11px;
+    color: #475569;
+}
+.form-group input, .form-group select, .form-group textarea {
+    width: 100%;
+    padding: 6px 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 13px;
+    color: #1e293b;
+    background-color: #f8fafc;
+}
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+}
+.btn-primary {
+    background-color: #2563eb;
+    color: white;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-block;
+    transition: background-color 0.2s;
+}
+.btn-primary:hover {
+    background-color: #1d4ed8;
+}
+.btn-light-custom {
+    background-color: #f1f5f9 !important;
+    color: #0f172a !important;
+    padding: 8px 16px;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s;
+    text-decoration: none;
+    display: inline-block;
+}
+.btn-light-custom:hover {
+    background-color: #e2e8f0 !important;
+}
+.btn-danger-light {
+    background-color: #fee2e2 !important;
+    color: #b91c1c !important;
+    padding: 8px 16px;
+    border: 1px solid #fca5a5 !important;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+}
+.btn-danger-light:hover {
+    background-color: #fecaca !important;
+}
+.integrante-row {
+    display: grid;
+    grid-template-columns: 1fr 2fr auto;
+    gap: 8px;
+    margin-bottom: 6px;
+    align-items: end;
+}
+.section-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #1e3a5f;
+    margin-top: 16px;
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #e2e8f0;
+}
+</style>
+
+<div class="header-row">
+    <h2 style="margin:0; color:#1e3a5f; display:flex; align-items:center; gap:8px;">
+        <i class="ph ph-calendar-plus" style="color:#7e22ce;"></i> Programación Operativa
+    </h2>
+    <div style="display:flex; gap:10px;">
+        <a href="{{ url_for('personal_operativo_panel') }}" class="btn-primary" style="padding: 8px 16px;">Personal</a>
+        <a href="{{ url_for('programacion_operativa_explorador') }}" class="btn-light-custom">Ver Explorador</a>
+    </div>
+</div>
+
+<div class="main-card">
+    <form method="POST" action="{{ url_for('programacion_operativa') }}" id="form-programacion">
+        {% if evento_a_editar %}
+        <input type="hidden" name="programacion_id" value="{{ evento_a_editar.id }}">
+        {% endif %}
+        <div class="form-group">
+            <label for="tipo_evento">Tipo de Evento a Programar <span style="color:red">*</span></label>
+            <select name="tipo_evento" id="tipo_evento" required onchange="toggleForm()">
+                <option value="">Seleccione una opción...</option>
+                <option value="Tripulacion Basica">Tripulación Básica</option>
+                <option value="Operativo Completo">Operativo Completo</option>
+                <option value="FUTBOL">Fútbol</option>
+                <option value="Concierto Estadio">Concierto Estadio</option>
+                <option value="Concierto Macarena">Concierto Macarena</option>
+            </select>
+        </div>
+        
+        <!-- Contenedor dinámico -->
+        <div id="dynamic_fields" style="display: none; margin-top:20px;">
+            <div class="row row-2" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                <div class="form-group">
+                    <label>NOMBRE DEL EVENTO <span style="color:red">*</span></label>
+                    <input type="text" name="nombre_evento" id="nombre_evento" placeholder="Ej: CORBESHOW MEDELLIN 2026">
+                </div>
+                <div class="form-group">
+                    <label>FECHA <span style="color:red">*</span></label>
+                    <input onclick="this.showPicker()" type="date" name="fecha" id="fecha">
+                </div>
+            </div>
+            
+            <div class="row row-2" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                <div class="form-group">
+                    <label>HORA INICIO (HORA SEDE) <span style="color:red">*</span></label>
+                    <input type="text" class="timepicker" name="hora_inicio" id="hora_inicio" placeholder="Seleccione hora">
+                </div>
+                <div class="form-group">
+                    <label>HORA DE FINALIZACIÓN</label>
+                    <input type="text" class="timepicker" name="hora_finalizacion" id="hora_finalizacion" placeholder="Seleccione hora">
+                </div>
+            </div>
+            
+            <div class="row row-2" id="lugar_contacto_row" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px;">
+                <div class="form-group">
+                    <label>LUGAR</label>
+                    <input type="text" name="lugar" id="lugar" placeholder="Ej: PLAZA MAYOR PABELLON AZUL">
+                </div>
+                <div class="form-group" id="contacto_group">
+                    <label>CONTACTO</label>
+                    <input type="text" name="contacto" id="contacto" placeholder="Ej: DIANA BERMUDEZ">
+                </div>
+                <div class="form-group" id="coordina_group">
+                    <label>COORDINA</label>
+                    <input type="text" name="coordina" id="coordina" placeholder="Ej: FELIPE GAVIRIA">
+                </div>
+            </div>
+            
+            <div id="campos_futbol" style="display: none; margin-top:20px;">
+                <div style="display: none;">
+                    <div class="form-group">
+                        <label>HORA INICIO PCU</label>
+                        <input type="text" class="timepicker" name="hora_inicio_pcu" placeholder="Seleccione hora">
+                    </div>
+                    <div class="form-group">
+                        <label>HORA APERTURA PUERTAS</label>
+                        <input type="text" class="timepicker" name="hora_apertura_puertas" placeholder="Seleccione hora">
+                    </div>
+                    <div class="form-group">
+                        <label>HORA INICIO EVENTO</label>
+                        <input type="text" class="timepicker" name="hora_inicio_evento" placeholder="Seleccione hora">
+                    </div>
+                    <div class="form-group">
+                        <label>HORA FINALIZACIÓN PCU</label>
+                        <input type="text" class="timepicker" name="hora_finalizacion_pcu" placeholder="Seleccione hora">
+                    </div>
+                </div>
+                
+                <div class="row row-2" style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top: 10px;">
+                    <div class="form-group">
+                        <label>REPRESENTANTE PCU</label>
+                        <input type="text" name="representante_pcu" id="representante_pcu" placeholder="Ej: IVAN DARIO VIEIRA">
+                    </div>
+                    <div class="form-group">
+                        <label>COORDINADOR TERRENO</label>
+                        <input type="text" name="coordinador_terreno" id="coordinador_terreno" placeholder="Ej: DANIEL SERNA">
+                    </div>
+                </div>
+            </div>
+            
+            <div id="seccion_basica">
+                <div class="row row-2" style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom: 20px;">
+                    <div class="form-group">
+                        <label>AMBULANCIA TAM - TAB</label>
+                        <select name="basica_tipo_ambulancia" id="basica_tipo_ambulancia" onchange="generarIntegrantesBasica()">
+                            <option value="">Seleccione...</option>
+                            <option value="TAM">TAM</option>
+                            <option value="TAB">TAB</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>N° DE MÓVIL (Ej: M-1)</label>
+                        <input type="text" name="basica_numero_movil" id="basica_numero_movil" placeholder="M-1">
+                    </div>
+                </div>
+                
+                <div class="section-title">INTEGRANTES DE LA TRIPULACIÓN</div>
+                <div id="integrantes-container">
+                    <!-- Se generan desde JS -->
+                </div>
+                <button type="button" class="btn-light-custom" onclick="addIntegrante()" style="margin-bottom: 20px;">
+                    + Agregar otro integrante
+                </button>
+            </div>
+            
+            <div id="seccion_completo" style="display: none;">
+                <div class="section-title" id="title_configuracion_diseno">CONFIGURACIÓN DE DISEÑO</div>
+                <div class="form-group" style="max-width: 200px;" id="div-columnas-layout">
+                    <label>COLUMNAS EN EL DISEÑO (PDF)</label>
+                    <input type="number" name="columnas_layout" id="columnas_layout" value="3" min="1" max="6" oninput="actualizarColumnas()" onchange="actualizarColumnas()">
+                </div>
+                
+                <div class="section-title">UNIDADES DEL OPERATIVO</div>
+                <div style="display:flex; gap:10px; margin-bottom:20px; flex-wrap: wrap;">
+                    <button type="button" class="btn-light-custom" onclick="addUnidad('Avanzada')">+ Agregar Avanzada</button>
+                    <button type="button" class="btn-light-custom" onclick="addUnidad('Ambulancia')">+ Agregar Ambulancia</button>
+                    <button type="button" class="btn-light-custom" onclick="addUnidad('Moto')">+ Agregar Moto</button>
+                    <button type="button" class="btn-light-custom" onclick="addUnidad('PASM')">+ Agregar PASM</button>
+                    <button type="button" class="btn-light-custom" onclick="addUnidad('PASB')">+ Agregar PASB</button>
+                    <button type="button" class="btn-light-custom" style="border-color:#3b82f6; color:#3b82f6;" id="btn-salto-pagina" onclick="addSaltoPagina()">+ Agregar Nueva Página</button>
+                </div>
+                
+                <div id="unidades-container" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap:16px;">
+                    <!-- Bloques de unidades -->
+                </div>
+            </div>
+            
+            <input type="hidden" name="recursos_tecnicos" id="recursos_tecnicos" value="RECURSOS TÉCNICOS. (CAMILLA PLEGABLE-1, TABLA-1, BOTIQUIN TRAUMA-1, BOTIQUIN BASICO-1, RADIOS-1)">
+            
+            <input type="hidden" name="estado_programacion" id="estado_programacion" value="FINALIZADO">
+            <div style="display:flex; gap:10px; margin-top:10px;">
+                <button type="button" class="btn-primary" style="flex:1; background-color:#64748b; border-color:#64748b;" onclick="guardarBorrador()">Guardar (Borrador)</button>
+                <button type="button" class="btn-primary" style="flex:1;" onclick="finalizarProgramacion()">Finalizar Programación</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Datalists para autocompletado de personal agrupado por perfil -->
+{% for perfil, lista in empleados_por_perfil.items() %}
+<datalist id="lista_empleados_{{ perfil|replace(' ', '_') }}">
+    {% for emp in lista %}
+    <option value="{{ emp }}">
+    {% endfor %}
+</datalist>
+{% endfor %}
+
+<script>
+    let integranteCount = 0;
+    let unidadCount = {
+        avanzada: 0,
+        moto: 0,
+        ambulancia: 0,
+        pasm: 0,
+        pasb: 0,
+        camilleros: 0
+    };
+    let globalUnidadIndex = 0; // Para los IDs de las unidades en DOM
+
+    // Lógica para el autocompletado de personal por perfiles
+    function actualizarDatalist(selectElement) {
+        const rol = selectElement.value;
+        const listId = rol ? `lista_empleados_${rol.replace(/ /g, '_')}` : 'lista_empleados_SIN_ROL';
+        const row = selectElement.closest('.integrante-row') || selectElement.closest('.unidad-integrante');
+        if (row) {
+            const inputNombre = row.querySelector('input[name="integrante_nombre[]"]') || row.querySelector('input[name="unidad_integrante_nombre[]"]');
+            if (inputNombre) {
+                inputNombre.setAttribute('list', listId);
+            }
+        }
+    }
+
+    document.addEventListener('change', function(e) {
+        if (e.target && (e.target.name === 'integrante_rol[]' || e.target.name === 'unidad_integrante_rol[]')) {
+            actualizarDatalist(e.target);
+        }
+        
+        // Alerta informativa de disponibilidad y cruce de horario
+        if (e.target && (e.target.name === 'integrante_nombre[]' || e.target.name === 'unidad_integrante_nombre[]')) {
+            if (!validarDuplicadoEnFormulario(e.target)) {
+                validarCruce(e.target);
+            }
+        }
+        
+        // Revalidar si cambian las horas o fecha
+        if (e.target && (e.target.id === 'fecha' || e.target.id === 'hora_inicio' || e.target.id === 'hora_finalizacion')) {
+            document.querySelectorAll('input[name="integrante_nombre[]"], input[name="unidad_integrante_nombre[]"]').forEach(input => {
+                if (input.value.trim()) validarCruce(input);
+            });
+        }
+    });
+    
+    function validarDuplicadoEnFormulario(nombreInput) {
+        const val = nombreInput.value.trim();
+        if (!val) return false;
+        
+        const nameAttr = nombreInput.name;
+        const allInputs = document.querySelectorAll(`input[name="${nameAttr}"]`);
+        let count = 0;
+        
+        for (let input of allInputs) {
+            if (input.value.trim() === val) {
+                count++;
+            }
+        }
+        
+        if (count > 1) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Personal Duplicado',
+                text: 'La persona "' + val + '" ya está agregada en otra ubicación de este formulario.',
+                confirmButtonColor: '#3b82f6'
+            }).then(() => {
+                nombreInput.value = '';
+                nombreInput.focus();
+            });
+            return true;
+        }
+        return false;
+    }
+
+    function validarCruce(nombreInput) {
+        const nombre = nombreInput.value.trim();
+        const fecha = document.getElementById("fecha").value;
+        const hora_inicio = document.getElementById("hora_inicio").value;
+        const hora_fin = document.getElementById("hora_finalizacion") ? document.getElementById("hora_finalizacion").value : "";
+        
+        if (nombre && fecha && hora_inicio) {
+            fetch('/api/verificar_disponibilidad', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nombre: nombre, fecha: fecha, hora_inicio: hora_inicio, hora_finalizacion: hora_fin })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.cruce && typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        title: '¡Cruce de Horario!',
+                        text: data.mensaje,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#3085d6',
+                        cancelButtonColor: '#d33',
+                        confirmButtonText: 'Continuar',
+                        cancelButtonText: 'Editar'
+                    }).then((result) => {
+                        if (!result.isConfirmed) {
+                            nombreInput.value = '';
+                            nombreInput.focus();
+                        }
+                    });
+                }
+            })
+            .catch(err => console.error('Error verificando disponibilidad:', err));
+        }
+    }
+    
+    function guardarBorrador() {
+        document.getElementById('estado_programacion').value = 'BORRADOR';
+        const form = document.querySelector('form[action="{{ url_for("programacion_operativa") }}"]');
+        form.querySelectorAll('[required]').forEach(el => el.removeAttribute('required'));
+        form.submit();
+    }
+
+    function finalizarProgramacion() {
+        document.getElementById('estado_programacion').value = 'FINALIZADO';
+        const form = document.querySelector('form[action="{{ url_for("programacion_operativa") }}"]');
+        if(form.reportValidity()) {
+            form.submit();
+        }
+    }
+
+    function toggleForm() {
+        const tipo = document.getElementById("tipo_evento").value;
+        const container = document.getElementById("dynamic_fields");
+        const seccionBasica = document.getElementById("seccion_basica");
+        const seccionCompleto = document.getElementById("seccion_completo");
+        const coordinaGroup = document.getElementById("coordina_group");
+        const rowLugarContacto = document.getElementById("lugar_contacto_row");
+        
+        const btnSalto = document.getElementById("btn-salto-pagina");
+        const divLayout = document.getElementById("div-columnas-layout");
+        const titleDiseno = document.getElementById("title_configuracion_diseno");
+        const camposFutbol = document.getElementById("campos_futbol");
+        
+        camposFutbol.style.display = "none";
+        btnSalto.style.display = "inline-block";
+        divLayout.style.display = "block";
+        titleDiseno.style.display = "block";
+        
+        if (tipo === "Tripulacion Basica") {
+            container.style.display = "block";
+            seccionBasica.style.display = "block";
+            seccionCompleto.style.display = "none";
+            coordinaGroup.style.display = "none";
+            rowLugarContacto.style.gridTemplateColumns = "1fr 1fr";
+            rowLugarContacto.style.display = "grid";
+            // Require fields
+            document.getElementById("nombre_evento").required = true;
+            document.getElementById("fecha").required = true;
+            document.getElementById("hora_inicio").required = true;
+            
+            // Render default 2 members if empty
+            if(integranteCount === 0) {
+                addIntegrante("COND ");
+                addIntegrante("");
+            }
+        } else if (tipo === "Operativo Completo" || tipo === "FUTBOL" || tipo === "Concierto Estadio" || tipo === "Concierto Macarena") {
+            container.style.display = "block";
+            seccionBasica.style.display = "none";
+            seccionCompleto.style.display = "block";
+            
+            if (tipo === "FUTBOL" || tipo === "Concierto Estadio" || tipo === "Concierto Macarena") {
+                rowLugarContacto.style.display = "none";
+                camposFutbol.style.display = "block";
+                btnSalto.style.display = "none";
+                divLayout.style.display = "none";
+                titleDiseno.style.display = "none";
+                document.getElementById('columnas_layout').value = "1";
+            } else {
+                rowLugarContacto.style.display = "grid";
+                rowLugarContacto.style.gridTemplateColumns = "1fr 1fr 1fr";
+                coordinaGroup.style.display = "block";
+            }
+            
+            // Require fields
+            document.getElementById("nombre_evento").required = true;
+            document.getElementById("fecha").required = true;
+            document.getElementById("hora_inicio").required = true;
+            
+            // Aplicar estilo de columnas inicial
+            actualizarColumnas();
+
+            if (tipo === "FUTBOL" || tipo === "Concierto Estadio" || tipo === "Concierto Macarena") {
+                // Clear existing units if any
+                document.getElementById("unidades-container").innerHTML = "";
+                unidadCount = { avanzada: 0, moto: 0, ambulancia: 0, pasm: 0, pasb: 0, camilleros: 0 };
+                globalUnidadIndex = 0;
+
+                if (tipo === "Concierto Macarena") {
+                    addUnidad('PASB', 'PUESTO DE ATENCION EN SALUD MEDICALIZADO - PASM');
+                    addUnidad('PASB', 'PUESTO DE ATENCION EN SALUD BASICO - PASB');
+                    for (let i = 1; i <= 12; i++) {
+                        addUnidad('Avanzada', `EQUIPO DE INTERVENCION - ${i}`);
+                    }
+                } else {
+                    // 4 PAS
+                    addUnidad('PASB', 'PUESTO DE PRIMEROS AUXILIOS NORTE');
+                    addUnidad('PASB', 'PUESTO DE PRIMEROS AUXILIOS SUR');
+                    addUnidad('PASB', 'PUESTO DE PRIMEROS AUXILIOS ORIENTAL');
+                    addUnidad('PASB', 'PUESTO DE PRIMEROS AUXILIOS OCCIDENTAL');
+    
+                    // 10 Avanzadas
+                    addUnidad('Avanzada', 'EQUIPO DE INTERVENCION - 1 NORTE ALTA');
+                    addUnidad('Avanzada', 'EQUIPO DE INTERVENCION - 2 NORTE BAJA');
+                    addUnidad('Avanzada', 'EQUIPO DE INTERVENCION - 3 OCCIDENTAL ALTA');
+                    addUnidad('Avanzada', 'EQUIPO DE INTERVENCION - 4 OCCIDENTAL BAJA');
+                    addUnidad('Avanzada', 'EQUIPO DE INTERVENCION - 5 ORIENTAL ALTA');
+                    addUnidad('Avanzada', 'EQUIPO DE INTERVENCION - 6 ORIENTAL BAJA');
+                    addUnidad('Avanzada', 'EQUIPO DE INTERVENCION - 7 SUR ALTA');
+                    addUnidad('Avanzada', 'EQUIPO DE INTERVENCION - 8 SUR BAJA');
+                    
+                    if (tipo === "Concierto Estadio") {
+                        addUnidad('Avanzada', 'EQUIPO DE INTERVENCION - 9 GRAMILLA NORORIENTAL');
+                        addUnidad('Avanzada', 'EQUIPO DE INTERVENCION - 10 GRAMILLA SURORIENTAL');
+                        
+                        // Camilleros
+                        addUnidad('Camilleros', 'EQUIPO DE INTERVENCION - 11 GRAMILLA SUROCCIDENTAL');
+                        addUnidad('Camilleros', 'EQUIPO DE INTERVENCION - 12 GRAMILLA NOROCCIDENTAL');
+                    } else {
+                        addUnidad('Avanzada', 'EQUIPO DE INTERVENCION - 9 APOYO SUR');
+                        addUnidad('Avanzada', 'EQUIPO DE INTERVENCION - 10 APOYO NORTE');
+                        
+                        // Camilleros
+                        addUnidad('Camilleros', 'CAMILLEROS SUR');
+                        addUnidad('Camilleros', 'CAMILLEROS NORTE');
+                    }
+                }
+
+                // 4 Ambulancias (2 TAM, 2 TAB)
+                addUnidad('Ambulancia');
+                let s1 = document.querySelector(`#unidad-${globalUnidadIndex} select`);
+                if (s1) { s1.value = "TAM"; actualizarNombreAmbulancia(s1, globalUnidadIndex); }
+                
+                addUnidad('Ambulancia');
+                let s2 = document.querySelector(`#unidad-${globalUnidadIndex} select`);
+                if (s2) { s2.value = "TAM"; actualizarNombreAmbulancia(s2, globalUnidadIndex); }
+
+                addUnidad('Ambulancia');
+                let s3 = document.querySelector(`#unidad-${globalUnidadIndex} select`);
+                if (s3) { s3.value = "TAB"; actualizarNombreAmbulancia(s3, globalUnidadIndex); }
+
+                addUnidad('Ambulancia');
+                let s4 = document.querySelector(`#unidad-${globalUnidadIndex} select`);
+                if (s4) { s4.value = "TAB"; actualizarNombreAmbulancia(s4, globalUnidadIndex); }
+            }
+        } else {
+            container.style.display = "none";
+            document.getElementById("nombre_evento").required = false;
+            document.getElementById("fecha").required = false;
+            document.getElementById("hora_inicio").required = false;
+            rowLugarContacto.style.display = "grid";
+        }
+    }
+    
+    function addIntegrante(defaultRol = "") {
+        integranteCount++;
+        const container = document.getElementById("integrantes-container");
+        
+        const row = document.createElement("div");
+        row.className = "integrante-row";
+        row.id = `integrante-${integranteCount}`;
+        
+        let selectOptions = '';
+        if (integranteCount === 1) {
+            selectOptions = '<option value="COND" selected>COND</option>';
+        } else if (integranteCount === 2) {
+            selectOptions = `
+                <option value="">Seleccione rol (opcional)...</option>
+                <option value="MED">MED</option>
+                <option value="APH">APH</option>
+                <option value="AUX ENF">AUX ENF</option>
+            `;
+        } else {
+            selectOptions = `
+                <option value="">Seleccione rol (opcional)...</option>
+                <option value="APH">APH</option>
+                <option value="AUX ENF">AUX ENF</option>
+            `;
+        }
+        
+        const rolHtmlEditable = `
+            <div class="form-group" style="margin-bottom:0;">
+                <label>Rol/Variable</label>
+                <select name="integrante_rol[]" style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px;">
+                    ${selectOptions}
+                </select>
+            </div>
+        `;
+        
+        row.innerHTML = `
+            ${rolHtmlEditable}
+            <div class="form-group" style="margin-bottom:0;">
+                <label>Personal (Buscar) <span style="color:red">*</span></label>
+                <input type="text" name="integrante_nombre[]" list="lista_empleados_SIN_ROL" autocomplete="off" placeholder="Seleccione de la lista..." required>
+            </div>
+            <div class="form-group" style="margin-bottom:0; display:flex; align-items:flex-end;">
+                ${integranteCount > 1 ? `<button type="button" class="btn-danger-light" onclick="removeIntegrante(${integranteCount})">X</button>` : `<div style="width:42px;"></div>`}
+            </div>
+        `;
+        
+        container.appendChild(row);
+        
+        // Asignar el list inicial basado en el option seleccionado por defecto
+        const select = row.querySelector('select[name="integrante_rol[]"]');
+        if (select) actualizarDatalist(select);
+    }
+    
+    function generarIntegrantesBasica() {
+        const tipo = document.getElementById("basica_tipo_ambulancia").value;
+        const container = document.getElementById("integrantes-container");
+        
+        container.innerHTML = "";
+        integranteCount = 0;
+        
+        if (tipo === "TAM") {
+            addIntegranteEspecifico("COND", true);
+            addIntegranteEspecifico("MED", true);
+            addIntegranteEspecifico("APH, AUX ENF, ENF", false);
+        } else if (tipo === "TAB") {
+            addIntegranteEspecifico("COND", true);
+            addIntegranteEspecifico("APH, AUX ENF, ENF", true);
+            addIntegranteEspecifico("APH, AUX ENF, ENF", false);
+        } else {
+            // Predeterminado
+            addIntegrante("COND ");
+            addIntegrante("");
+        }
+    }
+
+    function addIntegranteEspecifico(tipoRol, esObligatorio, prefillNombre = "") {
+        integranteCount++;
+        const container = document.getElementById("integrantes-container");
+        const row = document.createElement("div");
+        row.className = "integrante-row";
+        row.id = `integrante-${integranteCount}`;
+        
+        let selectOptions = '';
+        if (tipoRol === "COND") {
+            selectOptions = '<option value="COND" selected>COND</option>';
+        } else if (tipoRol === "MED") {
+            selectOptions = '<option value="MED" selected>MED</option>';
+        } else if (tipoRol === "APH, AUX ENF, ENF") {
+            selectOptions = `
+                <option value="">Seleccione rol${esObligatorio ? '' : ' (opcional)'}...</option>
+                <option value="APH">APH</option>
+                <option value="AUX ENF">AUX ENF</option>
+                <option value="ENF">ENF</option>
+            `;
+        } else {
+            selectOptions = `
+                <option value="">Seleccione rol...</option>
+                <option value="${tipoRol}" selected>${tipoRol}</option>
+            `;
+        }
+        
+        const rolHtml = `
+            <div class="form-group" style="margin-bottom:0;">
+                <label>Rol/Variable <span style="color:red">*</span></label>
+                <select name="integrante_rol[]" style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px;" required>
+                    ${selectOptions}
+                </select>
+            </div>
+        `;
+        
+        row.innerHTML = `
+            ${rolHtml}
+            <div class="form-group" style="margin-bottom:0;">
+                <label>Personal (Buscar) ${esObligatorio ? '<span style="color:red">*</span>' : ''}</label>
+                <input type="text" name="integrante_nombre[]" list="lista_empleados_SIN_ROL" autocomplete="off" placeholder="Seleccione de la lista..." ${esObligatorio ? 'required' : ''} value="${prefillNombre}">
+            </div>
+            <div class="form-group" style="margin-bottom:0; display:flex; align-items:flex-end;">
+                <button type="button" class="btn-danger-light" onclick="removeIntegrante(${integranteCount})">X</button>
+            </div>
+        `;
+        
+        container.appendChild(row);
+        
+        // Asignar el list inicial
+        const select = row.querySelector('select[name="integrante_rol[]"]');
+        if (select) actualizarDatalist(select);
+    }
+    
+    function removeIntegrante(id) {
+        const row = document.getElementById(`integrante-${id}`);
+        if(row) row.remove();
+    }
+
+    function removeUnidad(id) {
+        const row = document.getElementById(`unidad-${id}`);
+        if(row) row.remove();
+    }
+    
+    function addSaltoPagina() {
+        globalUnidadIndex++;
+        const container = document.getElementById("unidades-container");
+        
+        const div = document.createElement("div");
+        div.className = "main-card salto-pagina-card";
+        div.style.marginBottom = "0";
+        div.id = `unidad-${globalUnidadIndex}`;
+        div.style.position = "relative";
+        div.style.gridColumn = "1 / -1";
+        div.style.backgroundColor = "#e0f2fe";
+        div.style.border = "1px dashed #3b82f6";
+        div.style.padding = "10px";
+        div.style.textAlign = "center";
+        
+        div.draggable = true;
+        div.style.cursor = "grab";
+        div.addEventListener('dragstart', handleDragStart);
+        div.addEventListener('dragover', handleDragOver);
+        div.addEventListener('dragenter', handleDragEnter);
+        div.addEventListener('dragleave', handleDragLeave);
+        div.addEventListener('drop', handleDrop);
+        div.addEventListener('dragend', handleDragEnd);
+        
+        let html = `
+            <button type="button" class="btn-danger-light" style="position:absolute; top:5px; right:10px; padding:2px 6px; font-size:10px;" onclick="removeUnidad(${globalUnidadIndex})">X</button>
+            <div style="font-weight:bold; color:#1e3a8a;">--- SALTO DE PÁGINA ---</div>
+            <input type="hidden" name="unidad_nombre[]" value="--- SALTO DE PÁGINA ---">
+            <input type="hidden" name="unidad_tipo[]" value="PAGE_BREAK">
+            <input type="hidden" name="unidad_campos_count[]" value="1">
+            <input type="hidden" name="unidad_integrante_rol[]" value="">
+            <input type="hidden" name="unidad_integrante_nombre[]" value="PAGE_BREAK_DUMMY">
+        `;
+        div.innerHTML = html;
+        container.appendChild(div);
+    }
+
+    function addUnidad(tipo, customTitulo = null) {
+        globalUnidadIndex++;
+        const container = document.getElementById("unidades-container");
+        
+        let titulo = "";
+        let campos = 0;
+        let esAmbulancia = false;
+        
+        if (tipo === 'Avanzada') {
+            unidadCount.avanzada++;
+            titulo = customTitulo || `E. INTERVENCION. ${unidadCount.avanzada}`;
+            campos = 5;
+        } else if (tipo === 'Ambulancia') {
+            unidadCount.ambulancia++;
+            titulo = customTitulo || `AMB. TAM / TAB`; // Se ajustará
+            campos = 4;
+            esAmbulancia = true;
+        } else if (tipo === 'Moto') {
+            unidadCount.moto++;
+            titulo = customTitulo || `MOTO ${unidadCount.moto}`;
+            campos = 2;
+        } else if (tipo === 'PASM') {
+            unidadCount.pasm++;
+            titulo = customTitulo || `PAS-M ${unidadCount.pasm}`;
+            campos = 5;
+        } else if (tipo === 'PASB') {
+            unidadCount.pasb++;
+            titulo = customTitulo || `PAS-B ${unidadCount.pasb}`;
+            campos = 5;
+        } else if (tipo === 'Camilleros') {
+            unidadCount.camilleros++;
+            titulo = customTitulo || `CAMILLEROS ${unidadCount.camilleros}`;
+            campos = 5;
+        }
+
+        const div = document.createElement("div");
+        div.className = "main-card";
+        div.style.marginBottom = "0";
+        div.id = `unidad-${globalUnidadIndex}`;
+        div.style.position = "relative";
+        
+        // Atributos para Drag and Drop
+        div.draggable = true;
+        div.style.cursor = "grab";
+        div.addEventListener('dragstart', handleDragStart);
+        div.addEventListener('dragover', handleDragOver);
+        div.addEventListener('dragenter', handleDragEnter);
+        div.addEventListener('dragleave', handleDragLeave);
+        div.addEventListener('drop', handleDrop);
+        div.addEventListener('dragend', handleDragEnd);
+        
+        // El input hidden que guarda el nombre de la unidad para procesarlo en el backend
+        let html = `
+            <button type="button" class="btn-danger-light" style="position:absolute; top:10px; right:10px; padding:4px 8px; font-size:10px;" onclick="removeUnidad(${globalUnidadIndex})">X</button>
+            <div class="section-title" style="margin-top:0;">${titulo}</div>
+        `;
+        
+        if (esAmbulancia) {
+            html += `
+                <div style="display:flex; gap:10px;">
+                    <div class="form-group" style="flex:2;">
+                        <label>TIPO DE AMBULANCIA <span style="color:red">*</span></label>
+                        <select onchange="actualizarNombreAmbulancia(this, ${globalUnidadIndex})" required>
+                            <option value="">Seleccione...</option>
+                            <option value="TAM">TAM</option>
+                            <option value="TAB">TAB</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="flex:1;">
+                        <label>N° (Ej: M-1)</label>
+                        <input type="text" id="num_amb_${globalUnidadIndex}" placeholder="M-1" oninput="actualizarNombreAmbulancia(document.querySelector('#unidad-${globalUnidadIndex} select'), ${globalUnidadIndex})">
+                    </div>
+                </div>
+                <input type="hidden" name="unidad_nombre[]" id="unidad_nombre_${globalUnidadIndex}" value="">
+                <input type="hidden" name="unidad_tipo[]" value="Ambulancia">
+                <input type="hidden" name="unidad_campos_count[]" value="${campos}">
+            `;
+        } else {
+            html += `
+                <input type="hidden" name="unidad_nombre[]" value="${titulo}">
+                <input type="hidden" name="unidad_tipo[]" value="${tipo}">
+                <input type="hidden" name="unidad_campos_count[]" value="${campos}">
+            `;
+        }
+
+        html += `<div style="margin-top:16px;">`;
+        for (let i = 1; i <= campos; i++) {
+            // Generar opciones dinámicas según reglas
+            let opciones = [];
+            let isOptional = false;
+            
+            if (tipo === 'Avanzada') {
+                opciones = ['APH', 'AUX ENF', 'ENF', 'SOC'];
+                if (i === 5) isOptional = true;
+            } else if (tipo === 'Camilleros') {
+                opciones = ['APH', 'AUX ENF', 'ENF', 'SOC'];
+                if (i === 5) isOptional = true;
+            } else if (tipo === 'Ambulancia') {
+                // Initial defaults before TAM/TAB is chosen
+                if (i === 1) opciones = ['COND'];
+                else if (i === 2) opciones = ['MED', 'APH', 'AUX ENF', 'ENF'];
+                else { opciones = ['APH', 'AUX ENF', 'ENF', 'SOC']; if (i === 4) isOptional = true; }
+            } else if (tipo === 'Moto') {
+                if (i === 1) opciones = ['COND', 'APH', 'AUX ENF', 'ENF'];
+                else if (i === 2) opciones = ['APH', 'AUX ENF', 'ENF', 'SOC', 'MED'];
+                else opciones = ['APH', 'AUX ENF', 'ENF'];
+            } else if (tipo === 'PASM') {
+                if (i === 1) opciones = ['MED'];
+                else if (i === 2) opciones = ['APH', 'ENF', 'AUX ENF'];
+                else if (i === 3) { opciones = ['APH', 'ENF', 'AUX ENF', 'SOC']; }
+                else { opciones = ['APH', 'ENF', 'AUX ENF', 'SOC']; isOptional = true; }
+            } else if (tipo === 'PASB') {
+                if (i === 1) opciones = ['APH', 'ENF', 'AUX ENF'];
+                else if (i === 2) { opciones = ['APH', 'ENF', 'AUX ENF', 'SOC']; }
+                else if (i === 3) { opciones = ['APH', 'ENF', 'AUX ENF', 'SOC']; }
+                else { opciones = ['APH', 'ENF', 'AUX ENF', 'SOC']; isOptional = true; }
+            }
+            
+            let selectOptions = isOptional ? `<option value="">Seleccione rol (opcional)...</option>` : `<option value="">Seleccione rol...</option>`;
+            // Si solo hay una opción (como COND en ambulancia 1), dejarla pre-seleccionada
+            if (opciones.length === 1) {
+                selectOptions = `<option value="${opciones[0]}" selected>${opciones[0]}</option>`;
+            } else {
+                for (let opt of opciones) {
+                    selectOptions += `<option value="${opt}">${opt}</option>`;
+                }
+            }
+            
+            html += `
+                <div class="integrante-row" style="grid-template-columns: 1fr 1fr;">
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label>Rol ${i}</label>
+                        <select name="unidad_integrante_rol[]" id="rol_select_${globalUnidadIndex}_${i}" style="width:100%; padding: 6px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 11px;">
+                            ${selectOptions}
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label>Personal ${i} ${isOptional ? '' : '<span style="color:red" class="req-asterisk">*</span>'}</label>
+                        <input type="text" name="unidad_integrante_nombre[]" list="lista_empleados_SIN_ROL" autocomplete="off" placeholder="Buscar..." ${isOptional ? '' : 'required'}>
+                    </div>
+                </div>
+            `;
+        }
+        html += `</div>`;
+        div.innerHTML = html;
+        container.appendChild(div);
+        
+        // Asignar el list inicial a todos los selects creados
+        const selects = div.querySelectorAll('select[name="unidad_integrante_rol[]"]');
+        selects.forEach(s => actualizarDatalist(s));
+    }
+
+    function actualizarNombreAmbulancia(select, index) {
+        if (!select) return;
+        const val = select.value;
+        const hiddenInput = document.getElementById(`unidad_nombre_${index}`);
+        const div = document.getElementById(`unidad-${index}`);
+        const titleDiv = div.querySelector('.section-title');
+        const numInput = document.getElementById(`num_amb_${index}`);
+        
+        const numVal = (numInput && numInput.value.trim() !== '') ? ` ${numInput.value.trim()}` : '';
+        
+        if (val) {
+            const nombre = `AMB. ${val}${numVal}`;
+            hiddenInput.value = nombre;
+            titleDiv.textContent = nombre;
+            
+            // Lógica de roles
+            const s1 = document.getElementById(`rol_select_${index}_1`);
+            const s2 = document.getElementById(`rol_select_${index}_2`);
+            const s3 = document.getElementById(`rol_select_${index}_3`);
+            const s4 = document.getElementById(`rol_select_${index}_4`);
+            
+            const setOpts = (sel, opts, req) => {
+                if (!sel) return;
+                sel.innerHTML = req ? '' : '<option value="">Seleccione rol (opcional)...</option>';
+                if (opts.length === 1) {
+                    sel.innerHTML += `<option value="${opts[0]}" selected>${opts[0]}</option>`;
+                } else {
+                    opts.forEach(o => sel.innerHTML += `<option value="${o}">${o}</option>`);
+                }
+                const inputElement = sel.parentElement.nextElementSibling.querySelector('input');
+                if (inputElement) inputElement.required = req;
+                
+                const labelElement = sel.parentElement.nextElementSibling.querySelector('label');
+                if (labelElement) {
+                    const baseText = labelElement.childNodes[0].nodeValue.trim();
+                    labelElement.innerHTML = baseText + (req ? ' <span style="color:red" class="req-asterisk">*</span>' : '');
+                }
+            };
+            
+            if (val === 'TAM') {
+                setOpts(s1, ['COND'], true);
+                setOpts(s2, ['MED'], true);
+                setOpts(s3, ['APH', 'AUX ENF', 'ENF'], true);
+                setOpts(s4, ['APH', 'AUX ENF', 'ENF'], false);
+            } else if (val === 'TAB') {
+                setOpts(s1, ['COND'], true);
+                setOpts(s2, ['APH', 'AUX ENF', 'ENF'], true);
+                setOpts(s3, ['APH', 'AUX ENF', 'ENF', 'SOC'], true);
+                setOpts(s4, ['APH', 'AUX ENF', 'ENF', 'SOC'], false);
+            }
+            
+            if (s1) actualizarDatalist(s1);
+            if (s2) actualizarDatalist(s2);
+            if (s3) actualizarDatalist(s3);
+            if (s4) actualizarDatalist(s4);
+        } else {
+            hiddenInput.value = "";
+            titleDiv.textContent = "AMB. TAM / TAB" + numVal;
+        }
+    }
+
+    function actualizarColumnas() {
+        const numCols = document.getElementById('columnas_layout').value || 3;
+        const container = document.getElementById("unidades-container");
+        container.style.gridTemplateColumns = `repeat(${numCols}, 1fr)`;
+    }
+
+    // Funciones de arrastrar y soltar (Drag and Drop)
+    let draggedItem = null;
+
+    function handleDragStart(e) {
+        draggedItem = this;
+        e.dataTransfer.effectAllowed = 'move';
+        // Hack para Firefox
+        e.dataTransfer.setData('text/plain', '');
+        this.style.opacity = '0.5';
+    }
+
+    function handleDragOver(e) {
+        if (e.preventDefault) {
+            e.preventDefault(); 
+        }
+        e.dataTransfer.dropEffect = 'move';
+        return false;
+    }
+
+    function handleDragEnter(e) {
+        this.style.border = '2px dashed #2563eb';
+    }
+
+    function handleDragLeave(e) {
+        this.style.border = '1px solid #e2e8f0';
+    }
+
+    function handleDrop(e) {
+        if (e.stopPropagation) {
+            e.stopPropagation(); 
+        }
+        if (draggedItem !== this) {
+            const container = document.getElementById("unidades-container");
+            const allItems = Array.from(container.children);
+            const draggedIndex = allItems.indexOf(draggedItem);
+            const targetIndex = allItems.indexOf(this);
+            
+            if (draggedIndex < targetIndex) {
+                container.insertBefore(draggedItem, this.nextSibling);
+            } else {
+                container.insertBefore(draggedItem, this);
+            }
+        }
+        this.style.border = '1px solid #e2e8f0';
+        return false;
+    }
+
+    function handleDragEnd(e) {
+        this.style.opacity = '1';
+        const container = document.getElementById("unidades-container");
+        Array.from(container.children).forEach(item => {
+            item.style.border = '1px solid #e2e8f0';
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof flatpickr !== 'undefined') {
+            flatpickr(".timepicker", {
+                enableTime: true,
+                noCalendar: true,
+                dateFormat: "H:i",
+                time_24hr: true
+            });
+            
+            document.getElementById('form-programacion').addEventListener('submit', async function(e) {
+                e.preventDefault(); // Detenemos el envío por defecto para hacer validaciones
+                
+                const form = this;
+                const tipoEvento = document.getElementById('tipo_evento').value;
+                let inputs;
+                
+                if (tipoEvento === 'Operativo Completo' || tipoEvento === 'FUTBOL' || tipoEvento === 'Concierto Estadio' || tipoEvento === 'Concierto Macarena') {
+                    inputs = document.querySelectorAll('input[name="unidad_integrante_nombre[]"]');
+                } else if (tipoEvento === 'Tripulacion Basica') {
+                    inputs = document.querySelectorAll('input[name="integrante_nombre[]"]');
+                } else {
+                    form.submit();
+                    return;
+                }
+                
+                const values = [];
+                const nombres = [];
+                
+                for (let input of inputs) {
+                    const val = input.value.trim();
+                    if (val !== '') {
+                        if (values.includes(val)) {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Personal Duplicado',
+                                text: 'La persona "' + val + '" ya está agregada dos veces en este formulario.',
+                                confirmButtonColor: '#3b82f6'
+                            });
+                            return;
+                        }
+                        values.push(val);
+                        nombres.push(val);
+                    }
+                }
+                
+                if (nombres.length === 0) {
+                    form.submit();
+                    return;
+                }
+                
+                const fecha = document.getElementById('fecha').value;
+                const horaInicio = document.getElementById('hora_inicio').value;
+                const horaFinalizacion = document.getElementById('hora_finalizacion').value;
+                
+                try {
+                    const response = await fetch('/api/check_programacion_conflict', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            fecha: fecha,
+                            hora_inicio: horaInicio,
+                            hora_finalizacion: horaFinalizacion,
+                            nombres: nombres
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    if (data.conflictos && data.conflictos.length > 0) {
+                        let htmlMsg = '<div style="text-align:left; font-size:14px; max-height:200px; overflow-y:auto;">';
+                        data.conflictos.forEach(c => {
+                            htmlMsg += `<b>${c.nombre}</b> está programado/a en <b>${c.evento}</b> (${c.hora_inicio} a ${c.hora_finalizacion})<br><br>`;
+                        });
+                        htmlMsg += '</div><p style="margin-top:10px;">¿Deseas ignorar la alerta y guardarlo de todas formas en ambos lugares?</p>';
+                        
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Cruce de Horarios Detectado',
+                            html: htmlMsg,
+                            showCancelButton: true,
+                            confirmButtonColor: '#3b82f6',
+                            cancelButtonColor: '#ef4444',
+                            confirmButtonText: 'Sí, continuar',
+                            cancelButtonText: 'Revisar'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                form.submit();
+                            }
+                        });
+                    } else {
+                        form.submit();
+                    }
+                } catch (error) {
+                    console.error('Error al consultar conflictos:', error);
+                    form.submit(); // En caso de error de red, permitir el submit
+                }
+            });
+        }
+    });
+
+    {% if evento_a_editar %}
+    // Pre-cargar datos del evento en modo Edición
+    document.addEventListener('DOMContentLoaded', function() {
+        // Datos base
+        document.getElementById('tipo_evento').value = '{{ evento_a_editar.tipo_evento }}';
+        document.getElementById('nombre_evento').value = '{{ evento_a_editar.nombre_evento }}';
+        document.getElementById('fecha').value = '{{ evento_a_editar.fecha }}';
+        document.getElementById('hora_inicio').value = '{{ evento_a_editar.hora_inicio }}';
+        document.getElementById('hora_finalizacion').value = '{{ evento_a_editar.hora_finalizacion }}';
+        document.getElementById('lugar').value = '{{ evento_a_editar.lugar }}';
+        document.getElementById('estado_programacion').value = '{{ evento_a_editar.estado }}';
+        
+        const tipoEvento = '{{ evento_a_editar.tipo_evento }}';
+        
+        // Futbol / Concierto Estadio / Macarena fields
+        if (tipoEvento === 'FUTBOL' || tipoEvento === 'Concierto Estadio' || tipoEvento === 'Concierto Macarena') {
+            document.querySelector('input[name="hora_inicio_pcu"]').value = '{{ evento_a_editar.hora_inicio_pcu or "" }}';
+            document.querySelector('input[name="hora_apertura_puertas"]').value = '{{ evento_a_editar.hora_apertura_puertas or "" }}';
+            document.querySelector('input[name="hora_inicio_evento"]').value = '{{ evento_a_editar.hora_inicio_evento or "" }}';
+            document.querySelector('input[name="hora_finalizacion_pcu"]').value = '{{ evento_a_editar.hora_finalizacion_pcu or "" }}';
+            document.getElementById('representante_pcu').value = '{{ evento_a_editar.contacto or "" }}';
+            document.getElementById('coordinador_terreno').value = '{{ evento_a_editar.coordina or "" }}';
+            // Post event ones aren't filled manually before but might be edited
+            const hLlegada = document.querySelector('input[name="hora_llegada_aph"]');
+            if (hLlegada) hLlegada.value = '{{ evento_a_editar.hora_llegada_aph or "" }}';
+            
+            const hRetiro = document.querySelector('input[name="hora_retiro_aph"]');
+            if (hRetiro) hRetiro.value = '{{ evento_a_editar.hora_retiro_aph or "" }}';
+            
+            const cantRec = document.querySelector('input[name="cantidad_recurso_humano"]');
+            if (cantRec) cantRec.value = '{{ evento_a_editar.cantidad_recurso_humano or "" }}';
+            
+            const cantAmb = document.querySelector('input[name="cantidad_ambulancias"]');
+            if (cantAmb) cantAmb.value = '{{ evento_a_editar.cantidad_ambulancias or "" }}';
+            
+            const totAsist = document.querySelector('input[name="total_asistentes"]');
+            if (totAsist) totAsist.value = '{{ evento_a_editar.total_asistentes or "" }}';
+            
+            const totPac = document.querySelector('input[name="total_pacientes"]');
+            if (totPac) totPac.value = '{{ evento_a_editar.total_pacientes or "" }}';
+        } else {
+            document.getElementById('contacto').value = '{{ evento_a_editar.contacto }}';
+            document.getElementById('coordina').value = '{{ evento_a_editar.coordina }}';
+            document.getElementById('columnas_layout').value = '{{ evento_a_editar.columnas_layout }}';
+        }
+        
+        // Ejecutar toggle para ajustar layout
+        toggleForm();
+        
+        const integrantesJson = '{{ integrantes_a_editar|safe }}';
+        if (integrantesJson) {
+            const integrantes = JSON.parse(integrantesJson);
+            
+            if (tipoEvento === 'Tripulacion Basica') {
+                // Clear initial
+                document.getElementById('integrantes-container').innerHTML = '';
+                integranteCount = 0;
+                
+                let ambNombre = "";
+                if (integrantes.length > 0 && integrantes[0].unidad_nombre) {
+                    ambNombre = integrantes[0].unidad_nombre;
+                    let ambTipo = "TAM";
+                    let ambNum = "";
+                    if (ambNombre.includes("TAB")) ambTipo = "TAB";
+                    
+                    document.getElementById('basica_tipo_ambulancia').value = ambTipo;
+                    
+                    const p = ambNombre.split(' ');
+                    if (p.length > 2) ambNum = p[p.length-1];
+                    document.getElementById('basica_numero_movil').value = ambNum;
+                }
+                
+                integrantes.forEach(int => {
+                    addIntegranteEspecifico(int.rol_variable, true, int.nombre);
+                });
+            } else if (tipoEvento === 'Operativo Completo' || tipoEvento === 'FUTBOL' || tipoEvento === 'Concierto Estadio' || tipoEvento === 'Concierto Macarena') {
+                // Para FUTBOL / Concierto Estadio / Macarena, no limpiamos el contenedor para mantener el formulario completo (20 unidades por defecto).
+                // Para Operativo Completo, iniciamos vacío porque el usuario crea las unidades a medida.
+                if (tipoEvento === 'Operativo Completo') {
+                    document.getElementById("unidades-container").innerHTML = "";
+                    unidadCount = { avanzada: 0, moto: 0, ambulancia: 0, pasm: 0, pasb: 0, camilleros: 0 };
+                    globalUnidadIndex = 0;
+                }
+                
+                // Group members by unit. We detect a new unit when the name changes or the order resets/is not strictly increasing.
+                const unitsToLoad = [];
+                let currentU = null;
+                
+                integrantes.forEach(int => {
+                    if (!currentU || currentU.nombre !== int.unidad_nombre || int.orden <= currentU.lastOrden) {
+                        currentU = { nombre: int.unidad_nombre, members: [], lastOrden: 0 };
+                        unitsToLoad.push(currentU);
+                    }
+                    currentU.members.push(int);
+                    currentU.lastOrden = int.orden;
+                });
+                
+                // Load each grouped unit
+                unitsToLoad.forEach(unitData => {
+                    const uname = unitData.nombre;
+                    let existingUnitIndex = -1;
+                    
+                    // Try to find an existing empty unit with the same name (useful for FUTBOL / Concierto Estadio / Macarena defaults)
+                    if (tipoEvento === 'FUTBOL' || tipoEvento === 'Concierto Estadio' || tipoEvento === 'Concierto Macarena') {
+                        const inputs = document.querySelectorAll('input[name="unidad_nombre[]"]');
+                        for (let j = 0; j < inputs.length; j++) {
+                            const div = inputs[j].closest('.main-card');
+                            if (div && inputs[j].value === uname && !div.hasAttribute('data-populated')) {
+                                existingUnitIndex = div.id.split('-')[1];
+                                div.setAttribute('data-populated', 'true');
+                                break;
+                            }
+                        }
+                    }
+                    
+                    let currentIdx = existingUnitIndex;
+                    
+                    // If no existing unit found, create it
+                    if (currentIdx === -1) {
+                        let tipoU = 'Avanzada';
+                        if (uname.includes('AMB')) tipoU = 'Ambulancia';
+                        else if (uname.includes('MOTO')) tipoU = 'Moto';
+                        else if (uname.includes('PAS-M') || uname.includes('PASM')) tipoU = 'PASM';
+                        else if (uname.includes('PAS-B') || uname.includes('PASB') || uname.includes('PUESTO')) tipoU = 'PASB';
+                        else if (uname.includes('CAMILLERO')) tipoU = 'Camilleros';
+                        
+                        addUnidad(tipoU, uname);
+                        currentIdx = globalUnidadIndex;
+                        
+                        // Fill amb data if ambulance
+                        if (tipoU === 'Ambulancia') {
+                            const selectTip = document.querySelector(`#unidad-${currentIdx} select`);
+                            const p = uname.split(' ');
+                            let tipoAmb = "TAM";
+                            if (uname.includes("TAB")) tipoAmb = "TAB";
+                            if (selectTip) {
+                                selectTip.value = tipoAmb;
+                                
+                                const numI = document.getElementById(`num_amb_${currentIdx}`);
+                                if (p.length > 2 && numI) numI.value = p[p.length-1];
+                                
+                                actualizarNombreAmbulancia(selectTip, currentIdx);
+                            }
+                        }
+                        
+                        const newDiv = document.getElementById(`unidad-${currentIdx}`);
+                        if (newDiv) newDiv.setAttribute('data-populated', 'true');
+                    }
+                    
+                    // Assign personnel using their specific "orden"
+                    unitData.members.forEach((member) => {
+                        const rolSel = document.getElementById(`rol_select_${currentIdx}_${member.orden}`);
+                        if (rolSel) {
+                            rolSel.value = member.rol_variable;
+                            actualizarDatalist(rolSel);
+                            const inputP = rolSel.parentElement.nextElementSibling.querySelector('input');
+                            if (inputP) inputP.value = member.nombre;
+                        }
+                    });
+                });
+            }
+        }
+    });
+    {% endif %}
+</script>
+
+{% endblock %}

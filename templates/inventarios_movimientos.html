@@ -89,7 +89,7 @@
     <tbody>
         {% for mov in movimientos %}
         <tr>
-            <td>{{ mov.fecha_registro.strftime('%Y-%m-%d %H:%M:%S') if mov.fecha_registro else 'N/A' }}</td>
+            <td>{{ mov.fecha_registro_fmt }}</td>
             <td>
                 <strong>{{ mov.nombre }}</strong>
             </td>
@@ -113,6 +113,22 @@
         {% endfor %}
     </tbody>
 </table>
+</div>
+
+<div style="display: flex; justify-content: center; align-items: center; gap: 15px; margin-top: 20px;">
+    {% if page > 1 %}
+    <a href="{{ url_for('inventarios.inventarios_movimientos', page=page-1) }}" class="mov-btn" style="padding: 6px 12px; font-size: 14px; background: #64748b;">⬅ Anterior</a>
+    {% else %}
+    <span class="mov-btn" style="padding: 6px 12px; font-size: 14px; background: #cbd5e1; color: #94a3b8; cursor: not-allowed;">⬅ Anterior</span>
+    {% endif %}
+    
+    <span style="font-size: 14px; color: #475569; font-weight: bold;">Página {{ page }} de {{ total_pages }}</span>
+    
+    {% if page < total_pages %}
+    <a href="{{ url_for('inventarios.inventarios_movimientos', page=page+1) }}" class="mov-btn" style="padding: 6px 12px; font-size: 14px; background: #64748b;">Siguiente ➡</a>
+    {% else %}
+    <span class="mov-btn" style="padding: 6px 12px; font-size: 14px; background: #cbd5e1; color: #94a3b8; cursor: not-allowed;">Siguiente ➡</span>
+    {% endif %}
 </div>
 
 <script>

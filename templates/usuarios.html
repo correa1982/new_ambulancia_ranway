@@ -62,11 +62,20 @@
                             <option value="0">Inactivo (Deshabilitado)</option>
                         </select>
                     </div>
-                    <div>
-                        <label>Fecha de Validez</label>
-                        <input onclick="this.showPicker()" type="date" name="fecha_validez" placeholder="Sin límite">
-                    </div>
-                </div>
+                      <div>
+                          <label>Fecha de Validez</label>
+                          <input onclick="this.showPicker()" type="date" name="fecha_validez" placeholder="Sin límite">
+                      </div>
+                      {% if session.usuario.get('id')|string == '1' or (session.usuario.get('rol') == 'admin' and session.usuario.get('permiso_programacion_operativa')) %}
+                      <div>
+                          <label style="color:#6366f1;">Permiso Especial</label>
+                          <label style="display:flex; align-items:center; gap:5px; margin-top:8px; cursor:pointer;">
+                              <input type="checkbox" name="permiso_programacion_operativa"> 
+                              <span>Programación Operativa</span>
+                          </label>
+                      </div>
+                      {% endif %}
+                  </div>
             </div>
 
             <div style="background: #fafcff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 18px 20px; margin-bottom: 16px;">
