@@ -428,6 +428,7 @@ def register_routes(app):
                 conn.execute("REPLACE INTO configuracion (clave, valor) VALUES ('habilitaciones', ?)", ("[]",))
                 conn.execute("REPLACE INTO configuracion (clave, valor) VALUES ('habilitacion', ?)", ("",))
                 
+            print("FORM DATA:", request.form)
             backup_email_dests = request.form.getlist("backup_email_dest[]")
             backup_email_dest_str = ",".join([e.strip() for e in backup_email_dests if e.strip()])
             
