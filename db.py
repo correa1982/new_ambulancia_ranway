@@ -888,6 +888,25 @@ def init_db():
     """)
 
     conn.execute("""
+        CREATE TABLE IF NOT EXISTS registro_voluntariado (
+            id INTEGER PRIMARY KEY AUTO_INCREMENT,
+            fecha TEXT NOT NULL,
+            hora_inicio TEXT,
+            hora_fin TEXT,
+            disponibilidad TEXT,
+            disponibilidad_otro TEXT,
+            total_horas TEXT,
+            actividad_realizada TEXT,
+            observaciones TEXT,
+            registrado_por TEXT,
+            registrado_por_identificacion TEXT,
+            perfil_registrador TEXT,
+            firma_registrador TEXT,
+            fecha_registro TEXT
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+    """)
+
+    conn.execute("""
         CREATE TABLE IF NOT EXISTS inventarios_historial (
             id INT AUTO_INCREMENT PRIMARY KEY,
             item_id INT NOT NULL,
@@ -939,7 +958,19 @@ def init_db():
         conn.execute("ALTER TABLE ths_contratos MODIFY fecha_fin DATE NULL")
     except Exception:
         pass
-    
+    # Dynamic schema migration for registro_voluntariado
+    try:
+        cursor.execute("DESCRIBE registro_voluntariado")
+        rv_cols = [row["Field"] for row in cursor.fetchall()]
+        if "estado" not in rv_cols:
+            conn.execute("ALTER TABLE registro_voluntariado ADD COLUMN estado VARCHAR(50) DEFAULT 'Pendiente'")
+            conn.execute("ALTER TABLE registro_voluntariado ADD COLUMN avalado_por TEXT")
+            conn.execute("ALTER TABLE registro_voluntariado ADD COLUMN avalado_por_identificacion TEXT")
+            conn.execute("ALTER TABLE registro_voluntariado ADD COLUMN firma_avalador TEXT")
+            conn.execute("ALTER TABLE registro_voluntariado ADD COLUMN fecha_aval TEXT")
+    except Exception:
+        pass
+
     # Dynamic schema migration for usuarios
     cursor = conn.cursor()
     cursor.execute("DESCRIBE usuarios")
