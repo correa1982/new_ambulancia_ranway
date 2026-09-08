@@ -401,6 +401,7 @@ from routes.routes_ths_soc import register_routes as register_ths_soc
 from routes.routes_inventarios import register_routes as register_inventarios
 from routes.routes_programacion_operativa import register_routes as register_programacion_operativa
 from routes.routes_personal_operativo import register_routes as register_personal_operativo
+from routes.routes_voluntariado import register_routes as register_voluntariado
 
 # Registrar todas las rutas
 register_auth(app)
@@ -420,6 +421,7 @@ register_ths_soc(app)
 register_inventarios(app)
 register_programacion_operativa(app)
 register_personal_operativo(app)
+register_voluntariado(app)
 
 # Programar el backup periódico (lee frecuencia de BD/entorno)
 init_scheduler()
