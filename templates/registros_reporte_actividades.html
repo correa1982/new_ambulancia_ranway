@@ -2,16 +2,16 @@
 {% block title %}Registros de Reporte de Actividades{% endblock %}
 {% block content %}
 <div class="container-fluid mt-4 mb-5">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <a href="{{ url_for('dashboard') }}" class="btn btn-secondary text-white fw-bold me-3 shadow-sm" style="border-radius: 8px; padding: 8px 16px; transition: all 0.3s ease;">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+        <div class="d-flex align-items-center gap-3">
+            <a href="{{ url_for('dashboard') }}" class="btn btn-secondary text-white fw-bold shadow-sm" style="border-radius: 8px; padding: 8px 16px; transition: all 0.3s ease;">
                 <i class="ph ph-arrow-left" style="font-size: 1.1em; margin-right: 5px;"></i> Volver
             </a>
-            <h3 class="d-inline-block mb-0 text-primary fw-bold" style="vertical-align: middle;">
-                <i class="ph ph-clipboard-text"></i> Registros de Actividades
+            <h3 class="mb-0 text-primary fw-bold d-flex align-items-center">
+                <i class="ph ph-clipboard-text me-2"></i> Registros de Actividades
             </h3>
         </div>
-        <div class="d-flex gap-2">
+        <div class="d-flex flex-wrap gap-2">
             <a href="{{ url_for('inactivos_reporte_actividades') }}" class="btn btn-outline-danger fw-bold shadow-sm" style="border-radius: 8px; padding: 8px 16px; transition: all 0.3s ease;">
                 <i class="ph ph-archive" style="font-size: 1.1em; margin-right: 5px;"></i> Ver Inactivos
             </a>
@@ -56,23 +56,23 @@
                                 {% endif %}
                             </td>
                             <td>{{ row.registrado_por }}</td>
-                            <td class="text-center">
-                                <div style="display:inline-flex; align-items:center; gap:8px;">
+                            <td class="text-center align-middle">
+                                <div class="d-flex flex-nowrap align-items-center justify-content-center gap-2">
                                     {% if row.estado != 'Avalado' %}
-                                    <form id="form-avalar-{{ row.id }}" method="POST" action="{{ url_for('avalar_reporte', record_id=row.id) }}" style="margin:0;">
-                                        <button type="button" onclick="confirmarAval('form-avalar-{{ row.id }}')" style="background:#10b981; color:white; border:1px solid #10b981; padding:5px 11px; border-radius:6px; font-weight:600; font-size:12px; display:inline-flex; align-items:center; justify-content:center; gap:4px; cursor:pointer; transition:all 0.2s; box-shadow:0 2px 4px rgba(16,185,129,0.2);" title="Avalar Registro">
+                                    <form id="form-avalar-{{ row.id }}" method="POST" action="{{ url_for('avalar_reporte', record_id=row.id) }}" class="m-0 p-0">
+                                        <button type="button" onclick="confirmarAval('form-avalar-{{ row.id }}')" class="btn btn-sm text-white shadow-sm" style="background:#10b981; border:1px solid #10b981; border-radius:6px; font-weight:600; font-size:12px; display:inline-flex; align-items:center; justify-content:center; gap:4px; cursor:pointer; transition:all 0.2s;" title="Avalar Registro">
                                             <i class="ph ph-check-circle" style="font-size:14px;"></i> Avalar
                                         </button>
                                     </form>
                                     {% endif %}
                                     
-                                    <form id="form-inactivar-{{ row.id }}" method="POST" action="{{ url_for('inactivar_reporte', record_id=row.id) }}" style="margin:0;">
-                                        <button type="button" onclick="confirmarInactivar('form-inactivar-{{ row.id }}')" style="background:white; color:#64748b; border:1px solid #cbd5e1; padding:5px 11px; border-radius:6px; font-weight:600; font-size:12px; display:inline-flex; align-items:center; justify-content:center; gap:4px; cursor:pointer; transition:all 0.2s;" title="Inactivar Registro">
+                                    <form id="form-inactivar-{{ row.id }}" method="POST" action="{{ url_for('inactivar_reporte', record_id=row.id) }}" class="m-0 p-0">
+                                        <button type="button" onclick="confirmarInactivar('form-inactivar-{{ row.id }}')" class="btn btn-sm shadow-sm" style="background:white; color:#64748b; border:1px solid #cbd5e1; border-radius:6px; font-weight:600; font-size:12px; display:inline-flex; align-items:center; justify-content:center; gap:4px; cursor:pointer; transition:all 0.2s;" title="Inactivar Registro">
                                             <i class="ph ph-archive" style="font-size:14px;"></i>
                                         </button>
                                     </form>
 
-                                    <a href="{{ url_for('imprimir_reporte', record_id=row.id) }}" target="_blank" style="background:white; color:#ef4444; border:1px solid #ef4444; padding:5px 11px; border-radius:6px; text-decoration:none; font-weight:600; font-size:12px; display:inline-flex; align-items:center; justify-content:center; gap:4px; transition:all 0.2s; box-shadow:0 1px 2px rgba(239,68,68,0.1);" title="Generar PDF Formal">
+                                    <a href="{{ url_for('imprimir_reporte', record_id=row.id) }}" target="_blank" class="btn btn-sm shadow-sm" style="background:white; color:#ef4444; border:1px solid #ef4444; border-radius:6px; text-decoration:none; font-weight:600; font-size:12px; display:inline-flex; align-items:center; justify-content:center; gap:4px; transition:all 0.2s;" title="Generar PDF Formal">
                                         <i class="ph ph-file-pdf" style="font-size:14px;"></i> PDF
                                     </a>
                                 </div>
