@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% block title %}Registro de Horas de Voluntariado{% endblock %}
+{% block content %}
+<div class="container mt-4 mb-5">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h3 class="mb-0 text-white">Formato de Registro Mensual de Horas de Voluntariado</h3>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-info" role="alert">
+                <strong>Referencia normativa (Colombia):</strong>
+                <ul class="mb-0">
+                    <li>Ley 1575 de 2012 (Sistema Nacional de Bomberos).</li>
+                    <li>Ley 1523 de 2012 (Gestión del Riesgo de Desastres).</li>
+                </ul>
+            </div>
+
+            <form method="POST" action="{{ url_for('form_voluntariado') }}">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label fw-bold">Fecha</label>
+                        <input type="date" class="form-control" name="fecha" value="{{ hoy }}" required>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label fw-bold">Hora Inicio</label>
+                        <input type="time" class="form-control" name="hora_inicio" id="hora_inicio" required onchange="calcularHoras()">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label fw-bold">Hora Fin</label>
+                        <input type="time" class="form-control" name="hora_fin" id="hora_fin" required onchange="calcularHoras()">
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label fw-bold">Disponibilidad</label>
+                        <select class="form-select" name="disponibilidad" id="disponibilidad" required onchange="toggleOtro()">
+                            <option value="">Seleccione...</option>
+                            <option value="VIR">VIR</option>
+                            <option value="AMBULANCIA">AMBULANCIA</option>
+                            <option value="OTRO">OTRO</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 mb-3" id="div_disponibilidad_otro" style="display: none;">
+                        <label class="form-label fw-bold">Especifique "Otro"</label>
+                        <input type="text" class="form-control" name="disponibilidad_otro" id="disponibilidad_otro">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label fw-bold">Total Horas</label>
+                        <input type="text" class="form-control" name="total_horas" id="total_horas" readonly style="background-color: #e9ecef;">
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Actividad Realizada</label>
+                    <textarea class="form-control" name="actividad_realizada" rows="3" required></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Observaciones</label>
+                    <textarea class="form-control" name="observaciones" rows="2"></textarea>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold">Responsable del Registro</label>
+                    <input type="text" class="form-control" value="{{ usuario.nombre }} ({{ usuario.identificacion }})" readonly disabled>
+                    <small class="text-muted">La firma electrónica se adjuntará automáticamente al guardar.</small>
+                </div>
+
+                <div class="d-flex justify-content-between">
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">Cancelar</a>
+                    <button type="submit" class="btn btn-success"><i class="ph ph-floppy-disk"></i> Guardar Registro</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function toggleOtro() {
+        const select = document.getElementById("disponibilidad");
+        const divOtro = document.getElementById("div_disponibilidad_otro");
+        const inputOtro = document.getElementById("disponibilidad_otro");
+        
+        if (select.value === "OTRO") {
+            divOtro.style.display = "block";
+            inputOtro.required = true;
+        } else {
+            divOtro.style.display = "none";
+            inputOtro.required = false;
+            inputOtro.value = "";
+        }
+    }
+
+    function calcularHoras() {
+        const horaInicio = document.getElementById("hora_inicio").value;
+        const horaFin = document.getElementById("hora_fin").value;
+        
+        if (horaInicio && horaFin) {
+            const [hInicio, mInicio] = horaInicio.split(":").map(Number);
+            const [hFin, mFin] = horaFin.split(":").map(Number);
+            
+            let dateInicio = new Date();
+            dateInicio.setHours(hInicio, mInicio, 0, 0);
+            
+            let dateFin = new Date();
+            dateFin.setHours(hFin, mFin, 0, 0);
+            
+            // Si la hora final es menor que la inicial, asumimos que pasa al día siguiente
+            if (dateFin < dateInicio) {
+                dateFin.setDate(dateFin.getDate() + 1);
+            }
+            
+            const diffMs = dateFin - dateInicio;
+            const diffMins = Math.floor(diffMs / 60000);
+            const hours = Math.floor(diffMins / 60);
+            const mins = diffMins % 60;
+            
+            // Format to show decimal hours or string like "2 h 30 m"
+            // The requirement says Total Horas, it's better to store a readable string or decimal. Let's do string.
+            document.getElementById("total_horas").value = hours + "h " + mins + "m";
+        }
+    }
+</script>
+{% endblock %}
