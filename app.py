@@ -180,6 +180,24 @@ def add_cache_control(response):
         response.headers['Expires'] = '-1'
     return response
 
+@app.template_global('has_permiso_formulario')
+def has_permiso_formulario(formularios_acceso, formulario_name):
+    if not formularios_acceso:
+        return False
+    if isinstance(formularios_acceso, str):
+        try:
+            formularios_acceso = json.loads(formularios_acceso)
+        except Exception:
+            return False
+    if isinstance(formularios_acceso, dict):
+        for v in formularios_acceso.values():
+            if isinstance(v, list) and formulario_name in v:
+                return True
+        return False
+    if isinstance(formularios_acceso, list):
+        return formulario_name in formularios_acceso
+    return False
+
 @app.template_filter('encode_id')
 def encode_id_filter(id_val):
     if not id_val:
@@ -402,6 +420,7 @@ from routes.routes_inventarios import register_routes as register_inventarios
 from routes.routes_programacion_operativa import register_routes as register_programacion_operativa
 from routes.routes_personal_operativo import register_routes as register_personal_operativo
 from routes.routes_voluntariado import register_routes as register_voluntariado
+from routes.routes_reporte_actividades import register_routes as register_reporte_actividades
 
 # Registrar todas las rutas
 register_auth(app)
@@ -422,6 +441,7 @@ register_inventarios(app)
 register_programacion_operativa(app)
 register_personal_operativo(app)
 register_voluntariado(app)
+register_reporte_actividades(app)
 
 # Programar el backup periódico (lee frecuencia de BD/entorno)
 init_scheduler()

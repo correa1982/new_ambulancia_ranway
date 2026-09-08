@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+{% block title %}Estadísticas - Reporte de Actividades{% endblock %}
+{% block content %}
+<div class="container-fluid mt-4 mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <a href="{{ url_for('registros_reporte_actividades') }}" class="btn btn-secondary text-white fw-bold me-3 shadow-sm" style="border-radius: 8px; padding: 8px 16px; transition: all 0.3s ease;">
+                <i class="ph ph-arrow-left" style="font-size: 1.1em; margin-right: 5px;"></i> Volver a Registros
+            </a>
+            <h3 class="d-inline-block mb-0 text-primary fw-bold" style="vertical-align: middle;">
+                <i class="ph ph-chart-line-up"></i> Estadísticas Globales (Actividades Avaladas)
+            </h3>
+        </div>
+    </div>
+
+    {% set total_personal = namespace(value=0) %}
+    {% set pacientes_at = namespace(value=0) %}
+    {% set pacientes_tr = namespace(value=0) %}
+    {% set ambulancia_tab = namespace(value=0) %}
+    {% set ambulancia_tam = namespace(value=0) %}
+    {% set pasm = namespace(value=0) %}
+    {% set pasb = namespace(value=0) %}
+    {% set eq_int = namespace(value=0) %}
+    {% set moto_aph = namespace(value=0) %}
+    {% set und_res = namespace(value=0) %}
+    {% set und_log = namespace(value=0) %}
+
+    {% for row in registros %}
+        {% set total_personal.value = total_personal.value + (row.total_personal|int if row.total_personal else 0) %}
+        {% set pacientes_at.value = pacientes_at.value + (row.pacientes_atendidos|int if row.pacientes_atendidos else 0) %}
+        {% set pacientes_tr.value = pacientes_tr.value + (row.pacientes_trasladados|int if row.pacientes_trasladados else 0) %}
+        
+        {% set ambulancia_tab.value = ambulancia_tab.value + (row.ambulancia_tab|int if row.ambulancia_tab else 0) %}
+        {% set ambulancia_tam.value = ambulancia_tam.value + (row.ambulancia_tam|int if row.ambulancia_tam else 0) %}
+        {% set pasm.value = pasm.value + (row.pasm|int if row.pasm else 0) %}
+        {% set pasb.value = pasb.value + (row.pasb|int if row.pasb else 0) %}
+        {% set eq_int.value = eq_int.value + (row.equipos_intervencion|int if row.equipos_intervencion else 0) %}
+        {% set moto_aph.value = moto_aph.value + (row.moto_aph|int if row.moto_aph else 0) %}
+        {% set und_res.value = und_res.value + (row.unidad_rescate|int if row.unidad_rescate else 0) %}
+        {% set und_log.value = und_log.value + (row.unidad_logistica|int if row.unidad_logistica else 0) %}
+    {% endfor %}
+
+    <div class="row g-4">
+        <!-- Totales Principales -->
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 h-100 bg-primary text-white" style="border-radius: 12px;">
+                <div class="card-body text-center">
+                    <i class="ph ph-users d-block mb-2" style="font-size: 3rem; opacity: 0.8;"></i>
+                    <h5 class="card-title fw-bold">Total Personal</h5>
+                    <h2 class="display-4 fw-bold mb-0">{{ total_personal.value }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 h-100 text-white" style="border-radius: 12px; background: #f59e0b;">
+                <div class="card-body text-center">
+                    <i class="ph ph-bandaids d-block mb-2" style="font-size: 3rem; opacity: 0.8;"></i>
+                    <h5 class="card-title fw-bold">Pacientes Atendidos</h5>
+                    <h2 class="display-4 fw-bold mb-0">{{ pacientes_at.value }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 h-100 text-white" style="border-radius: 12px; background: #10b981;">
+                <div class="card-body text-center">
+                    <i class="ph ph-ambulance d-block mb-2" style="font-size: 3rem; opacity: 0.8;"></i>
+                    <h5 class="card-title fw-bold">Pacientes Trasladados</h5>
+                    <h2 class="display-4 fw-bold mb-0">{{ pacientes_tr.value }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recursos Consolidados -->
+    <h4 class="mt-5 mb-3 text-primary fw-bold border-bottom pb-2">Recursos Consolidados</h4>
+    <div class="row g-3">
+        <div class="col-md-3 col-6">
+            <div class="card shadow-sm text-center">
+                <div class="card-body">
+                    <h6 class="text-muted fw-bold mb-1">Ambulancia TAB</h6>
+                    <h3 class="text-dark fw-bold mb-0">{{ ambulancia_tab.value }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="card shadow-sm text-center">
+                <div class="card-body">
+                    <h6 class="text-muted fw-bold mb-1">Ambulancia TAM</h6>
+                    <h3 class="text-dark fw-bold mb-0">{{ ambulancia_tam.value }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="card shadow-sm text-center">
+                <div class="card-body">
+                    <h6 class="text-muted fw-bold mb-1">PASM</h6>
+                    <h3 class="text-dark fw-bold mb-0">{{ pasm.value }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="card shadow-sm text-center">
+                <div class="card-body">
+                    <h6 class="text-muted fw-bold mb-1">PASB</h6>
+                    <h3 class="text-dark fw-bold mb-0">{{ pasb.value }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="card shadow-sm text-center">
+                <div class="card-body">
+                    <h6 class="text-muted fw-bold mb-1">Eq. Intervención</h6>
+                    <h3 class="text-dark fw-bold mb-0">{{ eq_int.value }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="card shadow-sm text-center">
+                <div class="card-body">
+                    <h6 class="text-muted fw-bold mb-1">Moto APH</h6>
+                    <h3 class="text-dark fw-bold mb-0">{{ moto_aph.value }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="card shadow-sm text-center">
+                <div class="card-body">
+                    <h6 class="text-muted fw-bold mb-1">Unidad Rescate</h6>
+                    <h3 class="text-dark fw-bold mb-0">{{ und_res.value }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="card shadow-sm text-center">
+                <div class="card-body">
+                    <h6 class="text-muted fw-bold mb-1">Unidad Logística</h6>
+                    <h3 class="text-dark fw-bold mb-0">{{ und_log.value }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <!-- Estadísticas por Tipo de Servicio -->
+    <h4 class="mt-5 mb-3 text-primary fw-bold border-bottom pb-2">Estadísticas por Tipo de Servicio</h4>
+    {% if stats_servicios %}
+    <div class="row g-3">
+        {% for tipo, stats in stats_servicios.items() %}
+        <div class="col-md-4">
+            <div class="card shadow-sm h-100" style="border-left: 4px solid #3b82f6;">
+                <div class="card-body">
+                    <h5 class="card-title fw-bold text-dark">{{ tipo }}</h5>
+                    <div class="d-flex justify-content-between mt-3">
+                        <div>
+                            <span class="text-muted d-block" style="font-size: 0.9rem;">Cantidad Actividades</span>
+                            <span class="fs-4 fw-bold text-primary">{{ stats.cantidad }}</span>
+                        </div>
+                        <div class="text-end">
+                            <span class="text-muted d-block" style="font-size: 0.9rem;">Total Horas</span>
+                            <span class="fs-4 fw-bold text-success">{{ stats.horas }}h</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-light border text-center text-muted">
+        No hay datos de servicios para mostrar.
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

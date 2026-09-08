@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Registro Voluntariado #{{ registro.id }}</title>
+    <title>Reporte de Actividades #{{ registro.id }}</title>
     <style>
         body { font-family: 'Arial', sans-serif; font-size: 12px; margin: 0; padding: 20px; color: #000; }
         .institutional-header { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
@@ -33,6 +33,7 @@
 </head>
 <body onload="window.print()">
 
+    <!-- Botón volver (no se imprime) -->
     <div class="no-print" style="margin-bottom: 20px;">
         <button onclick="window.close()" style="padding: 10px 15px; background: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer;">Cerrar y Volver</button>
     </div>
@@ -48,26 +49,34 @@
                 {% endif %}
             </td>
             <td style="width: 60%;" class="header-title">
-                FORMATO DE REGISTRO MENSUAL DE HORAS DE VOLUNTARIADO<br>
+                REPORTE DE ACTIVIDADES<br>
                 <span style="font-size: 11px; font-weight: normal;">CORPORACIÓN SOCORRISTAS GRUPO DE APOYO</span>
             </td>
             <td style="width: 20%;" class="header-meta">
-                <strong>Referencia Normativa:</strong><br>
-                • Ley 1575 de 2012<br>
-                • Ley 1523 de 2012<br>
-                <strong>Fecha:</strong> {{ registro.fecha_registro.split(' ')[0] if registro.fecha_registro else '' }}
+                <strong>Código:</strong> REA-01<br>
+                <strong>Versión:</strong> 1.0<br>
+                <strong>Fecha:</strong> {{ registro.fecha_registro.split(' ')[0] if registro.fecha_registro else '' }}<br>
+                <strong>Página:</strong> 1 de 1
             </td>
         </tr>
     </table>
 
+    <div style="font-size: 11px; text-align: justify; margin-bottom: 15px;">
+        El siguiente formulario es implementado para el reporte oportuno de las actividades realizadas en cada uno de los eventos prestados por la institución, generando así una estadística oportuna y veraz para el manejo de la información.
+    </div>
+
     <!-- Información del Evento -->
-    <div class="section-title">DETALLES DEL REGISTRO</div>
+    <div class="section-title">INFORMACIÓN DEL EVENTO</div>
     <table class="data-table">
         <tr>
-            <th>Fecha</th>
-            <td>{{ registro.fecha }}</td>
-            <th>Disponibilidad</th>
-            <td>{{ registro.disponibilidad }} {% if registro.disponibilidad == 'OTRO' %}({{ registro.disponibilidad_otro }}){% endif %}</td>
+            <th>Nombre del Evento</th>
+            <td colspan="3">{{ registro.nombre_evento }}</td>
+        </tr>
+        <tr>
+            <th>Fecha del Evento</th>
+            <td>{{ registro.fecha_evento }}</td>
+            <th>Lugar / Comuna</th>
+            <td>{{ registro.lugar_evento }}</td>
         </tr>
         <tr>
             <th>Hora Inicio</th>
@@ -76,17 +85,57 @@
             <td>{{ registro.hora_fin }}</td>
         </tr>
         <tr>
-            <th>Total Horas</th>
-            <td colspan="3" style="font-size: 14px; font-weight: bold;">{{ registro.total_horas }}</td>
+            <th>Tipo de Servicio</th>
+            <td colspan="3"><strong>{{ registro.tipo_servicio }}</strong></td>
+        </tr>
+    </table>
+
+    <!-- Recursos -->
+    <div class="section-title">RECURSOS DISPONIBLES EN EL SERVICIO</div>
+    <table class="data-table">
+        <tr>
+            <th>Ambulancia TAB</th>
+            <td>{{ registro.ambulancia_tab }}</td>
+            <th>Ambulancia TAM</th>
+            <td>{{ registro.ambulancia_tam }}</td>
         </tr>
         <tr>
-            <th>Actividad Realizada</th>
-            <td colspan="3" class="text-left">{{ registro.actividad_realizada }}</td>
+            <th>PASM</th>
+            <td>{{ registro.pasm }}</td>
+            <th>PASB</th>
+            <td>{{ registro.pasb }}</td>
+        </tr>
+        <tr>
+            <th>Eq. Intervención</th>
+            <td>{{ registro.equipos_intervencion }}</td>
+            <th>Moto APH</th>
+            <td>{{ registro.moto_aph }}</td>
+        </tr>
+        <tr>
+            <th>Unidad Rescate</th>
+            <td>{{ registro.unidad_rescate }}</td>
+            <th>Unidad Logística</th>
+            <td>{{ registro.unidad_logistica }}</td>
+        </tr>
+    </table>
+
+    <!-- Información Operativa -->
+    <div class="section-title">INFORMACIÓN OPERATIVA</div>
+    <table class="data-table">
+        <tr>
+            <th style="width: 33%;">Total Personal</th>
+            <th style="width: 33%;">Pacientes Atendidos</th>
+            <th style="width: 33%;">Pacientes Trasladados</th>
+        </tr>
+        <tr>
+            <td style="font-size: 14px; font-weight: bold;">{{ registro.total_personal }}</td>
+            <td style="font-size: 14px; font-weight: bold;">{{ registro.pacientes_atendidos }}</td>
+            <td style="font-size: 14px; font-weight: bold;">{{ registro.pacientes_trasladados }}</td>
         </tr>
     </table>
 
     {% if registro.observaciones %}
-    <div class="section-title">OBSERVACIONES</div>
+    <div class="section-title">OBSERVACIONES / NOVEDADES</div>
     <table class="data-table">
         <tr>
             <td class="text-left" style="padding: 15px;">{{ registro.observaciones }}</td>
@@ -103,7 +152,7 @@
                 <div style="height: 80px;"></div>
             {% endif %}
             <div class="signature-line">
-                <strong>VOLUNTARIO RESPONSABLE</strong><br>
+                <strong>RESPONSABLE DEL REGISTRO</strong><br>
                 {{ registro.registrado_por }}<br>
                 {% if registro.registrado_por_identificacion %}CC: {{ registro.registrado_por_identificacion }}{% endif %}
             </div>

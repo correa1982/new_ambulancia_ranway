@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Reportes Inactivos{% endblock %}
+{% block content %}
+<div class="container-fluid mt-4 mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <a href="{{ url_for('registros_reporte_actividades') }}" class="btn btn-outline-secondary me-2">
+                <i class="ph ph-arrow-left"></i> Volver a Registros
+            </a>
+            <h3 class="d-inline-block mb-0 text-danger fw-bold">
+                <i class="ph ph-archive"></i> Reportes de Actividades (Inactivos)
+            </h3>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-danger">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>FECHA</th>
+                            <th>EVENTO</th>
+                            <th>TIPO</th>
+                            <th>HORARIO</th>
+                            <th>ESTADO</th>
+                            <th>REGISTRADO POR</th>
+                            <th class="text-center">ACCIONES</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in registros %}
+                        <tr class="table-secondary text-muted">
+                            <td class="fw-bold">#{{ row.id }}</td>
+                            <td>{{ row.fecha_evento }}</td>
+                            <td>{{ row.nombre_evento }}<br><small>Comuna: {{ row.lugar_evento }}</small></td>
+                            <td><span class="badge bg-secondary">{{ row.tipo_servicio }}</span></td>
+                            <td>{{ row.hora_inicio }} - {{ row.hora_fin }}</td>
+                            <td>
+                                <span class="text-danger fw-bold"><i class="ph ph-archive"></i> Inactivo</span>
+                            </td>
+                            <td>{{ row.registrado_por }}</td>
+                            <td class="text-center">
+                                <a href="{{ url_for('imprimir_reporte', record_id=row.id) }}" target="_blank" style="background:white; color:#ef4444; border:1px solid #ef4444; padding:5px 11px; border-radius:6px; text-decoration:none; font-weight:600; font-size:12px; display:inline-flex; align-items:center; justify-content:center; gap:4px; transition:all 0.2s;" title="Ver PDF (Solo Lectura)">
+                                    <i class="ph ph-file-pdf"></i> PDF
+                                </a>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="8" class="text-center text-muted py-4">
+                                <i class="ph ph-folder-open d-block mb-2" style="font-size: 2rem;"></i>
+                                No hay registros inactivos.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

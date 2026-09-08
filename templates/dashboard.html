@@ -235,7 +235,7 @@ document.addEventListener("DOMContentLoaded", function() {
 </div>
 {% endif %}
 
-{% set has_checklists = session.usuario.rol == 'admin' or 'voluntariado' in session.usuario.get('formularios_acceso', []) or 'preoperacional' in session.usuario.get('formularios_acceso', []) or 'tam' in session.usuario.get('formularios_acceso', []) or 'tab' in session.usuario.get('formularios_acceso', []) or 'avanzada' in session.usuario.get('formularios_acceso', []) or 'pasb' in session.usuario.get('formularios_acceso', []) or 'pasm' in session.usuario.get('formularios_acceso', []) or 'equipos' in session.usuario.get('formularios_acceso', []) %}
+{% set has_checklists = session.usuario.rol == 'admin' or 'preoperacional' in session.usuario.get('formularios_acceso', []) or 'tam' in session.usuario.get('formularios_acceso', []) or 'tab' in session.usuario.get('formularios_acceso', []) or 'avanzada' in session.usuario.get('formularios_acceso', []) or 'pasb' in session.usuario.get('formularios_acceso', []) or 'pasm' in session.usuario.get('formularios_acceso', []) or 'equipos' in session.usuario.get('formularios_acceso', []) %}
 {% if has_checklists %}
 
 {% if is_login and checklist_total_pending and checklist_total_pending > 0 %}
@@ -311,11 +311,23 @@ document.addEventListener("DOMContentLoaded", function() {
     </a>
     {% endif %}
 
-    {% if session.usuario.rol == 'admin' or 'voluntariado' in session.usuario.get('formularios_acceso', []) %}
-    <a href="{{ url_for('registros_voluntariado') }}" class="dash-card">
-        <div class="card-icon" style="background: #e0f2fe;"><i class="ph ph-hand-heart" style="color: #0284c7;"></i></div>
+    {% if has_permiso_formulario(session.usuario.formularios_acceso, 'reporte_actividades') or session.usuario.rol == 'admin' %}
+    {% if has_permiso_formulario(session.usuario.formularios_acceso, 'voluntariado_admin') or session.usuario.rol == 'admin' %}
+    <a href="{{ url_for('registros_reporte_actividades') }}" class="dash-card">
+    {% else %}
+    <a href="{{ url_for('form_reporte_actividades') }}" class="dash-card">
+    {% endif %}
+        <div class="card-icon" style="background: #eef2ff;"><i class="ph ph-clipboard-text" style="color: #4f46e5;"></i></div>
+        <div class="card-title">Reporte de Actividades</div>
+        <div class="card-desc">Formulario de registro de actividades en eventos de la institución.</div>
+    </a>
+    {% endif %}
+
+    {% if has_permiso_formulario(session.usuario.formularios_acceso, 'voluntariado') or has_permiso_formulario(session.usuario.formularios_acceso, 'voluntariado_admin') or session.usuario.rol == 'admin' %}
+    <a href="{{ url_for('voluntariado.form_voluntariado') }}" class="dash-card">
+        <div class="card-icon" style="background: #fdf4ff;"><i class="ph ph-hand-heart" style="color: #d946ef;"></i></div>
         <div class="card-title">Registro Voluntariado</div>
-        <div class="card-desc">Formato de Registro Mensual de Horas.</div>
+        <div class="card-desc">Registro mensual de horas de voluntariado.</div>
     </a>
     {% endif %}
 

@@ -11,6 +11,12 @@ COL_TZ = zoneinfo.ZoneInfo("America/Bogota")
 def ahora():
     return datetime.now(COL_TZ)
 
+def get_configuracion(conn):
+    try:
+        return conn.execute("SELECT * FROM configuracion ORDER BY id DESC LIMIT 1").fetchone()
+    except Exception:
+        return None
+
 def hoy():
     return ahora().date()
 

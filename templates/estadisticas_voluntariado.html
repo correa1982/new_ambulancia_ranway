@@ -1,68 +1,68 @@
 {% extends "base.html" %}
 {% block title %}Estadísticas de Voluntariado{% endblock %}
 {% block content %}
-<div class="container mt-4 mb-5">
-<div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:20px; padding-bottom:14px; border-bottom:2px solid #dbeafe;">
-    <div style="display:flex; align-items:center; gap:15px;">
-        <a href="{{ url_for('registros_voluntariado') }}" style="display:inline-flex; align-items:center; gap:6px; background:#f8fafc; color:#475569; border:1px solid #cbd5e1; padding:8px 16px; border-radius:8px; text-decoration:none; font-weight:600; font-size:13px; transition: all 0.2s; box-shadow: 0 1px 2px rgba(0,0,0,0.05);" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#f8fafc'">
-            <i class="ph ph-arrow-left"></i> Volver a Registros
-        </a>
-        <h1 style="margin:0; padding:0; border:none; font-size:20px; color:#1e40af;"><i class="ph ph-chart-bar"></i> Estadísticas Globales de Voluntariado</h1>
+<div class="container-fluid mt-4 mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <a href="{{ url_for('voluntariado.registros_voluntariado') }}" class="btn btn-secondary text-white fw-bold me-3 shadow-sm" style="border-radius: 8px; padding: 8px 16px; transition: all 0.3s ease;">
+                <i class="ph ph-arrow-left" style="font-size: 1.1em; margin-right: 5px;"></i> Volver a Registros
+            </a>
+            <h3 class="d-inline-block mb-0 text-primary fw-bold" style="vertical-align: middle;">
+                <i class="ph ph-chart-bar"></i> Estadísticas de Voluntariado
+            </h3>
+        </div>
     </div>
-</div>
 
-    <div class="row">
-        <div class="col-md-6 mb-4">
-            <div class="card shadow border-0 h-100">
-                <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
-                    <h5 class="card-title text-muted mb-0">Total de Horas Registradas</h5>
-                </div>
-                <div class="card-body d-flex align-items-center justify-content-center">
-                    {% set ns = namespace(total_h=0, total_m=0) %}
-                    {% for r in registros %}
-                        {% if 'h' in r.total_horas and 'm' in r.total_horas %}
-                            {% set parts = r.total_horas.replace('h', '').replace('m', '').split() %}
-                            {% if parts|length >= 2 %}
-                                {% set ns.total_h = ns.total_h + parts[0]|int %}
-                                {% set ns.total_m = ns.total_m + parts[1]|int %}
-                            {% endif %}
-                        {% endif %}
-                    {% endfor %}
-                    {% set total_final_h = ns.total_h + (ns.total_m // 60) %}
-                    {% set total_final_m = ns.total_m % 60 %}
-                    <h1 class="display-3 text-primary fw-bold">{{ total_final_h }}h {{ total_final_m }}m</h1>
+    <div class="row g-4">
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0 h-100 bg-primary text-white" style="border-radius: 12px;">
+                <div class="card-body text-center">
+                    <i class="ph ph-clock d-block mb-2" style="font-size: 3rem; opacity: 0.8;"></i>
+                    <h5 class="card-title fw-bold">Total de Horas Avaladas</h5>
+                    <h2 class="display-4 fw-bold mb-0">{{ total_horas }}</h2>
                 </div>
             </div>
         </div>
-        <div class="col-md-6 mb-4">
-            <div class="card shadow border-0 h-100">
-                <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
-                    <h5 class="card-title text-muted mb-0">Registros por Persona</h5>
-                </div>
-                <div class="card-body">
-                    {% set cont_personas = {} %}
-                    {% for r in registros %}
-                        {% set p = r.registrado_por %}
-                        {% if p in cont_personas %}
-                            {% set _ = cont_personas.update({p: cont_personas[p] + 1}) %}
-                        {% else %}
-                            {% set _ = cont_personas.update({p: 1}) %}
-                        {% endif %}
-                    {% endfor %}
-                    
-                    <ul class="list-group list-group-flush">
-                        {% for persona, cantidad in cont_personas.items() %}
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            {{ persona }}
-                            <span class="badge bg-primary rounded-pill">{{ cantidad }} registros</span>
-                        </li>
-                        {% else %}
-                        <li class="list-group-item text-center text-muted">No hay datos</li>
-                        {% endfor %}
-                    </ul>
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0 h-100 text-white" style="border-radius: 12px; background: #10b981;">
+                <div class="card-body text-center">
+                    <i class="ph ph-list-numbers d-block mb-2" style="font-size: 3rem; opacity: 0.8;"></i>
+                    <h5 class="card-title fw-bold">Cantidad de Registros Avalados</h5>
+                    <h2 class="display-4 fw-bold mb-0">{{ total_registros }}</h2>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Estadísticas por Usuario -->
+    <h4 class="mt-5 mb-3 text-primary fw-bold border-bottom pb-2">Estadísticas por Voluntario</h4>
+    {% if stats_usuarios %}
+    <div class="row g-3">
+        {% for usuario, stats in stats_usuarios.items() %}
+        <div class="col-md-4">
+            <div class="card shadow-sm h-100" style="border-left: 4px solid #8b5cf6;">
+                <div class="card-body">
+                    <h5 class="card-title fw-bold text-dark"><i class="ph ph-user-circle me-1"></i> {{ usuario }}</h5>
+                    <div class="d-flex justify-content-between mt-3">
+                        <div>
+                            <span class="text-muted d-block" style="font-size: 0.9rem;">Registros</span>
+                            <span class="fs-4 fw-bold text-primary">{{ stats.cantidad }}</span>
+                        </div>
+                        <div class="text-end">
+                            <span class="text-muted d-block" style="font-size: 0.9rem;">Horas Ejecutadas</span>
+                            <span class="fs-4 fw-bold text-success">{{ stats.horas_str }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-light border text-center text-muted">
+        No hay datos de voluntarios para mostrar.
+    </div>
+    {% endif %}
+
 </div>
 {% endblock %}
