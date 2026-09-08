@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Registro Voluntariado #{{ registro.id }}</title>
+    <style>
+        body { font-family: 'Arial', sans-serif; font-size: 12px; margin: 0; padding: 20px; color: #000; }
+        .institutional-header { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        .institutional-header th, .institutional-header td { border: 1px solid #000; padding: 10px; text-align: center; }
+        .logo { max-height: 70px; max-width: 120px; }
+        .header-title { font-size: 14px; font-weight: bold; text-transform: uppercase; }
+        .header-meta { font-size: 10px; text-align: left; padding-left: 10px !important; }
+        
+        .section-title { font-size: 13px; font-weight: bold; background-color: #f0f0f0; padding: 5px; border: 1px solid #000; margin-top: 15px; margin-bottom: 0; text-align: center; }
+        
+        .data-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+        .data-table th, .data-table td { border: 1px solid #000; padding: 6px; text-align: center; }
+        .data-table th { background-color: #f9f9f9; width: 25%; font-size: 11px; }
+        
+        .signature-container { width: 100%; margin-top: 50px; display: table; }
+        .signature-box { display: table-cell; width: 50%; text-align: center; vertical-align: bottom; }
+        .signature-line { border-top: 1px solid #000; width: 80%; margin: 0 auto; margin-top: 50px; padding-top: 5px; }
+        .signature-img { max-height: 80px; max-width: 150px; margin-bottom: 5px; }
+        
+        .text-left { text-align: left !important; }
+        
+        @media print {
+            body { padding: 0; }
+            @page { margin: 1.5cm; }
+            .no-print { display: none !important; }
+        }
+    </style>
+</head>
+<body onload="window.print()">
+
+    <div class="no-print" style="margin-bottom: 20px;">
+        <button onclick="window.close()" style="padding: 10px 15px; background: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer;">Cerrar y Volver</button>
+    </div>
+
+    <!-- Encabezado Institucional -->
+    <table class="institutional-header">
+        <tr>
+            <td style="width: 20%;">
+                {% if cfg and cfg.logo_url %}
+                    <img src="{{ cfg.logo_url }}" alt="Logo Institución" class="logo">
+                {% else %}
+                    <div style="font-size: 10px; color: #666;">Sin Logo</div>
+                {% endif %}
+            </td>
+            <td style="width: 60%;" class="header-title">
+                FORMATO DE REGISTRO MENSUAL DE HORAS DE VOLUNTARIADO<br>
+                <span style="font-size: 11px; font-weight: normal;">CORPORACIÓN SOCORRISTAS GRUPO DE APOYO</span>
+            </td>
+            <td style="width: 20%;" class="header-meta">
+                <strong>Referencia Normativa:</strong><br>
+                • Ley 1575 de 2012<br>
+                • Ley 1523 de 2012<br>
+                <strong>Fecha:</strong> {{ registro.fecha_registro.split(' ')[0] if registro.fecha_registro else '' }}
+            </td>
+        </tr>
+    </table>
+
+    <!-- Información del Evento -->
+    <div class="section-title">DETALLES DEL REGISTRO</div>
+    <table class="data-table">
+        <tr>
+            <th>Fecha</th>
+            <td>{{ registro.fecha }}</td>
+            <th>Disponibilidad</th>
+            <td>{{ registro.disponibilidad }} {% if registro.disponibilidad == 'OTRO' %}({{ registro.disponibilidad_otro }}){% endif %}</td>
+        </tr>
+        <tr>
+            <th>Hora Inicio</th>
+            <td>{{ registro.hora_inicio }}</td>
+            <th>Hora Fin</th>
+            <td>{{ registro.hora_fin }}</td>
+        </tr>
+        <tr>
+            <th>Total Horas</th>
+            <td colspan="3" style="font-size: 14px; font-weight: bold;">{{ registro.total_horas }}</td>
+        </tr>
+        <tr>
+            <th>Actividad Realizada</th>
+            <td colspan="3" class="text-left">{{ registro.actividad_realizada }}</td>
+        </tr>
+    </table>
+
+    {% if registro.observaciones %}
+    <div class="section-title">OBSERVACIONES</div>
+    <table class="data-table">
+        <tr>
+            <td class="text-left" style="padding: 15px;">{{ registro.observaciones }}</td>
+        </tr>
+    </table>
+    {% endif %}
+
+    <!-- Firmas -->
+    <div class="signature-container">
+        <div class="signature-box">
+            {% if registro.firma_registrador %}
+                <img src="{{ registro.firma_registrador }}" class="signature-img" alt="Firma Voluntario">
+            {% else %}
+                <div style="height: 80px;"></div>
+            {% endif %}
+            <div class="signature-line">
+                <strong>VOLUNTARIO RESPONSABLE</strong><br>
+                {{ registro.registrado_por }}<br>
+                {% if registro.registrado_por_identificacion %}CC: {{ registro.registrado_por_identificacion }}{% endif %}
+            </div>
+        </div>
+        <div class="signature-box">
+            {% if registro.estado == 'Avalado' and registro.firma_avalador %}
+                <img src="{{ registro.firma_avalador }}" class="signature-img" alt="Firma Coordinador">
+            {% else %}
+                <div style="height: 80px;">
+                    {% if registro.estado != 'Avalado' %}
+                        <span style="color: #999; font-style: italic; font-size: 10px;"><br><br><br>(Pendiente de Aval)</span>
+                    {% endif %}
+                </div>
+            {% endif %}
+            <div class="signature-line">
+                <strong>VoBo. ADMIN. VOLUNTARIADO</strong><br>
+                {% if registro.estado == 'Avalado' %}
+                    {{ registro.avalado_por }}<br>
+                    {% if registro.avalado_por_identificacion %}CC: {{ registro.avalado_por_identificacion }}{% endif %}
+                {% else %}
+                    &nbsp;<br>&nbsp;
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

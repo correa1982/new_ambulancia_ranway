@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% block title %}Registro Mensual de Horas de Voluntariado{% endblock %}
+{% block content %}
+<div class="container mt-4 mb-5">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">
+                <i class="ph ph-hand-heart"></i> Formato de Registro Mensual de Horas de Voluntariado
+            </h4>
+            {% if es_admin_vol %}
+            <a href="{{ url_for('voluntariado.registros_voluntariado') }}" class="btn btn-light btn-sm text-primary fw-bold">
+                <i class="ph ph-list-dashes"></i> Ver Registros y Estadísticas
+            </a>
+            {% endif %}
+        </div>
+        <div class="card-body">
+            <div class="alert alert-info" role="alert">
+                <h5 class="alert-heading">Referencia normativa (Colombia):</h5>
+                <ul class="mb-0">
+                    <li>Ley 1575 de 2012 (Sistema Nacional de Bomberos).</li>
+                    <li>Ley 1523 de 2012 (Gestión del Riesgo de Desastres).</li>
+                </ul>
+            </div>
+            
+            <form action="{{ url_for('voluntariado.form_voluntariado') }}" method="POST">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Fecha <span class="text-danger">*</span></label>
+                        <input type="date" class="form-control" name="fecha" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Hora Inicio <span class="text-danger">*</span></label>
+                        <input type="time" class="form-control" id="hora_inicio" name="hora_inicio" required onchange="calcularHoras()">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Hora Fin <span class="text-danger">*</span></label>
+                        <input type="time" class="form-control" id="hora_fin" name="hora_fin" required onchange="calcularHoras()">
+                    </div>
+                </div>
+
+                <div class="row g-3 mt-2">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Disponibilidad <span class="text-danger">*</span></label>
+                        <select class="form-select" name="disponibilidad" id="disponibilidad" required onchange="toggleOtro()">
+                            <option value="" disabled selected>Seleccione...</option>
+                            <option value="VIR">VIR</option>
+                            <option value="AMBULANCIA">AMBULANCIA</option>
+                            <option value="OTRO">OTRO</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6" id="div_otro" style="display: none;">
+                        <label class="form-label fw-bold">Especifique (OTRO)</label>
+                        <input type="text" class="form-control" name="disponibilidad_otro" id="disponibilidad_otro">
+                    </div>
+                </div>
+
+                <div class="row g-3 mt-2">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Total Horas</label>
+                        <input type="text" class="form-control bg-light" id="total_horas" name="total_horas" readonly>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Actividad Realizada <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="actividad_realizada" required>
+                    </div>
+                </div>
+
+                <div class="row g-3 mt-2">
+                    <div class="col-12">
+                        <label class="form-label fw-bold">Observaciones</label>
+                        <textarea class="form-control" name="observaciones" rows="3"></textarea>
+                    </div>
+                </div>
+
+                <div class="mt-4 p-3 bg-light rounded text-center">
+                    <p class="mb-2 fw-bold text-muted">Responsable del Registro</p>
+                    <p class="mb-0" style="font-size: 1.1rem;">
+                        <i class="ph ph-user-circle"></i> <strong>{{ session.usuario.nombre }}</strong>
+                    </p>
+                    <p class="mb-0 text-muted" style="font-size: 0.9rem;">Al enviar este formulario, su firma electrónica quedará registrada.</p>
+                </div>
+
+                <div class="mt-4 text-end">
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-secondary me-2">Cancelar</a>
+                    <button type="submit" class="btn btn-primary" onclick="return confirm('¿Confirmar el envío de este registro de voluntariado?');">
+                        Guardar Registro
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleOtro() {
+    var sel = document.getElementById('disponibilidad').value;
+    var div = document.getElementById('div_otro');
+    var input = document.getElementById('disponibilidad_otro');
+    if (sel === 'OTRO') {
+        div.style.display = 'block';
+        input.required = true;
+    } else {
+        div.style.display = 'none';
+        input.required = false;
+        input.value = '';
+    }
+}
+
+function calcularHoras() {
+    var ini = document.getElementById('hora_inicio').value;
+    var fin = document.getElementById('hora_fin').value;
+    
+    if (ini && fin) {
+        var start = new Date("01/01/2000 " + ini);
+        var end = new Date("01/01/2000 " + fin);
+        
+        if (end < start) {
+            end.setDate(end.getDate() + 1);
+        }
+        
+        var diff = end - start;
+        var m = Math.floor((diff/1000)/60);
+        var h = Math.floor(m/60);
+        m = m % 60;
+        
+        document.getElementById('total_horas').value = h + ":" + (m < 10 ? '0' : '') + m;
+    }
+}
+</script>
+{% endblock %}
