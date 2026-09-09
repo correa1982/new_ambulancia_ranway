@@ -187,6 +187,21 @@ def estadisticas_voluntariado():
         
     conn = get_db()
     cursor = conn.cursor()
+    
+    # Conteos por estado
+    cursor.execute("SELECT COUNT(*) as total FROM registro_voluntariado")
+    row = cursor.fetchone()
+    total_realizados = (row['total'] if isinstance(row, dict) else row[0]) if row else 0
+    
+    cursor.execute("SELECT COUNT(*) as total FROM registro_voluntariado WHERE estado = 'Avalado'")
+    row = cursor.fetchone()
+    total_avalados = (row['total'] if isinstance(row, dict) else row[0]) if row else 0
+    
+    cursor.execute("SELECT COUNT(*) as total FROM registro_voluntariado WHERE estado = 'Anulado'")
+    row = cursor.fetchone()
+    total_anulados = (row['total'] if isinstance(row, dict) else row[0]) if row else 0
+    
+    # Registros avalados para calcular horas
     cursor.execute("SELECT total_horas, registrado_por FROM registro_voluntariado WHERE estado = 'Avalado'")
     registros = cursor.fetchall()
     conn.close()
@@ -232,7 +247,9 @@ def estadisticas_voluntariado():
     
     return render_template('estadisticas_voluntariado.html', 
                            total_horas=total_str,
-                           total_registros=len(registros),
+                           total_realizados=total_realizados,
+                           total_avalados=total_avalados,
+                           total_anulados=total_anulados,
                            stats_usuarios=stats_usuarios)
 
 @routes_voluntariado.route('/voluntariado/imprimir/<int:record_id>')

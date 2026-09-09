@@ -13,22 +13,81 @@
         </div>
     </div>
 
-    <div class="row g-4">
-        <div class="col-md-6">
+    <div class="row g-4 align-items-stretch">
+        <!-- Card de horas -->
+        <div class="col-md-4">
             <div class="card shadow-sm border-0 h-100 bg-primary text-white" style="border-radius: 12px;">
-                <div class="card-body text-center">
+                <div class="card-body text-center d-flex flex-column justify-content-center">
                     <i class="ph ph-clock d-block mb-2" style="font-size: 3rem; opacity: 0.8;"></i>
                     <h5 class="card-title fw-bold">Total de Horas Avaladas</h5>
                     <h2 class="display-4 fw-bold mb-0">{{ total_horas }}</h2>
                 </div>
             </div>
         </div>
-        <div class="col-md-6">
-            <div class="card shadow-sm border-0 h-100 text-white" style="border-radius: 12px; background: #10b981;">
-                <div class="card-body text-center">
-                    <i class="ph ph-list-numbers d-block mb-2" style="font-size: 3rem; opacity: 0.8;"></i>
-                    <h5 class="card-title fw-bold">Cantidad de Registros Avalados</h5>
-                    <h2 class="display-4 fw-bold mb-0">{{ total_registros }}</h2>
+        <!-- Tabla de conteos -->
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0 h-100" style="border-radius: 12px;">
+                <div class="card-header bg-transparent border-0 pb-0 pt-3 px-4">
+                    <h5 class="fw-bold text-dark mb-0"><i class="ph ph-list-numbers me-2 text-primary"></i>Resumen de Registros</h5>
+                </div>
+                <div class="card-body px-4 pb-4 pt-2">
+                    <table class="table table-sm mb-0" style="border-collapse: separate; border-spacing: 0 6px;">
+                        <thead>
+                            <tr style="font-size:12px; text-transform:uppercase; letter-spacing:0.05em; color:#888;">
+                                <th class="border-0 pb-1">Estado</th>
+                                <th class="border-0 pb-1 text-center">Cantidad</th>
+                                <th class="border-0 pb-1 text-center">%</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style="border:none; padding:8px 0;">
+                                    <span style="display:inline-flex; align-items:center; gap:6px;">
+                                        <span style="width:10px; height:10px; border-radius:50%; background:#0d6efd; display:inline-block;"></span>
+                                        <strong>Total Realizados</strong>
+                                    </span>
+                                </td>
+                                <td class="text-center border-0" style="padding:8px 0;"><span class="badge bg-primary fs-6 px-3">{{ total_realizados }}</span></td>
+                                <td class="text-center border-0 text-muted" style="padding:8px 0; font-size:13px;">100%</td>
+                            </tr>
+                            <tr>
+                                <td style="border:none; padding:8px 0;">
+                                    <span style="display:inline-flex; align-items:center; gap:6px;">
+                                        <span style="width:10px; height:10px; border-radius:50%; background:#10b981; display:inline-block;"></span>
+                                        <strong>Avalados</strong>
+                                    </span>
+                                </td>
+                                <td class="text-center border-0" style="padding:8px 0;"><span class="badge fs-6 px-3" style="background:#10b981;">{{ total_avalados }}</span></td>
+                                <td class="text-center border-0 text-muted" style="padding:8px 0; font-size:13px;">
+                                    {% if total_realizados > 0 %}{{ "%.0f"|format(total_avalados / total_realizados * 100) }}%{% else %}0%{% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="border:none; padding:8px 0;">
+                                    <span style="display:inline-flex; align-items:center; gap:6px;">
+                                        <span style="width:10px; height:10px; border-radius:50%; background:#f59e0b; display:inline-block;"></span>
+                                        <strong>Anulados</strong>
+                                    </span>
+                                </td>
+                                <td class="text-center border-0" style="padding:8px 0;"><span class="badge fs-6 px-3" style="background:#f59e0b;">{{ total_anulados }}</span></td>
+                                <td class="text-center border-0 text-muted" style="padding:8px 0; font-size:13px;">
+                                    {% if total_realizados > 0 %}{{ "%.0f"|format(total_anulados / total_realizados * 100) }}%{% else %}0%{% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="border:none; padding:8px 0;">
+                                    <span style="display:inline-flex; align-items:center; gap:6px;">
+                                        <span style="width:10px; height:10px; border-radius:50%; background:#6c757d; display:inline-block;"></span>
+                                        Pendientes
+                                    </span>
+                                </td>
+                                <td class="text-center border-0" style="padding:8px 0;"><span class="badge bg-secondary fs-6 px-3">{{ total_realizados - total_avalados - total_anulados }}</span></td>
+                                <td class="text-center border-0 text-muted" style="padding:8px 0; font-size:13px;">
+                                    {% if total_realizados > 0 %}{{ "%.0f"|format((total_realizados - total_avalados - total_anulados) / total_realizados * 100) }}%{% else %}0%{% endif %}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
