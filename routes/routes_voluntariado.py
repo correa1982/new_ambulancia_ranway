@@ -178,7 +178,6 @@ def anulados_voluntariado():
     
     return render_template('anulados_voluntariado.html', registros=registros)
 
-
 @routes_voluntariado.route('/voluntariado/estadisticas')
 def estadisticas_voluntariado():
     if not is_admin_vol():
@@ -188,7 +187,7 @@ def estadisticas_voluntariado():
     conn = get_db()
     cursor = conn.cursor()
     
-    # Conteos por estado
+    # Conteos globales por estado
     cursor.execute("SELECT COUNT(*) as total FROM registro_voluntariado")
     row = cursor.fetchone()
     total_realizados = (row['total'] if isinstance(row, dict) else row[0]) if row else 0
@@ -201,55 +200,66 @@ def estadisticas_voluntariado():
     row = cursor.fetchone()
     total_anulados = (row['total'] if isinstance(row, dict) else row[0]) if row else 0
     
-    # Registros avalados para calcular horas
-    cursor.execute("SELECT total_horas, registrado_por FROM registro_voluntariado WHERE estado = 'Avalado'")
-    registros = cursor.fetchall()
+    # Todos los registros con datos de usuario para agrupar
+    cursor.execute("""
+        SELECT registrado_por, registrado_por_identificacion, estado, total_horas
+        FROM registro_voluntariado
+        ORDER BY registrado_por
+    """)
+    todos = cursor.fetchall()
     conn.close()
     
-    if registros and type(registros[0]) is tuple:
-        cols = [column[0] for column in cursor.description]
-        registros = [dict(zip(cols, row)) for row in registros]
-    elif registros and type(registros[0]) is not dict:
-        registros = [dict(r) for r in registros]
+    if todos and type(todos[0]) is tuple:
+        cols = [c[0] for c in cursor.description]
+        todos = [dict(zip(cols, r)) for r in todos]
+    elif todos and type(todos[0]) is not dict:
+        todos = [dict(r) for r in todos]
     
-    # Calcular total horas y agrupar por usuario
-    total_minutos = 0
+    # Agrupar por usuario
     stats_usuarios = {}
-    
-    for r in registros:
-        horas_str = r.get('total_horas', '0:0')
+    for r in todos:
         usuario = r.get('registrado_por', 'Desconocido')
+        identificacion = r.get('registrado_por_identificacion', '-')
+        estado = r.get('estado', '')
+        horas_str = r.get('total_horas', '0:0')
         
         if usuario not in stats_usuarios:
-            stats_usuarios[usuario] = {'cantidad': 0, 'minutos': 0}
-            
-        stats_usuarios[usuario]['cantidad'] += 1
+            stats_usuarios[usuario] = {
+                'identificacion': identificacion,
+                'realizados': 0,
+                'avalados': 0,
+                'anulados': 0,
+                'minutos': 0
+            }
         
-        mins = 0
-        if horas_str and ':' in horas_str:
-            try:
-                h, m = map(int, horas_str.split(':'))
-                mins = h * 60 + m
-                total_minutos += mins
-            except:
-                pass
-        
-        stats_usuarios[usuario]['minutos'] += mins
-                
-    horas_totales = total_minutos // 60
-    minutos_restantes = total_minutos % 60
-    total_str = f"{horas_totales}:{minutos_restantes:02d}"
+        stats_usuarios[usuario]['realizados'] += 1
+        if estado == 'Avalado':
+            stats_usuarios[usuario]['avalados'] += 1
+            if horas_str and ':' in horas_str:
+                try:
+                    h, m = map(int, horas_str.split(':'))
+                    stats_usuarios[usuario]['minutos'] += h * 60 + m
+                except:
+                    pass
+        elif estado == 'Anulado':
+            stats_usuarios[usuario]['anulados'] += 1
     
-    # Format user stats
+    # Formatear horas por usuario y calcular total global
+    total_minutos = 0
     for u in stats_usuarios:
         m = stats_usuarios[u]['minutos']
+        total_minutos += m
         stats_usuarios[u]['horas_str'] = f"{m // 60}:{m % 60:02d}"
     
-    return render_template('estadisticas_voluntariado.html', 
-                           total_horas=total_str,
+    horas_totales = total_minutos // 60
+    mins_restantes = total_minutos % 60
+    total_horas_str = f"{horas_totales}:{mins_restantes:02d}"
+    
+    return render_template('estadisticas_voluntariado.html',
                            total_realizados=total_realizados,
                            total_avalados=total_avalados,
                            total_anulados=total_anulados,
+                           total_horas=total_horas_str,
                            stats_usuarios=stats_usuarios)
 
 @routes_voluntariado.route('/voluntariado/imprimir/<int:record_id>')
