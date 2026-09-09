@@ -8,8 +8,9 @@
                 <i class="ph ph-hand-heart"></i> Formato de Registro Mensual de Horas de Voluntariado
             </h4>
             {% if es_admin_vol %}
-            <a href="{{ url_for('voluntariado.registros_voluntariado') }}" class="btn btn-light btn-sm text-primary fw-bold">
-                <i class="ph ph-list-dashes"></i> Ver Registros y Estadísticas
+            <a href="{{ url_for('voluntariado.registros_voluntariado') }}"
+               style="display:inline-flex; align-items:center; gap:6px; background:white; color:#0d6efd; border:none; border-radius:8px; padding:7px 16px; font-weight:700; font-size:14px; text-decoration:none; box-shadow:0 2px 6px rgba(0,0,0,0.15); transition:all 0.2s;">
+                <i class="ph ph-list-dashes" style="font-size:16px;"></i> Ver Registros y Estadísticas
             </a>
             {% endif %}
         </div>
