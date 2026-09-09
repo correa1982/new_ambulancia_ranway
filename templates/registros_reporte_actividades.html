@@ -2,24 +2,28 @@
 {% block title %}Registros de Reporte de Actividades{% endblock %}
 {% block content %}
 <div class="container-fluid mt-4 mb-5">
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
-        <div class="d-flex align-items-center gap-3">
-            <a href="{{ url_for('dashboard') }}" class="btn btn-secondary text-white fw-bold shadow-sm" style="border-radius: 8px; padding: 8px 16px; transition: all 0.3s ease;">
-                <i class="ph ph-arrow-left" style="font-size: 1.1em; margin-right: 5px;"></i> Volver
+    <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:12px; margin-bottom:24px;">
+        <div style="display:flex; align-items:center; gap:12px;">
+            <a href="{{ url_for('dashboard') }}"
+               style="display:inline-flex; align-items:center; gap:6px; background:#6c757d; color:white; border:none; border-radius:8px; padding:9px 18px; font-weight:700; font-size:14px; text-decoration:none; box-shadow:0 2px 6px rgba(0,0,0,0.15); transition:all 0.2s;">
+                <i class="ph ph-arrow-left" style="font-size:16px;"></i> Volver
             </a>
-            <h3 class="mb-0 text-primary fw-bold d-flex align-items-center">
-                <i class="ph ph-clipboard-text me-2"></i> Registros de Actividades
+            <h3 style="margin:0; font-weight:700; color:#0d6efd; display:flex; align-items:center; gap:8px;">
+                <i class="ph ph-clipboard-text"></i> Registros de Actividades
             </h3>
         </div>
-        <div class="d-flex flex-wrap gap-2">
-            <a href="{{ url_for('inactivos_reporte_actividades') }}" class="btn btn-outline-danger fw-bold shadow-sm" style="border-radius: 8px; padding: 8px 16px; transition: all 0.3s ease;">
-                <i class="ph ph-archive" style="font-size: 1.1em; margin-right: 5px;"></i> Ver Inactivos
+        <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
+            <a href="{{ url_for('inactivos_reporte_actividades') }}"
+               style="display:inline-flex; align-items:center; gap:6px; background:white; color:#dc3545; border:2px solid #dc3545; border-radius:8px; padding:8px 16px; font-weight:700; font-size:14px; text-decoration:none; box-shadow:0 2px 5px rgba(220,53,69,0.15); transition:all 0.2s;">
+                <i class="ph ph-archive" style="font-size:16px;"></i> Ver Inactivos
             </a>
-            <a href="{{ url_for('estadisticas_reporte') }}" class="btn btn-info text-white fw-bold shadow-sm" style="border-radius: 8px; padding: 8px 16px; transition: all 0.3s ease;">
-                <i class="ph ph-chart-bar" style="font-size: 1.1em; margin-right: 5px;"></i> Estadísticas
+            <a href="{{ url_for('estadisticas_reporte') }}"
+               style="display:inline-flex; align-items:center; gap:6px; background:#0dcaf0; color:white; border:none; border-radius:8px; padding:9px 16px; font-weight:700; font-size:14px; text-decoration:none; box-shadow:0 2px 6px rgba(13,202,240,0.3); transition:all 0.2s;">
+                <i class="ph ph-chart-bar" style="font-size:16px;"></i> Estadísticas
             </a>
-            <a href="{{ url_for('form_reporte_actividades') }}" class="btn btn-primary fw-bold shadow-sm" style="border-radius: 8px; padding: 8px 16px; transition: all 0.3s ease;">
-                <i class="ph ph-plus-circle" style="font-size: 1.1em; margin-right: 5px;"></i> Nuevo Reporte
+            <a href="{{ url_for('form_reporte_actividades') }}"
+               style="display:inline-flex; align-items:center; gap:6px; background:#0d6efd; color:white; border:none; border-radius:8px; padding:9px 16px; font-weight:700; font-size:14px; text-decoration:none; box-shadow:0 2px 8px rgba(13,110,253,0.3); transition:all 0.2s;">
+                <i class="ph ph-plus-circle" style="font-size:16px;"></i> Nuevo Reporte
             </a>
         </div>
     </div>

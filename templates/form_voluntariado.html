@@ -2,16 +2,19 @@
 {% block title %}Registro Mensual de Horas de Voluntariado{% endblock %}
 {% block content %}
 <div class="container mt-4 mb-5">
+    {% if es_admin_vol %}
+    <div style="display:flex; justify-content:flex-end; margin-bottom:16px;">
+        <a href="{{ url_for('voluntariado.registros_voluntariado') }}"
+           style="display:inline-flex; align-items:center; gap:6px; background:#0d6efd; color:white; border:none; border-radius:8px; padding:9px 18px; font-weight:700; font-size:14px; text-decoration:none; box-shadow:0 2px 8px rgba(13,110,253,0.3); transition:all 0.2s;">
+            <i class="ph ph-list-dashes" style="font-size:16px;"></i> Ver Registros y Estadísticas
+        </a>
+    </div>
+    {% endif %}
     <div class="card shadow">
-        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <div class="card-header bg-primary text-white">
             <h4 class="mb-0">
                 <i class="ph ph-hand-heart"></i> Formato de Registro Mensual de Horas de Voluntariado
             </h4>
-            {% if es_admin_vol %}
-            <a href="{{ url_for('voluntariado.registros_voluntariado') }}" class="btn btn-light btn-sm text-primary fw-bold">
-                <i class="ph ph-list-dashes"></i> Ver Registros y Estadísticas
-            </a>
-            {% endif %}
         </div>
         <div class="card-body">
             <div class="alert alert-info" role="alert">
