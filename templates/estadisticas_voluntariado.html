@@ -13,7 +13,8 @@
         </h3>
     </div>
 
-    <div class="card shadow-sm border-0 mb-4" style="border-radius:12px; max-width:480px;">
+    <!-- Resumen global -->
+    <div class="card shadow-sm border-0 mb-4" style="border-radius:12px; max-width:420px;">
         <div class="card-header bg-transparent border-0 pb-0 pt-3 px-4">
             <h6 class="fw-bold text-dark mb-0">
                 <i class="ph ph-list-numbers me-2 text-primary"></i>Resumen General de Registros
@@ -35,7 +36,7 @@
                                 <strong>Total Realizados</strong>
                             </span>
                         </td>
-                        <td class="text-center border-0 py-2"><span class="badge bg-primary px-3" style="font-size:13px;">{{ total_realizados }}</span></td>
+                        <td class="text-center border-0 py-2 fw-bold">{{ total_realizados }}</td>
                     </tr>
                     <tr>
                         <td class="border-0 py-2">
@@ -44,7 +45,7 @@
                                 <strong>Avalados</strong>
                             </span>
                         </td>
-                        <td class="text-center border-0 py-2"><span class="badge px-3" style="background:#10b981; font-size:13px;">{{ total_avalados }}</span></td>
+                        <td class="text-center border-0 py-2 fw-bold" style="color:#10b981;">{{ total_avalados }}</td>
                     </tr>
                     <tr>
                         <td class="border-0 py-2">
@@ -53,7 +54,7 @@
                                 <strong>Anulados</strong>
                             </span>
                         </td>
-                        <td class="text-center border-0 py-2"><span class="badge px-3" style="background:#f59e0b; font-size:13px;">{{ total_anulados }}</span></td>
+                        <td class="text-center border-0 py-2 fw-bold" style="color:#f59e0b;">{{ total_anulados }}</td>
                     </tr>
                     <tr>
                         <td class="border-0 py-2">
@@ -62,13 +63,14 @@
                                 Pendientes
                             </span>
                         </td>
-                        <td class="text-center border-0 py-2"><span class="badge bg-secondary px-3" style="font-size:13px;">{{ total_realizados - total_avalados - total_anulados }}</span></td>
+                        <td class="text-center border-0 py-2 fw-bold text-muted">{{ total_realizados - total_avalados - total_anulados }}</td>
                     </tr>
                 </tbody>
             </table>
         </div>
     </div>
 
+    <!-- Tabla por voluntario -->
     <div class="card shadow-sm border-0" style="border-radius:12px;">
         <div class="card-header bg-transparent border-0 pt-3 pb-0 px-4">
             <h5 class="fw-bold text-dark mb-0">
@@ -101,22 +103,23 @@
                                 </span>
                             </td>
                             <td class="py-3 text-muted">{{ stats.identificacion or '-' }}</td>
-                            <td class="py-3 text-center"><span class="badge bg-primary px-3">{{ stats.realizados }}</span></td>
-                            <td class="py-3 text-center"><span class="badge px-3" style="background:#10b981;">{{ stats.avalados }}</span></td>
-                            <td class="py-3 text-center"><span class="badge px-3" style="background:#f59e0b;">{{ stats.anulados }}</span></td>
+                            <td class="py-3 text-center fw-bold">{{ stats.realizados }}</td>
+                            <td class="py-3 text-center fw-bold" style="color:#10b981;">{{ stats.avalados }}</td>
+                            <td class="py-3 text-center fw-bold" style="color:#f59e0b;">{{ stats.anulados }}</td>
                             <td class="py-3 text-center">
                                 <span class="fw-bold" style="color:#0d6efd; font-size:15px;">{{ stats.horas_str }}</span>
                                 <small class="text-muted d-block" style="font-size:11px;">horas</small>
                             </td>
                         </tr>
                         {% endfor %}
+                        <!-- Fila totales -->
                         <tr style="background:#f0f4ff; border-top:2px solid #dee2e6;">
                             <td class="px-4 py-3" colspan="2">
                                 <strong style="color:#0d6efd; font-size:14px;"><i class="ph ph-sigma me-1"></i>TOTAL GENERAL</strong>
                             </td>
-                            <td class="py-3 text-center"><span class="badge bg-primary px-3">{{ total_realizados }}</span></td>
-                            <td class="py-3 text-center"><span class="badge px-3" style="background:#10b981;">{{ total_avalados }}</span></td>
-                            <td class="py-3 text-center"><span class="badge px-3" style="background:#f59e0b;">{{ total_anulados }}</span></td>
+                            <td class="py-3 text-center fw-bold">{{ total_realizados }}</td>
+                            <td class="py-3 text-center fw-bold" style="color:#10b981;">{{ total_avalados }}</td>
+                            <td class="py-3 text-center fw-bold" style="color:#f59e0b;">{{ total_anulados }}</td>
                             <td class="py-3 text-center">
                                 <span class="fw-bold" style="color:#0d6efd; font-size:17px;">{{ total_horas }}</span>
                                 <small class="text-muted d-block" style="font-size:11px;">horas</small>
