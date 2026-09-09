@@ -19,15 +19,25 @@ def is_admin_vol():
 def get_configuracion():
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM configuracion ORDER BY id DESC LIMIT 1")
-    # Para obtener un diccionario (usamos conn.cursor(dictionary=True) no está disponible en este wrapper, así que obtenemos los nombres de columnas manual si falla, o usamos el index)
-    # Sin embargo, el CustomConnection de este repo tiene un método execute o devuelve un cursor mysql?
-    cfg = cursor.fetchone()
+    cursor.execute("SELECT clave, valor FROM configuracion")
+    rows = cursor.fetchall()
     conn.close()
-    if cfg:
-        # Si es tuple, lo convertimos (sabemos que id, logo_url son columnas). Para simplificar, mejor retornamos dict si es posible.
-        pass
-    return cfg
+    cfg = {}
+    for row in rows:
+        if isinstance(row, dict):
+            cfg[row['clave']] = row['valor']
+        else:
+            cfg[row[0]] = row[1]
+    # Expose as object-like dict with common keys mapped to attribute names
+    return {
+        'logo_url': cfg.get('logo'),
+        'nombre_institucion': cfg.get('nombre_institucion', ''),
+        'subtitulo_institucion': cfg.get('subtitulo_institucion', ''),
+        'nit': cfg.get('nit', ''),
+        'nombre_sistema': cfg.get('nombre_sistema', ''),
+        'marca_agua': cfg.get('marca_agua'),
+        **cfg
+    }
 
 @routes_voluntariado.route('/voluntariado', methods=['GET', 'POST'])
 def form_voluntariado():

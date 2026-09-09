@@ -66,14 +66,20 @@
                                 <div class="d-flex flex-nowrap align-items-center justify-content-center gap-2">
                                     {% if es_admin_vol and row.estado != 'Avalado' %}
                                     <form id="form-avalar-{{ row.id }}" method="POST" action="{{ url_for('voluntariado.avalar_registro', record_id=row.id) }}" class="m-0 p-0">
-                                        <button type="button" onclick="confirmarAval('form-avalar-{{ row.id }}')" class="btn btn-sm text-white shadow-sm" style="background:#10b981; border:1px solid #10b981; border-radius:6px; font-weight:600; font-size:12px; display:inline-flex; align-items:center; justify-content:center; gap:4px; cursor:pointer; transition:all 0.2s;" title="Avalar Registro">
-                                            <i class="ph ph-check-circle" style="font-size:14px;"></i> Avalar
+                                        <button type="button" onclick="confirmarAval('form-avalar-{{ row.id }}')"
+                                            class="btn btn-sm fw-semibold text-white"
+                                            style="background: linear-gradient(135deg, #10b981, #059669); border: none; border-radius: 20px; padding: 5px 13px; font-size: 12px; display: inline-flex; align-items: center; gap: 5px; box-shadow: 0 2px 6px rgba(16,185,129,0.35); transition: all 0.2s;"
+                                            title="Avalar Registro">
+                                            <i class="ph ph-check-circle" style="font-size:15px;"></i> Avalar
                                         </button>
                                     </form>
                                     {% endif %}
                                     
-                                    <a href="{{ url_for('voluntariado.imprimir_voluntariado', record_id=row.id) }}" target="_blank" class="btn btn-sm shadow-sm" style="background:white; color:#ef4444; border:1px solid #ef4444; border-radius:6px; text-decoration:none; font-weight:600; font-size:12px; display:inline-flex; align-items:center; justify-content:center; gap:4px; transition:all 0.2s;" title="Generar PDF Formal">
-                                        <i class="ph ph-file-pdf" style="font-size:14px;"></i> PDF
+                                    <a href="{{ url_for('voluntariado.imprimir_voluntariado', record_id=row.id) }}" target="_blank"
+                                        class="btn btn-sm fw-semibold"
+                                        style="background: white; color: #ef4444; border: 1.5px solid #ef4444; border-radius: 20px; padding: 5px 13px; font-size: 12px; display: inline-flex; align-items: center; gap: 5px; box-shadow: 0 2px 5px rgba(239,68,68,0.15); transition: all 0.2s; text-decoration: none;"
+                                        title="Generar PDF">
+                                        <i class="ph ph-file-pdf" style="font-size:15px;"></i> PDF
                                     </a>
                                 </div>
                             </td>
