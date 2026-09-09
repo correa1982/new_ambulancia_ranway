@@ -824,6 +824,68 @@ def init_db():
             registrado_por INT
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
     """)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS registro_voluntariado (
+            id INTEGER PRIMARY KEY AUTO_INCREMENT,
+            fecha TEXT NOT NULL,
+            hora_inicio TEXT,
+            hora_fin TEXT,
+            disponibilidad TEXT,
+            disponibilidad_otro TEXT,
+            total_horas TEXT,
+            actividad_realizada TEXT,
+            observaciones TEXT,
+            estado VARCHAR(50) DEFAULT 'Pendiente',
+            registrado_por TEXT,
+            registrado_por_identificacion TEXT,
+            perfil_registrador TEXT,
+            firma_registrador TEXT,
+            fecha_registro TEXT,
+            avalado_por TEXT,
+            avalado_por_identificacion TEXT,
+            firma_avalador TEXT,
+            fecha_aval TEXT
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+    """)
+
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS reporte_actividades (
+            id INTEGER PRIMARY KEY AUTO_INCREMENT,
+            nombre_evento TEXT NOT NULL,
+            fecha_evento TEXT NOT NULL,
+            lugar_evento TEXT NOT NULL,
+            hora_inicio TEXT NOT NULL,
+            hora_fin TEXT NOT NULL,
+            tipo_servicio TEXT NOT NULL,
+            
+            ambulancia_tab TEXT,
+            ambulancia_tam TEXT,
+            pasm TEXT,
+            pasb TEXT,
+            equipos_intervencion TEXT,
+            moto_aph TEXT,
+            unidad_rescate TEXT,
+            unidad_logistica TEXT,
+            
+            total_personal TEXT NOT NULL,
+            pacientes_atendidos TEXT NOT NULL,
+            pacientes_trasladados TEXT NOT NULL,
+            observaciones TEXT,
+            
+            estado VARCHAR(50) DEFAULT 'Pendiente',
+            
+            registrado_por TEXT,
+            registrado_por_identificacion TEXT,
+            perfil_registrador TEXT,
+            firma_registrador TEXT,
+            fecha_registro TEXT,
+            
+            avalado_por TEXT,
+            avalado_por_identificacion TEXT,
+            firma_avalador TEXT,
+            fecha_aval TEXT
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+    """)
 
     conn.execute("""
         CREATE TABLE IF NOT EXISTS registro_voluntariado (

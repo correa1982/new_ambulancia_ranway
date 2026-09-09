@@ -1,75 +1,97 @@
 {% extends "base.html" %}
-{% block title %}Registro de Horas de Voluntariado{% endblock %}
+{% block title %}Registro Mensual de Horas de Voluntariado{% endblock %}
 {% block content %}
 <div class="container mt-4 mb-5">
+    {% if es_admin_vol %}
+    <div style="display:flex; justify-content:flex-end; margin-bottom:16px;">
+        <a href="{{ url_for('voluntariado.registros_voluntariado') }}"
+           style="display:inline-flex; align-items:center; gap:6px; background:#0d6efd; color:white; border:none; border-radius:8px; padding:9px 18px; font-weight:700; font-size:14px; text-decoration:none; box-shadow:0 2px 8px rgba(13,110,253,0.3); transition:all 0.2s;">
+            <i class="ph ph-list-dashes" style="font-size:16px;"></i> Ver Registros y Estadísticas
+        </a>
+    </div>
+    {% endif %}
     <div class="card shadow">
         <div class="card-header bg-primary text-white">
-            <h3 class="mb-0 text-white">Formato de Registro Mensual de Horas de Voluntariado</h3>
+            <h4 class="mb-0">
+                <i class="ph ph-hand-heart"></i> Formato de Registro Mensual de Horas de Voluntariado
+            </h4>
         </div>
         <div class="card-body">
             <div class="alert alert-info" role="alert">
-                <strong>Referencia normativa (Colombia):</strong>
+                <h5 class="alert-heading">Referencia normativa (Colombia):</h5>
                 <ul class="mb-0">
                     <li>Ley 1575 de 2012 (Sistema Nacional de Bomberos).</li>
                     <li>Ley 1523 de 2012 (Gestión del Riesgo de Desastres).</li>
                 </ul>
             </div>
-
-            <form method="POST" action="{{ url_for('form_voluntariado') }}">
-                <div class="row">
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label fw-bold">Fecha</label>
-                        <input type="date" class="form-control" name="fecha" value="{{ hoy }}" required>
+            
+            <form action="{{ url_for('voluntariado.form_voluntariado') }}" method="POST">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Fecha <span class="text-danger">*</span></label>
+                        <input type="date" class="form-control" name="fecha" required>
                     </div>
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label fw-bold">Hora Inicio</label>
-                        <input type="time" class="form-control" name="hora_inicio" id="hora_inicio" required onchange="calcularHoras()">
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Hora Inicio <span class="text-danger">*</span></label>
+                        <input type="time" class="form-control" id="hora_inicio" name="hora_inicio" required onchange="calcularHoras()">
                     </div>
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label fw-bold">Hora Fin</label>
-                        <input type="time" class="form-control" name="hora_fin" id="hora_fin" required onchange="calcularHoras()">
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Hora Fin <span class="text-danger">*</span></label>
+                        <input type="time" class="form-control" id="hora_fin" name="hora_fin" required onchange="calcularHoras()">
                     </div>
                 </div>
 
-                <div class="row">
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label fw-bold">Disponibilidad</label>
+                <div class="row g-3 mt-2">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Disponibilidad <span class="text-danger">*</span></label>
                         <select class="form-select" name="disponibilidad" id="disponibilidad" required onchange="toggleOtro()">
-                            <option value="">Seleccione...</option>
+                            <option value="" disabled selected>Seleccione...</option>
                             <option value="VIR">VIR</option>
                             <option value="AMBULANCIA">AMBULANCIA</option>
                             <option value="OTRO">OTRO</option>
                         </select>
                     </div>
-                    <div class="col-md-4 mb-3" id="div_disponibilidad_otro" style="display: none;">
-                        <label class="form-label fw-bold">Especifique "Otro"</label>
+                    <div class="col-md-6" id="div_otro" style="display: none;">
+                        <label class="form-label fw-bold">Especifique (OTRO)</label>
                         <input type="text" class="form-control" name="disponibilidad_otro" id="disponibilidad_otro">
                     </div>
-                    <div class="col-md-4 mb-3">
+                </div>
+
+                <div class="row g-3 mt-2">
+                    <div class="col-md-6">
                         <label class="form-label fw-bold">Total Horas</label>
-                        <input type="text" class="form-control" name="total_horas" id="total_horas" readonly style="background-color: #e9ecef;">
+                        <input type="text" class="form-control bg-light" id="total_horas" name="total_horas" readonly>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Actividad Realizada <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="actividad_realizada" required>
                     </div>
                 </div>
 
-                <div class="mb-3">
-                    <label class="form-label fw-bold">Actividad Realizada</label>
-                    <textarea class="form-control" name="actividad_realizada" rows="3" required></textarea>
+                <div class="row g-3 mt-2">
+                    <div class="col-12">
+                        <label class="form-label fw-bold">Observaciones</label>
+                        <textarea class="form-control" name="observaciones" rows="3"></textarea>
+                    </div>
                 </div>
 
-                <div class="mb-3">
-                    <label class="form-label fw-bold">Observaciones</label>
-                    <textarea class="form-control" name="observaciones" rows="2"></textarea>
+                <div class="mt-4 p-3 bg-light rounded text-center">
+                    <p class="mb-2 fw-bold text-muted">Responsable del Registro</p>
+                    <p class="mb-0" style="font-size: 1.1rem;">
+                        <i class="ph ph-user-circle"></i> <strong>{{ session.usuario.nombre }}</strong>
+                    </p>
+                    <p class="mb-0 text-muted" style="font-size: 0.9rem;">Al enviar este formulario, su firma electrónica quedará registrada.</p>
                 </div>
 
-                <div class="mb-4">
-                    <label class="form-label fw-bold">Responsable del Registro</label>
-                    <input type="text" class="form-control" value="{{ usuario.nombre }} ({{ usuario.identificacion }})" readonly disabled>
-                    <small class="text-muted">La firma electrónica se adjuntará automáticamente al guardar.</small>
-                </div>
-
-                <div class="d-flex justify-content-between">
-                    <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">Cancelar</a>
-                    <button type="submit" class="btn btn-success"><i class="ph ph-floppy-disk"></i> Guardar Registro</button>
+                <div class="mt-4 d-flex justify-content-end gap-2">
+                    <a href="{{ url_for('dashboard') }}"
+                       style="display:inline-flex; align-items:center; gap:6px; background:#6c757d; color:white; border:none; border-radius:8px; padding:9px 18px; font-weight:700; font-size:14px; text-decoration:none; transition:all 0.2s;">
+                        <i class="ph ph-x" style="font-size:16px;"></i> Cancelar
+                    </a>
+                    <button type="button" onclick="confirmarEnvio()"
+                       style="display:inline-flex; align-items:center; gap:6px; background:linear-gradient(135deg,#0d6efd,#0a58ca); color:white; border:none; border-radius:8px; padding:9px 20px; font-weight:700; font-size:14px; cursor:pointer; box-shadow:0 3px 10px rgba(13,110,253,0.35); transition:all 0.2s;">
+                        <i class="ph ph-floppy-disk" style="font-size:16px;"></i> Guardar Registro
+                    </button>
                 </div>
             </form>
         </div>
@@ -77,49 +99,62 @@
 </div>
 
 <script>
-    function toggleOtro() {
-        const select = document.getElementById("disponibilidad");
-        const divOtro = document.getElementById("div_disponibilidad_otro");
-        const inputOtro = document.getElementById("disponibilidad_otro");
-        
-        if (select.value === "OTRO") {
-            divOtro.style.display = "block";
-            inputOtro.required = true;
-        } else {
-            divOtro.style.display = "none";
-            inputOtro.required = false;
-            inputOtro.value = "";
-        }
+function toggleOtro() {
+    var sel = document.getElementById('disponibilidad').value;
+    var div = document.getElementById('div_otro');
+    var input = document.getElementById('disponibilidad_otro');
+    if (sel === 'OTRO') {
+        div.style.display = 'block';
+        input.required = true;
+    } else {
+        div.style.display = 'none';
+        input.required = false;
+        input.value = '';
     }
+}
 
-    function calcularHoras() {
-        const horaInicio = document.getElementById("hora_inicio").value;
-        const horaFin = document.getElementById("hora_fin").value;
+function calcularHoras() {
+    var ini = document.getElementById('hora_inicio').value;
+    var fin = document.getElementById('hora_fin').value;
+    
+    if (ini && fin) {
+        var start = new Date("01/01/2000 " + ini);
+        var end = new Date("01/01/2000 " + fin);
         
-        if (horaInicio && horaFin) {
-            const [hInicio, mInicio] = horaInicio.split(":").map(Number);
-            const [hFin, mFin] = horaFin.split(":").map(Number);
-            
-            let dateInicio = new Date();
-            dateInicio.setHours(hInicio, mInicio, 0, 0);
-            
-            let dateFin = new Date();
-            dateFin.setHours(hFin, mFin, 0, 0);
-            
-            // Si la hora final es menor que la inicial, asumimos que pasa al día siguiente
-            if (dateFin < dateInicio) {
-                dateFin.setDate(dateFin.getDate() + 1);
-            }
-            
-            const diffMs = dateFin - dateInicio;
-            const diffMins = Math.floor(diffMs / 60000);
-            const hours = Math.floor(diffMins / 60);
-            const mins = diffMins % 60;
-            
-            // Format to show decimal hours or string like "2 h 30 m"
-            // The requirement says Total Horas, it's better to store a readable string or decimal. Let's do string.
-            document.getElementById("total_horas").value = hours + "h " + mins + "m";
+        if (end < start) {
+            end.setDate(end.getDate() + 1);
         }
+        
+        var diff = end - start;
+        var m = Math.floor((diff/1000)/60);
+        var h = Math.floor(m/60);
+        m = m % 60;
+        
+        document.getElementById('total_horas').value = h + ":" + (m < 10 ? '0' : '') + m;
     }
+}
+
+function confirmarEnvio() {
+    Swal.fire({
+        title: '\u00bfGuardar Registro?',
+        html: '<p style="margin:0; color:#555;">Al guardar, tu <strong>firma electr\u00f3nica</strong> quedar\u00e1 registrada en el sistema.</p>',
+        icon: 'question',
+        iconColor: '#0d6efd',
+        showCancelButton: true,
+        confirmButtonText: '<i class="ph ph-floppy-disk"></i>&nbsp; S\u00ed, Guardar',
+        cancelButtonText: '<i class="ph ph-x"></i>&nbsp; Cancelar',
+        confirmButtonColor: '#0d6efd',
+        cancelButtonColor: '#6c757d',
+        customClass: {
+            popup: 'swal2-custom-popup',
+            confirmButton: 'swal-btn-confirm',
+            cancelButton: 'swal-btn-cancel'
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            document.querySelector('form').submit();
+        }
+    });
+}
 </script>
 {% endblock %}

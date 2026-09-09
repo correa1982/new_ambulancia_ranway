@@ -2,84 +2,108 @@
 {% block title %}Registros de Voluntariado{% endblock %}
 {% block content %}
 <div class="container-fluid mt-4 mb-5">
-<div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:20px; padding-bottom:14px; border-bottom:2px solid #dbeafe;">
-    <div style="display:flex; align-items:center; gap:15px;">
-        <a href="{{ url_for('dashboard') }}" style="display:inline-flex; align-items:center; gap:6px; background:#f8fafc; color:#475569; border:1px solid #cbd5e1; padding:8px 16px; border-radius:8px; text-decoration:none; font-weight:600; font-size:13px; transition: all 0.2s; box-shadow: 0 1px 2px rgba(0,0,0,0.05);" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#f8fafc'">
-            <i class="ph ph-arrow-left"></i> Volver
-        </a>
-        <h1 style="margin:0; padding:0; border:none; font-size:20px; color:#1e40af;"><i class="ph ph-hand-heart"></i> Registros de Voluntariado</h1>
+    <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:12px; margin-bottom:24px;">
+        <div style="display:flex; align-items:center; gap:12px;">
+            <a href="{{ url_for('dashboard') }}"
+               style="display:inline-flex; align-items:center; gap:6px; background:#6c757d; color:white; border:none; border-radius:8px; padding:9px 18px; font-weight:700; font-size:14px; text-decoration:none; box-shadow:0 2px 6px rgba(0,0,0,0.15); transition:all 0.2s;">
+                <i class="ph ph-arrow-left" style="font-size:16px;"></i> Volver
+            </a>
+            <h3 style="margin:0; font-weight:700; color:#0d6efd; display:flex; align-items:center; gap:8px;">
+                <i class="ph ph-hand-heart"></i> Registros de Voluntariado
+            </h3>
+        </div>
+        <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
+            {% if es_admin_vol %}
+            <a href="{{ url_for('voluntariado.anulados_voluntariado') }}"
+               style="display:inline-flex; align-items:center; gap:6px; background:white; color:#dc3545; border:2px solid #dc3545; border-radius:8px; padding:8px 16px; font-weight:700; font-size:14px; text-decoration:none; box-shadow:0 2px 5px rgba(220,53,69,0.15); transition:all 0.2s;">
+                <i class="ph ph-x-circle" style="font-size:16px;"></i> Anulados
+            </a>
+            <a href="{{ url_for('voluntariado.estadisticas_voluntariado') }}"
+               style="display:inline-flex; align-items:center; gap:6px; background:#0dcaf0; color:white; border:none; border-radius:8px; padding:9px 16px; font-weight:700; font-size:14px; text-decoration:none; box-shadow:0 2px 6px rgba(13,202,240,0.3); transition:all 0.2s;">
+                <i class="ph ph-chart-bar" style="font-size:16px;"></i> Estadísticas
+            </a>
+            {% endif %}
+            <a href="{{ url_for('voluntariado.form_voluntariado') }}"
+               style="display:inline-flex; align-items:center; gap:6px; background:#0d6efd; color:white; border:none; border-radius:8px; padding:9px 16px; font-weight:700; font-size:14px; text-decoration:none; box-shadow:0 2px 8px rgba(13,110,253,0.3); transition:all 0.2s;">
+                <i class="ph ph-plus-circle" style="font-size:16px;"></i> Nuevo Registro
+            </a>
+        </div>
     </div>
 
-    <div style="display:flex; gap:10px; flex-wrap:wrap;">
-        {% if es_admin_vol %}
-        <a href="{{ url_for('estadisticas_voluntariado') }}" style="display:inline-flex; align-items:center; gap:6px; background:#0ea5e9; color:white; border:none; padding:8px 16px; border-radius:8px; text-decoration:none; font-weight:600; font-size:13px; transition: all 0.2s; box-shadow: 0 2px 4px rgba(14,165,233,0.2);" onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 8px rgba(14,165,233,0.3)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 4px rgba(14,165,233,0.2)'">
-            <i class="ph ph-chart-bar" style="font-size: 16px;"></i> Estadísticas Globales
-        </a>
-        {% endif %}
-        <a href="{{ url_for('form_voluntariado') }}" style="display:inline-flex; align-items:center; gap:6px; background:#2563eb; color:white; border:none; padding:8px 16px; border-radius:8px; text-decoration:none; font-weight:600; font-size:13px; transition: all 0.2s; box-shadow: 0 2px 4px rgba(37,99,235,0.2);" onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 8px rgba(37,99,235,0.3)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 4px rgba(37,99,235,0.2)'">
-            <i class="ph ph-plus-circle" style="font-size: 16px;"></i> Nuevo Registro
-        </a>
-    </div>
-</div>
-
-    <div class="card shadow-sm border-0">
+    <div class="card shadow-sm">
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover table-striped align-middle mb-0">
+                <table class="table table-hover align-middle mb-0">
                     <thead class="table-light">
                         <tr>
                             <th>ID</th>
-                            <th>Fecha</th>
-                            <th>Horario</th>
-                            <th>Disponibilidad</th>
-                            <th>Total Horas</th>
-                            <th>Estado</th>
-                            <th>Registrado Por</th>
-                            <th class="text-center">Acciones</th>
+                            <th>FECHA</th>
+                            <th>HORARIO</th>
+                            <th>DISPONIBILIDAD</th>
+                            <th>ACTIVIDAD</th>
+                            <th>ESTADO</th>
+                            <th>VOLUNTARIO</th>
+                            <th class="text-center">ACCIONES</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for row in registros %}
                         <tr>
-                            <td><strong>#{{ row.id }}</strong></td>
+                            <td class="fw-bold text-muted">#{{ row.id }}</td>
                             <td>{{ row.fecha }}</td>
-                            <td>{{ row.hora_inicio }} - {{ row.hora_fin }}</td>
+                            <td>{{ row.hora_inicio }} - {{ row.hora_fin }}<br><small class="text-muted">Total: {{ row.total_horas }} hrs</small></td>
                             <td>
-                                {% if row.disponibilidad == 'OTRO' %}
-                                    <span class="badge bg-secondary">Otro: {{ row.disponibilidad_otro }}</span>
-                                {% else %}
-                                    <span class="badge bg-primary">{{ row.disponibilidad }}</span>
-                                {% endif %}
+                                <span class="badge bg-secondary">
+                                    {{ row.disponibilidad }}
+                                    {% if row.disponibilidad == 'OTRO' and row.disponibilidad_otro %}
+                                        ({{ row.disponibilidad_otro }})
+                                    {% endif %}
+                                </span>
                             </td>
-                            <td><strong>{{ row.total_horas }}</strong></td>
+                            <td>{{ row.actividad_realizada }}</td>
                             <td>
                                 {% if row.estado == 'Avalado' %}
-                                    <span class="badge bg-success"><i class="ph ph-check-circle"></i> Avalado</span>
+                                    <span class="text-success fw-bold"><i class="ph ph-check-circle"></i> Avalado</span>
                                 {% else %}
-                                    <span class="badge bg-warning text-dark"><i class="ph ph-clock"></i> Pendiente</span>
+                                    <span class="text-warning fw-bold"><i class="ph ph-clock"></i> Pendiente</span>
                                 {% endif %}
                             </td>
                             <td>{{ row.registrado_por }}</td>
-                            <td class="text-center">
-                                <div style="display:inline-flex; align-items:center; gap:8px;">
+                            <td class="text-center align-middle">
+                                <div class="d-flex flex-nowrap align-items-center justify-content-center gap-2">
                                     {% if es_admin_vol and row.estado != 'Avalado' %}
-                                    <form id="form-avalar-{{ row.id }}" method="POST" action="{{ url_for('avalar_voluntariado', record_id=row.id) }}" style="margin:0;">
-                                        <button type="button" onclick="confirmarAval('form-avalar-{{ row.id }}')" style="background:#10b981; color:white; border:1px solid #10b981; padding:5px 11px; border-radius:6px; font-weight:600; font-size:12px; display:inline-flex; align-items:center; justify-content:center; gap:4px; cursor:pointer; transition:all 0.2s; box-shadow:0 2px 4px rgba(16,185,129,0.2);" onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 8px rgba(16,185,129,0.3)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 4px rgba(16,185,129,0.2)'" title="Avalar Registro">
-                                            <i class="ph ph-check-circle" style="font-size:14px;"></i> Avalar
+                                    <form id="form-avalar-{{ row.id }}" method="POST" action="{{ url_for('voluntariado.avalar_registro', record_id=row.id) }}" class="m-0 p-0">
+                                        <button type="button" onclick="confirmarAval('form-avalar-{{ row.id }}')"
+                                            class="btn btn-sm fw-semibold text-white"
+                                            style="background: linear-gradient(135deg, #10b981, #059669); border: none; border-radius: 20px; padding: 5px 13px; font-size: 12px; display: inline-flex; align-items: center; gap: 5px; box-shadow: 0 2px 6px rgba(16,185,129,0.35); transition: all 0.2s;"
+                                            title="Avalar Registro">
+                                            <i class="ph ph-check-circle" style="font-size:15px;"></i> Avalar
+                                        </button>
+                                    </form>
+                                    <form id="form-anular-{{ row.id }}" method="POST" action="{{ url_for('voluntariado.anular_registro', record_id=row.id) }}" class="m-0 p-0">
+                                        <button type="button" onclick="confirmarAnular('form-anular-{{ row.id }}')"
+                                            class="btn btn-sm fw-semibold text-white"
+                                            style="background: linear-gradient(135deg, #f59e0b, #d97706); border: none; border-radius: 20px; padding: 5px 13px; font-size: 12px; display: inline-flex; align-items: center; gap: 5px; box-shadow: 0 2px 6px rgba(245,158,11,0.35); transition: all 0.2s;"
+                                            title="Anular Registro">
+                                            <i class="ph ph-x-circle" style="font-size:15px;"></i> Anular
                                         </button>
                                     </form>
                                     {% endif %}
-                                    <a href="{{ url_for('imprimir_voluntariado', record_id=row.id) }}" target="_blank" style="background:white; color:#ef4444; border:1px solid #ef4444; padding:5px 11px; border-radius:6px; text-decoration:none; font-weight:600; font-size:12px; display:inline-flex; align-items:center; justify-content:center; gap:4px; transition:all 0.2s; box-shadow:0 1px 2px rgba(239,68,68,0.1);" onmouseover="this.style.background='#fef2f2'; this.style.transform='translateY(-1px)'; this.style.boxShadow='0 2px 4px rgba(239,68,68,0.2)'" onmouseout="this.style.background='white'; this.style.transform='translateY(0)'; this.style.boxShadow='0 1px 2px rgba(239,68,68,0.1)'" title="Generar PDF Formal">
-                                        <i class="ph ph-file-pdf" style="font-size:14px;"></i> PDF
+                                    
+                                    <a href="{{ url_for('voluntariado.imprimir_voluntariado', record_id=row.id) }}" target="_blank"
+                                        class="btn btn-sm fw-semibold"
+                                        style="background: white; color: #ef4444; border: 1.5px solid #ef4444; border-radius: 20px; padding: 5px 13px; font-size: 12px; display: inline-flex; align-items: center; gap: 5px; box-shadow: 0 2px 5px rgba(239,68,68,0.15); transition: all 0.2s; text-decoration: none;"
+                                        title="Generar PDF">
+                                        <i class="ph ph-file-pdf" style="font-size:15px;"></i> PDF
                                     </a>
                                 </div>
                             </td>
                         </tr>
                         {% else %}
                         <tr>
-                            <td colspan="9" class="text-center text-muted py-4">
+                            <td colspan="8" class="text-center text-muted py-4">
                                 <i class="ph ph-folder-open d-block mb-2" style="font-size: 2rem;"></i>
-                                No se encontraron registros de voluntariado.
+                                No hay registros de voluntariado.
                             </td>
                         </tr>
                         {% endfor %}
@@ -91,25 +115,36 @@
 </div>
 
 <script>
-    function confirmarAval(formId) {
-        Swal.fire({
-            title: '¿Confirmar Aval?',
-            text: "Una vez avalado, este registro sumará en las estadísticas globales de voluntariado.",
-            icon: 'info',
-            showCancelButton: true,
-            confirmButtonText: 'Sí, Avalar',
-            cancelButtonText: 'Cancelar',
-            customClass: {
-                popup: 'swal2-custom-popup',
-                title: 'swal2-custom-title',
-                confirmButton: 'swal2-custom-confirm',
-                cancelButton: 'swal2-custom-cancel'
-            }
-        }).then((result) => {
-            if (result.isConfirmed) {
-                document.getElementById(formId).submit();
-            }
-        });
-    }
+function confirmarAval(formId) {
+    Swal.fire({
+        title: '¿Confirmar Aval?',
+        text: "Una vez avalado, este registro sumará horas a las estadísticas del voluntario.",
+        icon: 'info',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, Avalar',
+        cancelButtonText: 'Cancelar',
+        confirmButtonColor: '#10b981'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            document.getElementById(formId).submit();
+        }
+    });
+}
+
+function confirmarAnular(formId) {
+    Swal.fire({
+        title: '¿Anular Registro?',
+        text: "El registro pasará a la lista de anulados y NO afectará las estadísticas del voluntario.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, Anular',
+        cancelButtonText: 'Cancelar',
+        confirmButtonColor: '#f59e0b'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            document.getElementById(formId).submit();
+        }
+    });
+}
 </script>
 {% endblock %}

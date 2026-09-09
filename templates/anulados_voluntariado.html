@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Registros Anulados - Voluntariado{% endblock %}
+{% block content %}
+<div class="container-fluid mt-4 mb-5">
+    <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:12px; margin-bottom:24px;">
+        <div style="display:flex; align-items:center; gap:12px;">
+            <a href="{{ url_for('voluntariado.registros_voluntariado') }}"
+               style="display:inline-flex; align-items:center; gap:6px; background:#6c757d; color:white; border:none; border-radius:8px; padding:9px 18px; font-weight:700; font-size:14px; text-decoration:none; box-shadow:0 2px 6px rgba(0,0,0,0.15);">
+                <i class="ph ph-arrow-left" style="font-size:16px;"></i> Volver a Registros
+            </a>
+            <h3 style="margin:0; font-weight:700; color:#dc3545; display:flex; align-items:center; gap:8px;">
+                <i class="ph ph-x-circle"></i> Registros Anulados - Voluntariado
+            </h3>
+        </div>
+    </div>
+    <div class="card shadow-sm border-danger">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th><th>FECHA</th><th>HORARIO</th>
+                            <th>DISPONIBILIDAD</th><th>ACTIVIDAD</th><th>VOLUNTARIO</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in registros %}
+                        <tr class="table-secondary text-muted">
+                            <td><strong>#{{ row.id }}</strong></td>
+                            <td>{{ row.fecha }}</td>
+                            <td>{{ row.hora_inicio }} - {{ row.hora_fin }}<br><small class="text-muted">Total: {{ row.total_horas }} hrs</small></td>
+                            <td><span class="badge bg-secondary">{{ row.disponibilidad }}{% if row.disponibilidad == 'OTRO' and row.disponibilidad_otro %} ({{ row.disponibilidad_otro }}){% endif %}</span></td>
+                            <td>{{ row.actividad_realizada }}</td>
+                            <td>{{ row.registrado_por }}</td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="6" class="text-center text-muted py-4">
+                            <i class="ph ph-folder-open d-block mb-2" style="font-size: 2rem;"></i>
+                            No hay registros anulados.
+                        </td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="alert alert-warning mt-3 d-flex align-items-center gap-2" style="border-radius:10px;">
+        <i class="ph ph-info" style="font-size:1.4rem;"></i>
+        <span>Los registros anulados <strong>no afectan</strong> las estadisticas de horas de ningun voluntario.</span>
+    </div>
+</div>
+{% endblock %}
