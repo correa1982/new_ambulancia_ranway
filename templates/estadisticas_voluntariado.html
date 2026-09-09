@@ -2,67 +2,142 @@
 {% block title %}Estadísticas de Voluntariado{% endblock %}
 {% block content %}
 <div class="container-fluid mt-4 mb-5">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <a href="{{ url_for('voluntariado.registros_voluntariado') }}" class="btn btn-secondary text-white fw-bold me-3 shadow-sm" style="border-radius: 8px; padding: 8px 16px; transition: all 0.3s ease;">
-                <i class="ph ph-arrow-left" style="font-size: 1.1em; margin-right: 5px;"></i> Volver a Registros
-            </a>
-            <h3 class="d-inline-block mb-0 text-primary fw-bold" style="vertical-align: middle;">
-                <i class="ph ph-chart-bar"></i> Estadísticas de Voluntariado
-            </h3>
+
+    <div style="display:flex; align-items:center; gap:12px; margin-bottom:24px;">
+        <a href="{{ url_for('voluntariado.registros_voluntariado') }}"
+           style="display:inline-flex; align-items:center; gap:6px; background:#6c757d; color:white; border:none; border-radius:8px; padding:9px 18px; font-weight:700; font-size:14px; text-decoration:none; box-shadow:0 2px 6px rgba(0,0,0,0.15);">
+            <i class="ph ph-arrow-left" style="font-size:16px;"></i> Volver a Registros
+        </a>
+        <h3 style="margin:0; font-weight:700; color:#0d6efd; display:flex; align-items:center; gap:8px;">
+            <i class="ph ph-chart-bar"></i> Estadísticas de Voluntariado
+        </h3>
+    </div>
+
+    <!-- Resumen global -->
+    <div class="card shadow-sm border-0 mb-4" style="border-radius:12px; max-width:420px;">
+        <div class="card-header bg-transparent border-0 pb-0 pt-3 px-4">
+            <h6 class="fw-bold text-dark mb-0">
+                <i class="ph ph-list-numbers me-2 text-primary"></i>Resumen General de Registros
+            </h6>
+        </div>
+        <div class="card-body px-4 pb-3 pt-2">
+            <table class="table table-sm mb-0">
+                <thead>
+                    <tr style="font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color:#999;">
+                        <th class="border-0 pb-1">Estado</th>
+                        <th class="border-0 pb-1 text-center">Cantidad</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="border-0 py-2">
+                            <span style="display:inline-flex; align-items:center; gap:7px;">
+                                <span style="width:9px; height:9px; border-radius:50%; background:#0d6efd; display:inline-block;"></span>
+                                <strong>Total Realizados</strong>
+                            </span>
+                        </td>
+                        <td class="text-center border-0 py-2 fw-bold">{{ total_realizados }}</td>
+                    </tr>
+                    <tr>
+                        <td class="border-0 py-2">
+                            <span style="display:inline-flex; align-items:center; gap:7px;">
+                                <span style="width:9px; height:9px; border-radius:50%; background:#10b981; display:inline-block;"></span>
+                                <strong>Avalados</strong>
+                            </span>
+                        </td>
+                        <td class="text-center border-0 py-2 fw-bold" style="color:#10b981;">{{ total_avalados }}</td>
+                    </tr>
+                    <tr>
+                        <td class="border-0 py-2">
+                            <span style="display:inline-flex; align-items:center; gap:7px;">
+                                <span style="width:9px; height:9px; border-radius:50%; background:#f59e0b; display:inline-block;"></span>
+                                <strong>Anulados</strong>
+                            </span>
+                        </td>
+                        <td class="text-center border-0 py-2 fw-bold" style="color:#f59e0b;">{{ total_anulados }}</td>
+                    </tr>
+                    <tr>
+                        <td class="border-0 py-2">
+                            <span style="display:inline-flex; align-items:center; gap:7px;">
+                                <span style="width:9px; height:9px; border-radius:50%; background:#6c757d; display:inline-block;"></span>
+                                Pendientes
+                            </span>
+                        </td>
+                        <td class="text-center border-0 py-2 fw-bold text-muted">{{ total_realizados - total_avalados - total_anulados }}</td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
 
-    <div class="row g-4">
-        <div class="col-md-6">
-            <div class="card shadow-sm border-0 h-100 bg-primary text-white" style="border-radius: 12px;">
-                <div class="card-body text-center">
-                    <i class="ph ph-clock d-block mb-2" style="font-size: 3rem; opacity: 0.8;"></i>
-                    <h5 class="card-title fw-bold">Total de Horas Avaladas</h5>
-                    <h2 class="display-4 fw-bold mb-0">{{ total_horas }}</h2>
-                </div>
-            </div>
+    <!-- Tabla por voluntario -->
+    <div class="card shadow-sm border-0" style="border-radius:12px;">
+        <div class="card-header bg-transparent border-0 pt-3 pb-0 px-4">
+            <h5 class="fw-bold text-dark mb-0">
+                <i class="ph ph-users me-2 text-primary"></i>Estadísticas por Voluntario
+            </h5>
         </div>
-        <div class="col-md-6">
-            <div class="card shadow-sm border-0 h-100 text-white" style="border-radius: 12px; background: #10b981;">
-                <div class="card-body text-center">
-                    <i class="ph ph-list-numbers d-block mb-2" style="font-size: 3rem; opacity: 0.8;"></i>
-                    <h5 class="card-title fw-bold">Cantidad de Registros Avalados</h5>
-                    <h2 class="display-4 fw-bold mb-0">{{ total_registros }}</h2>
-                </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead style="background:#f8f9fa;">
+                        <tr style="font-size:12px; text-transform:uppercase; letter-spacing:0.04em; color:#666;">
+                            <th class="px-4 py-3">Voluntario</th>
+                            <th class="py-3">Documento</th>
+                            <th class="py-3 text-center">Realizados</th>
+                            <th class="py-3 text-center">Avalados</th>
+                            <th class="py-3 text-center">Anulados</th>
+                            <th class="py-3 text-center">Horas Avaladas</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if stats_usuarios %}
+                        {% for usuario, stats in stats_usuarios.items() %}
+                        <tr>
+                            <td class="px-4 py-3">
+                                <span style="display:inline-flex; align-items:center; gap:8px;">
+                                    <span style="width:32px; height:32px; border-radius:50%; background:linear-gradient(135deg,#0d6efd,#6610f2); color:white; display:inline-flex; align-items:center; justify-content:center; font-weight:700; font-size:13px;">
+                                        {{ usuario[0]|upper if usuario else '?' }}
+                                    </span>
+                                    <strong>{{ usuario }}</strong>
+                                </span>
+                            </td>
+                            <td class="py-3 text-muted">{{ stats.identificacion or '-' }}</td>
+                            <td class="py-3 text-center fw-bold">{{ stats.realizados }}</td>
+                            <td class="py-3 text-center fw-bold" style="color:#10b981;">{{ stats.avalados }}</td>
+                            <td class="py-3 text-center fw-bold" style="color:#f59e0b;">{{ stats.anulados }}</td>
+                            <td class="py-3 text-center">
+                                <span class="fw-bold" style="color:#0d6efd; font-size:15px;">{{ stats.horas_str }}</span>
+                                <small class="text-muted d-block" style="font-size:11px;">horas</small>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        <!-- Fila totales -->
+                        <tr style="background:#f0f4ff; border-top:2px solid #dee2e6;">
+                            <td class="px-4 py-3" colspan="2">
+                                <strong style="color:#0d6efd; font-size:14px;"><i class="ph ph-sigma me-1"></i>TOTAL GENERAL</strong>
+                            </td>
+                            <td class="py-3 text-center fw-bold">{{ total_realizados }}</td>
+                            <td class="py-3 text-center fw-bold" style="color:#10b981;">{{ total_avalados }}</td>
+                            <td class="py-3 text-center fw-bold" style="color:#f59e0b;">{{ total_anulados }}</td>
+                            <td class="py-3 text-center">
+                                <span class="fw-bold" style="color:#0d6efd; font-size:17px;">{{ total_horas }}</span>
+                                <small class="text-muted d-block" style="font-size:11px;">horas</small>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-5">
+                                <i class="ph ph-folder-open d-block mb-2" style="font-size:2.5rem;"></i>
+                                No hay datos de voluntarios para mostrar.
+                            </td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
-
-    <!-- Estadísticas por Usuario -->
-    <h4 class="mt-5 mb-3 text-primary fw-bold border-bottom pb-2">Estadísticas por Voluntario</h4>
-    {% if stats_usuarios %}
-    <div class="row g-3">
-        {% for usuario, stats in stats_usuarios.items() %}
-        <div class="col-md-4">
-            <div class="card shadow-sm h-100" style="border-left: 4px solid #8b5cf6;">
-                <div class="card-body">
-                    <h5 class="card-title fw-bold text-dark"><i class="ph ph-user-circle me-1"></i> {{ usuario }}</h5>
-                    <div class="d-flex justify-content-between mt-3">
-                        <div>
-                            <span class="text-muted d-block" style="font-size: 0.9rem;">Registros</span>
-                            <span class="fs-4 fw-bold text-primary">{{ stats.cantidad }}</span>
-                        </div>
-                        <div class="text-end">
-                            <span class="text-muted d-block" style="font-size: 0.9rem;">Horas Ejecutadas</span>
-                            <span class="fs-4 fw-bold text-success">{{ stats.horas_str }}</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        {% endfor %}
-    </div>
-    {% else %}
-    <div class="alert alert-light border text-center text-muted">
-        No hay datos de voluntarios para mostrar.
-    </div>
-    {% endif %}
 
 </div>
 {% endblock %}
