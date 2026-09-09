@@ -83,10 +83,14 @@
                     <p class="mb-0 text-muted" style="font-size: 0.9rem;">Al enviar este formulario, su firma electrónica quedará registrada.</p>
                 </div>
 
-                <div class="mt-4 text-end">
-                    <a href="{{ url_for('dashboard') }}" class="btn btn-secondary me-2">Cancelar</a>
-                    <button type="submit" class="btn btn-primary" onclick="return confirm('¿Confirmar el envío de este registro de voluntariado?');">
-                        Guardar Registro
+                <div class="mt-4 d-flex justify-content-end gap-2">
+                    <a href="{{ url_for('dashboard') }}"
+                       style="display:inline-flex; align-items:center; gap:6px; background:#6c757d; color:white; border:none; border-radius:8px; padding:9px 18px; font-weight:700; font-size:14px; text-decoration:none; transition:all 0.2s;">
+                        <i class="ph ph-x" style="font-size:16px;"></i> Cancelar
+                    </a>
+                    <button type="button" onclick="confirmarEnvio()"
+                       style="display:inline-flex; align-items:center; gap:6px; background:linear-gradient(135deg,#0d6efd,#0a58ca); color:white; border:none; border-radius:8px; padding:9px 20px; font-weight:700; font-size:14px; cursor:pointer; box-shadow:0 3px 10px rgba(13,110,253,0.35); transition:all 0.2s;">
+                        <i class="ph ph-floppy-disk" style="font-size:16px;"></i> Guardar Registro
                     </button>
                 </div>
             </form>
@@ -128,6 +132,29 @@ function calcularHoras() {
         
         document.getElementById('total_horas').value = h + ":" + (m < 10 ? '0' : '') + m;
     }
+}
+
+function confirmarEnvio() {
+    Swal.fire({
+        title: '\u00bfGuardar Registro?',
+        html: '<p style="margin:0; color:#555;">Al guardar, tu <strong>firma electr\u00f3nica</strong> quedar\u00e1 registrada en el sistema.</p>',
+        icon: 'question',
+        iconColor: '#0d6efd',
+        showCancelButton: true,
+        confirmButtonText: '<i class="ph ph-floppy-disk"></i>&nbsp; S\u00ed, Guardar',
+        cancelButtonText: '<i class="ph ph-x"></i>&nbsp; Cancelar',
+        confirmButtonColor: '#0d6efd',
+        cancelButtonColor: '#6c757d',
+        customClass: {
+            popup: 'swal2-custom-popup',
+            confirmButton: 'swal-btn-confirm',
+            cancelButton: 'swal-btn-cancel'
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            document.querySelector('form').submit();
+        }
+    });
 }
 </script>
 {% endblock %}
