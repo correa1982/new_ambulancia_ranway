@@ -95,11 +95,11 @@ def registros_voluntariado():
     cursor = conn.cursor()
     
     if is_admin_vol():
-        cursor.execute("SELECT * FROM registro_voluntariado WHERE estado != 'Inactivo' ORDER BY id DESC")
+        cursor.execute("SELECT * FROM registro_voluntariado WHERE estado NOT IN ('Inactivo', 'Anulado') ORDER BY id DESC")
         registros = cursor.fetchall()
     else:
         ident = session['usuario'].get('identificacion')
-        cursor.execute("SELECT * FROM registro_voluntariado WHERE registrado_por_identificacion = %s AND estado != 'Inactivo' ORDER BY id DESC", (ident,))
+        cursor.execute("SELECT * FROM registro_voluntariado WHERE registrado_por_identificacion = %s AND estado NOT IN ('Inactivo', 'Anulado') ORDER BY id DESC", (ident,))
         registros = cursor.fetchall()
     
     conn.close()
@@ -136,6 +136,48 @@ def avalar_registro(record_id):
     
     flash(f"Registro #{record_id} avalado correctamente.", "success")
     return redirect(url_for('voluntariado.registros_voluntariado'))
+
+@routes_voluntariado.route('/voluntariado/anular/<int:record_id>', methods=['POST'])
+def anular_registro(record_id):
+    if not is_admin_vol():
+        flash("Permiso denegado.", "danger")
+        return redirect(url_for('voluntariado.registros_voluntariado'))
+    
+    usuario = session['usuario']
+    anulado_por = usuario.get('nombre')
+    fecha_anulacion = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+    conn = get_db()
+    cursor = conn.cursor()
+    # Guardamos quién anuló y cuándo en el campo de observaciones si existe, o simplemente cambiamos el estado
+    cursor.execute(
+        "UPDATE registro_voluntariado SET estado = 'Anulado' WHERE id = %s",
+        (record_id,)
+    )
+    conn.commit()
+    conn.close()
+    
+    flash(f"Registro #{record_id} anulado por {anulado_por}. No afecta estadísticas.", "warning")
+    return redirect(url_for('voluntariado.registros_voluntariado'))
+
+@routes_voluntariado.route('/voluntariado/anulados')
+def anulados_voluntariado():
+    if not is_admin_vol():
+        flash("Solo administradores pueden ver registros anulados.", "danger")
+        return redirect(url_for('voluntariado.registros_voluntariado'))
+    
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM registro_voluntariado WHERE estado = 'Anulado' ORDER BY id DESC")
+    registros = cursor.fetchall()
+    conn.close()
+    
+    if registros and type(registros[0]) is tuple:
+        cols = [column[0] for column in cursor.description]
+        registros = [dict(zip(cols, row)) for row in registros]
+    
+    return render_template('anulados_voluntariado.html', registros=registros)
+
 
 @routes_voluntariado.route('/voluntariado/estadisticas')
 def estadisticas_voluntariado():

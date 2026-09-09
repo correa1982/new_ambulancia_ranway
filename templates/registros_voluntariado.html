@@ -14,6 +14,10 @@
         </div>
         <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
             {% if es_admin_vol %}
+            <a href="{{ url_for('voluntariado.anulados_voluntariado') }}"
+               style="display:inline-flex; align-items:center; gap:6px; background:white; color:#dc3545; border:2px solid #dc3545; border-radius:8px; padding:8px 16px; font-weight:700; font-size:14px; text-decoration:none; box-shadow:0 2px 5px rgba(220,53,69,0.15); transition:all 0.2s;">
+                <i class="ph ph-x-circle" style="font-size:16px;"></i> Anulados
+            </a>
             <a href="{{ url_for('voluntariado.estadisticas_voluntariado') }}"
                style="display:inline-flex; align-items:center; gap:6px; background:#0dcaf0; color:white; border:none; border-radius:8px; padding:9px 16px; font-weight:700; font-size:14px; text-decoration:none; box-shadow:0 2px 6px rgba(13,202,240,0.3); transition:all 0.2s;">
                 <i class="ph ph-chart-bar" style="font-size:16px;"></i> Estadísticas
@@ -76,6 +80,14 @@
                                             <i class="ph ph-check-circle" style="font-size:15px;"></i> Avalar
                                         </button>
                                     </form>
+                                    <form id="form-anular-{{ row.id }}" method="POST" action="{{ url_for('voluntariado.anular_registro', record_id=row.id) }}" class="m-0 p-0">
+                                        <button type="button" onclick="confirmarAnular('form-anular-{{ row.id }}')"
+                                            class="btn btn-sm fw-semibold text-white"
+                                            style="background: linear-gradient(135deg, #f59e0b, #d97706); border: none; border-radius: 20px; padding: 5px 13px; font-size: 12px; display: inline-flex; align-items: center; gap: 5px; box-shadow: 0 2px 6px rgba(245,158,11,0.35); transition: all 0.2s;"
+                                            title="Anular Registro">
+                                            <i class="ph ph-x-circle" style="font-size:15px;"></i> Anular
+                                        </button>
+                                    </form>
                                     {% endif %}
                                     
                                     <a href="{{ url_for('voluntariado.imprimir_voluntariado', record_id=row.id) }}" target="_blank"
@@ -110,7 +122,24 @@ function confirmarAval(formId) {
         icon: 'info',
         showCancelButton: true,
         confirmButtonText: 'Sí, Avalar',
-        cancelButtonText: 'Cancelar'
+        cancelButtonText: 'Cancelar',
+        confirmButtonColor: '#10b981'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            document.getElementById(formId).submit();
+        }
+    });
+}
+
+function confirmarAnular(formId) {
+    Swal.fire({
+        title: '¿Anular Registro?',
+        text: "El registro pasará a la lista de anulados y NO afectará las estadísticas del voluntario.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, Anular',
+        cancelButtonText: 'Cancelar',
+        confirmButtonColor: '#f59e0b'
     }).then((result) => {
         if (result.isConfirmed) {
             document.getElementById(formId).submit();
