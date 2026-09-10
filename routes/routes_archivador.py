@@ -464,6 +464,7 @@ def register_routes(app):
         return redirect(url_for("admin_checklists", tipo="archivador"))
 
     @app.route("/static/uploads/archivador/<path:filename>")
+    @login_required
     def uploaded_archivador_file(filename):
         return send_from_directory(
             os.path.join(current_app.root_path, 'static', 'uploads', 'archivador'),

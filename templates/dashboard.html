@@ -311,6 +311,26 @@ document.addEventListener("DOMContentLoaded", function() {
     </a>
     {% endif %}
 
+    {% if has_permiso_formulario(session.usuario.formularios_acceso, 'reporte_actividades') or session.usuario.rol == 'admin' %}
+    {% if has_permiso_formulario(session.usuario.formularios_acceso, 'voluntariado_admin') or session.usuario.rol == 'admin' %}
+    <a href="{{ url_for('registros_reporte_actividades') }}" class="dash-card">
+    {% else %}
+    <a href="{{ url_for('form_reporte_actividades') }}" class="dash-card">
+    {% endif %}
+        <div class="card-icon" style="background: #eef2ff;"><i class="ph ph-clipboard-text" style="color: #4f46e5;"></i></div>
+        <div class="card-title">Reporte de Actividades</div>
+        <div class="card-desc">Formulario de registro de actividades en eventos de la institución.</div>
+    </a>
+    {% endif %}
+
+    {% if has_permiso_formulario(session.usuario.formularios_acceso, 'voluntariado') or has_permiso_formulario(session.usuario.formularios_acceso, 'voluntariado_admin') or session.usuario.rol == 'admin' %}
+    <a href="{{ url_for('voluntariado.form_voluntariado') }}" class="dash-card">
+        <div class="card-icon" style="background: #fdf4ff;"><i class="ph ph-hand-heart" style="color: #d946ef;"></i></div>
+        <div class="card-title">Registro Voluntariado</div>
+        <div class="card-desc">Registro mensual de horas de voluntariado.</div>
+    </a>
+    {% endif %}
+
     <a href="{{ url_for('ver_pendientes_checklists') }}" class="dash-card" style="border-color: {% if checklist_total_pending and checklist_total_pending > 0 %}#86efac{% else %}#bfdbfe{% endif %}; background: {% if checklist_total_pending and checklist_total_pending > 0 %}linear-gradient(135deg, #f0fdf4, #dcfce7){% else %}linear-gradient(135deg, #f8fafc, #eff6ff){% endif %};">
         <div class="card-icon" style="background: {% if checklist_total_pending and checklist_total_pending > 0 %}#dcfce7{% else %}#dbeafe{% endif %}; position: relative; margin-bottom: 4px;">
             <i class="ph ph-clipboard-text" style="color: {% if checklist_total_pending and checklist_total_pending > 0 %}#059669{% else %}#2563eb{% endif %};"></i>
@@ -332,7 +352,7 @@ document.addEventListener("DOMContentLoaded", function() {
 </div>
 {% endif %}
 
-{% set has_registros = session.usuario.rol == 'admin' or 'registros' in session.usuario.get('formularios_acceso', []) or 'nomina' in session.usuario.get('formularios_acceso', []) or 'ths_sga' in session.usuario.get('formularios_acceso', []) %}
+{% set has_registros = session.usuario.rol == 'admin' or 'registros' in session.usuario.get('formularios_acceso', []) or 'nomina' in session.usuario.get('formularios_acceso', []) or 'ths_sga' in session.usuario.get('formularios_acceso', []) or 'ths_trip' in session.usuario.get('formularios_acceso', []) or 'ths_soc' in session.usuario.get('formularios_acceso', []) or 'inventarios' in session.usuario.get('formularios_acceso', []) or session.usuario.get('permiso_programacion_operativa') %}
 {% if has_registros %}
 <div class="section-title">Administración y Consultas</div>
 <div class="dashboard-grid">
@@ -360,6 +380,14 @@ document.addEventListener("DOMContentLoaded", function() {
         <div class="card-icon" style="background: #dcfce7;"><i class="ph ph-money" style="color: #16a34a;"></i></div>
         <div class="card-title">Gestión de Honorarios</div>
         <div class="card-desc">Subir y consultar historial de honorarios cargados mediante archivo de Excel.</div>
+    </a>
+    {% endif %}
+
+    {% if session.usuario.rol == 'admin' or 'inventarios' in session.usuario.get('formularios_acceso', []) %}
+    <a href="{{ url_for('inventarios.inventarios_index') }}" class="dash-card" style="border-color: #e2e8f0;">
+        <div class="card-icon" style="background: #ffedd5;"><i class="ph ph-package" style="color: #ea580c;"></i></div>
+        <div class="card-title">Módulo de Inventarios</div>
+        <div class="card-desc">Gestión de Dispositivos Médicos, Medicamentos y Cosméticos y Aseo.</div>
     </a>
     {% endif %}
 
@@ -401,8 +429,8 @@ document.addEventListener("DOMContentLoaded", function() {
     
     {% if 'ths_trip' in session.usuario.get('formularios_acceso', []) or session.usuario.rol == 'admin' %}
     <a href="{{ url_for('admin_ths_trip') }}" class="dash-card" style="border-color: #e2e8f0;">
-        <div class="card-icon" style="background: #fdf4ff;"><i class="ph ph-airplane-tilt" style="color: #a21caf;"></i></div>
-        <div class="card-title">Documentación Tripulantes</div>
+        <div class="card-icon" style="background: #fdf4ff;"><i class="ph ph-ambulance" style="color: #a21caf;"></i></div>
+        <div class="card-title">Documentación Personal Ambulancias</div>
         <div class="card-desc">Gestión de Documentación</div>
     </a>
     {% endif %}
@@ -414,10 +442,18 @@ document.addEventListener("DOMContentLoaded", function() {
         <div class="card-desc">Gestión de Documentación</div>
     </a>
     {% endif %}
+
+    {% if session.usuario.get('permiso_programacion_operativa') or session.usuario.get('id')|string == '1' %}
+    <a href="{{ url_for('programacion_operativa') }}" class="dash-card" style="border-color: #e2e8f0;">
+        <div class="card-icon" style="background: #f3e8ff;"><i class="ph ph-calendar-plus" style="color: #7e22ce;"></i></div>
+        <div class="card-title">Programación Operativa</div>
+        <div class="card-desc">Asignar y programar eventos operativos o tripulación básica.</div>
+    </a>
+    {% endif %}
 </div>
 {% endif %}
 
-{% set has_registros = session.usuario.rol == 'admin' or 'registros' in session.usuario.get('formularios_acceso', []) or 'nomina' in session.usuario.get('formularios_acceso', []) or 'ths_sga' in session.usuario.get('formularios_acceso', []) %}
+{% set has_registros = session.usuario.rol == 'admin' or 'registros' in session.usuario.get('formularios_acceso', []) or 'nomina' in session.usuario.get('formularios_acceso', []) or 'ths_sga' in session.usuario.get('formularios_acceso', []) or 'ths_trip' in session.usuario.get('formularios_acceso', []) or 'ths_soc' in session.usuario.get('formularios_acceso', []) or 'inventarios' in session.usuario.get('formularios_acceso', []) or session.usuario.get('permiso_programacion_operativa') %}
 {% if not has_clinica and not has_checklists and not has_registros %}
 <div style="text-align: center; padding: 60px 20px; background: white; border-radius: 12px; border: 1px dashed #cbd5e1; margin-top: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);">
     <div style="font-size: 48px; margin-bottom: 16px; opacity: 0.5;">🚫</div>

@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+{% block title %}Registros de Reporte de Actividades{% endblock %}
+{% block content %}
+<div class="container-fluid mt-4 mb-5">
+    <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:12px; margin-bottom:24px;">
+        <div style="display:flex; align-items:center; gap:12px;">
+            <a href="{{ url_for('dashboard') }}"
+               style="display:inline-flex; align-items:center; gap:6px; background:#6c757d; color:white; border:none; border-radius:8px; padding:9px 18px; font-weight:700; font-size:14px; text-decoration:none; box-shadow:0 2px 6px rgba(0,0,0,0.15); transition:all 0.2s;">
+                <i class="ph ph-arrow-left" style="font-size:16px;"></i> Volver
+            </a>
+            <h3 style="margin:0; font-weight:700; color:#0d6efd; display:flex; align-items:center; gap:8px;">
+                <i class="ph ph-clipboard-text"></i> Registros de Actividades
+            </h3>
+        </div>
+        <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
+            <a href="{{ url_for('inactivos_reporte_actividades') }}"
+               style="display:inline-flex; align-items:center; gap:6px; background:white; color:#dc3545; border:2px solid #dc3545; border-radius:8px; padding:8px 16px; font-weight:700; font-size:14px; text-decoration:none; box-shadow:0 2px 5px rgba(220,53,69,0.15); transition:all 0.2s;">
+                <i class="ph ph-archive" style="font-size:16px;"></i> Ver Inactivos
+            </a>
+            <a href="{{ url_for('estadisticas_reporte') }}"
+               style="display:inline-flex; align-items:center; gap:6px; background:#0dcaf0; color:white; border:none; border-radius:8px; padding:9px 16px; font-weight:700; font-size:14px; text-decoration:none; box-shadow:0 2px 6px rgba(13,202,240,0.3); transition:all 0.2s;">
+                <i class="ph ph-chart-bar" style="font-size:16px;"></i> Estadísticas
+            </a>
+            <a href="{{ url_for('form_reporte_actividades') }}"
+               style="display:inline-flex; align-items:center; gap:6px; background:#0d6efd; color:white; border:none; border-radius:8px; padding:9px 16px; font-weight:700; font-size:14px; text-decoration:none; box-shadow:0 2px 8px rgba(13,110,253,0.3); transition:all 0.2s;">
+                <i class="ph ph-plus-circle" style="font-size:16px;"></i> Nuevo Reporte
+            </a>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>FECHA</th>
+                            <th>EVENTO</th>
+                            <th>TIPO</th>
+                            <th>HORARIO</th>
+                            <th>ESTADO</th>
+                            <th>REGISTRADO POR</th>
+                            <th class="text-center">ACCIONES</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in registros %}
+                        <tr>
+                            <td class="fw-bold text-muted">#{{ row.id }}</td>
+                            <td>{{ row.fecha_evento }}</td>
+                            <td>{{ row.nombre_evento }}<br><small class="text-muted">Comuna: {{ row.lugar_evento }}</small></td>
+                            <td><span class="badge bg-secondary">{{ row.tipo_servicio }}</span></td>
+                            <td>{{ row.hora_inicio }} - {{ row.hora_fin }}</td>
+                            <td>
+                                {% if row.estado == 'Avalado' %}
+                                    <span class="text-success fw-bold"><i class="ph ph-check-circle"></i> Avalado</span>
+                                {% else %}
+                                    <span class="text-warning fw-bold"><i class="ph ph-clock"></i> Pendiente</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ row.registrado_por }}</td>
+                            <td class="text-center align-middle">
+                                <div class="d-flex flex-nowrap align-items-center justify-content-center gap-2">
+                                    {% if row.estado != 'Avalado' %}
+                                    <form id="form-avalar-{{ row.id }}" method="POST" action="{{ url_for('avalar_reporte', record_id=row.id) }}" class="m-0 p-0">
+                                        <button type="button" onclick="confirmarAval('form-avalar-{{ row.id }}')" class="btn btn-sm text-white shadow-sm" style="background:#10b981; border:1px solid #10b981; border-radius:6px; font-weight:600; font-size:12px; display:inline-flex; align-items:center; justify-content:center; gap:4px; cursor:pointer; transition:all 0.2s;" title="Avalar Registro">
+                                            <i class="ph ph-check-circle" style="font-size:14px;"></i> Avalar
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                    
+                                    <form id="form-inactivar-{{ row.id }}" method="POST" action="{{ url_for('inactivar_reporte', record_id=row.id) }}" class="m-0 p-0">
+                                        <button type="button" onclick="confirmarInactivar('form-inactivar-{{ row.id }}')" class="btn btn-sm shadow-sm" style="background:white; color:#64748b; border:1px solid #cbd5e1; border-radius:6px; font-weight:600; font-size:12px; display:inline-flex; align-items:center; justify-content:center; gap:4px; cursor:pointer; transition:all 0.2s;" title="Inactivar Registro">
+                                            <i class="ph ph-archive" style="font-size:14px;"></i>
+                                        </button>
+                                    </form>
+
+                                    <a href="{{ url_for('imprimir_reporte', record_id=row.id) }}" target="_blank" class="btn btn-sm shadow-sm" style="background:white; color:#ef4444; border:1px solid #ef4444; border-radius:6px; text-decoration:none; font-weight:600; font-size:12px; display:inline-flex; align-items:center; justify-content:center; gap:4px; transition:all 0.2s;" title="Generar PDF Formal">
+                                        <i class="ph ph-file-pdf" style="font-size:14px;"></i> PDF
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="8" class="text-center text-muted py-4">
+                                <i class="ph ph-folder-open d-block mb-2" style="font-size: 2rem;"></i>
+                                No se encontraron registros de actividades.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function confirmarAval(formId) {
+        Swal.fire({
+            title: '¿Confirmar Aval?',
+            text: "Una vez avalado, este registro se sumará a las estadísticas.",
+            icon: 'info',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, Avalar',
+            cancelButtonText: 'Cancelar',
+            customClass: {
+                popup: 'swal2-custom-popup',
+                title: 'swal2-custom-title',
+                confirmButton: 'swal2-custom-confirm',
+                cancelButton: 'swal2-custom-cancel'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById(formId).submit();
+            }
+        });
+    }
+
+    function confirmarInactivar(formId) {
+        Swal.fire({
+            title: '¿Inactivar Registro?',
+            text: "El registro pasará a la lista de inactivos y no se mostrará en las estadísticas.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            confirmButtonText: 'Sí, Inactivar',
+            cancelButtonText: 'Cancelar',
+            customClass: {
+                popup: 'swal2-custom-popup',
+                title: 'swal2-custom-title',
+                confirmButton: 'swal2-custom-confirm',
+                cancelButton: 'swal2-custom-cancel'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById(formId).submit();
+            }
+        });
+    }
+</script>
+{% endblock %}

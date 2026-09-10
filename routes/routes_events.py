@@ -142,6 +142,8 @@ def register_routes(app):
             saved_id = cursor.lastrowid
             conn.commit()
             conn.close()
+            if request.form.get("_offline_sync") == "1":
+                return jsonify({"status": "success", "id": saved_id})
             flash("Registro de Atención Colectiva guardado correctamente. Registre los pacientes a continuación.", "success")
             return redirect(url_for("formulario_mci", atencion_colectiva_id=saved_id))
 

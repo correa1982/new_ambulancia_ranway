@@ -3,7 +3,7 @@
 //  Versión: 1.0.8
 // ═══════════════════════════════════════════════════════════
 
-const CACHE_NAME = 'ambulacia-v85';
+const CACHE_NAME = 'ambulacia-v87';
 const OFFLINE_DB  = 'ambulacia-offline';
 const SW_FETCH_TIMEOUT = 30000;
 
@@ -29,16 +29,18 @@ const STATIC_ASSETS = [
   '/registros',
   '/pendientes',
   '/pendientes/checklists',
-  '/static/css/styles.css',
   '/static/manifest.json',
   '/static/offline.html?v=3',
-  '/static/pwa-offline.js?v=58',
+  '/static/pwa-offline.js?v=59',
   '/static/js/dictation.js',
   '/api/cie10_full',
   '/static/data/Departamentos_Municipios.json',
   '/static/data/barrios_medellin.json',
   '/static/data/divipola_estructurado.json'
 ];
+// Nota: '/static/css/styles.css' se elimino del precache (el archivo no existe;
+// los estilos van inline en base.html). Mantener la entrada provocaba que
+// verificarPrecache() siempre fallara y avisara de "advertencias".
 
 // ── Instalación: cachear assets estáticos ─────────────────
 self.addEventListener('install', event => {
@@ -141,7 +143,11 @@ async function sincronizarRegistros() {
       const formData = new FormData();
       for (const [key, value] of Object.entries(registro.datos)) {
         if (value !== null && value !== undefined && value !== '') {
-          formData.append(key, value);
+          if (Array.isArray(value)) {
+            value.forEach(v => formData.append(key, v));
+          } else {
+            formData.append(key, value);
+          }
         }
       }
 

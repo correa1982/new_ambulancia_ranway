@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Reporte de Actividades #{{ registro.id }}</title>
+    <style>
+        body { font-family: 'Arial', sans-serif; font-size: 12px; margin: 0; padding: 20px; color: #000; }
+        .institutional-header { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        .institutional-header th, .institutional-header td { border: 1px solid #000; padding: 10px; text-align: center; }
+        .logo { max-height: 70px; max-width: 120px; }
+        .header-title { font-size: 14px; font-weight: bold; text-transform: uppercase; }
+        .header-meta { font-size: 10px; text-align: left; padding-left: 10px !important; }
+        
+        .section-title { font-size: 13px; font-weight: bold; background-color: #f0f0f0; padding: 5px; border: 1px solid #000; margin-top: 15px; margin-bottom: 0; text-align: center; }
+        
+        .data-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+        .data-table th, .data-table td { border: 1px solid #000; padding: 6px; text-align: center; }
+        .data-table th { background-color: #f9f9f9; width: 25%; font-size: 11px; }
+        
+        .signature-container { width: 100%; margin-top: 50px; display: table; }
+        .signature-box { display: table-cell; width: 50%; text-align: center; vertical-align: bottom; }
+        .signature-line { border-top: 1px solid #000; width: 80%; margin: 0 auto; margin-top: 50px; padding-top: 5px; }
+        .signature-img { max-height: 80px; max-width: 150px; margin-bottom: 5px; }
+        
+        .text-left { text-align: left !important; }
+        
+        @media print {
+            body { padding: 0; }
+            @page { margin: 1.5cm; }
+            .no-print { display: none !important; }
+        }
+    </style>
+</head>
+<body onload="window.print()">
+
+    <!-- Botón volver (no se imprime) -->
+    <div class="no-print" style="margin-bottom: 20px;">
+        <button onclick="window.close()" style="padding: 10px 15px; background: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer;">Cerrar y Volver</button>
+    </div>
+
+    <!-- Encabezado Institucional -->
+    <table class="institutional-header">
+        <tr>
+            <td style="width: 20%;">
+                {% if cfg and cfg.logo_url %}
+                    <img src="{{ cfg.logo_url }}" alt="Logo Institución" class="logo">
+                {% else %}
+                    <div style="font-size: 10px; color: #666;">Sin Logo</div>
+                {% endif %}
+            </td>
+            <td style="width: 60%;" class="header-title">
+                REPORTE DE ACTIVIDADES<br>
+                <span style="font-size: 11px; font-weight: normal;">CORPORACIÓN SOCORRISTAS GRUPO DE APOYO</span>
+            </td>
+            <td style="width: 20%;" class="header-meta">
+                <strong>Código:</strong> REA-01<br>
+                <strong>Versión:</strong> 1.0<br>
+                <strong>Fecha:</strong> {{ registro.fecha_registro.split(' ')[0] if registro.fecha_registro else '' }}<br>
+                <strong>Página:</strong> 1 de 1
+            </td>
+        </tr>
+    </table>
+
+    <div style="font-size: 11px; text-align: justify; margin-bottom: 15px;">
+        El siguiente formulario es implementado para el reporte oportuno de las actividades realizadas en cada uno de los eventos prestados por la institución, generando así una estadística oportuna y veraz para el manejo de la información.
+    </div>
+
+    <!-- Información del Evento -->
+    <div class="section-title">INFORMACIÓN DEL EVENTO</div>
+    <table class="data-table">
+        <tr>
+            <th>Nombre del Evento</th>
+            <td colspan="3">{{ registro.nombre_evento }}</td>
+        </tr>
+        <tr>
+            <th>Fecha del Evento</th>
+            <td>{{ registro.fecha_evento }}</td>
+            <th>Lugar / Comuna</th>
+            <td>{{ registro.lugar_evento }}</td>
+        </tr>
+        <tr>
+            <th>Hora Inicio</th>
+            <td>{{ registro.hora_inicio }}</td>
+            <th>Hora Fin</th>
+            <td>{{ registro.hora_fin }}</td>
+        </tr>
+        <tr>
+            <th>Tipo de Servicio</th>
+            <td colspan="3"><strong>{{ registro.tipo_servicio }}</strong></td>
+        </tr>
+    </table>
+
+    <!-- Recursos -->
+    <div class="section-title">RECURSOS DISPONIBLES EN EL SERVICIO</div>
+    <table class="data-table">
+        <tr>
+            <th>Ambulancia TAB</th>
+            <td>{{ registro.ambulancia_tab }}</td>
+            <th>Ambulancia TAM</th>
+            <td>{{ registro.ambulancia_tam }}</td>
+        </tr>
+        <tr>
+            <th>PASM</th>
+            <td>{{ registro.pasm }}</td>
+            <th>PASB</th>
+            <td>{{ registro.pasb }}</td>
+        </tr>
+        <tr>
+            <th>Eq. Intervención</th>
+            <td>{{ registro.equipos_intervencion }}</td>
+            <th>Moto APH</th>
+            <td>{{ registro.moto_aph }}</td>
+        </tr>
+        <tr>
+            <th>Unidad Rescate</th>
+            <td>{{ registro.unidad_rescate }}</td>
+            <th>Unidad Logística</th>
+            <td>{{ registro.unidad_logistica }}</td>
+        </tr>
+    </table>
+
+    <!-- Información Operativa -->
+    <div class="section-title">INFORMACIÓN OPERATIVA</div>
+    <table class="data-table">
+        <tr>
+            <th style="width: 33%;">Total Personal</th>
+            <th style="width: 33%;">Pacientes Atendidos</th>
+            <th style="width: 33%;">Pacientes Trasladados</th>
+        </tr>
+        <tr>
+            <td style="font-size: 14px; font-weight: bold;">{{ registro.total_personal }}</td>
+            <td style="font-size: 14px; font-weight: bold;">{{ registro.pacientes_atendidos }}</td>
+            <td style="font-size: 14px; font-weight: bold;">{{ registro.pacientes_trasladados }}</td>
+        </tr>
+    </table>
+
+    {% if registro.observaciones %}
+    <div class="section-title">OBSERVACIONES / NOVEDADES</div>
+    <table class="data-table">
+        <tr>
+            <td class="text-left" style="padding: 15px;">{{ registro.observaciones }}</td>
+        </tr>
+    </table>
+    {% endif %}
+
+    <!-- Firmas -->
+    <div class="signature-container">
+        <div class="signature-box">
+            {% if registro.firma_registrador %}
+                <img src="{{ registro.firma_registrador }}" class="signature-img" alt="Firma Voluntario">
+            {% else %}
+                <div style="height: 80px;"></div>
+            {% endif %}
+            <div class="signature-line">
+                <strong>RESPONSABLE DEL REGISTRO</strong><br>
+                {{ registro.registrado_por }}<br>
+                {% if registro.registrado_por_identificacion %}CC: {{ registro.registrado_por_identificacion }}{% endif %}
+            </div>
+        </div>
+        <div class="signature-box">
+            {% if registro.estado == 'Avalado' and registro.firma_avalador %}
+                <img src="{{ registro.firma_avalador }}" class="signature-img" alt="Firma Coordinador">
+            {% else %}
+                <div style="height: 80px;">
+                    {% if registro.estado != 'Avalado' %}
+                        <span style="color: #999; font-style: italic; font-size: 10px;"><br><br><br>(Pendiente de Aval)</span>
+                    {% endif %}
+                </div>
+            {% endif %}
+            <div class="signature-line">
+                <strong>VoBo. ADMIN. VOLUNTARIADO</strong><br>
+                {% if registro.estado == 'Avalado' %}
+                    {{ registro.avalado_por }}<br>
+                    {% if registro.avalado_por_identificacion %}CC: {{ registro.avalado_por_identificacion }}{% endif %}
+                {% else %}
+                    &nbsp;<br>&nbsp;
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

@@ -2,16 +2,22 @@ let recognition = null;
 let targetTextarea = null;
 let dictationBtn = null;
 let isRecording = false;
-let initialText = ""; // Guardar el texto que tenía el área antes de empezar
+let lastActivity = 0;
+let initialText = "";
+
+const INACTIVITY_TIMEOUT_MS = 4000;
 
 function initSpeechRecognition() {
-    // Si ya existe, no la recreamos
     if (recognition) return true;
 
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    
+
     if (!SpeechRecognition) {
-        alert("El dictado de voz nativo no es soportado por este navegador. Intenta usar Google Chrome.");
+        if (window.isSecureContext) {
+            alert("El dictado de voz no es soportado por este navegador. Intenta usar Google Chrome.");
+        } else {
+            alert("El dictado de voz requiere una conexión segura (HTTPS o localhost). Esta aplicación se está viendo a través de una conexión no segura.");
+        }
         return false;
     }
 
@@ -19,19 +25,17 @@ function initSpeechRecognition() {
     recognition.lang = 'es-ES';
     // Desactivamos continuous para evitar el bug de duplicación en Android Offline
     recognition.continuous = false; 
-    recognition.interimResults = true; 
+    recognition.interimResults = true;
 
     recognition.onstart = function() {
-        if (dictationBtn) {
-            dictationBtn.classList.add('recording');
-            dictationBtn.title = "Escuchando... clic para detener";
-        }
         if (targetTextarea && initialText === "") {
             initialText = targetTextarea.value.trim();
         }
+        actualizarEstadoBoton();
     };
 
     recognition.onresult = function(event) {
+        lastActivity = Date.now();
         let interimTranscript = "";
         let finalTranscript = "";
 
@@ -51,8 +55,7 @@ function initSpeechRecognition() {
             }
             newText += finalTranscript + interimTranscript;
             targetTextarea.value = newText;
-            
-            // Si hay un resultado final, lo volvemos el nuevo texto inicial para el siguiente ciclo
+
             if (finalTranscript.length > 0) {
                 initialText = newText;
             }
@@ -74,42 +77,69 @@ function initSpeechRecognition() {
     };
 
     recognition.onend = function() {
-        // Si el usuario no ha detenido la grabación, la reiniciamos automáticamente
         if (isRecording) {
-            try {
-                recognition.start();
-            } catch (e) {
-                // Ignore
+            // Solo reiniciamos si hubo actividad de voz reciente; si no, detenemos
+            if (Date.now() - lastActivity <= INACTIVITY_TIMEOUT_MS) {
+                try {
+                    recognition.start();
+                } catch (e) {
+                    stopDictation();
+                }
+            } else {
+                stopDictation();
             }
         } else {
-            // Se detuvo manualmente
-            if (dictationBtn) {
-                dictationBtn.classList.remove('recording');
-                dictationBtn.title = "Dictado de voz";
-            }
+            actualizarEstadoBoton();
         }
     };
 
     return true;
 }
 
-function startDictation(btn, targetEl) {
-    targetTextarea = targetEl;
-    dictationBtn = btn;
-    initialText = ""; // Reseteamos el texto inicial al presionar el botón
-
+function actualizarEstadoBoton() {
+    if (!dictationBtn) return;
     if (isRecording) {
+        dictationBtn.classList.add('recording');
+        dictationBtn.title = "Escuchando... clic para detener";
+    } else {
+        dictationBtn.classList.remove('recording');
+        dictationBtn.title = "Dictado de voz";
+    }
+}
+
+function startDictation(btn, targetEl) {
+    if (isRecording && targetTextarea === targetEl) {
         stopDictation();
         return;
     }
 
+    const yaGrabando = isRecording;
+
+    if (yaGrabando && dictationBtn && dictationBtn !== btn) {
+        dictationBtn.classList.remove('recording');
+        dictationBtn.title = "Dictado de voz";
+    }
+
+    targetTextarea = targetEl;
+    dictationBtn = btn;
+    initialText = "";
+
     if (initSpeechRecognition()) {
-        isRecording = true;
-        try {
-            recognition.start();
-        } catch (err) {
-            console.warn("Recognition ya estaba corriendo", err);
+        if (!yaGrabando) {
+            isRecording = true;
+            try {
+                recognition.start();
+            } catch (err) {
+                console.warn("Recognition ya estaba corriendo", err);
+            }
+        } else {
+            // Cambiar de campo: reiniciamos apuntando al nuevo campo
+            lastActivity = Date.now();
+            try {
+                recognition.stop();
+            } catch (e) {}
         }
+        actualizarEstadoBoton();
     }
 }
 
@@ -118,11 +148,15 @@ function stopDictation() {
     if (recognition) {
         try {
             recognition.stop();
-        } catch(e) {}
+        } catch (e) {}
     }
-    
-    if (dictationBtn) {
-        dictationBtn.classList.remove('recording');
-        dictationBtn.title = "Dictado de voz";
-    }
+    actualizarEstadoBoton();
 }
+
+document.addEventListener('submit', function() {
+    stopDictation();
+}, true);
+
+document.addEventListener('visibilitychange', function() {
+    if (document.hidden) stopDictation();
+});
