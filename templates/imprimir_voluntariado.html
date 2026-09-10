@@ -15,29 +15,14 @@
         body {
             font-family: Arial, sans-serif;
             font-size: 10px;
-            margin: 0;
+            margin: 0 auto;
             padding: 16px 20px;
             color: #000;
-            position: relative;
             width: 140mm;
             min-height: 216mm;
         }
 
-        /* ── Marca de agua ── */
-        .marca-agua {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) rotate(-35deg);
-            opacity: 0.08;
-            z-index: 0;
-            pointer-events: none;
-            max-width: 110mm;
-            max-height: 110mm;
-        }
-
-        /* ── Contenido por encima de marca de agua ── */
-        .contenido { position: relative; z-index: 1; }
+        .contenido { position: relative; }
 
         /* ── Encabezado institucional ── */
         .inst-header { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
@@ -70,13 +55,23 @@
 
         /* ── Firmas ── */
         .firma-wrap { width: 100%; display: table; margin-top: 18px; }
-        .firma-col   { display: table-cell; width: 50%; text-align: center; padding: 0 8px; vertical-align: bottom; }
-        .firma-img   { max-height: 55px; max-width: 110px; display: block; margin: 0 auto 2px; }
-        .firma-line  { border-top: 1px solid #333; padding-top: 4px; margin-top: 4px; }
+        .firma-col {
+            display: table-cell; width: 50%; text-align: center;
+            padding: 10px 8px 6px;
+            vertical-align: bottom;
+            position: relative;
+            /* marca-agua se inyecta como background-image inline */
+            background-repeat: no-repeat;
+            background-position: center center;
+            background-size: 80px 80px;
+        }
+        .firma-img   { max-height: 55px; max-width: 110px; display: block; margin: 0 auto 2px; position: relative; z-index: 1; }
+        .firma-line  { border-top: 1px solid #333; padding-top: 4px; margin-top: 4px; position: relative; z-index: 1; }
         .firma-line strong { font-size: 8px; display: block; }
         .firma-line span   { font-size: 8px; color: #333; display: block; }
         .firma-pending { color: #aaa; font-style: italic; font-size: 8px; height: 55px;
-                         display: flex; align-items: flex-end; justify-content: center; }
+                         display: flex; align-items: flex-end; justify-content: center;
+                         position: relative; z-index: 1; }
 
         /* ── Botón no-imprimible ── */
         .no-print { margin-bottom: 14px; }
@@ -94,11 +89,6 @@
             ← Cerrar y Volver
         </button>
     </div>
-
-    {# ── Marca de agua ── #}
-    {% if cfg and cfg.marca_agua %}
-    <img src="{{ cfg.marca_agua }}" class="marca-agua" alt="Marca de agua">
-    {% endif %}
 
     <div class="contenido">
 
@@ -162,10 +152,11 @@
         </table>
 
         {# ── Firmas ── #}
+        {% set marca_style = "background-image:url('" ~ cfg.marca_agua ~ "');" if cfg and cfg.marca_agua else '' %}
         <div class="firma-wrap">
 
             {# Firma del voluntario (registrador) #}
-            <div class="firma-col">
+            <div class="firma-col" style="{{ marca_style }}">
                 {% if firma_registrador %}
                     <img src="{{ firma_registrador }}" class="firma-img" alt="Firma Voluntario">
                 {% else %}
@@ -181,7 +172,7 @@
             </div>
 
             {# Firma del avalador #}
-            <div class="firma-col">
+            <div class="firma-col" style="{{ marca_style }}">
                 {% if registro.estado == 'Avalado' and firma_avalador %}
                     <img src="{{ firma_avalador }}" class="firma-img" alt="Firma Avalador">
                 {% elif registro.estado != 'Avalado' %}
