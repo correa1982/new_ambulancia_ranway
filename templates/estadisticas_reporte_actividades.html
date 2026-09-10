@@ -2,174 +2,245 @@
 {% block title %}Estadísticas - Reporte de Actividades{% endblock %}
 {% block content %}
 <div class="container-fluid mt-4 mb-5">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <a href="{{ url_for('registros_reporte_actividades') }}" class="btn btn-secondary text-white fw-bold me-3 shadow-sm" style="border-radius: 8px; padding: 8px 16px; transition: all 0.3s ease;">
-                <i class="ph ph-arrow-left" style="font-size: 1.1em; margin-right: 5px;"></i> Volver a Registros
+
+    {# ── Encabezado ── #}
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div class="d-flex align-items-center gap-3 flex-wrap">
+            <a href="{{ url_for('registros_reporte_actividades') }}"
+               style="display:inline-flex;align-items:center;gap:6px;background:#6c757d;color:white;border:none;border-radius:9px;padding:9px 18px;font-weight:700;font-size:14px;text-decoration:none;transition:all .2s;">
+                <i class="ph ph-arrow-left" style="font-size:15px;"></i> Volver a Registros
             </a>
-            <h3 class="d-inline-block mb-0 text-primary fw-bold" style="vertical-align: middle;">
-                <i class="ph ph-chart-line-up"></i> Estadísticas Globales (Actividades Avaladas)
+            <h3 class="mb-0 fw-bold text-primary" style="font-size:1.3rem;">
+                <i class="ph ph-chart-line-up"></i> Estadísticas por Tipo de Servicio
             </h3>
         </div>
     </div>
 
-    {% set total_personal = namespace(value=0) %}
-    {% set pacientes_at = namespace(value=0) %}
-    {% set pacientes_tr = namespace(value=0) %}
-    {% set ambulancia_tab = namespace(value=0) %}
-    {% set ambulancia_tam = namespace(value=0) %}
-    {% set pasm = namespace(value=0) %}
-    {% set pasb = namespace(value=0) %}
-    {% set eq_int = namespace(value=0) %}
-    {% set moto_aph = namespace(value=0) %}
-    {% set und_res = namespace(value=0) %}
-    {% set und_log = namespace(value=0) %}
-
-    {% for row in registros %}
-        {% set total_personal.value = total_personal.value + (row.total_personal|int if row.total_personal else 0) %}
-        {% set pacientes_at.value = pacientes_at.value + (row.pacientes_atendidos|int if row.pacientes_atendidos else 0) %}
-        {% set pacientes_tr.value = pacientes_tr.value + (row.pacientes_trasladados|int if row.pacientes_trasladados else 0) %}
-        
-        {% set ambulancia_tab.value = ambulancia_tab.value + (row.ambulancia_tab|int if row.ambulancia_tab else 0) %}
-        {% set ambulancia_tam.value = ambulancia_tam.value + (row.ambulancia_tam|int if row.ambulancia_tam else 0) %}
-        {% set pasm.value = pasm.value + (row.pasm|int if row.pasm else 0) %}
-        {% set pasb.value = pasb.value + (row.pasb|int if row.pasb else 0) %}
-        {% set eq_int.value = eq_int.value + (row.equipos_intervencion|int if row.equipos_intervencion else 0) %}
-        {% set moto_aph.value = moto_aph.value + (row.moto_aph|int if row.moto_aph else 0) %}
-        {% set und_res.value = und_res.value + (row.unidad_rescate|int if row.unidad_rescate else 0) %}
-        {% set und_log.value = und_log.value + (row.unidad_logistica|int if row.unidad_logistica else 0) %}
+    {# ── Totales globales (resumen compacto) ── #}
+    {% set g_personal = namespace(v=0) %}
+    {% set g_atend    = namespace(v=0) %}
+    {% set g_trasl    = namespace(v=0) %}
+    {% set g_eventos  = namespace(v=0) %}
+    {% for tipo, s in stats_servicios.items() %}
+        {% set g_personal.v = g_personal.v + s.total_personal %}
+        {% set g_atend.v    = g_atend.v    + s.pacientes_atendidos %}
+        {% set g_trasl.v    = g_trasl.v    + s.pacientes_trasladados %}
+        {% set g_eventos.v  = g_eventos.v  + s.cantidad %}
     {% endfor %}
 
-    <div class="row g-4">
-        <!-- Totales Principales -->
-        <div class="col-md-4">
-            <div class="card shadow-sm border-0 h-100 bg-primary text-white" style="border-radius: 12px;">
-                <div class="card-body text-center">
-                    <i class="ph ph-users d-block mb-2" style="font-size: 3rem; opacity: 0.8;"></i>
-                    <h5 class="card-title fw-bold">Total Personal</h5>
-                    <h2 class="display-4 fw-bold mb-0">{{ total_personal.value }}</h2>
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm text-center h-100"
+                 style="border-radius:14px;background:linear-gradient(135deg,#1e3a8a,#2563eb);">
+                <div class="card-body py-3">
+                    <i class="ph ph-calendar-check text-white" style="font-size:2rem;opacity:.8;"></i>
+                    <div class="text-white fw-bold mt-1" style="font-size:.78rem;letter-spacing:.04em;">EVENTOS AVALADOS</div>
+                    <div class="text-white fw-bold" style="font-size:2rem;line-height:1.1;">{{ g_eventos.v }}</div>
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card shadow-sm border-0 h-100 text-white" style="border-radius: 12px; background: #f59e0b;">
-                <div class="card-body text-center">
-                    <i class="ph ph-bandaids d-block mb-2" style="font-size: 3rem; opacity: 0.8;"></i>
-                    <h5 class="card-title fw-bold">Pacientes Atendidos</h5>
-                    <h2 class="display-4 fw-bold mb-0">{{ pacientes_at.value }}</h2>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm text-center h-100"
+                 style="border-radius:14px;background:linear-gradient(135deg,#065f46,#10b981);">
+                <div class="card-body py-3">
+                    <i class="ph ph-users text-white" style="font-size:2rem;opacity:.8;"></i>
+                    <div class="text-white fw-bold mt-1" style="font-size:.78rem;letter-spacing:.04em;">TOTAL PERSONAL</div>
+                    <div class="text-white fw-bold" style="font-size:2rem;line-height:1.1;">{{ g_personal.v }}</div>
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card shadow-sm border-0 h-100 text-white" style="border-radius: 12px; background: #10b981;">
-                <div class="card-body text-center">
-                    <i class="ph ph-ambulance d-block mb-2" style="font-size: 3rem; opacity: 0.8;"></i>
-                    <h5 class="card-title fw-bold">Pacientes Trasladados</h5>
-                    <h2 class="display-4 fw-bold mb-0">{{ pacientes_tr.value }}</h2>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm text-center h-100"
+                 style="border-radius:14px;background:linear-gradient(135deg,#92400e,#f59e0b);">
+                <div class="card-body py-3">
+                    <i class="ph ph-bandaids text-white" style="font-size:2rem;opacity:.8;"></i>
+                    <div class="text-white fw-bold mt-1" style="font-size:.78rem;letter-spacing:.04em;">PACIENTES ATENDIDOS</div>
+                    <div class="text-white fw-bold" style="font-size:2rem;line-height:1.1;">{{ g_atend.v }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm text-center h-100"
+                 style="border-radius:14px;background:linear-gradient(135deg,#6d28d9,#a855f7);">
+                <div class="card-body py-3">
+                    <i class="ph ph-ambulance text-white" style="font-size:2rem;opacity:.8;"></i>
+                    <div class="text-white fw-bold mt-1" style="font-size:.78rem;letter-spacing:.04em;">PACIENTES TRASLADADOS</div>
+                    <div class="text-white fw-bold" style="font-size:2rem;line-height:1.1;">{{ g_trasl.v }}</div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Recursos Consolidados -->
-    <h4 class="mt-5 mb-3 text-primary fw-bold border-bottom pb-2">Recursos Consolidados</h4>
-    <div class="row g-3">
-        <div class="col-md-3 col-6">
-            <div class="card shadow-sm text-center">
-                <div class="card-body">
-                    <h6 class="text-muted fw-bold mb-1">Ambulancia TAB</h6>
-                    <h3 class="text-dark fw-bold mb-0">{{ ambulancia_tab.value }}</h3>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3 col-6">
-            <div class="card shadow-sm text-center">
-                <div class="card-body">
-                    <h6 class="text-muted fw-bold mb-1">Ambulancia TAM</h6>
-                    <h3 class="text-dark fw-bold mb-0">{{ ambulancia_tam.value }}</h3>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3 col-6">
-            <div class="card shadow-sm text-center">
-                <div class="card-body">
-                    <h6 class="text-muted fw-bold mb-1">PASM</h6>
-                    <h3 class="text-dark fw-bold mb-0">{{ pasm.value }}</h3>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3 col-6">
-            <div class="card shadow-sm text-center">
-                <div class="card-body">
-                    <h6 class="text-muted fw-bold mb-1">PASB</h6>
-                    <h3 class="text-dark fw-bold mb-0">{{ pasb.value }}</h3>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3 col-6">
-            <div class="card shadow-sm text-center">
-                <div class="card-body">
-                    <h6 class="text-muted fw-bold mb-1">Eq. Intervención</h6>
-                    <h3 class="text-dark fw-bold mb-0">{{ eq_int.value }}</h3>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3 col-6">
-            <div class="card shadow-sm text-center">
-                <div class="card-body">
-                    <h6 class="text-muted fw-bold mb-1">Moto APH</h6>
-                    <h3 class="text-dark fw-bold mb-0">{{ moto_aph.value }}</h3>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3 col-6">
-            <div class="card shadow-sm text-center">
-                <div class="card-body">
-                    <h6 class="text-muted fw-bold mb-1">Unidad Rescate</h6>
-                    <h3 class="text-dark fw-bold mb-0">{{ und_res.value }}</h3>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3 col-6">
-            <div class="card shadow-sm text-center">
-                <div class="card-body">
-                    <h6 class="text-muted fw-bold mb-1">Unidad Logística</h6>
-                    <h3 class="text-dark fw-bold mb-0">{{ und_log.value }}</h3>
-                </div>
-            </div>
-        </div>
-    </div>
-    </div>
+    {# ── Tarjetas por Tipo de Servicio ── #}
+    <h4 class="fw-bold text-primary mb-3 border-bottom pb-2">
+        <i class="ph ph-tag"></i> Detalle por Tipo de Servicio
+        <small class="text-muted fw-normal" style="font-size:.85rem;"> — clic en cada tarjeta para ver recursos y detalle</small>
+    </h4>
 
-    <!-- Estadísticas por Tipo de Servicio -->
-    <h4 class="mt-5 mb-3 text-primary fw-bold border-bottom pb-2">Estadísticas por Tipo de Servicio</h4>
     {% if stats_servicios %}
-    <div class="row g-3">
-        {% for tipo, stats in stats_servicios.items() %}
-        <div class="col-md-4">
-            <div class="card shadow-sm h-100" style="border-left: 4px solid #3b82f6;">
-                <div class="card-body">
-                    <h5 class="card-title fw-bold text-dark">{{ tipo }}</h5>
-                    <div class="d-flex justify-content-between mt-3">
-                        <div>
-                            <span class="text-muted d-block" style="font-size: 0.9rem;">Cantidad Actividades</span>
-                            <span class="fs-4 fw-bold text-primary">{{ stats.cantidad }}</span>
+    <div class="row g-4">
+        {% for tipo, s in stats_servicios.items() %}
+        {% set modal_id = "modal_srv_" ~ loop.index %}
+
+        <div class="col-md-6 col-lg-4">
+            <div class="card shadow-sm border-0 h-100"
+                 style="border-radius:16px;border-left:5px solid #2563eb !important;transition:transform .18s,box-shadow .18s;cursor:pointer;"
+                 onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 14px 32px rgba(37,99,235,.18)';"
+                 onmouseout="this.style.transform='';this.style.boxShadow='';">
+                <div class="card-body p-4">
+
+                    {# Encabezado tarjeta #}
+                    <div class="d-flex align-items-start justify-content-between mb-3">
+                        <h5 class="fw-bold text-dark mb-0" style="font-size:1rem;line-height:1.3;">
+                            <i class="ph ph-tag" style="color:#2563eb;"></i> {{ tipo }}
+                        </h5>
+                        <span class="badge rounded-pill"
+                              style="background:#eff6ff;color:#2563eb;font-size:.78rem;padding:4px 10px;white-space:nowrap;">
+                            {{ s.cantidad }} evento{{ 's' if s.cantidad != 1 }}
+                        </span>
+                    </div>
+
+                    {# Mini stats #}
+                    <div class="row g-2 mb-3">
+                        <div class="col-4 text-center">
+                            <div style="background:#f0fdf4;border-radius:10px;padding:8px 4px;">
+                                <i class="ph ph-clock" style="color:#16a34a;font-size:1.2rem;"></i>
+                                <div class="fw-bold text-success" style="font-size:1.1rem;">{{ s.horas }}h</div>
+                                <div style="font-size:.68rem;color:#6b7280;">Horas</div>
+                            </div>
                         </div>
-                        <div class="text-end">
-                            <span class="text-muted d-block" style="font-size: 0.9rem;">Total Horas</span>
-                            <span class="fs-4 fw-bold text-success">{{ stats.horas }}h</span>
+                        <div class="col-4 text-center">
+                            <div style="background:#fffbeb;border-radius:10px;padding:8px 4px;">
+                                <i class="ph ph-bandaids" style="color:#d97706;font-size:1.2rem;"></i>
+                                <div class="fw-bold text-warning" style="font-size:1.1rem;">{{ s.pacientes_atendidos }}</div>
+                                <div style="font-size:.68rem;color:#6b7280;">Atendidos</div>
+                            </div>
                         </div>
+                        <div class="col-4 text-center">
+                            <div style="background:#f5f3ff;border-radius:10px;padding:8px 4px;">
+                                <i class="ph ph-ambulance" style="color:#7c3aed;font-size:1.2rem;"></i>
+                                <div class="fw-bold" style="color:#7c3aed;font-size:1.1rem;">{{ s.pacientes_trasladados }}</div>
+                                <div style="font-size:.68rem;color:#6b7280;">Trasladados</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {# Botón abrir modal #}
+                    <button class="btn w-100 fw-bold"
+                            data-bs-toggle="modal"
+                            data-bs-target="#{{ modal_id }}"
+                            style="background:linear-gradient(135deg,#2563eb,#1d4ed8);color:white;border:none;border-radius:10px;padding:8px;font-size:.86rem;">
+                        <i class="ph ph-magnifying-glass-plus"></i> Ver Recursos y Detalle
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        {# ══════════ MODAL ══════════ #}
+        <div class="modal fade" id="{{ modal_id }}" tabindex="-1"
+             aria-labelledby="{{ modal_id }}_lbl" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+                <div class="modal-content border-0 shadow-lg" style="border-radius:18px;overflow:hidden;">
+
+                    <div class="modal-header text-white"
+                         style="background:linear-gradient(135deg,#1e3a8a,#2563eb);border:none;">
+                        <h5 class="modal-title fw-bold" id="{{ modal_id }}_lbl">
+                            <i class="ph ph-tag me-2"></i>{{ tipo }}
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+
+                    <div class="modal-body p-4">
+
+                        {# Pacientes y personal #}
+                        <h6 class="fw-bold text-primary mb-3 border-bottom pb-1">
+                            <i class="ph ph-heartbeat"></i> Pacientes y Personal
+                        </h6>
+                        <div class="row g-3 mb-4">
+                            <div class="col-4 text-center">
+                                <div class="p-3 rounded-3" style="background:#fffbeb;border:1px solid #fde68a;">
+                                    <i class="ph ph-bandaids" style="font-size:1.8rem;color:#d97706;"></i>
+                                    <div class="fw-bold mt-1" style="font-size:1.6rem;color:#92400e;">{{ s.pacientes_atendidos }}</div>
+                                    <div class="text-muted" style="font-size:.78rem;">Pacientes Atendidos</div>
+                                </div>
+                            </div>
+                            <div class="col-4 text-center">
+                                <div class="p-3 rounded-3" style="background:#f5f3ff;border:1px solid #ddd6fe;">
+                                    <i class="ph ph-ambulance" style="font-size:1.8rem;color:#7c3aed;"></i>
+                                    <div class="fw-bold mt-1" style="font-size:1.6rem;color:#6d28d9;">{{ s.pacientes_trasladados }}</div>
+                                    <div class="text-muted" style="font-size:.78rem;">Pacientes Trasladados</div>
+                                </div>
+                            </div>
+                            <div class="col-4 text-center">
+                                <div class="p-3 rounded-3" style="background:#f0fdf4;border:1px solid #bbf7d0;">
+                                    <i class="ph ph-users" style="font-size:1.8rem;color:#16a34a;"></i>
+                                    <div class="fw-bold mt-1" style="font-size:1.6rem;color:#15803d;">{{ s.total_personal }}</div>
+                                    <div class="text-muted" style="font-size:.78rem;">Total Personal</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {# Recursos #}
+                        <h6 class="fw-bold text-primary mb-3 border-bottom pb-1">
+                            <i class="ph ph-truck"></i> Recursos Utilizados
+                        </h6>
+                        <div class="row g-2">
+                            {%- set recursos = [
+                                ('Ambulancia TAB',   s.ambulancia_tab,       'ph-van',         '#1e40af','#eff6ff','#bfdbfe'),
+                                ('Ambulancia TAM',   s.ambulancia_tam,       'ph-van',         '#0c4a6e','#f0f9ff','#bae6fd'),
+                                ('PASM',             s.pasm,                 'ph-first-aid',   '#065f46','#f0fdf4','#bbf7d0'),
+                                ('PASB',             s.pasb,                 'ph-first-aid',   '#14532d','#dcfce7','#86efac'),
+                                ('Eq. Intervención', s.equipos_intervencion, 'ph-wrench',      '#7c2d12','#fff7ed','#fed7aa'),
+                                ('Moto APH',         s.moto_aph,             'ph-motorcycle',  '#6d28d9','#f5f3ff','#ddd6fe'),
+                                ('Unidad Rescate',   s.unidad_rescate,       'ph-lifebuoy',    '#9f1239','#fff1f2','#fecdd3'),
+                                ('Unidad Logística', s.unidad_logistica,     'ph-package',     '#374151','#f9fafb','#e5e7eb'),
+                            ] -%}
+                            {% for nombre, cantidad, icono, color, bg, borde in recursos %}
+                            <div class="col-6 col-md-3">
+                                <div class="text-center p-2 rounded-3 h-100"
+                                     style="background:{{ bg }};border:1px solid {{ borde }};{% if cantidad == 0 %}opacity:.4;{% endif %}">
+                                    <i class="ph {{ icono }}" style="font-size:1.4rem;color:{{ color }};"></i>
+                                    <div class="fw-bold mt-1" style="font-size:1.4rem;color:{{ color }};">{{ cantidad }}</div>
+                                    <div style="font-size:.7rem;color:#6b7280;line-height:1.2;">{{ nombre }}</div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        {# Resumen horas #}
+                        <div class="mt-4 p-3 rounded-3 text-center"
+                             style="background:#f0f9ff;border:1px solid #bae6fd;">
+                            <i class="ph ph-clock" style="font-size:1.4rem;color:#0284c7;"></i>
+                            <span class="fw-bold ms-2" style="color:#0c4a6e;">
+                                <strong>{{ s.horas }}h</strong> acumuladas en
+                                <strong>{{ s.cantidad }}</strong> evento{{ 's' if s.cantidad != 1 }} de este tipo
+                            </span>
+                        </div>
+
+                    </div>
+                    <div class="modal-footer border-0 pt-0">
+                        <button type="button" class="btn btn-secondary fw-bold" data-bs-dismiss="modal"
+                                style="border-radius:9px;">
+                            <i class="ph ph-x"></i> Cerrar
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
+        {# fin modal #}
+
         {% endfor %}
     </div>
+
     {% else %}
-    <div class="alert alert-light border text-center text-muted">
-        No hay datos de servicios para mostrar.
+    <div class="alert alert-light border text-center text-muted py-5">
+        <i class="ph ph-info" style="font-size:2.5rem;"></i>
+        <div class="mt-2 fw-bold">No hay datos de servicios avalados para mostrar.</div>
     </div>
     {% endif %}
 
 </div>
 {% endblock %}
+
+
+

@@ -237,30 +237,54 @@ def register_routes(app):
         conn.close()
         
         # Calcular estadísticas por tipo de servicio
+        from datetime import datetime
         stats_servicios = {}
         for r in registros:
             tipo = r.get("tipo_servicio")
             if not tipo:
                 continue
             if tipo not in stats_servicios:
-                stats_servicios[tipo] = {"cantidad": 0, "horas": 0.0}
+                stats_servicios[tipo] = {
+                    "cantidad": 0,
+                    "horas": 0.0,
+                    "total_personal": 0,
+                    "pacientes_atendidos": 0,
+                    "pacientes_trasladados": 0,
+                    "ambulancia_tab": 0,
+                    "ambulancia_tam": 0,
+                    "pasm": 0,
+                    "pasb": 0,
+                    "equipos_intervencion": 0,
+                    "moto_aph": 0,
+                    "unidad_rescate": 0,
+                    "unidad_logistica": 0,
+                }
             stats_servicios[tipo]["cantidad"] += 1
-            
+            stats_servicios[tipo]["total_personal"]        += int(r["total_personal"]        or 0)
+            stats_servicios[tipo]["pacientes_atendidos"]   += int(r["pacientes_atendidos"]   or 0)
+            stats_servicios[tipo]["pacientes_trasladados"] += int(r["pacientes_trasladados"] or 0)
+            stats_servicios[tipo]["ambulancia_tab"]        += int(r["ambulancia_tab"]        or 0)
+            stats_servicios[tipo]["ambulancia_tam"]        += int(r["ambulancia_tam"]        or 0)
+            stats_servicios[tipo]["pasm"]                  += int(r["pasm"]                  or 0)
+            stats_servicios[tipo]["pasb"]                  += int(r["pasb"]                  or 0)
+            stats_servicios[tipo]["equipos_intervencion"]  += int(r["equipos_intervencion"]  or 0)
+            stats_servicios[tipo]["moto_aph"]              += int(r["moto_aph"]              or 0)
+            stats_servicios[tipo]["unidad_rescate"]        += int(r["unidad_rescate"]        or 0)
+            stats_servicios[tipo]["unidad_logistica"]      += int(r["unidad_logistica"]      or 0)
+
             # Calcular horas
             try:
                 if r.get("hora_inicio") and r.get("hora_fin"):
-                    from datetime import datetime
-                    h_in = datetime.strptime(r["hora_inicio"], "%H:%M")
-                    h_fin = datetime.strptime(r["hora_fin"], "%H:%M")
+                    h_in  = datetime.strptime(r["hora_inicio"], "%H:%M")
+                    h_fin = datetime.strptime(r["hora_fin"],    "%H:%M")
                     if h_fin < h_in:
-                        # Cruza la medianoche
-                        diff = (h_fin.hour + 24 - h_in.hour) + (h_fin.minute - h_in.minute)/60.0
+                        diff = (h_fin.hour + 24 - h_in.hour) + (h_fin.minute - h_in.minute) / 60.0
                     else:
                         diff = (h_fin - h_in).total_seconds() / 3600.0
                     stats_servicios[tipo]["horas"] += diff
             except Exception:
                 pass
-        
+
         for k in stats_servicios:
             stats_servicios[k]["horas"] = round(stats_servicios[k]["horas"], 2)
         
