@@ -2,16 +2,21 @@
 {% block title %}Reporte de Actividades{% endblock %}
 {% block content %}
 <div class="container mt-4 mb-5">
+    {% if es_admin_vol %}
+    <div style="display: flex; justify-content: flex-end; margin-bottom: 12px;">
+        <a href="{{ url_for('estadisticas_reporte') }}"
+           style="display:inline-flex; align-items:center; gap:7px; background:linear-gradient(135deg,#0d6efd,#0a58ca); color:white; border:none; border-radius:10px; padding:9px 20px; font-weight:700; font-size:14px; text-decoration:none; box-shadow:0 3px 10px rgba(13,110,253,0.35); transition:all 0.2s;"
+           onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(13,110,253,0.45)';"
+           onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 3px 10px rgba(13,110,253,0.35)';">
+            <i class="ph ph-chart-bar" style="font-size:16px;"></i> Ver Estadísticas y Registros
+        </a>
+    </div>
+    {% endif %}
     <div class="card shadow">
-        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <div class="card-header bg-primary text-white">
             <h4 class="mb-0">
                 <i class="ph ph-clipboard-text"></i> REPORTE DE ACTIVIDADES - CORPORACIÓN SOCORRISTAS GRUPO DE APOYO
             </h4>
-            {% if es_admin_vol %}
-            <a href="{{ url_for('estadisticas_reporte') }}" class="btn btn-primary fw-bold" style="border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); padding: 8px 16px; transition: all 0.3s ease;">
-                <i class="ph ph-chart-bar" style="font-size: 1.1em; margin-right: 5px;"></i> Ver Estadísticas y Registros
-            </a>
-            {% endif %}
         </div>
         <div class="card-body">
             <div class="alert alert-info" role="alert">
