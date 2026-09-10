@@ -215,13 +215,41 @@ def estadisticas_voluntariado():
     elif todos and type(todos[0]) is not dict:
         todos = [dict(r) for r in todos]
     
+    def parsear_minutos(horas_str):
+        """Convierte total_horas a minutos. Soporta: 'H:MM', 'H:MM:SS', 'Xh Ym', 'Xh', 'Ym'"""
+        if not horas_str:
+            return 0
+        horas_str = str(horas_str).strip()
+        try:
+            # Formato H:MM o H:MM:SS
+            if ':' in horas_str:
+                partes = horas_str.split(':')
+                h = int(partes[0]) if partes[0] else 0
+                m = int(partes[1]) if len(partes) > 1 and partes[1] else 0
+                return h * 60 + m
+            # Formato "Xh Ym" o "Xh" o "Ym"
+            import re
+            h = 0
+            m = 0
+            match_h = re.search(r'(\d+)\s*h', horas_str)
+            match_m = re.search(r'(\d+)\s*m', horas_str)
+            if match_h:
+                h = int(match_h.group(1))
+            if match_m:
+                m = int(match_m.group(1))
+            if match_h or match_m:
+                return h * 60 + m
+        except Exception:
+            pass
+        return 0
+
     # Agrupar por usuario
     stats_usuarios = {}
     for r in todos:
         usuario = r.get('registrado_por', 'Desconocido')
         identificacion = r.get('registrado_por_identificacion', '-')
         estado = r.get('estado', '')
-        horas_str = r.get('total_horas', '0:0')
+        horas_str = r.get('total_horas', '')
         
         if usuario not in stats_usuarios:
             stats_usuarios[usuario] = {
@@ -235,12 +263,7 @@ def estadisticas_voluntariado():
         stats_usuarios[usuario]['realizados'] += 1
         if estado == 'Avalado':
             stats_usuarios[usuario]['avalados'] += 1
-            if horas_str and ':' in horas_str:
-                try:
-                    h, m = map(int, horas_str.split(':'))
-                    stats_usuarios[usuario]['minutos'] += h * 60 + m
-                except:
-                    pass
+            stats_usuarios[usuario]['minutos'] += parsear_minutos(horas_str)
         elif estado == 'Anulado':
             stats_usuarios[usuario]['anulados'] += 1
     
@@ -271,20 +294,43 @@ def imprimir_voluntariado(record_id):
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM registro_voluntariado WHERE id = %s", (record_id,))
     registro = cursor.fetchone()
-    conn.close()
     
     if registro and type(registro) is tuple:
         cols = [column[0] for column in cursor.description]
         registro = dict(zip(cols, registro))
     
     if not registro:
+        conn.close()
         return "Registro no encontrado"
         
     if not is_admin_vol() and registro['registrado_por_identificacion'] != session['usuario'].get('identificacion'):
+        conn.close()
         return "No tienes permiso para ver este registro"
-        
+
+    # Obtener firma actualizada del registrador desde la tabla usuarios
+    firma_registrador = registro.get('firma_registrador', '')
+    ident_reg = registro.get('registrado_por_identificacion', '')
+    if ident_reg:
+        u_reg = conn.execute("SELECT firma FROM usuarios WHERE identificacion = ?", (ident_reg,)).fetchone()
+        if u_reg and u_reg['firma']:
+            firma_registrador = u_reg['firma']
+
+    # Obtener firma actualizada del avalador desde la tabla usuarios
+    firma_avalador = registro.get('firma_avalador', '')
+    ident_aval = registro.get('avalado_por_identificacion', '')
+    if ident_aval:
+        u_aval = conn.execute("SELECT firma FROM usuarios WHERE identificacion = ?", (ident_aval,)).fetchone()
+        if u_aval and u_aval['firma']:
+            firma_avalador = u_aval['firma']
+
     cfg = get_configuracion()
-    return render_template('imprimir_voluntariado.html', registro=registro, cfg=cfg)
+    conn.close()
+    
+    return render_template('imprimir_voluntariado.html',
+                           registro=registro,
+                           cfg=cfg,
+                           firma_registrador=firma_registrador,
+                           firma_avalador=firma_avalador)
 
 def register_routes(app):
     app.register_blueprint(routes_voluntariado)
