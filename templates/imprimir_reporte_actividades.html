@@ -28,6 +28,9 @@
             body { padding: 0; }
             @page { margin: 1.5cm; }
             .no-print { display: none !important; }
+            /* Forzar impresión de imágenes y colores */
+            img { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
         }
     </style>
 </head>
@@ -42,8 +45,13 @@
     <table class="institutional-header">
         <tr>
             <td style="width: 20%;">
-                {% if cfg and cfg.logo_url %}
-                    <img src="{{ cfg.logo_url }}" alt="Logo Institución" class="logo">
+                {% set logo_path = cfg['logo'] if cfg and cfg['logo'] else (cfg.logo_url if cfg and cfg.logo_url else None) %}
+                {% if logo_path %}
+                    {% if logo_path.startswith('http') %}
+                        <img src="{{ logo_path }}" alt="Logo Institución" class="logo" style="max-height:70px;max-width:120px;">
+                    {% else %}
+                        <img src="{{ request.host_url.rstrip('/') }}{{ logo_path }}" alt="Logo Institución" class="logo" style="max-height:70px;max-width:120px;">
+                    {% endif %}
                 {% else %}
                     <div style="font-size: 10px; color: #666;">Sin Logo</div>
                 {% endif %}
@@ -80,9 +88,9 @@
         </tr>
         <tr>
             <th>Hora Inicio</th>
-            <td>{{ registro.hora_inicio }}</td>
+            <td>{{ registro.hora_inicio_fmt }}</td>
             <th>Hora Fin</th>
-            <td>{{ registro.hora_fin }}</td>
+            <td>{{ registro.hora_fin_fmt }}</td>
         </tr>
         <tr>
             <th>Tipo de Servicio</th>

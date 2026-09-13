@@ -20,6 +20,8 @@
             color: #000;
             width: 140mm;
             min-height: 216mm;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
         }
 
         .contenido { position: relative; }
@@ -60,10 +62,18 @@
             padding: 10px 8px 6px;
             vertical-align: bottom;
             position: relative;
-            /* marca-agua se inyecta como background-image inline */
-            background-repeat: no-repeat;
-            background-position: center center;
-            background-size: 80px 80px;
+        }
+        /* Marca de agua como <img> para que se imprima siempre */
+        .firma-marca {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80px; height: 80px;
+            opacity: 0.18;
+            pointer-events: none;
+            object-fit: contain;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
         }
         .firma-img   { max-height: 55px; max-width: 110px; display: block; margin: 0 auto 2px; position: relative; z-index: 1; }
         .firma-line  { border-top: 1px solid #333; padding-top: 4px; margin-top: 4px; position: relative; z-index: 1; }
@@ -152,11 +162,12 @@
         </table>
 
         {# ── Firmas ── #}
-        {% set marca_style = "background-image:url('" ~ cfg.marca_agua ~ "');" if cfg and cfg.marca_agua else '' %}
+        {% set tiene_marca = cfg and cfg.marca_agua %}
         <div class="firma-wrap">
 
             {# Firma del voluntario (registrador) #}
-            <div class="firma-col" style="{{ marca_style }}">
+            <div class="firma-col">
+                {% if tiene_marca %}<img src="{{ cfg.marca_agua }}" class="firma-marca" alt="">{% endif %}
                 {% if firma_registrador %}
                     <img src="{{ firma_registrador }}" class="firma-img" alt="Firma Voluntario">
                 {% else %}
@@ -172,7 +183,8 @@
             </div>
 
             {# Firma del avalador #}
-            <div class="firma-col" style="{{ marca_style }}">
+            <div class="firma-col">
+                {% if tiene_marca %}<img src="{{ cfg.marca_agua }}" class="firma-marca" alt="">{% endif %}
                 {% if registro.estado == 'Avalado' and firma_avalador %}
                     <img src="{{ firma_avalador }}" class="firma-img" alt="Firma Avalador">
                 {% elif registro.estado != 'Avalado' %}

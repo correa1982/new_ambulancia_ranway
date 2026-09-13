@@ -203,8 +203,10 @@ def register_routes(app):
 
         todos_usuarios = []
         if tipo == "avanzada":
+            hoy_str = hoy().strftime("%Y-%m-%d")
             usuarios_db = conn.execute(
-                "SELECT nombre, identificacion, perfil FROM usuarios WHERE activo = 1 AND (fecha_validez IS NULL OR fecha_validez >= CURDATE()) ORDER BY nombre"
+                "SELECT nombre, identificacion, perfil FROM usuarios WHERE activo = 1 AND (fecha_validez IS NULL OR fecha_validez = '' OR fecha_validez >= ?) ORDER BY nombre",
+                (hoy_str,)
             ).fetchall()
             todos_usuarios = [dict(u) for u in usuarios_db]
 
@@ -272,7 +274,19 @@ def register_routes(app):
         fecha_filtro = request.args.get("fecha", fecha_hoy)
         fecha_like = f"{fecha_filtro}%"
         
-        items = conn.execute(f"SELECT * FROM {cfg['table']} WHERE fecha_registro LIKE ? ORDER BY id DESC", (fecha_like,)).fetchall()
+        is_admin = session.get("usuario", {}).get("rol") == "admin"
+        user_ident = session.get("usuario", {}).get("identificacion")
+
+        if not is_admin:
+            items = conn.execute(
+                f"SELECT * FROM {cfg['table']} WHERE fecha_registro LIKE ? AND registrado_por_identificacion = ? ORDER BY id DESC",
+                (fecha_like, user_ident)
+            ).fetchall()
+        else:
+            items = conn.execute(
+                f"SELECT * FROM {cfg['table']} WHERE fecha_registro LIKE ? ORDER BY id DESC",
+                (fecha_like,)
+            ).fetchall()
         conn.close()
         return render_template("registros_formulario.html", items=items,
                                tipo=tipo, titulo=cfg["titulo"],
@@ -300,6 +314,21 @@ def register_routes(app):
                 datos = json.loads(record_dict["datos_json"])
             except Exception:
                 pass
+
+        # Validar permisos para no administradores
+        is_admin = session.get("usuario", {}).get("rol") == "admin"
+        user_ident = str(session.get("usuario", {}).get("identificacion") or "")
+        if not is_admin:
+            is_creator = str(record_dict.get("registrado_por_identificacion") or "") == user_ident
+            is_integrante = False
+            for integ in (datos.get("_integrantes") or []):
+                if str(integ.get("identificacion") or "").strip() == user_ident:
+                    is_integrante = True
+                    break
+            if not is_creator and not is_integrante:
+                conn.close()
+                flash("No tienes permiso para visualizar este registro.", "error")
+                return redirect(url_for("registros_checklist", tipo=tipo))
                 
         # Load checklist_items to preserve exact order
         items_db = conn.execute(
