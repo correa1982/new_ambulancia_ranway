@@ -58,7 +58,7 @@
     <span class="cl-badge">{{ subtitulo }}</span>
 </div>
 
-<form method="POST" class="pwa-offline-form">
+<form method="POST" class="pwa-offline-form" autocomplete="off">
 {% if record %}<input type="hidden" name="id" value="{{ record.id }}">{% endif %}
 <!-- Datos generales -->
 <fieldset>
@@ -69,16 +69,16 @@
         <input onclick="this.showPicker()" type="date" name="fecha" max="{{ hoy }}" required value="{{ record.fecha if record else hoy }}">
     </div>
     <div>
-        <label>Hora</label>
-        <input onclick="this.showPicker()" type="time" name="hora" value="{{ record.hora if record else hora_actual }}">
+        <label>Hora <span style="color:#ef4444">*</span></label>
+        <input onclick="this.showPicker()" type="time" name="hora" required value="{{ record.hora if record else hora_actual }}">
     </div>
     <div>
-        <label>Evento</label>
-        <input type="text" name="evento" placeholder="Ej. Evento 123" value="{{ record.evento if record else '' }}">
+        <label>Evento <span style="color:#ef4444">*</span></label>
+        <input type="text" name="evento" placeholder="Ej. Evento 123" required value="{{ record.evento if record else '' }}">
     </div>
     <div>
-        <label>Botiquín</label>
-        <input type="text" name="botiquin" placeholder="Ej. Botiquín A" value="{{ record.botiquin if record else '' }}">
+        <label>Botiquín <span style="color:#ef4444">*</span></label>
+        <input type="text" name="botiquin" placeholder="Ej. Botiquín A" required value="{{ record.botiquin if record else '' }}">
     </div>
 </div>
 </fieldset>
@@ -111,9 +111,7 @@
                     </select>
                 </td>
                 <td style="padding: 6px 14px; border: 1px solid #f1f5f9;">
-                    <div class="nombre-container" data-val="{{ member.nombre }}">
-                        <input type="text" name="integrante_nombre[]" class="form-control input-nombre" required placeholder="Nombre completo" value="{{ member.nombre }}" style="width: 100%; border: 1px solid #cbd5e1; border-radius: 5px; padding: 6px; font-size: 13px; box-sizing: border-box;">
-                    </div>
+                    <div class="nombre-container" data-val="{{ member.nombre }}"></div>
                 </td>
                 <td style="padding: 6px 14px; border: 1px solid #f1f5f9;"><input type="text" name="integrante_doc[]" class="form-control input-doc" placeholder="Cédula / ID" value="{{ member.identificacion }}" style="width: 100%; border: 1px solid #cbd5e1; border-radius: 5px; padding: 6px; font-size: 13px; box-sizing: border-box;"></td>
                 <td style="text-align: center; vertical-align: middle; padding: 6px 14px; border: 1px solid #f1f5f9;">
@@ -136,9 +134,7 @@
                     </select>
                 </td>
                 <td style="padding: 6px 14px; border: 1px solid #f1f5f9;">
-                    <div class="nombre-container">
-                        <input type="text" name="integrante_nombre[]" class="form-control input-nombre" required placeholder="Nombre completo" style="width: 100%; border: 1px solid #cbd5e1; border-radius: 5px; padding: 6px; font-size: 13px; box-sizing: border-box;">
-                    </div>
+                    <div class="nombre-container" data-val=""></div>
                 </td>
                 <td style="padding: 6px 14px; border: 1px solid #f1f5f9;"><input type="text" name="integrante_doc[]" class="form-control input-doc" placeholder="Cédula / ID" style="width: 100%; border: 1px solid #cbd5e1; border-radius: 5px; padding: 6px; font-size: 13px; box-sizing: border-box;"></td>
                 <td style="text-align: center; vertical-align: middle; padding: 6px 14px; border: 1px solid #f1f5f9;">
@@ -278,80 +274,150 @@
     });
     checkNo();
 
-    function updateNombreInput(row) {
+    function normalizar(texto) {
+        return (texto || '')
+            .toLowerCase()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .trim();
+    }
+
+    function matchCargo(userPerfil, cargo) {
+        if (!userPerfil || !cargo) return false;
+        let list = [];
+        try {
+            let parsed = JSON.parse(userPerfil);
+            list = Array.isArray(parsed) ? parsed : [parsed];
+        } catch(e) {
+            list = [userPerfil];
+        }
+        const cNorm = normalizar(cargo);
+        return list.some(p => {
+            const pNorm = normalizar(String(p));
+            if (pNorm === cNorm) return true;
+            if (cNorm === 'enfermero' || cNorm === 'enfermera' || cNorm === 'enfermeria') {
+                return (pNorm === 'enfermero' || pNorm === 'enfermera' || pNorm === 'enfermeria') && !pNorm.includes('auxiliar');
+            }
+            if (cNorm.includes('auxiliar')) {
+                return pNorm.includes('auxiliar');
+            }
+            if (cNorm === 'aph') {
+                return pNorm === 'aph' || pNorm.includes('atencion prehospitalaria');
+            }
+            if (cNorm === 'socorrista') {
+                return pNorm.includes('socorrista');
+            }
+            if (cNorm === 'medico') {
+                return pNorm.includes('medico');
+            }
+            return pNorm.includes(cNorm);
+        });
+    }
+
+    function updateNombreInput(row, clearVal = false) {
         const perfilSelect = row.querySelector('.select-perfil');
         const container = row.querySelector('.nombre-container');
+        const docInput = row.querySelector('.input-doc');
         if (!perfilSelect || !container) return;
         
         const perfil = perfilSelect.value;
+        if (clearVal) {
+            container.setAttribute('data-val', '');
+            if (docInput) docInput.value = '';
+        }
         const currentVal = container.getAttribute('data-val') || '';
 
         container.innerHTML = ''; // Clear container
+
+        if (!perfil) {
+            const select = document.createElement('select');
+            select.className = 'form-control select-nombre';
+            select.disabled = true;
+            select.style.cssText = 'width: 100%; border: 1px solid #cbd5e1; border-radius: 5px; padding: 6px; font-size: 13px; box-sizing: border-box; background: #f8fafc; color: #94a3b8;';
+            const opt = document.createElement('option');
+            opt.value = '';
+            opt.textContent = '— Primero seleccione un cargo —';
+            select.appendChild(opt);
+            container.appendChild(select);
+            if (docInput) docInput.value = '';
+            return;
+        }
 
         if (perfil === 'Estudiante') {
             const input = document.createElement('input');
             input.type = 'text';
             input.name = 'integrante_nombre[]';
             input.className = 'form-control input-nombre';
+            input.autocomplete = 'off';
             input.required = true;
-            input.placeholder = 'Nombre completo';
-            input.style.cssText = 'width: 100%; border: 1px solid #cbd5e1; border-radius: 5px; padding: 6px; font-size: 13px; box-sizing: border-box;';
+            input.placeholder = 'Nombre completo del estudiante';
+            input.style.cssText = 'width: 100%; border: 1px solid #cbd5e1; border-radius: 5px; padding: 6px; font-size: 13px; box-sizing: border-box; background: white;';
             input.value = currentVal;
             input.addEventListener('input', function() {
                 container.setAttribute('data-val', this.value);
             });
             container.appendChild(input);
         } else {
-            const datalistId = 'dl_' + Math.random().toString(36).substring(2, 9);
-            
-            const input = document.createElement('input');
-            input.type = 'text';
-            input.name = 'integrante_nombre[]';
-            input.className = 'form-control input-nombre';
-            input.setAttribute('list', datalistId);
-            input.required = true;
-            input.placeholder = 'Seleccione o escriba un usuario';
-            input.style.cssText = 'width: 100%; border: 1px solid #cbd5e1; border-radius: 5px; padding: 6px; font-size: 13px; box-sizing: border-box; background: white;';
-            input.value = currentVal;
-            
-            const datalist = document.createElement('datalist');
-            datalist.id = datalistId;
+            const select = document.createElement('select');
+            select.name = 'integrante_nombre[]';
+            select.className = 'form-control select-nombre';
+            select.required = true;
+            select.style.cssText = 'width: 100%; border: 1px solid #cbd5e1; border-radius: 5px; padding: 6px; font-size: 13px; box-sizing: border-box; background: white;';
+
+            const defaultOpt = document.createElement('option');
+            defaultOpt.value = '';
+            defaultOpt.textContent = '— Seleccione un integrante —';
+            select.appendChild(defaultOpt);
 
             let docMap = {};
+            let matchCount = 0;
+            let foundCurrent = false;
 
             todosUsuarios.forEach(u => {
-                let match = false;
-                if (u.perfil) {
-                    try {
-                        let parsed = JSON.parse(u.perfil);
-                        if (Array.isArray(parsed)) {
-                            match = parsed.some(p => p.includes(perfil));
-                        } else {
-                            match = u.perfil.includes(perfil);
+                if (matchCargo(u.perfil, perfil)) {
+                    matchCount++;
+                    const opt = document.createElement('option');
+                    opt.value = u.nombre;
+                    opt.textContent = u.nombre;
+                    opt.setAttribute('data-doc', u.identificacion || '');
+                    if (u.nombre === currentVal) {
+                        opt.selected = true;
+                        foundCurrent = true;
+                        if (docInput && !docInput.value) {
+                            docInput.value = u.identificacion || '';
                         }
-                    } catch(e) {
-                        match = u.perfil.includes(perfil);
+                    }
+                    select.appendChild(opt);
+                    docMap[u.nombre] = u.identificacion || '';
+                }
+            });
+
+            if (matchCount === 0) {
+                defaultOpt.textContent = '— No hay usuarios registrados como ' + perfil + ' —';
+            }
+
+            // Si es un borrador o edición existente y el nombre no está entre los usuarios activos filtrados, conservarlo
+            if (currentVal && !foundCurrent) {
+                const optExtra = document.createElement('option');
+                optExtra.value = currentVal;
+                optExtra.textContent = currentVal + ' (registrado)';
+                optExtra.selected = true;
+                select.appendChild(optExtra);
+            }
+
+            select.addEventListener('change', function() {
+                const val = this.value;
+                container.setAttribute('data-val', val);
+                if (docInput) {
+                    if (val && docMap[val]) {
+                        docInput.value = docMap[val];
+                    } else if (!val) {
+                        docInput.value = '';
                     }
                 }
-                
-                if (match) {
-                    const option = document.createElement('option');
-                    option.value = u.nombre;
-                    datalist.appendChild(option);
-                    docMap[u.nombre] = u.identificacion;
-                }
             });
 
-            input.addEventListener('input', function() {
-                container.setAttribute('data-val', this.value);
-                const docInput = row.querySelector('.input-doc');
-                if (docInput && docMap[this.value]) {
-                    docInput.value = docMap[this.value];
-                }
-            });
-
-            container.appendChild(input);
-            container.appendChild(datalist);
+            container.appendChild(select);
         }
     }
 
@@ -360,7 +426,7 @@
         const selectPerfil = row.querySelector('.select-perfil');
         if (selectPerfil) {
             updateNombreInput(row);
-            selectPerfil.addEventListener('change', () => updateNombreInput(row));
+            selectPerfil.addEventListener('change', () => updateNombreInput(row, true));
         }
     });
 
@@ -398,7 +464,7 @@
             // Initialize new row
             const selectPerfil = tr.querySelector('.select-perfil');
             updateNombreInput(tr);
-            selectPerfil.addEventListener('change', () => updateNombreInput(tr));
+            selectPerfil.addEventListener('change', () => updateNombreInput(tr, true));
         });
     }
 

@@ -102,8 +102,74 @@ def inventarios_index():
                 "cantidad": qty,
                 "minimo": min_stock
             })
+
+    # Calcular próximos a vencer (1-30 días) y vencidos
+    from datetime import date, timedelta
+    hoy = date.today()
+    limite_prox = hoy + timedelta(days=30)
+    proximos_vencer = []
+    vencidos = []
+    for row in items_raw:
+        if row['cantidad'] <= 0:
+            continue
+        fv = row['fecha_vencimiento']
+        if not fv:
+            continue
+        # Normalizar a date
+        if hasattr(fv, 'date'):
+            fv = fv.date()
+        elif isinstance(fv, str):
+            try:
+                fv = date.fromisoformat(fv[:10])
+            except Exception:
+                continue
+        dias = (fv - hoy).days
+        entry = {
+            "id": row['id'],
+            "nombre": row['nombre'],
+            "lote": row.get('lote') or '',
+            "cantidad": row['cantidad'],
+            "fecha_vencimiento": fv.strftime('%Y-%m-%d'),
+            "dias": dias
+        }
+        if dias < 0:
+            vencidos.append(entry)
+        elif dias <= 30:
+            proximos_vencer.append(entry)
+
+    proximos_vencer.sort(key=lambda x: x['dias'])
+    vencidos.sort(key=lambda x: x['dias'])
         
-    return render_template('inventarios.html', items=items, catalogo=catalogo, is_superadmin=is_superadmin, alertas=alertas)
+    return render_template('inventarios.html', items=items, catalogo=catalogo, is_superadmin=is_superadmin,
+                           alertas=alertas, proximos_vencer=proximos_vencer, vencidos=vencidos)
+
+
+
+@bp_inventarios.route('/descarte', methods=['POST'])
+def inventarios_descarte():
+    """Registra el descarte/egreso de un item vencido y pone su cantidad en 0."""
+    item_id = request.form.get('item_id')
+    if not item_id:
+        return jsonify({"status": "error", "message": "item_id requerido."}), 400
+    conn = get_db()
+    item = conn.execute("SELECT * FROM inventarios WHERE id = %s", (item_id,)).fetchone()
+    if not item:
+        conn.close()
+        return jsonify({"status": "error", "message": "Ítem no encontrado."}), 404
+    registrado_por = session['usuario']['nombre']
+    cantidad_descartada = item['cantidad']
+    conn.execute("UPDATE inventarios SET cantidad = 0 WHERE id = %s", (item_id,))
+    conn.execute("""
+        INSERT INTO inventarios_historial
+        (item_id, codigo_barras, nombre, lote, accion, cantidad, tipo_egreso, destino, registrado_por)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+    """, (
+        item['id'], item.get('codigo_barras', ''), item['nombre'], item.get('lote', ''),
+        'egreso', cantidad_descartada, 'Descarte por vencimiento', 'Baja', registrado_por
+    ))
+    conn.commit()
+    conn.close()
+    return jsonify({"status": "success", "message": f"'{item['nombre']}' descartado. {cantidad_descartada} unidades dadas de baja."})
 
 @bp_inventarios.route('/catalogo/add', methods=['POST'])
 def catalogo_add():

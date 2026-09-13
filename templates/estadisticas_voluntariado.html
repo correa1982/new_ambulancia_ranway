@@ -1,20 +1,131 @@
 {% extends "base.html" %}
 {% block title %}Estadísticas de Voluntariado{% endblock %}
+
 {% block content %}
+<style>
+/* ── Mobile ── */
+@media (max-width: 768px) {
+    .est-header       { flex-wrap: wrap; gap: 8px; }
+    .est-header h3    { font-size: 15px !important; }
+    .est-header a     { font-size: 12px !important; padding: 7px 10px !important; }
+
+    /* Resumen: pill-cards en lugar de tabla */
+    .resumen-tabla    { display: none !important; }
+    .resumen-pills    { display: flex !important; }
+
+    /* Tabla voluntarios -> cards */
+    .vol-table-wrap   { display: none !important; }
+    .vol-cards-wrap   { display: block !important; }
+}
+@media (min-width: 769px) {
+    .resumen-tabla    { display: block; }
+    .resumen-pills    { display: none !important; }
+    .vol-table-wrap   { display: block; }
+    .vol-cards-wrap   { display: none !important; }
+}
+
+/* ── Resumen pills (móvil) ── */
+.resumen-pills {
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+.res-pill {
+    flex: 1 1 calc(50% - 10px);
+    min-width: 120px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+}
+.res-pill-dot {
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    display: inline-block;
+}
+.res-pill-label { font-size: 10px; font-weight: 700; color: #6c757d; text-transform: uppercase; }
+.res-pill-value { font-size: 22px; font-weight: 800; line-height: 1; }
+
+/* ── Voluntario cards (móvil) ── */
+.vol-stat-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    margin-bottom: 12px;
+    padding: 14px;
+    border-left: 4px solid #0d6efd;
+}
+.vol-stat-card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+.vol-avatar {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #0d6efd, #6610f2);
+    color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 14px;
+    flex-shrink: 0;
+}
+.vol-stat-name  { font-weight: 700; font-size: 13px; color: #222; }
+.vol-stat-doc   { font-size: 11px; color: #888; }
+
+.vol-stat-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+.vol-stat-item {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 8px 10px;
+    text-align: center;
+}
+.vol-stat-item label {
+    font-size: 9px;
+    font-weight: 700;
+    color: #6c757d;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 2px;
+}
+.vol-stat-item .val { font-size: 18px; font-weight: 800; }
+
+/* Total fila móvil */
+.vol-total-card {
+    background: #f0f4ff;
+    border-radius: 12px;
+    border: 2px solid #0d6efd;
+    margin-top: 4px;
+}
+</style>
+
 <div class="container-fluid mt-4 mb-5">
 
-    <div style="display:flex; align-items:center; gap:12px; margin-bottom:24px;">
+    {# ── Header ── #}
+    <div class="est-header" style="display:flex; align-items:center; gap:12px; margin-bottom:24px; flex-wrap:wrap;">
         <a href="{{ url_for('voluntariado.registros_voluntariado') }}"
            style="display:inline-flex; align-items:center; gap:6px; background:#6c757d; color:white; border:none; border-radius:8px; padding:9px 18px; font-weight:700; font-size:14px; text-decoration:none; box-shadow:0 2px 6px rgba(0,0,0,0.15);">
-            <i class="ph ph-arrow-left" style="font-size:16px;"></i> Volver a Registros
+            <i class="ph ph-arrow-left" style="font-size:16px;"></i> Volver
         </a>
-        <h3 style="margin:0; font-weight:700; color:#0d6efd; display:flex; align-items:center; gap:8px;">
+        <h3 style="margin:0; font-weight:700; color:#0d6efd; display:flex; align-items:center; gap:8px; font-size:18px;">
             <i class="ph ph-chart-bar"></i> Estadísticas de Voluntariado
         </h3>
     </div>
 
-    <!-- Resumen global -->
-    <div class="card shadow-sm border-0 mb-4" style="border-radius:12px; max-width:420px;">
+    {# ══════════════════════════════════════════════
+       RESUMEN GENERAL
+    ══════════════════════════════════════════════ #}
+
+    {# ── Desktop: tabla original ── #}
+    <div class="resumen-tabla card shadow-sm border-0 mb-4" style="border-radius:12px; max-width:420px;">
         <div class="card-header bg-transparent border-0 pb-0 pt-3 px-4">
             <h6 class="fw-bold text-dark mb-0">
                 <i class="ph ph-list-numbers me-2 text-primary"></i>Resumen General de Registros
@@ -70,8 +181,36 @@
         </div>
     </div>
 
-    <!-- Tabla por voluntario -->
-    <div class="card shadow-sm border-0" style="border-radius:12px;">
+    {# ── Móvil: pills de resumen ── #}
+    <div class="resumen-pills mb-4">
+        <div class="res-pill">
+            <span class="res-pill-dot" style="background:#0d6efd;"></span>
+            <span class="res-pill-label">Total Realizados</span>
+            <span class="res-pill-value" style="color:#0d6efd;">{{ total_realizados }}</span>
+        </div>
+        <div class="res-pill">
+            <span class="res-pill-dot" style="background:#10b981;"></span>
+            <span class="res-pill-label">Avalados</span>
+            <span class="res-pill-value" style="color:#10b981;">{{ total_avalados }}</span>
+        </div>
+        <div class="res-pill">
+            <span class="res-pill-dot" style="background:#f59e0b;"></span>
+            <span class="res-pill-label">Anulados</span>
+            <span class="res-pill-value" style="color:#f59e0b;">{{ total_anulados }}</span>
+        </div>
+        <div class="res-pill">
+            <span class="res-pill-dot" style="background:#6c757d;"></span>
+            <span class="res-pill-label">Pendientes</span>
+            <span class="res-pill-value" style="color:#6c757d;">{{ total_realizados - total_avalados - total_anulados }}</span>
+        </div>
+    </div>
+
+    {# ══════════════════════════════════════════════
+       ESTADÍSTICAS POR VOLUNTARIO
+    ══════════════════════════════════════════════ #}
+
+    {# ── Desktop: tabla original ── #}
+    <div class="vol-table-wrap card shadow-sm border-0" style="border-radius:12px;">
         <div class="card-header bg-transparent border-0 pt-3 pb-0 px-4">
             <h5 class="fw-bold text-dark mb-0">
                 <i class="ph ph-users me-2 text-primary"></i>Estadísticas por Voluntario
@@ -139,5 +278,79 @@
         </div>
     </div>
 
+    {# ── Móvil: cards por voluntario ── #}
+    <div class="vol-cards-wrap">
+        <h6 class="fw-bold text-dark mb-3" style="font-size:14px;">
+            <i class="ph ph-users me-2 text-primary"></i>Estadísticas por Voluntario
+        </h6>
+
+        {% if stats_usuarios %}
+        {% for usuario, stats in stats_usuarios.items() %}
+        <div class="vol-stat-card">
+            <div class="vol-stat-card-header">
+                <div class="vol-avatar">{{ usuario[0]|upper if usuario else '?' }}</div>
+                <div>
+                    <div class="vol-stat-name">{{ usuario }}</div>
+                    <div class="vol-stat-doc">{{ stats.identificacion or 'Sin documento' }}</div>
+                </div>
+            </div>
+            <div class="vol-stat-grid">
+                <div class="vol-stat-item">
+                    <label>Realizados</label>
+                    <span class="val" style="color:#0d6efd;">{{ stats.realizados }}</span>
+                </div>
+                <div class="vol-stat-item">
+                    <label>Avalados</label>
+                    <span class="val" style="color:#10b981;">{{ stats.avalados }}</span>
+                </div>
+                <div class="vol-stat-item">
+                    <label>Anulados</label>
+                    <span class="val" style="color:#f59e0b;">{{ stats.anulados }}</span>
+                </div>
+                <div class="vol-stat-item">
+                    <label>Horas Avaladas</label>
+                    <span class="val" style="color:#0d6efd; font-size:14px;">{{ stats.horas_str }}</span>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+
+        {# Totales #}
+        <div class="vol-stat-card vol-total-card">
+            <div class="vol-stat-card-header">
+                <div class="vol-avatar" style="background:linear-gradient(135deg,#0d6efd,#0a58ca);">Σ</div>
+                <div>
+                    <div class="vol-stat-name" style="color:#0d6efd;">TOTAL GENERAL</div>
+                </div>
+            </div>
+            <div class="vol-stat-grid">
+                <div class="vol-stat-item">
+                    <label>Realizados</label>
+                    <span class="val" style="color:#0d6efd;">{{ total_realizados }}</span>
+                </div>
+                <div class="vol-stat-item">
+                    <label>Avalados</label>
+                    <span class="val" style="color:#10b981;">{{ total_avalados }}</span>
+                </div>
+                <div class="vol-stat-item">
+                    <label>Anulados</label>
+                    <span class="val" style="color:#f59e0b;">{{ total_anulados }}</span>
+                </div>
+                <div class="vol-stat-item">
+                    <label>Horas Avaladas</label>
+                    <span class="val" style="color:#0d6efd; font-size:14px;">{{ total_horas }}</span>
+                </div>
+            </div>
+        </div>
+
+        {% else %}
+        <div class="text-center text-muted py-5">
+            <i class="ph ph-folder-open d-block mb-2" style="font-size:2.5rem;"></i>
+            No hay datos de voluntarios para mostrar.
+        </div>
+        {% endif %}
+    </div>
+
 </div>
 {% endblock %}
+

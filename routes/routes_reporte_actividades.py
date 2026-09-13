@@ -208,8 +208,33 @@ def register_routes(app):
             
         cfg = get_configuracion(conn)
         conn.close()
-        
-        return render_template("imprimir_reporte_actividades.html", registro=registro, cfg=cfg)
+
+        # ── Formatear horas como "HH:MM" independientemente del tipo del driver ──
+        import datetime as _dt
+
+        def _fmt_hora(val):
+            if val is None:
+                return ""
+            if isinstance(val, _dt.time):
+                return val.strftime("%H:%M")
+            if isinstance(val, _dt.timedelta):
+                total_sec = int(val.total_seconds())
+                h = (total_sec // 3600) % 24
+                m = (total_sec % 3600) // 60
+                return f"{h:02d}:{m:02d}"
+            s = str(val).strip()
+            # Si viene como "HH:MM:SS" recortar a "HH:MM"
+            if len(s) >= 5:
+                return s[:5]
+            return s
+
+        # Convertir la Row a dict mutable para poder agregar campos formateados
+        registro_dict = dict(registro)
+        registro_dict["hora_inicio_fmt"] = _fmt_hora(registro_dict.get("hora_inicio"))
+        registro_dict["hora_fin_fmt"]    = _fmt_hora(registro_dict.get("hora_fin"))
+
+        return render_template("imprimir_reporte_actividades.html",
+                               registro=registro_dict, cfg=cfg)
 
     @app.route("/formularios/reporte_actividades/estadisticas")
     @login_required
@@ -232,60 +257,85 @@ def register_routes(app):
             return redirect(url_for("dashboard"))
 
         conn = get_db()
-        # Solo contabilizar Avalados
-        registros = conn.execute("SELECT * FROM reporte_actividades WHERE estado = 'Avalado'").fetchall()
+        todos      = conn.execute("SELECT * FROM reporte_actividades").fetchall()
         conn.close()
-        
-        # Calcular estadísticas por tipo de servicio
-        from datetime import datetime
+
+        avalados   = [r for r in todos if r.get("estado") == "Avalado"]
+        anulados   = [r for r in todos if r.get("estado") == "Anulado"]
+        pendientes = [r for r in todos if r.get("estado") not in ("Avalado", "Anulado")]
+
+        # ── Resumen de estados ──
+        resumen_estados = {
+            "total":      len(todos),
+            "avalados":   len(avalados),
+            "anulados":   len(anulados),
+            "pendientes": len(pendientes),
+        }
+
+        # ── Estadísticas por tipo de servicio (solo Avalados) ──
+        import datetime as _dt
+
+        def _to_minutes(val):
+            """Convierte hora_inicio / hora_fin al total de minutos desde medianoche,
+            independientemente de si el driver devuelve str, datetime.time o timedelta."""
+            if isinstance(val, _dt.time):
+                return val.hour * 60 + val.minute
+            if isinstance(val, _dt.timedelta):
+                total = int(val.total_seconds())
+                return (total // 60) % (24 * 60)
+            if isinstance(val, str):
+                parts = val.strip().split(":")
+                return int(parts[0]) * 60 + int(parts[1])
+            return None
+
+        RECURSOS = ["ambulancia_tab","ambulancia_tam","pasm","pasb",
+                    "equipos_intervencion","moto_aph","unidad_rescate","unidad_logistica"]
         stats_servicios = {}
-        for r in registros:
+        for r in avalados:
             tipo = r.get("tipo_servicio")
             if not tipo:
                 continue
             if tipo not in stats_servicios:
                 stats_servicios[tipo] = {
-                    "cantidad": 0,
-                    "horas": 0.0,
-                    "total_personal": 0,
-                    "pacientes_atendidos": 0,
+                    "cantidad": 0, "horas": 0.0,
+                    "total_personal": 0, "pacientes_atendidos": 0,
                     "pacientes_trasladados": 0,
-                    "ambulancia_tab": 0,
-                    "ambulancia_tam": 0,
-                    "pasm": 0,
-                    "pasb": 0,
-                    "equipos_intervencion": 0,
-                    "moto_aph": 0,
-                    "unidad_rescate": 0,
-                    "unidad_logistica": 0,
+                    **{k: 0 for k in RECURSOS}
                 }
-            stats_servicios[tipo]["cantidad"] += 1
-            stats_servicios[tipo]["total_personal"]        += int(r["total_personal"]        or 0)
-            stats_servicios[tipo]["pacientes_atendidos"]   += int(r["pacientes_atendidos"]   or 0)
-            stats_servicios[tipo]["pacientes_trasladados"] += int(r["pacientes_trasladados"] or 0)
-            stats_servicios[tipo]["ambulancia_tab"]        += int(r["ambulancia_tab"]        or 0)
-            stats_servicios[tipo]["ambulancia_tam"]        += int(r["ambulancia_tam"]        or 0)
-            stats_servicios[tipo]["pasm"]                  += int(r["pasm"]                  or 0)
-            stats_servicios[tipo]["pasb"]                  += int(r["pasb"]                  or 0)
-            stats_servicios[tipo]["equipos_intervencion"]  += int(r["equipos_intervencion"]  or 0)
-            stats_servicios[tipo]["moto_aph"]              += int(r["moto_aph"]              or 0)
-            stats_servicios[tipo]["unidad_rescate"]        += int(r["unidad_rescate"]        or 0)
-            stats_servicios[tipo]["unidad_logistica"]      += int(r["unidad_logistica"]      or 0)
-
-            # Calcular horas
+            s = stats_servicios[tipo]
+            s["cantidad"]              += 1
+            s["total_personal"]        += int(r["total_personal"]        or 0)
+            s["pacientes_atendidos"]   += int(r["pacientes_atendidos"]   or 0)
+            s["pacientes_trasladados"] += int(r["pacientes_trasladados"] or 0)
+            for k in RECURSOS:
+                s[k] += int(r[k] or 0)
             try:
-                if r.get("hora_inicio") and r.get("hora_fin"):
-                    h_in  = datetime.strptime(r["hora_inicio"], "%H:%M")
-                    h_fin = datetime.strptime(r["hora_fin"],    "%H:%M")
-                    if h_fin < h_in:
-                        diff = (h_fin.hour + 24 - h_in.hour) + (h_fin.minute - h_in.minute) / 60.0
-                    else:
-                        diff = (h_fin - h_in).total_seconds() / 3600.0
-                    stats_servicios[tipo]["horas"] += diff
+                hi = r.get("hora_inicio")
+                hf = r.get("hora_fin")
+                if hi and hf:
+                    min_in  = _to_minutes(hi)
+                    min_fin = _to_minutes(hf)
+                    if min_in is not None and min_fin is not None:
+                        diff_min = min_fin - min_in
+                        if diff_min < 0:
+                            diff_min += 24 * 60   # cruce de medianoche
+                        s["horas"] += diff_min / 60.0
             except Exception:
                 pass
 
         for k in stats_servicios:
             stats_servicios[k]["horas"] = round(stats_servicios[k]["horas"], 2)
-        
-        return render_template("estadisticas_reporte_actividades.html", registros=registros, stats_servicios=stats_servicios)
+
+        # ── Total de recursos globales ──
+        total_recursos = {k: sum(s[k] for s in stats_servicios.values()) for k in RECURSOS}
+        total_recursos["total_personal"]        = sum(s["total_personal"]        for s in stats_servicios.values())
+        total_recursos["pacientes_atendidos"]   = sum(s["pacientes_atendidos"]   for s in stats_servicios.values())
+        total_recursos["pacientes_trasladados"] = sum(s["pacientes_trasladados"] for s in stats_servicios.values())
+        total_recursos["horas"]                 = round(sum(s["horas"] for s in stats_servicios.values()), 2)
+
+        return render_template("estadisticas_reporte_actividades.html",
+                               registros=avalados,
+                               stats_servicios=stats_servicios,
+                               resumen_estados=resumen_estados,
+                               total_recursos=total_recursos)
+

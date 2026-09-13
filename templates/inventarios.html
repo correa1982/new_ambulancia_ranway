@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 {% block title %}Inventarios{% endblock %}
 {% block content %}
 <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
@@ -181,22 +181,11 @@
     </div>
 </div>
 
-{% if alertas %}
-<div id="alertas-stock" style="background-color: #fef2f2; border: 1px solid #ef4444; color: #b91c1c; padding: 15px; margin-bottom: 20px; border-radius: 8px; position: relative;">
-    <h3 style="margin-top: 0; margin-bottom: 10px; font-size: 16px;">⚠️ Alertas de Stock Mínimo</h3>
-    <ul style="margin: 0; padding-left: 20px; font-size: 14px;">
-        {% for alerta in alertas %}
-        <li><strong>{{ alerta.nombre }}</strong>: Stock total es {{ alerta.cantidad }} (Mínimo permitido: {{ alerta.minimo }})</li>
-        {% endfor %}
-    </ul>
-</div>
-<script>
-    setTimeout(function() {
-        var alertDiv = document.getElementById('alertas-stock');
-        if(alertDiv) { alertDiv.style.display = 'none'; }
-    }, 10000);
-</script>
-{% endif %}
+{# Datos ocultos para los modales de alertas - pasados desde el backend #}
+<div id="data-alertas" style="display:none;"></div>
+<div id="data-proximos" style="display:none;"></div>
+<div id="data-vencidos" style="display:none;"></div>
+
 
 <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
     <div class="filters-container" style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
@@ -282,7 +271,428 @@
 </table>
 </div>
 
-<!-- Modal para Agregar/Editar Producto -->
+{# ══════════════════════════════════════════════════════
+   ESTILOS RESPONSIVE PARA BOTONES Y MODALES DE ALERTAS
+══════════════════════════════════════════════════════ #}
+<style>
+/* ── Contenedor de botones ── */
+.alert-btns {
+    margin-top: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+}
+.alert-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 11px 20px;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+.alert-btn-badge {
+    border-radius: 20px;
+    padding: 2px 8px;
+    font-size: 11px;
+    font-weight: 800;
+    background: white;
+}
+@media (max-width: 768px) {
+    .alert-btns { flex-direction: column; gap: 8px; }
+    .alert-btn  { width: 100%; justify-content: center; font-size: 13px; padding: 12px 16px; }
+}
+
+/* ── Modal overlay ── */
+.alert-modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    background: rgba(0,0,0,0.55);
+    overflow-y: auto;
+    padding: 16px;
+    box-sizing: border-box;
+}
+/* ── Modal container ── */
+.alert-modal-box {
+    background: #fff;
+    margin: 0 auto 40px;
+    border-radius: 14px;
+    width: 100%;
+    max-width: 600px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    overflow: hidden;
+}
+@media (min-width: 769px) {
+    .alert-modal-overlay { padding: 40px 16px; }
+    .alert-modal-box     { margin-top: 20px; }
+}
+/* ── Modal header ── */
+.alert-modal-head {
+    padding: 16px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.alert-modal-head h2 { margin: 0; color: white; font-size: 16px; }
+@media (min-width: 769px) {
+    .alert-modal-head h2 { font-size: 18px; }
+}
+.alert-modal-close {
+    background: rgba(255,255,255,0.25);
+    border: none;
+    color: white;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+}
+/* ── Modal body ── */
+.alert-modal-body {
+    padding: 16px;
+    max-height: 65vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+/* ── Tabla dentro del modal (desktop) ── */
+.alert-modal-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.alert-modal-table th, .alert-modal-table td { padding: 9px 10px; border-bottom: 1px solid #f3f4f6; }
+.alert-modal-table th { font-size: 11px; text-transform: uppercase; font-weight: 700; text-align: left; }
+@media (max-width: 600px) {
+    /* En móvil, ocultar la tabla y mostrar mini-cards */
+    .alert-tbl-wrap { display: none !important; }
+    .alert-cards    { display: block !important; }
+}
+@media (min-width: 601px) {
+    .alert-tbl-wrap { display: block; }
+    .alert-cards    { display: none !important; }
+}
+/* ── Mini-cards dentro del modal (móvil) ── */
+.alert-item-card {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 10px;
+    border-left: 4px solid #cbd5e1;
+}
+.alert-item-card.warn  { border-left-color: #f59e0b; }
+.alert-item-card.orange { border-left-color: #f97316; }
+.alert-item-card.danger { border-left-color: #ef4444; }
+.alert-item-card .ac-name  { font-weight: 700; font-size: 13px; margin-bottom: 6px; }
+.alert-item-card .ac-meta  { font-size: 11px; color: #6b7280; display: flex; flex-wrap: wrap; gap: 8px; }
+.alert-item-card .ac-meta span { display: inline-flex; align-items: center; gap: 3px; }
+.alert-item-card .ac-meta strong { color: #374151; }
+/* ── Modal footer ── */
+.alert-modal-foot {
+    padding: 12px 20px;
+    border-top: 1px solid #f3f4f6;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+</style>
+
+{# ── 3 Botones de alertas ── #}
+<div class="alert-btns">
+
+    <button class="alert-btn" onclick="openAlertModal('modalStockMinimo')"
+            style="background: linear-gradient(135deg, #f59e0b, #d97706); box-shadow:0 3px 10px rgba(245,158,11,0.35);">
+        ⚠️ Stock Mínimo
+        {% if alertas %}<span class="alert-btn-badge" style="color:#d97706;">{{ alertas|length }}</span>{% endif %}
+    </button>
+
+    <button class="alert-btn" onclick="openAlertModal('modalProximosVencer')"
+            style="background: linear-gradient(135deg, #f97316, #ea580c); box-shadow:0 3px 10px rgba(249,115,22,0.35);">
+        ⏳ Próximos a Vencer
+        {% if proximos_vencer %}<span class="alert-btn-badge" style="color:#ea580c;">{{ proximos_vencer|length }}</span>{% endif %}
+    </button>
+
+    <button class="alert-btn" onclick="openAlertModal('modalVencidos')"
+            style="background: linear-gradient(135deg, #ef4444, #dc2626); box-shadow:0 3px 10px rgba(239,68,68,0.35);">
+        🚫 Vencidos
+        {% if vencidos %}<span class="alert-btn-badge" style="color:#dc2626;">{{ vencidos|length }}</span>{% endif %}
+    </button>
+
+</div>
+
+{# ══════════════════════════════════════════════════════
+   MODAL: STOCK MÍNIMO
+══════════════════════════════════════════════════════ #}
+<div id="modalStockMinimo" class="alert-modal-overlay">
+    <div class="alert-modal-box">
+        <div class="alert-modal-head" style="background:linear-gradient(135deg,#f59e0b,#d97706);">
+            <h2>⚠️ Alertas de Stock Mínimo</h2>
+            <button class="alert-modal-close" onclick="closeAlertModal('modalStockMinimo')">×</button>
+        </div>
+        <div class="alert-modal-body">
+            {% if alertas %}
+
+            {# Desktop: tabla #}
+            <div class="alert-tbl-wrap">
+                <table class="alert-modal-table">
+                    <thead style="background:#fef3c7; color:#92400e;">
+                        <tr>
+                            <th>Artículo</th>
+                            <th style="text-align:center;">Stock</th>
+                            <th style="text-align:center;">Mínimo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for a in alertas %}
+                        <tr>
+                            <td style="font-weight:600;">{{ a.nombre }}</td>
+                            <td style="text-align:center; color:#ef4444; font-weight:700;">{{ a.cantidad }}</td>
+                            <td style="text-align:center; color:#6b7280;">{{ a.minimo }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {# Móvil: cards #}
+            <div class="alert-cards">
+                {% for a in alertas %}
+                <div class="alert-item-card warn">
+                    <div class="ac-name">{{ a.nombre }}</div>
+                    <div class="ac-meta">
+                        <span>📦 Stock: <strong style="color:#ef4444;">{{ a.cantidad }}</strong></span>
+                        <span>⚠️ Mínimo: <strong>{{ a.minimo }}</strong></span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            {% else %}
+            <div style="text-align:center; color:#6b7280; padding:30px;">✅ No hay artículos por debajo del stock mínimo.</div>
+            {% endif %}
+        </div>
+        <div class="alert-modal-foot">
+            <button onclick="closeAlertModal('modalStockMinimo')" style="background:#6b7280; color:white; border:none; border-radius:8px; padding:9px 22px; font-weight:700; cursor:pointer; font-size:14px;">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+{# ══════════════════════════════════════════════════════
+   MODAL: PRÓXIMOS A VENCER
+══════════════════════════════════════════════════════ #}
+<div id="modalProximosVencer" class="alert-modal-overlay">
+    <div class="alert-modal-box" style="max-width:640px;">
+        <div class="alert-modal-head" style="background:linear-gradient(135deg,#f97316,#ea580c);">
+            <h2>⏳ Próximos a Vencer (≤ 30 días)</h2>
+            <button class="alert-modal-close" onclick="closeAlertModal('modalProximosVencer')">×</button>
+        </div>
+        <div class="alert-modal-body">
+            {% if proximos_vencer %}
+
+            {# Desktop: tabla #}
+            <div class="alert-tbl-wrap">
+                <table class="alert-modal-table">
+                    <thead style="background:#fff7ed; color:#9a3412;">
+                        <tr>
+                            <th>Artículo</th>
+                            <th>Lote</th>
+                            <th style="text-align:center;">Vence</th>
+                            <th style="text-align:center;">Días</th>
+                            <th style="text-align:center;">Cant.</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in proximos_vencer %}
+                        <tr style="{% if p.dias <= 7 %}background:#fff7ed;{% endif %}">
+                            <td style="font-weight:600;">{{ p.nombre }}</td>
+                            <td style="color:#6b7280; font-size:12px;">{{ p.lote or 'N/A' }}</td>
+                            <td style="text-align:center;">{{ p.fecha_vencimiento }}</td>
+                            <td style="text-align:center; font-weight:700; {% if p.dias <= 7 %}color:#dc2626;{% else %}color:#ea580c;{% endif %}">{{ p.dias }}d</td>
+                            <td style="text-align:center; font-weight:700;">{{ p.cantidad }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {# Móvil: cards #}
+            <div class="alert-cards">
+                {% for p in proximos_vencer %}
+                <div class="alert-item-card orange">
+                    <div class="ac-name">{{ p.nombre }}</div>
+                    <div class="ac-meta">
+                        <span>📅 Vence: <strong>{{ p.fecha_vencimiento }}</strong></span>
+                        <span style="{% if p.dias <= 7 %}color:#dc2626;{% else %}color:#ea580c;{% endif %}; font-weight:700;">⏰ {{ p.dias }} día(s)</span>
+                        {% if p.lote %}<span>🏷️ Lote: <strong>{{ p.lote }}</strong></span>{% endif %}
+                        <span>📦 Cant: <strong>{{ p.cantidad }}</strong></span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            {% else %}
+            <div style="text-align:center; color:#6b7280; padding:30px;">✅ No hay artículos próximos a vencer en los próximos 30 días.</div>
+            {% endif %}
+        </div>
+        <div class="alert-modal-foot">
+            <button onclick="closeAlertModal('modalProximosVencer')" style="background:#6b7280; color:white; border:none; border-radius:8px; padding:9px 22px; font-weight:700; cursor:pointer; font-size:14px;">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+{# ══════════════════════════════════════════════════════
+   MODAL: VENCIDOS
+══════════════════════════════════════════════════════ #}
+<div id="modalVencidos" class="alert-modal-overlay">
+    <div class="alert-modal-box" style="max-width:680px;">
+        <div class="alert-modal-head" style="background:linear-gradient(135deg,#ef4444,#dc2626);">
+            <h2>🚫 Artículos Vencidos</h2>
+            <button class="alert-modal-close" onclick="closeAlertModal('modalVencidos')">×</button>
+        </div>
+        <div class="alert-modal-body">
+            {% if vencidos %}
+            <p style="font-size:13px; color:#6b7280; margin:0 0 14px;">
+                Estos artículos están vencidos y tienen stock. Presione <strong>Descartar</strong> para dar de baja el stock y registrar el egreso en el historial.
+            </p>
+
+            {# Desktop: tabla #}
+            <div class="alert-tbl-wrap">
+                <table class="alert-modal-table" id="tablaVencidos">
+                    <thead style="background:#fef2f2; color:#991b1b;">
+                        <tr>
+                            <th>Artículo</th>
+                            <th>Lote</th>
+                            <th style="text-align:center;">Venció</th>
+                            <th style="text-align:center;">Cant.</th>
+                            <th style="text-align:center;">Descarte</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for v in vencidos %}
+                        <tr id="fila-vencido-{{ v.id }}">
+                            <td style="font-weight:600;">{{ v.nombre }}</td>
+                            <td style="color:#6b7280; font-size:12px;">{{ v.lote or 'N/A' }}</td>
+                            <td style="text-align:center; color:#dc2626; font-weight:600;">{{ v.fecha_vencimiento }}</td>
+                            <td style="text-align:center; font-weight:700;" id="cant-vencido-{{ v.id }}">{{ v.cantidad }}</td>
+                            <td style="text-align:center;">
+                                <button onclick="descartarVencido({{ v.id }}, '{{ v.nombre|replace("'","\\'")|replace('"','\\"') }}')"
+                                        id="btn-descartar-{{ v.id }}"
+                                        style="background:#ef4444; color:white; border:none; border-radius:6px; padding:5px 12px; font-size:12px; font-weight:700; cursor:pointer;">
+                                    🗑️ Descartar
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {# Móvil: cards #}
+            <div class="alert-cards">
+                {% for v in vencidos %}
+                <div class="alert-item-card danger" id="card-vencido-{{ v.id }}">
+                    <div class="ac-name">{{ v.nombre }}</div>
+                    <div class="ac-meta" style="margin-bottom:10px;">
+                        <span>📅 Venció: <strong style="color:#dc2626;">{{ v.fecha_vencimiento }}</strong></span>
+                        {% if v.lote %}<span>🏷️ Lote: <strong>{{ v.lote }}</strong></span>{% endif %}
+                        <span>📦 Cant: <strong id="cant-vencido-{{ v.id }}">{{ v.cantidad }}</strong></span>
+                    </div>
+                    <button onclick="descartarVencido({{ v.id }}, '{{ v.nombre|replace("'","\\'")|replace('"','\\"') }}')"
+                            id="btn-descartar-{{ v.id }}"
+                            style="width:100%; background:#ef4444; color:white; border:none; border-radius:8px; padding:9px; font-size:13px; font-weight:700; cursor:pointer;">
+                        🗑️ Descartar este artículo
+                    </button>
+                </div>
+                {% endfor %}
+            </div>
+
+            {% else %}
+            <div style="text-align:center; color:#6b7280; padding:30px;">✅ No hay artículos vencidos con stock activo.</div>
+            {% endif %}
+        </div>
+        <div class="alert-modal-foot">
+            <button onclick="closeAlertModal('modalVencidos')" style="background:#6b7280; color:white; border:none; border-radius:8px; padding:9px 22px; font-weight:700; cursor:pointer; font-size:14px;">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+<script>
+/* ── Abrir/cerrar modales de alerta ── */
+function openAlertModal(id) {
+    document.getElementById(id).style.display = 'block';
+    document.body.style.overflow = 'hidden';
+}
+function closeAlertModal(id) {
+    document.getElementById(id).style.display = 'none';
+    document.body.style.overflow = '';
+}
+['modalStockMinimo','modalProximosVencer','modalVencidos'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) {
+        el.addEventListener('click', function(e) {
+            if (e.target === el) closeAlertModal(id);
+        });
+    }
+});
+
+/* ── Descarte de vencidos ── */
+function descartarVencido(itemId, nombre) {
+    if (!confirm('¿Confirmar descarte de "' + nombre + '"?\nSe registrará egreso por vencimiento y el stock quedará en 0.')) return;
+
+    // Deshabilitar AMBOS botones (tabla desktop + card móvil)
+    document.querySelectorAll('#btn-descartar-' + itemId).forEach(function(b) {
+        b.disabled = true;
+        b.textContent = 'Procesando...';
+    });
+
+    var fd = new FormData();
+    fd.append('item_id', itemId);
+
+    fetch('{{ url_for("inventarios.inventarios_descarte") }}', {
+        method: 'POST',
+        body: fd,
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        if (data.status === 'success') {
+            // Actualizar cantidad a 0 en todos los elementos con ese id
+            document.querySelectorAll('#cant-vencido-' + itemId).forEach(function(el) { el.textContent = '0'; });
+            // Tachar la fila desktop
+            var fila = document.getElementById('fila-vencido-' + itemId);
+            if (fila) { fila.style.opacity = '0.4'; fila.style.textDecoration = 'line-through'; }
+            // Tachar la card móvil
+            var card = document.getElementById('card-vencido-' + itemId);
+            if (card) { card.style.opacity = '0.4'; }
+            // Actualizar botones
+            document.querySelectorAll('#btn-descartar-' + itemId).forEach(function(b) {
+                b.textContent = '✅ Descartado';
+                b.style.background = '#10b981';
+            });
+            setTimeout(function() { location.reload(); }, 2000);
+        } else {
+            alert('Error: ' + data.message);
+            document.querySelectorAll('#btn-descartar-' + itemId).forEach(function(b) {
+                b.disabled = false;
+                b.textContent = '🗑️ Descartar';
+            });
+        }
+    })
+    .catch(function() {
+        alert('Error de conexión. Intente de nuevo.');
+        document.querySelectorAll('#btn-descartar-' + itemId).forEach(function(b) {
+            b.disabled = false;
+            b.textContent = '🗑️ Descartar';
+        });
+    });
+}
+</script>
+
+
 <div id="invModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
