@@ -110,14 +110,22 @@
 <div class="container-fluid mt-4 mb-5">
 
     {# ── Header ── #}
-    <div class="est-header" style="display:flex; align-items:center; gap:12px; margin-bottom:24px; flex-wrap:wrap;">
-        <a href="{{ url_for('voluntariado.registros_voluntariado') }}"
-           style="display:inline-flex; align-items:center; gap:6px; background:#6c757d; color:white; border:none; border-radius:8px; padding:9px 18px; font-weight:700; font-size:14px; text-decoration:none; box-shadow:0 2px 6px rgba(0,0,0,0.15);">
-            <i class="ph ph-arrow-left" style="font-size:16px;"></i> Volver
-        </a>
-        <h3 style="margin:0; font-weight:700; color:#0d6efd; display:flex; align-items:center; gap:8px; font-size:18px;">
-            <i class="ph ph-chart-bar"></i> Estadísticas de Voluntariado
-        </h3>
+    <div class="est-header" style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:24px; flex-wrap:wrap;">
+        <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+            <a href="{{ url_for('voluntariado.registros_voluntariado') }}"
+               style="display:inline-flex; align-items:center; gap:6px; background:#6c757d; color:white; border:none; border-radius:8px; padding:9px 18px; font-weight:700; font-size:14px; text-decoration:none; box-shadow:0 2px 6px rgba(0,0,0,0.15);">
+                <i class="ph ph-arrow-left" style="font-size:16px;"></i> Volver
+            </a>
+            <h3 style="margin:0; font-weight:700; color:#0d6efd; display:flex; align-items:center; gap:8px; font-size:18px;">
+                <i class="ph ph-chart-bar"></i> Estadísticas de Voluntariado
+            </h3>
+        </div>
+        <div>
+            <button type="button" onclick="abrirModalExportarExcel()"
+                    style="display:inline-flex; align-items:center; gap:6px; background:linear-gradient(135deg, #10b981, #059669); color:white; border:none; border-radius:8px; padding:9px 18px; font-weight:700; font-size:14px; cursor:pointer; box-shadow:0 2px 6px rgba(16,185,129,0.35); transition:all 0.2s;">
+                <i class="ph ph-file-xls" style="font-size:18px;"></i> Exportar Excel
+            </button>
+        </div>
     </div>
 
     {# ══════════════════════════════════════════════
@@ -352,5 +360,63 @@
     </div>
 
 </div>
+
+<script>
+function abrirModalExportarExcel() {
+    Swal.fire({
+        title: 'Exportar a Excel',
+        html: `
+            <div style="text-align:left; font-size:13px; color:#374151;">
+                <p style="margin-bottom:14px; color:#64748b; line-height:1.5;">
+                    Seleccione el rango de fechas para exportar los registros de voluntariado. Si deja los campos vacíos, se exportará el <strong>histórico completo</strong> (incluye Avalados, Pendientes y Anulados).
+                </p>
+                <div style="display:flex; flex-direction:column; gap:12px;">
+                    <div>
+                        <label style="font-weight:600; font-size:12px; display:block; margin-bottom:4px; color:#1e293b;">Fecha Desde:</label>
+                        <input type="date" id="export_fecha_desde" class="form-control" style="width:100%; border:1.5px solid #cbd5e1; border-radius:8px; padding:8px 12px; font-size:13px; box-sizing:border-box;">
+                    </div>
+                    <div>
+                        <label style="font-weight:600; font-size:12px; display:block; margin-bottom:4px; color:#1e293b;">Fecha Hasta:</label>
+                        <input type="date" id="export_fecha_hasta" class="form-control" style="width:100%; border:1.5px solid #cbd5e1; border-radius:8px; padding:8px 12px; font-size:13px; box-sizing:border-box;">
+                    </div>
+                </div>
+            </div>
+        `,
+        icon: 'info',
+        showCancelButton: true,
+        confirmButtonText: '<i class="ph ph-download-simple" style="margin-right:4px;"></i> Descargar Excel',
+        cancelButtonText: 'Cancelar',
+        confirmButtonColor: '#10b981',
+        cancelButtonColor: '#6b7280',
+        focusConfirm: false,
+        customClass: {
+            popup: 'swal2-custom-popup',
+            title: 'swal2-custom-title',
+            confirmButton: 'swal2-custom-confirm',
+            cancelButton: 'swal2-custom-cancel'
+        },
+        preConfirm: () => {
+            const desde = document.getElementById('export_fecha_desde').value;
+            const hasta = document.getElementById('export_fecha_hasta').value;
+            if (desde && hasta && desde > hasta) {
+                Swal.showValidationMessage('La fecha "Desde" no puede ser mayor que la fecha "Hasta".');
+                return false;
+            }
+            return { desde, hasta };
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const { desde, hasta } = result.value;
+            let url = "{{ url_for('voluntariado.exportar_excel_voluntariado') }}";
+            const params = new URLSearchParams();
+            if (desde) params.append('fecha_desde', desde);
+            if (hasta) params.append('fecha_hasta', hasta);
+            const queryStr = params.toString();
+            if (queryStr) url += '?' + queryStr;
+            window.location.href = url;
+        }
+    });
+}
+</script>
 {% endblock %}
 

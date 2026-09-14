@@ -1716,5 +1716,11 @@ def init_db():
     except Exception as e:
         print("Error al migrar la tabla programacion_operativa:", e)
 
+    # Migration for reporte_actividades: harmonize 'Inactivo' to 'Anulado'
+    try:
+        conn.execute("UPDATE reporte_actividades SET estado = 'Anulado' WHERE estado = 'Inactivo'")
+    except Exception:
+        pass
+
     conn.commit()
     conn.close()

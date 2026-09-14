@@ -84,12 +84,20 @@
 <div class="era-wrap">
 
     {# ── Encabezado ── #}
-    <div class="era-header">
-        <a href="{{ url_for('registros_reporte_actividades') }}"
-           style="display:inline-flex;align-items:center;gap:6px;background:#6b7280;color:white;border:none;border-radius:9px;padding:8px 16px;font-weight:700;font-size:13px;text-decoration:none;">
-            <i class="ph ph-arrow-left"></i> Volver
-        </a>
-        <h2><i class="ph ph-chart-line-up" style="color:#2563eb;"></i> Estadísticas – Reporte de Actividades</h2>
+    <div class="era-header" style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:22px; flex-wrap:wrap;">
+        <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+            <a href="{{ url_for('registros_reporte_actividades') }}"
+               style="display:inline-flex;align-items:center;gap:6px;background:#6b7280;color:white;border:none;border-radius:9px;padding:8px 16px;font-weight:700;font-size:13px;text-decoration:none;">
+                <i class="ph ph-arrow-left"></i> Volver
+            </a>
+            <h2 style="margin:0;"><i class="ph ph-chart-line-up" style="color:#2563eb;"></i> Estadísticas – Reporte de Actividades</h2>
+        </div>
+        <div>
+            <button type="button" onclick="abrirModalExportarExcel()"
+                    style="display:inline-flex; align-items:center; gap:6px; background:linear-gradient(135deg, #10b981, #059669); color:white; border:none; border-radius:9px; padding:9px 18px; font-weight:700; font-size:13px; cursor:pointer; box-shadow:0 2px 6px rgba(16,185,129,0.35); transition:all 0.2s;">
+                <i class="ph ph-file-xls" style="font-size:18px;"></i> Exportar Excel
+            </button>
+        </div>
     </div>
 
     {# ════════════════════════════════════
@@ -433,4 +441,55 @@ function openRecursosModal(idx) {
     </div>
 </div>
 
+<script>
+function abrirModalExportarExcel() {
+    Swal.fire({
+        title: 'Exportar a Excel',
+        html: `
+            <div style="text-align:left; font-size:13px; color:#374151;">
+                <p style="margin-bottom:14px; color:#64748b; line-height:1.5;">
+                    Seleccione el rango de fechas de los eventos que desea exportar. Si deja los campos vacíos, se exportará el <strong>histórico completo</strong> (incluye Avalados, Pendientes y Anulados).
+                </p>
+                <div style="display:flex; flex-direction:column; gap:12px;">
+                    <div>
+                        <label style="font-weight:600; font-size:12px; display:block; margin-bottom:4px; color:#1e293b;">Fecha Desde:</label>
+                        <input type="date" id="export_fecha_desde" class="form-control" style="width:100%; border:1.5px solid #cbd5e1; border-radius:8px; padding:8px 12px; font-size:13px; box-sizing:border-box;">
+                    </div>
+                    <div>
+                        <label style="font-weight:600; font-size:12px; display:block; margin-bottom:4px; color:#1e293b;">Fecha Hasta:</label>
+                        <input type="date" id="export_fecha_hasta" class="form-control" style="width:100%; border:1.5px solid #cbd5e1; border-radius:8px; padding:8px 12px; font-size:13px; box-sizing:border-box;">
+                    </div>
+                </div>
+            </div>
+        `,
+        icon: 'info',
+        showCancelButton: true,
+        confirmButtonText: '<i class="ph ph-download-simple" style="margin-right:4px;"></i> Descargar Excel',
+        cancelButtonText: 'Cancelar',
+        confirmButtonColor: '#10b981',
+        cancelButtonColor: '#6b7280',
+        focusConfirm: false,
+        preConfirm: () => {
+            const desde = document.getElementById('export_fecha_desde').value;
+            const hasta = document.getElementById('export_fecha_hasta').value;
+            if (desde && hasta && desde > hasta) {
+                Swal.showValidationMessage('La fecha "Desde" no puede ser mayor que la fecha "Hasta".');
+                return false;
+            }
+            return { desde, hasta };
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const { desde, hasta } = result.value;
+            let url = "{{ url_for('exportar_excel_reporte_actividades') }}";
+            const params = new URLSearchParams();
+            if (desde) params.append('fecha_desde', desde);
+            if (hasta) params.append('fecha_hasta', hasta);
+            const queryStr = params.toString();
+            if (queryStr) url += '?' + queryStr;
+            window.location.href = url;
+        }
+    });
+}
+</script>
 {% endblock %}

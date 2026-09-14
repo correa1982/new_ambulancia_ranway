@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, session, flash
+from flask import Blueprint, render_template, request, redirect, url_for, session, flash, send_file
 from datetime import datetime
 from db import get_db
 
@@ -7,14 +7,32 @@ routes_voluntariado = Blueprint('voluntariado', __name__)
 def check_permission():
     if 'usuario' not in session:
         return False
-    # Para acceder al form de registros
+    if session['usuario'].get('rol') == 'admin':
+        return True
     formularios = session['usuario'].get('formularios_acceso', [])
-    return 'voluntariado' in formularios or 'voluntariado_admin' in formularios or session['usuario'].get('rol') == 'admin'
+    if isinstance(formularios, dict):
+        for perfiles_acc in formularios.values():
+            if 'voluntariado' in perfiles_acc or 'voluntariado_admin' in perfiles_acc:
+                return True
+    elif isinstance(formularios, list):
+        if 'voluntariado' in formularios or 'voluntariado_admin' in formularios:
+            return True
+    return False
 
 def is_admin_vol():
     if 'usuario' not in session:
         return False
-    return 'voluntariado_admin' in session['usuario'].get('formularios_acceso', []) or session['usuario'].get('rol') == 'admin'
+    if session['usuario'].get('rol') == 'admin':
+        return True
+    formularios = session['usuario'].get('formularios_acceso', [])
+    if isinstance(formularios, dict):
+        for perfiles_acc in formularios.values():
+            if 'voluntariado_admin' in perfiles_acc:
+                return True
+    elif isinstance(formularios, list):
+        if 'voluntariado_admin' in formularios:
+            return True
+    return False
 
 def get_configuracion():
     conn = get_db()
@@ -284,6 +302,190 @@ def estadisticas_voluntariado():
                            total_anulados=total_anulados,
                            total_horas=total_horas_str,
                            stats_usuarios=stats_usuarios)
+
+@routes_voluntariado.route('/voluntariado/exportar_excel')
+def exportar_excel_voluntariado():
+    if not is_admin_vol():
+        flash("Solo administradores pueden exportar registros.", "danger")
+        return redirect(url_for('voluntariado.registros_voluntariado'))
+
+    fecha_desde = request.args.get('fecha_desde', '').strip()
+    fecha_hasta = request.args.get('fecha_hasta', '').strip()
+
+    conn = get_db()
+    cursor = conn.cursor()
+
+    sql = "SELECT * FROM registro_voluntariado"
+    params = []
+    where_clauses = []
+    if fecha_desde:
+        where_clauses.append("fecha >= %s")
+        params.append(fecha_desde)
+    if fecha_hasta:
+        where_clauses.append("fecha <= %s")
+        params.append(fecha_hasta)
+
+    if where_clauses:
+        sql += " WHERE " + " AND ".join(where_clauses)
+    sql += " ORDER BY fecha DESC, id DESC"
+
+    cursor.execute(sql, tuple(params))
+    registros = cursor.fetchall()
+    conn.close()
+
+    if registros and type(registros[0]) is tuple:
+        cols = [c[0] for c in cursor.description]
+        registros = [dict(zip(cols, r)) for r in registros]
+    elif registros and type(registros[0]) is not dict:
+        registros = [dict(r) for r in registros]
+
+    import openpyxl
+    from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+    from openpyxl.utils import get_column_letter
+    from io import BytesIO
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Voluntariado"
+    ws.views.sheetView[0].showGridLines = True
+
+    # Title block
+    ws.merge_cells('A1:Q1')
+    title_cell = ws['A1']
+    title_cell.value = "REPORTE DE REGISTROS DE VOLUNTARIADO"
+    title_cell.font = Font(name="Calibri", size=14, bold=True, color="FFFFFF")
+    title_cell.fill = PatternFill("solid", fgColor="1E6FBF")
+    title_cell.alignment = Alignment(horizontal="center", vertical="center")
+    ws.row_dimensions[1].height = 36
+
+    # Subtitle / info block
+    ws.merge_cells('A2:Q2')
+    info_cell = ws['A2']
+    rango_texto = "Histórico Completo"
+    if fecha_desde and fecha_hasta:
+        rango_texto = f"Desde: {fecha_desde}   Hasta: {fecha_hasta}"
+    elif fecha_desde:
+        rango_texto = f"Desde: {fecha_desde}"
+    elif fecha_hasta:
+        rango_texto = f"Hasta: {fecha_hasta}"
+    info_cell.value = f"Rango: {rango_texto}   |   Generado: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}   |   Total Registros: {len(registros)}"
+    info_cell.font = Font(name="Calibri", size=10, italic=True, color="1E3A8A")
+    info_cell.fill = PatternFill("solid", fgColor="EFF6FF")
+    info_cell.alignment = Alignment(horizontal="center", vertical="center")
+    ws.row_dimensions[2].height = 22
+
+    headers = [
+        ("ID", 8),
+        ("Fecha", 13),
+        ("Hora Inicio", 13),
+        ("Hora Fin", 13),
+        ("Total Horas", 13),
+        ("Disponibilidad", 18),
+        ("Detalle Disp.", 22),
+        ("Actividad Realizada", 35),
+        ("Observaciones", 35),
+        ("Estado", 14),
+        ("Voluntario", 28),
+        ("Documento Voluntario", 20),
+        ("Perfil Voluntario", 20),
+        ("Fecha Registro", 20),
+        ("Avalado Por", 28),
+        ("Documento Avalador", 20),
+        ("Fecha Aval", 20)
+    ]
+
+    header_font = Font(name="Calibri", size=11, bold=True, color="FFFFFF")
+    header_fill = PatternFill("solid", fgColor="185999")
+    thin_border = Border(
+        left=Side(style="thin", color="CBD5E1"),
+        right=Side(style="thin", color="CBD5E1"),
+        top=Side(style="thin", color="CBD5E1"),
+        bottom=Side(style="thin", color="CBD5E1")
+    )
+    align_center = Alignment(horizontal="center", vertical="center")
+    align_left = Alignment(horizontal="left", vertical="center")
+
+    ws.row_dimensions[4].height = 26
+    for col_idx, (header_text, _) in enumerate(headers, 1):
+        cell = ws.cell(row=4, column=col_idx, value=header_text)
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.alignment = align_center
+        cell.border = thin_border
+
+    fill_white = PatternFill("solid", fgColor="FFFFFF")
+    fill_zebra = PatternFill("solid", fgColor="F8FAFC")
+
+    font_avalado = Font(name="Calibri", size=10, bold=True, color="065F46")
+    fill_avalado = PatternFill("solid", fgColor="D1FAE5")
+    font_anulado = Font(name="Calibri", size=10, bold=True, color="991B1B")
+    fill_anulado = PatternFill("solid", fgColor="FEE2E2")
+    font_pendiente = Font(name="Calibri", size=10, bold=True, color="92400E")
+    fill_pendiente = PatternFill("solid", fgColor="FEF3C7")
+
+    data_font = Font(name="Calibri", size=10)
+
+    for row_idx, r in enumerate(registros, 5):
+        ws.row_dimensions[row_idx].height = 22
+        current_fill = fill_zebra if row_idx % 2 == 0 else fill_white
+
+        row_values = [
+            r.get("id"),
+            r.get("fecha"),
+            r.get("hora_inicio"),
+            r.get("hora_fin"),
+            r.get("total_horas"),
+            r.get("disponibilidad"),
+            r.get("disponibilidad_otro") or "—",
+            r.get("actividad_realizada"),
+            r.get("observaciones") or "—",
+            r.get("estado") or "Pendiente",
+            r.get("registrado_por"),
+            r.get("registrado_por_identificacion"),
+            r.get("perfil_registrador") or "—",
+            r.get("fecha_registro"),
+            r.get("avalado_por") or "—",
+            r.get("avalado_por_identificacion") or "—",
+            r.get("fecha_aval") or "—"
+        ]
+
+        for col_idx, val in enumerate(row_values, 1):
+            cell = ws.cell(row=row_idx, column=col_idx, value=val if val is not None else "—")
+            cell.font = data_font
+            cell.border = thin_border
+            cell.fill = current_fill
+
+            if col_idx in (1, 2, 3, 4, 5, 10, 12, 14, 16, 17):
+                cell.alignment = align_center
+            else:
+                cell.alignment = align_left
+
+            if col_idx == 10:
+                estado = str(val).strip()
+                if estado == "Avalado":
+                    cell.font = font_avalado
+                    cell.fill = fill_avalado
+                elif estado in ("Anulado", "Inactivo"):
+                    cell.font = font_anulado
+                    cell.fill = fill_anulado
+                else:
+                    cell.font = font_pendiente
+                    cell.fill = fill_pendiente
+
+    for col_idx, (_, width) in enumerate(headers, 1):
+        col_letter = get_column_letter(col_idx)
+        ws.column_dimensions[col_letter].width = width
+
+    buf = BytesIO()
+    wb.save(buf)
+    buf.seek(0)
+    fecha_archivo = datetime.now().strftime("%Y%m%d")
+    return send_file(
+        buf,
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        as_attachment=True,
+        download_name=f"Reportes_Voluntariado_{fecha_archivo}.xlsx"
+    )
 
 @routes_voluntariado.route('/voluntariado/imprimir/<int:record_id>')
 def imprimir_voluntariado(record_id):
