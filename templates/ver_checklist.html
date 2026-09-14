@@ -39,7 +39,7 @@
 
 /* Header */
 .doc-header { display: flex; align-items: center; justify-content: space-between; border-bottom: 3px solid #1e6fbf; padding-bottom: 18px; margin-bottom: 24px; }
-.doc-logo img { max-height: 120px; max-width: 250px; object-fit: contain; }
+.doc-logo img { max-height: 120px; max-width: 280px; object-fit: contain; image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges; }
 tr { page-break-inside: avoid; break-inside: avoid; }
 .doc-section-title, .cat-title { page-break-after: avoid; break-after: avoid; page-break-inside: avoid; break-inside: avoid; }
 .doc-logo-placeholder { width: 100px; height: 60px; background: #f1f5f9; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #94a3b8; font-size: 11px; }
@@ -93,10 +93,10 @@ tr { page-break-inside: avoid; break-inside: avoid; }
     body { background: white; font-size: 9px; line-height: 1.1; }
     #checklist-doc { padding: 0 !important; margin: 0 !important; }
     
-    .doc-header { margin-bottom: 5px; padding-bottom: 3px; border-bottom-width: 1px; }
-    .doc-logo img { max-height: 45px; max-width: 120px; }
-    .doc-inst .inst-name { font-size: 10px; }
-    .doc-inst .inst-sub { font-size: 8px; }
+    .doc-header { margin-bottom: 8px; padding-bottom: 6px; border-bottom-width: 1.5px; }
+    .doc-logo img { max-height: 80px; max-width: 220px; object-fit: contain; image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges; }
+    .doc-inst .inst-name { font-size: 13px; font-weight: 800; }
+    .doc-inst .inst-sub { font-size: 9px; }
     
     .doc-title-band { padding: 4px 8px; margin-bottom: 5px; border-radius: 4px; }
     .doc-title-band .dt-main { font-size: 11px; }
@@ -123,10 +123,10 @@ tr { page-break-inside: avoid; break-inside: avoid; }
 .pdf-mode .no-print { display: none !important; }
 .pdf-mode { background: white !important; font-size: 9px !important; line-height: 1.1 !important; }
 .pdf-mode #checklist-doc { padding: 10px !important; margin: 0 !important; }
-.pdf-mode .doc-header { margin-bottom: 2px !important; padding-bottom: 2px !important; border-bottom-width: 1px !important; }
-.pdf-mode .doc-logo img { max-height: 40px !important; max-width: 120px !important; }
-.pdf-mode .doc-inst .inst-name { font-size: 9px !important; }
-.pdf-mode .doc-inst .inst-sub { font-size: 7px !important; }
+.pdf-mode .doc-header { margin-bottom: 6px !important; padding-bottom: 6px !important; border-bottom-width: 1.5px !important; }
+.pdf-mode .doc-logo img { max-height: 80px !important; max-width: 220px !important; object-fit: contain !important; image-rendering: -webkit-optimize-contrast !important; image-rendering: crisp-edges !important; }
+.pdf-mode .doc-inst .inst-name { font-size: 13px !important; font-weight: 800 !important; }
+.pdf-mode .doc-inst .inst-sub { font-size: 9px !important; }
 .pdf-mode .doc-title-band { padding: 2px 4px !important; margin-bottom: 2px !important; border-radius: 2px !important; }
 .pdf-mode .doc-title-band .dt-main { font-size: 10px !important; }
 .pdf-mode .doc-title-band .dt-num { font-size: 8px !important; }
@@ -613,10 +613,10 @@ function descargarPDF() {
     btn.disabled = true;
 
     const opt = {
-        margin: [8, 8, 8, 8],
+        margin: [6, 6, 6, 6],
         filename: "{{ tipo|upper }}_{{ record.id }}_{{ cfg.get('nombre_institucion','APH')|replace(' ','_') }}.pdf",
-        image: { type: 'jpeg', quality: 0.95 },
-        html2canvas: { scale: 2, useCORS: true, allowTaint: true, logging: false },
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 3, useCORS: true, allowTaint: true, logging: false },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
         pagebreak: { mode: ['css', 'legacy'] }
     };

@@ -6,13 +6,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Sistema Médico{% endblock %}</title>
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='icon-192.png') }}">
-    <!-- PWA -->
+    <!-- PWA & Apple iOS -->
     <link rel="manifest" href="/static/manifest.json">
     <meta name="theme-color" content="#1e6fbf">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Ambulacia">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='icon-192.png') }}">
+    <link rel="apple-touch-icon" sizes="192x192" href="{{ url_for('static', filename='icon-192.png') }}">
+    <link rel="apple-touch-icon" sizes="512x512" href="{{ url_for('static', filename='icon-512.png') }}">
     <script src="/static/pwa-offline.js?v=59" defer></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1123,24 +1126,88 @@
         window.addEventListener('online', _pwaBadgeUpdate);
         window.addEventListener('offline', _pwaBadgeUpdate);
 
-        // ── PWA Installation Logic ────────────
-        let deferredPrompt;
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            const installBtn = document.getElementById('btn-instalar-pwa');
-            if (installBtn) {
+        // ── PWA Installation Logic (Android & iOS) ────────────
+        let deferredPrompt = null;
+        const installBtn = document.getElementById('btn-instalar-pwa');
+
+        const isIosDevice = () => {
+            const ua = window.navigator.userAgent.toLowerCase();
+            return /iphone|ipad|ipod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        };
+
+        const isStandaloneMode = () => {
+            return ('standalone' in window.navigator && window.navigator.standalone) ||
+                   window.matchMedia('(display-mode: standalone)').matches;
+        };
+
+        function mostrarGuiaInstalacionIos() {
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    title: 'Instalar en iPhone / iPad',
+                    html: `
+                        <div style="text-align: left; font-size: 13.5px; line-height: 1.55; color: #334155;">
+                            <p style="margin-bottom: 12px; font-weight: 500;">Para instalar <strong>Ambulacia</strong> en tu pantalla de inicio y usarla a pantalla completa (incluso sin conexión):</p>
+                            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; margin-bottom: 10px; display: flex; align-items: center; gap: 12px;">
+                                <span style="background: #1e6fbf; color: white; border-radius: 50%; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0; font-size: 13px;">1</span>
+                                <span>Abre esta página en <strong>Safari</strong> y toca el botón <strong>Compartir</strong> <span style="font-size: 18px; color: #007aff; vertical-align: middle;">⎋</span> (el cuadro con la flecha hacia arriba).</span>
+                            </div>
+                            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; margin-bottom: 10px; display: flex; align-items: center; gap: 12px;">
+                                <span style="background: #1e6fbf; color: white; border-radius: 50%; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0; font-size: 13px;">2</span>
+                                <span>Desliza hacia abajo en el menú y selecciona <strong>"Agregar a la pantalla de inicio"</strong> <span style="font-size: 18px; vertical-align: middle;">➕</span>.</span>
+                            </div>
+                            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; display: flex; align-items: center; gap: 12px;">
+                                <span style="background: #1e6fbf; color: white; border-radius: 50%; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0; font-size: 13px;">3</span>
+                                <span>Toca <strong>"Agregar"</strong> en la esquina superior derecha y la app quedará en tu pantalla como aplicación nativa.</span>
+                            </div>
+                            <p style="margin-top: 12px; font-size: 12px; color: #64748b; font-style: italic;">
+                                💡 Si estás dentro de WhatsApp u otra aplicación, toca los tres puntos y selecciona "Abrir en Safari".
+                            </p>
+                        </div>
+                    `,
+                    icon: 'info',
+                    confirmButtonText: '¡Entendido!',
+                    confirmButtonColor: '#1e6fbf',
+                    customClass: {
+                        popup: 'swal2-custom-popup',
+                        title: 'swal2-custom-title',
+                        confirmButton: 'swal2-custom-confirm'
+                    }
+                });
+            } else {
+                alert("Para instalar en iPhone: Abre en Safari, pulsa el botón Compartir (cuadrado con flecha hacia arriba) y selecciona 'Agregar a la pantalla de inicio'.");
+            }
+        }
+
+        if (installBtn) {
+            // Si es dispositivo iOS y NO está instalado aún en standalone
+            if (isIosDevice() && !isStandaloneMode()) {
                 installBtn.style.display = 'inline-flex';
-                installBtn.addEventListener('click', async () => {
-                    deferredPrompt.prompt();
-                    const { outcome } = await deferredPrompt.userChoice;
-                    deferredPrompt = null;
-                    installBtn.style.display = 'none';
+                installBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    mostrarGuiaInstalacionIos();
                 });
             }
-        });
+
+            // Para Android / Chromium
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                deferredPrompt = e;
+                installBtn.style.display = 'inline-flex';
+            });
+
+            installBtn.addEventListener('click', async (e) => {
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+                    const { outcome } = await deferredPrompt.userChoice;
+                    if (outcome === 'accepted') {
+                        installBtn.style.display = 'none';
+                    }
+                    deferredPrompt = null;
+                }
+            });
+        }
+
         window.addEventListener('appinstalled', () => {
-            const installBtn = document.getElementById('btn-instalar-pwa');
             if (installBtn) installBtn.style.display = 'none';
             deferredPrompt = null;
         });

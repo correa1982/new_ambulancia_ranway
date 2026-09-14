@@ -445,13 +445,13 @@ def register_routes(app):
             conn.execute("REPLACE INTO configuracion (clave, valor) VALUES ('backup_interval_unit', ?)", (backup_interval_unit,))
             
             if smtp_host:
-                conn.execute("REPLACE INTO configuracion (clave, valor) VALUES ('smtp_host', ?)", (smtp_host,))
+                conn.execute("REPLACE INTO configuracion (clave, valor) VALUES ('smtp_host', ?)", (smtp_host.strip(),))
             if smtp_port:
-                conn.execute("REPLACE INTO configuracion (clave, valor) VALUES ('smtp_port', ?)", (smtp_port,))
+                conn.execute("REPLACE INTO configuracion (clave, valor) VALUES ('smtp_port', ?)", (smtp_port.strip(),))
             if smtp_user:
-                conn.execute("REPLACE INTO configuracion (clave, valor) VALUES ('smtp_user', ?)", (smtp_user,))
+                conn.execute("REPLACE INTO configuracion (clave, valor) VALUES ('smtp_user', ?)", (smtp_user.strip(),))
             if smtp_password:
-                conn.execute("REPLACE INTO configuracion (clave, valor) VALUES ('smtp_password', ?)", (smtp_password,))
+                conn.execute("REPLACE INTO configuracion (clave, valor) VALUES ('smtp_password', ?)", (smtp_password.strip().replace(" ", ""),))
                 
             # Intentar reprogramar el scheduler si está disponible
             from flask import current_app
