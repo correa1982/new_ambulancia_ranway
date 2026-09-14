@@ -203,12 +203,19 @@ def register_routes(app):
 
         todos_usuarios = []
         if tipo == "avanzada":
-            hoy_str = hoy().strftime("%Y-%m-%d")
-            usuarios_db = conn.execute(
-                "SELECT nombre, identificacion, perfil FROM usuarios WHERE activo = 1 AND (fecha_validez IS NULL OR fecha_validez = '' OR fecha_validez >= ?) ORDER BY nombre",
-                (hoy_str,)
-            ).fetchall()
-            todos_usuarios = [dict(u) for u in usuarios_db]
+            try:
+                usuarios_db = conn.execute(
+                    "SELECT nombre, identificacion, perfil FROM usuarios WHERE activo = 1 AND (fecha_validez IS NULL OR fecha_validez >= CURDATE()) ORDER BY nombre"
+                ).fetchall()
+                todos_usuarios = [dict(u) for u in usuarios_db]
+            except Exception:
+                try:
+                    usuarios_db = conn.execute(
+                        "SELECT nombre, identificacion, perfil FROM usuarios WHERE activo = 1 ORDER BY nombre"
+                    ).fetchall()
+                    todos_usuarios = [dict(u) for u in usuarios_db]
+                except Exception:
+                    todos_usuarios = []
 
         # Load draft if ?id= provided
         record_id = request.args.get("id")
