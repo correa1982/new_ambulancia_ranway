@@ -40,60 +40,50 @@
         margin: 0;
     }
 
-    /* ── Contenedor de Alertas Superior ── */
-    .alert-btns {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 12px;
-        align-items: center;
-    }
-    .alert-btn {
-        display: inline-flex;
-        align-items: center;
-        gap: 10px;
-        color: white;
-        border: none;
-        border-radius: 12px;
-        padding: 10px 18px;
-        font-weight: 700;
-        font-size: 13.5px;
-        cursor: pointer;
-        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-        white-space: nowrap;
-        user-select: none;
-        outline: none;
-        box-sizing: border-box;
-    }
-    .alert-btn:hover {
-        transform: translateY(-2px);
-        filter: brightness(1.06);
-    }
-    .alert-btn:active {
-        transform: translateY(0);
-    }
-    .alert-btn-warning {
+    /* ── Estilos para Botón Desplegable de Alertas ── */
+    .btn-warning-alert {
         background: linear-gradient(135deg, #f59e0b, #d97706);
-        box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35);
+        color: white;
+        box-shadow: 0 3px 10px rgba(245, 158, 11, 0.35);
     }
-    .alert-btn-orange {
-        background: linear-gradient(135deg, #f97316, #ea580c);
-        box-shadow: 0 4px 14px rgba(249, 115, 22, 0.35);
+    .btn-warning-alert:hover {
+        background: linear-gradient(135deg, #d97706, #b45309);
+        color: white;
     }
-    .alert-btn-danger {
-        background: linear-gradient(135deg, #ef4444, #dc2626);
-        box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35);
-    }
-    .alert-btn-badge {
-        border-radius: 20px;
-        padding: 2px 9px;
-        font-size: 12px;
-        font-weight: 800;
+    .alert-badge-count {
         background: white;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+        color: #d97706;
+        border-radius: 20px;
+        padding: 2px 8px;
+        font-size: 11px;
+        font-weight: 800;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.2);
     }
-    .badge-warning { color: #d97706; }
-    .badge-orange  { color: #ea580c; }
-    .badge-danger  { color: #dc2626; }
+    .alert-dropdown-menu {
+        min-width: 280px;
+        right: 0;
+        left: auto;
+    }
+    .alert-item-badge {
+        border-radius: 12px;
+        padding: 2px 8px;
+        font-size: 11px;
+        font-weight: 800;
+        margin-left: 8px;
+        white-space: nowrap;
+    }
+    .badge-warning { color: #d97706; background: #fef3c7; border: 1px solid #fde68a; }
+    .badge-orange  { color: #ea580c; background: #ffedd5; border: 1px solid #fed7aa; }
+    .badge-danger  { color: #dc2626; background: #fee2e2; border: 1px solid #fecaca; }
+
+    .item-warn .item-icon { background: #fef3c7; color: #d97706; }
+    .dropdown-item-btn.item-warn:hover { background: #fffbeb; }
+
+    .item-orange .item-icon { background: #ffedd5; color: #ea580c; }
+    .dropdown-item-btn.item-orange:hover { background: #fff7ed; }
+
+    .item-danger .item-icon { background: #fee2e2; color: #dc2626; }
+    .dropdown-item-btn.item-danger:hover { background: #fef2f2; }
 
     /* ── Barra de Acciones y Botones ── */
     .inv-actions {
@@ -374,18 +364,7 @@
         .inv-title {
             font-size: 22px;
         }
-        .alert-btns {
-            width: 100%;
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 8px;
-        }
-        .alert-btn {
-            width: 100%;
-            justify-content: space-between;
-            padding: 12px 16px;
-            font-size: 14px;
-        }
+
         .inv-actions {
             flex-direction: column;
             width: 100%;
@@ -443,22 +422,46 @@
             <p class="inv-subtitle">Control de stock, semaforización de vencimientos y trazabilidad</p>
         </div>
 
-        {# ── 3 Botones de alertas en la parte superior ── #}
-        <div class="alert-btns">
-            <button type="button" class="alert-btn alert-btn-warning" onclick="openAlertModal('modalStockMinimo')" title="Ver alertas de stock mínimo">
-                <span>⚠️ Stock Mínimo</span>
-                <span class="alert-btn-badge badge-warning">{{ alertas|length if alertas else 0 }}</span>
-            </button>
+        {# ── Botón único compacto de Alertas ── #}
+        {% set n_alertas = alertas|length if alertas else 0 %}
+        {% set n_proximos = proximos_vencer|length if proximos_vencer else 0 %}
+        {% set n_vencidos = vencidos|length if vencidos else 0 %}
+        {% set total_alertas = n_alertas + n_proximos + n_vencidos %}
 
-            <button type="button" class="alert-btn alert-btn-orange" onclick="openAlertModal('modalProximosVencer')" title="Ver artículos próximos a vencer">
-                <span>⏳ Próximos a Vencer</span>
-                <span class="alert-btn-badge badge-orange">{{ proximos_vencer|length if proximos_vencer else 0 }}</span>
+        <div class="inv-dropdown" id="dropdownAlertas">
+            <button type="button" class="inv-btn btn-warning-alert inv-dropdown-toggle" onclick="toggleInvDropdown('dropdownAlertas', event)">
+                <span>🔔 Alertas</span>
+                {% if total_alertas > 0 %}
+                    <span class="alert-badge-count">{{ total_alertas }}</span>
+                {% endif %}
+                <span class="dropdown-arrow">▼</span>
             </button>
-
-            <button type="button" class="alert-btn alert-btn-danger" onclick="openAlertModal('modalVencidos')" title="Ver artículos vencidos">
-                <span>🚫 Vencidos</span>
-                <span class="alert-btn-badge badge-danger">{{ vencidos|length if vencidos else 0 }}</span>
-            </button>
+            <div class="inv-dropdown-menu alert-dropdown-menu">
+                <button type="button" class="dropdown-item-btn item-warn" onclick="handleDropdownAction('dropdownAlertas', function(){ openAlertModal('modalStockMinimo'); })">
+                    <span class="item-icon">⚠️</span>
+                    <div class="item-details" style="flex: 1;">
+                        <span class="item-title">Stock Mínimo</span>
+                        <span class="item-desc">Artículos bajo existencia mínima</span>
+                    </div>
+                    <span class="alert-item-badge badge-warning">{{ n_alertas }}</span>
+                </button>
+                <button type="button" class="dropdown-item-btn item-orange" onclick="handleDropdownAction('dropdownAlertas', function(){ openAlertModal('modalProximosVencer'); })">
+                    <span class="item-icon">⏳</span>
+                    <div class="item-details" style="flex: 1;">
+                        <span class="item-title">Próximos a Vencer</span>
+                        <span class="item-desc">Vencimiento en los próximos 30 días</span>
+                    </div>
+                    <span class="alert-item-badge badge-orange">{{ n_proximos }}</span>
+                </button>
+                <button type="button" class="dropdown-item-btn item-danger" onclick="handleDropdownAction('dropdownAlertas', function(){ openAlertModal('modalVencidos'); })">
+                    <span class="item-icon">🚫</span>
+                    <div class="item-details" style="flex: 1;">
+                        <span class="item-title">Vencidos</span>
+                        <span class="item-desc">Artículos caducados con stock activo</span>
+                    </div>
+                    <span class="alert-item-badge badge-danger">{{ n_vencidos }}</span>
+                </button>
+            </div>
         </div>
     </div>
 
