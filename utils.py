@@ -11,11 +11,48 @@ COL_TZ = zoneinfo.ZoneInfo("America/Bogota")
 def ahora():
     return datetime.now(COL_TZ)
 
-def get_configuracion(conn):
+def get_configuracion(conn=None):
+    close_after = False
+    if conn is None:
+        from db import get_db
+        conn = get_db()
+        close_after = True
     try:
-        return conn.execute("SELECT * FROM configuracion ORDER BY id DESC LIMIT 1").fetchone()
+        cursor = conn.execute("SELECT clave, valor FROM configuracion")
+        rows = cursor.fetchall()
+        cfg = {}
+        for row in rows:
+            if isinstance(row, dict):
+                cfg[row['clave']] = row['valor']
+            else:
+                cfg[row[0]] = row[1]
+
+        import os
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        if not cfg.get("logo"):
+            for ext in ['png', 'jpg', 'jpeg']:
+                if os.path.exists(os.path.join(base_dir, 'static', 'uploads', f'logo_institucion.{ext}')):
+                    cfg["logo"] = f"/static/uploads/logo_institucion.{ext}"
+                    break
+        cfg['logo_url'] = cfg.get('logo')
+
+        if not cfg.get("marca_agua"):
+            for ext in ['jpg', 'png', 'jpeg']:
+                if os.path.exists(os.path.join(base_dir, 'static', 'uploads', f'marca_agua_institucion.{ext}')):
+                    cfg["marca_agua"] = f"/static/uploads/marca_agua_institucion.{ext}"
+                    break
+        if not cfg.get("nombre_sistema") or cfg.get("nombre_sistema") == "HC Prehospitalario":
+            cfg["nombre_sistema"] = "Gestion Institucional y Operativa"
+        return cfg
     except Exception:
-        return None
+        return {}
+    finally:
+        if close_after:
+            try:
+                conn.close()
+            except Exception:
+                pass
+
 
 def hoy():
     return ahora().date()
@@ -94,11 +131,11 @@ def send_recovery_email(to_email, temp_password):
         return False
         
     msg = EmailMessage()
-    msg['Subject'] = 'Recuperación de Contraseña - HC Prehospitalario'
+    msg['Subject'] = 'Recuperación de Contraseña - Gestion Institucional y Operativa'
     msg['From'] = user
     msg['To'] = to_email
     
-    msg.set_content(f"Hola,\n\nSe ha solicitado la recuperación de contraseña para tu cuenta.\nTu nueva contraseña temporal es: {temp_password}\n\nPor favor, inicia sesión con esta contraseña y cámbiala inmediatamente.\n\nSaludos,\nEl equipo de HC Prehospitalario.")
+    msg.set_content(f"Hola,\n\nSe ha solicitado la recuperación de contraseña para tu cuenta.\nTu nueva contraseña temporal es: {temp_password}\n\nPor favor, inicia sesión con esta contraseña y cámbiala inmediatamente.\n\nSaludos,\nEl equipo de S G A - Gestion Institucional y Operativa.")
 
     try:
         with smtplib.SMTP(host, port) as server:

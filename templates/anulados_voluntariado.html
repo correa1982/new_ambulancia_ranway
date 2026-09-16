@@ -1,26 +1,112 @@
 {% extends "base.html" %}
 {% block title %}Registros Anulados - Voluntariado{% endblock %}
+
 {% block content %}
+<style>
+/* ── Mobile: ocultar tabla, mostrar cards ── */
+@media (max-width: 768px) {
+    .vol-table-wrap { display: none !important; }
+    .vol-cards      { display: block !important; }
+    .vol-header h3  { font-size: 16px !important; }
+    .vol-header a   { font-size: 12px !important; padding: 7px 12px !important; }
+}
+/* ── Desktop: ocultar cards, mostrar tabla ── */
+@media (min-width: 769px) {
+    .vol-table-wrap { display: block; }
+    .vol-cards      { display: none !important; }
+}
+
+/* ── Card base para móvil ── */
+.vol-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    margin-bottom: 14px;
+    padding: 14px 14px 10px;
+    border-left: 4px solid #dc3545;
+}
+.vol-card.anulado { border-left-color: #dc3545; }
+
+.vol-card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+.vol-card-id    { font-size: 11px; color: #888; font-weight: 700; }
+.vol-card-badge { font-size: 11px; font-weight: 700; color: #dc3545; }
+
+.vol-card-body .row-item {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 5px;
+    align-items: flex-start;
+}
+.vol-card-body .row-item label {
+    font-size: 10px;
+    font-weight: 700;
+    color: #6c757d;
+    text-transform: uppercase;
+    min-width: 95px;
+    padding-top: 1px;
+    flex-shrink: 0;
+}
+.vol-card-body .row-item span { font-size: 12px; color: #222; }
+
+.vol-card-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px solid #f0f0f0;
+}
+.btn-card-pdf {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    border-radius: 20px;
+    padding: 5px 12px;
+    font-size: 11px;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+    background: white;
+    color: #ef4444;
+    border: 1.5px solid #ef4444 !important;
+    transition: all 0.2s;
+}
+</style>
+
 <div class="container-fluid mt-4 mb-5">
-    <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:12px; margin-bottom:24px;">
-        <div style="display:flex; align-items:center; gap:12px;">
+    {# ── Header ── #}
+    <div class="vol-header d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div class="d-flex align-items-center gap-3 flex-wrap">
             <a href="{{ url_for('voluntariado.registros_voluntariado') }}"
-               style="display:inline-flex; align-items:center; gap:6px; background:#6c757d; color:white; border:none; border-radius:8px; padding:9px 18px; font-weight:700; font-size:14px; text-decoration:none; box-shadow:0 2px 6px rgba(0,0,0,0.15);">
-                <i class="ph ph-arrow-left" style="font-size:16px;"></i> Volver a Registros
+               class="btn btn-secondary text-white fw-bold shadow-sm"
+               style="border-radius: 8px; padding: 8px 16px; transition: all 0.3s ease; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                <i class="ph ph-arrow-left" style="font-size: 1.1em;"></i> Volver a Registros
             </a>
-            <h3 style="margin:0; font-weight:700; color:#dc3545; display:flex; align-items:center; gap:8px;">
-                <i class="ph ph-x-circle"></i> Registros Anulados - Voluntariado
+            <h3 class="mb-0 text-danger fw-bold d-flex align-items-center">
+                <i class="ph ph-x-circle me-2"></i> Registros Anulados - Voluntariado
             </h3>
         </div>
     </div>
-    <div class="card shadow-sm border-danger">
+
+    {# ── Desktop: tabla ── #}
+    <div class="vol-table-wrap card shadow-sm border-danger">
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light">
                         <tr>
-                            <th>ID</th><th>FECHA</th><th>HORARIO</th>
-                            <th>DISPONIBILIDAD</th><th>ACTIVIDAD</th><th>VOLUNTARIO</th>
+                            <th>ID</th>
+                            <th>FECHA</th>
+                            <th>HORARIO</th>
+                            <th>DISPONIBILIDAD</th>
+                            <th>ACTIVIDAD</th>
+                            <th>VOLUNTARIO</th>
+                            <th class="text-center">ACCIONES</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -32,21 +118,73 @@
                             <td><span class="badge bg-secondary">{{ row.disponibilidad }}{% if row.disponibilidad == 'OTRO' and row.disponibilidad_otro %} ({{ row.disponibilidad_otro }}){% endif %}</span></td>
                             <td>{{ row.actividad_realizada }}</td>
                             <td>{{ row.registrado_por }}</td>
+                            <td class="text-center">
+                                <a href="{{ url_for('voluntariado.imprimir_voluntariado', record_id=row.id) }}" target="_blank"
+                                   style="background:white; color:#ef4444; border:1px solid #ef4444; padding:5px 11px; border-radius:6px; text-decoration:none; font-weight:600; font-size:12px; display:inline-flex; align-items:center; justify-content:center; gap:4px; transition:all 0.2s;"
+                                   title="Ver PDF (Solo Lectura)">
+                                    <i class="ph ph-file-pdf"></i> PDF
+                                </a>
+                            </td>
                         </tr>
                         {% else %}
-                        <tr><td colspan="6" class="text-center text-muted py-4">
-                            <i class="ph ph-folder-open d-block mb-2" style="font-size: 2rem;"></i>
-                            No hay registros anulados.
-                        </td></tr>
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-4">
+                                <i class="ph ph-folder-open d-block mb-2" style="font-size: 2rem;"></i>
+                                No hay registros anulados.
+                            </td>
+                        </tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
+
+    {# ── Mobile: cards ── #}
+    <div class="vol-cards">
+        {% for row in registros %}
+        <div class="vol-card anulado">
+            <div class="vol-card-top">
+                <span class="vol-card-id">#{{ row.id }} · {{ row.fecha }}</span>
+                <span class="vol-card-badge"><i class="ph ph-x-circle"></i> Anulado</span>
+            </div>
+
+            <div class="vol-card-body">
+                <div class="row-item">
+                    <label>Horario</label>
+                    <span>{{ row.hora_inicio }} – {{ row.hora_fin }} <small class="text-muted">({{ row.total_horas }} hrs)</small></span>
+                </div>
+                <div class="row-item">
+                    <label>Disponibilidad</label>
+                    <span><span class="badge bg-secondary" style="font-size:10px;">{{ row.disponibilidad }}{% if row.disponibilidad == 'OTRO' and row.disponibilidad_otro %} ({{ row.disponibilidad_otro }}){% endif %}</span></span>
+                </div>
+                <div class="row-item">
+                    <label>Actividad</label>
+                    <span>{{ row.actividad_realizada }}</span>
+                </div>
+                <div class="row-item">
+                    <label>Voluntario</label>
+                    <span>{{ row.registrado_por }}</span>
+                </div>
+            </div>
+
+            <div class="vol-card-actions">
+                <a href="{{ url_for('voluntariado.imprimir_voluntariado', record_id=row.id) }}" target="_blank" class="btn-card-pdf">
+                    <i class="ph ph-file-pdf"></i> PDF
+                </a>
+            </div>
+        </div>
+        {% else %}
+        <div class="text-center text-muted py-4">
+            <i class="ph ph-folder-open d-block mb-2" style="font-size: 2rem;"></i>
+            No hay registros anulados.
+        </div>
+        {% endfor %}
+    </div>
+
     <div class="alert alert-warning mt-3 d-flex align-items-center gap-2" style="border-radius:10px;">
         <i class="ph ph-info" style="font-size:1.4rem;"></i>
-        <span>Los registros anulados <strong>no afectan</strong> las estadisticas de horas de ningun voluntario.</span>
+        <span>Los registros anulados <strong>no afectan</strong> las estadísticas de horas de ningún voluntario.</span>
     </div>
 </div>
 {% endblock %}
