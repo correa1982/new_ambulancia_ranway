@@ -1,9 +1,9 @@
 // ═══════════════════════════════════════════════════════════
-//  SERVICE WORKER — Ambulacia PWA Offline
-//  Versión: 1.0.8
+//  SERVICE WORKER — S G A PWA Offline
+//  Versión: 1.0.9
 // ═══════════════════════════════════════════════════════════
 
-const CACHE_NAME = 'ambulacia-v87';
+const CACHE_NAME = 'sga-v88';
 const OFFLINE_DB  = 'ambulacia-offline';
 const SW_FETCH_TIMEOUT = 30000;
 

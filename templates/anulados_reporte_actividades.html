@@ -1,9 +1,87 @@
 {% extends "base.html" %}
 {% block title %}Reportes Anulados{% endblock %}
+
 {% block content %}
+<style>
+/* ── Mobile: ocultar tabla, mostrar cards ── */
+@media (max-width: 768px) {
+    .ra-table-wrap { display: none !important; }
+    .ra-cards      { display: block !important; }
+    .ra-header h3  { font-size: 16px !important; }
+    .ra-header a   { font-size: 12px !important; padding: 7px 12px !important; }
+}
+/* ── Desktop: ocultar cards, mostrar tabla ── */
+@media (min-width: 769px) {
+    .ra-table-wrap { display: block; }
+    .ra-cards      { display: none !important; }
+}
+
+/* ── Card base para móvil ── */
+.ra-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    margin-bottom: 14px;
+    padding: 14px 14px 10px;
+    border-left: 4px solid #ef4444;
+}
+.ra-card.anulado { border-left-color: #ef4444; }
+
+.ra-card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+.ra-card-id    { font-size: 11px; color: #888; font-weight: 700; }
+.ra-card-badge { font-size: 11px; font-weight: 700; }
+.ra-card-badge.anulado { color: #dc3545; }
+
+.ra-card-body .row-item {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 5px;
+    align-items: flex-start;
+}
+.ra-card-body .row-item label {
+    font-size: 10px;
+    font-weight: 700;
+    color: #6c757d;
+    text-transform: uppercase;
+    min-width: 82px;
+    padding-top: 1px;
+    flex-shrink: 0;
+}
+.ra-card-body .row-item span { font-size: 12px; color: #222; }
+
+.ra-card-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px solid #f0f0f0;
+}
+.btn-ra {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    border-radius: 20px;
+    padding: 5px 12px;
+    font-size: 11px;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+}
+.btn-ra-pdf { background: white; color: #ef4444; border: 1.5px solid #ef4444 !important; }
+</style>
+
 <div class="container-fluid mt-4 mb-5">
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
-        <div class="d-flex align-items-center gap-3">
+    {# ── Header ── #}
+    <div class="ra-header d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div class="d-flex align-items-center gap-3 flex-wrap">
             <a href="{{ url_for('registros_reporte_actividades') }}" class="btn btn-secondary text-white fw-bold shadow-sm" style="border-radius: 8px; padding: 8px 16px; transition: all 0.3s ease;">
                 <i class="ph ph-arrow-left" style="font-size: 1.1em; margin-right: 5px;"></i> Volver a Registros
             </a>
@@ -13,7 +91,8 @@
         </div>
     </div>
 
-    <div class="card shadow-sm border-danger">
+    {# ── Desktop: tabla ── #}
+    <div class="ra-table-wrap card shadow-sm border-danger">
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
@@ -60,6 +139,49 @@
             </div>
         </div>
     </div>
+
+    {# ── Mobile: cards ── #}
+    <div class="ra-cards">
+        {% for row in registros %}
+        <div class="ra-card anulado">
+            <div class="ra-card-top">
+                <span class="ra-card-id">#{{ row.id }} · {{ row.fecha_evento }}</span>
+                <span class="ra-card-badge anulado"><i class="ph ph-x-circle"></i> Anulado</span>
+            </div>
+
+            <div class="ra-card-body">
+                <div class="row-item">
+                    <label>Evento</label>
+                    <span>{{ row.nombre_evento }}<br><small style="color:#888;">{{ row.lugar_evento }}</small></span>
+                </div>
+                <div class="row-item">
+                    <label>Tipo</label>
+                    <span><span class="badge bg-secondary" style="font-size:10px;">{{ row.tipo_servicio }}</span></span>
+                </div>
+                <div class="row-item">
+                    <label>Horario</label>
+                    <span>{{ row.hora_inicio }} – {{ row.hora_fin }}</span>
+                </div>
+                <div class="row-item">
+                    <label>Registrado</label>
+                    <span>{{ row.registrado_por }}</span>
+                </div>
+            </div>
+
+            <div class="ra-card-actions">
+                <a href="{{ url_for('imprimir_reporte', record_id=row.id) }}" target="_blank" class="btn-ra btn-ra-pdf">
+                    <i class="ph ph-file-pdf"></i> PDF
+                </a>
+            </div>
+        </div>
+        {% else %}
+        <div class="text-center text-muted py-4">
+            <i class="ph ph-folder-open d-block mb-2" style="font-size: 2rem;"></i>
+            No hay reportes anulados.
+        </div>
+        {% endfor %}
+    </div>
+
     <div class="alert alert-warning mt-3 d-flex align-items-center gap-2" style="border-radius:10px;">
         <i class="ph ph-info" style="font-size:1.4rem;"></i>
         <span>Los reportes anulados <strong>no afectan</strong> las estadísticas ni el conteo de horas y recursos.</span>
