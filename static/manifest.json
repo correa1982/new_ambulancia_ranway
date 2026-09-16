@@ -1,7 +1,7 @@
 {
-  "name": "Ambulacia - Historia Clínica",
-  "short_name": "Ambulacia",
-  "description": "Registro de historias clínicas para traslado asistencial médico",
+  "name": "S G A - Gestion Institucional y Operativa",
+  "short_name": "S G A",
+  "description": "Gestion Institucional y Operativa",
   "start_url": "/dashboard",
   "display": "standalone",
   "background_color": "#ffffff",

@@ -1,4 +1,4 @@
-﻿{% extends "base.html" %}
+{% extends "base.html" %}
 {% block title %}Inventarios{% endblock %}
 {% block content %}
 <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
@@ -8,39 +8,266 @@
     .inv-header {
         display: flex;
         flex-direction: column;
-        gap: 15px;
-        margin-bottom: 20px;
+        gap: 18px;
+        margin-bottom: 24px;
+    }
+    .inv-top-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+    .inv-title-box {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
     }
     .inv-title {
-        font-size: 24px;
+        font-size: 26px;
+        font-weight: 800;
         color: #1e3a5f;
         margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        letter-spacing: -0.5px;
     }
+    .inv-subtitle {
+        font-size: 13px;
+        color: #64748b;
+        font-weight: 500;
+        margin: 0;
+    }
+
+    /* ── Estilos para Botón Desplegable de Alertas ── */
+    .btn-warning-alert {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        color: white;
+        box-shadow: 0 3px 10px rgba(245, 158, 11, 0.35);
+    }
+    .btn-warning-alert:hover {
+        background: linear-gradient(135deg, #d97706, #b45309);
+        color: white;
+    }
+    .alert-badge-count {
+        background: white;
+        color: #d97706;
+        border-radius: 20px;
+        padding: 2px 8px;
+        font-size: 11px;
+        font-weight: 800;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+    .alert-dropdown-menu {
+        min-width: 280px;
+        right: 0;
+        left: auto;
+    }
+    .alert-item-badge {
+        border-radius: 12px;
+        padding: 2px 8px;
+        font-size: 11px;
+        font-weight: 800;
+        margin-left: 8px;
+        white-space: nowrap;
+    }
+    .badge-warning { color: #d97706; background: #fef3c7; border: 1px solid #fde68a; }
+    .badge-orange  { color: #ea580c; background: #ffedd5; border: 1px solid #fed7aa; }
+    .badge-danger  { color: #dc2626; background: #fee2e2; border: 1px solid #fecaca; }
+
+    .item-warn .item-icon { background: #fef3c7; color: #d97706; }
+    .dropdown-item-btn.item-warn:hover { background: #fffbeb; }
+
+    .item-orange .item-icon { background: #ffedd5; color: #ea580c; }
+    .dropdown-item-btn.item-orange:hover { background: #fff7ed; }
+
+    .item-danger .item-icon { background: #fee2e2; color: #dc2626; }
+    .dropdown-item-btn.item-danger:hover { background: #fef2f2; }
+
+    /* ── Barra de Acciones y Botones ── */
     .inv-actions {
         display: flex;
         gap: 10px;
         flex-wrap: wrap;
+        align-items: center;
     }
     .inv-btn {
         background: #3b82f6;
         color: white;
         border: none;
-        padding: 8px 16px;
-        border-radius: 6px;
+        padding: 9px 18px;
+        border-radius: 10px;
         cursor: pointer;
-        font-weight: bold;
-        transition: background 0.2s;
+        font-weight: 700;
+        font-size: 13.5px;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+        user-select: none;
+        white-space: nowrap;
+        text-decoration: none;
+        box-sizing: border-box;
+    }
+    .inv-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        color: white;
+    }
+    .inv-btn:active {
+        transform: translateY(0);
+    }
+
+    .btn-green {
+        background: linear-gradient(135deg, #10b981, #059669);
+        box-shadow: 0 3px 10px rgba(16, 185, 129, 0.3);
+    }
+    .btn-green:hover {
+        background: linear-gradient(135deg, #059669, #047857);
+    }
+
+    .btn-red {
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+        box-shadow: 0 3px 10px rgba(239, 68, 68, 0.3);
+    }
+    .btn-red:hover {
+        background: linear-gradient(135deg, #dc2626, #b91c1c);
+    }
+
+    .btn-purple {
+        background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+        box-shadow: 0 3px 10px rgba(139, 92, 246, 0.3);
+    }
+    .btn-purple:hover {
+        background: linear-gradient(135deg, #7c3aed, #6d28d9);
+    }
+
+    .btn-indigo {
+        background: linear-gradient(135deg, #6366f1, #4f46e5);
+        box-shadow: 0 3px 10px rgba(99, 102, 241, 0.3);
+    }
+    .btn-indigo:hover {
+        background: linear-gradient(135deg, #4f46e5, #4338ca);
+    }
+
+    .btn-amber {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        color: #ffffff;
+        box-shadow: 0 3px 10px rgba(245, 158, 11, 0.3);
+    }
+    .btn-amber:hover {
+        background: linear-gradient(135deg, #d97706, #b45309);
+        color: #ffffff;
+    }
+
+    .btn-slate {
+        background: linear-gradient(135deg, #334155, #1e293b);
+        box-shadow: 0 3px 10px rgba(30, 41, 59, 0.25);
+    }
+    .btn-slate:hover {
+        background: linear-gradient(135deg, #1e293b, #0f172a);
+    }
+
+    /* ── Menús Desplegables Modernos (Ingreso / Egreso) ── */
+    .inv-dropdown {
+        position: relative;
+        display: inline-block;
+    }
+    .inv-dropdown-toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .dropdown-arrow {
+        font-size: 10px;
+        transition: transform 0.25s ease;
+        display: inline-block;
+    }
+    .inv-dropdown.open .dropdown-arrow {
+        transform: rotate(180deg);
+    }
+    .inv-dropdown-menu {
+        display: none;
+        position: absolute;
+        top: calc(100% + 6px);
+        left: 0;
+        z-index: 1050;
+        min-width: 230px;
+        background: #ffffff;
+        border-radius: 12px;
+        padding: 6px;
+        box-shadow: 0 12px 30px -4px rgba(0, 0, 0, 0.2), 0 6px 12px -4px rgba(0, 0, 0, 0.1);
+        border: 1px solid #e2e8f0;
+        animation: invDropdownFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .inv-dropdown.open .inv-dropdown-menu {
+        display: block;
+    }
+    @keyframes invDropdownFadeIn {
+        from { opacity: 0; transform: translateY(-8px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .dropdown-item-btn {
+        width: 100%;
         display: flex;
         align-items: center;
-        gap: 6px;
+        gap: 12px;
+        padding: 10px 14px;
+        background: transparent;
+        border: none;
+        border-radius: 9px;
+        cursor: pointer;
+        text-align: left;
+        transition: all 0.18s ease;
+        font-family: inherit;
+        box-sizing: border-box;
     }
-    .inv-btn:hover { background: #2563eb; }
-    .btn-green { background: #10b981; }
-    .btn-green:hover { background: #059669; }
-    .btn-red { background: #ef4444; }
-    .btn-red:hover { background: #dc2626; }
-    .btn-purple { background: #8b5cf6; }
-    .btn-purple:hover { background: #7c3aed; }
+    .dropdown-item-btn:hover {
+        background: #f1f5f9;
+        transform: translateX(3px);
+    }
+    .dropdown-item-btn .item-icon {
+        font-size: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 34px;
+        height: 34px;
+        border-radius: 9px;
+        flex-shrink: 0;
+    }
+    .item-green .item-icon {
+        background: #ecfdf5;
+        color: #059669;
+    }
+    .dropdown-item-btn.item-green:hover {
+        background: #f0fdf4;
+    }
+    .item-red .item-icon {
+        background: #fef2f2;
+        color: #dc2626;
+    }
+    .dropdown-item-btn.item-red:hover {
+        background: #fef2f2;
+    }
+    .dropdown-item-btn .item-details {
+        display: flex;
+        flex-direction: column;
+    }
+    .dropdown-item-btn .item-title {
+        font-size: 13.5px;
+        font-weight: 700;
+        color: #1e293b;
+        line-height: 1.2;
+    }
+    .dropdown-item-btn .item-desc {
+        font-size: 11px;
+        color: #64748b;
+        line-height: 1.2;
+        margin-top: 2px;
+    }
 
     .inv-table {
         width: 100%;
@@ -129,13 +356,36 @@
         min-height: 300px;
     }
     @media (max-width: 768px) {
+        .inv-top-bar {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 14px;
+        }
+        .inv-title {
+            font-size: 22px;
+        }
+
         .inv-actions {
             flex-direction: column;
             width: 100%;
+            gap: 8px;
         }
-        .inv-actions .inv-btn {
+        .inv-dropdown {
+            width: 100%;
+        }
+        .inv-actions .inv-btn,
+        .inv-dropdown .inv-btn {
             width: 100%;
             justify-content: center;
+            padding: 12px 16px;
+            font-size: 14px;
+        }
+        .inv-dropdown-menu {
+            position: static;
+            width: 100%;
+            box-sizing: border-box;
+            margin-top: 6px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
         }
         .filters-container {
             flex-direction: column !important;
@@ -166,18 +416,120 @@
 </style>
 
 <div class="inv-header">
-    <h1 class="inv-title">📦 Módulo de Inventarios</h1>
+    <div class="inv-top-bar">
+        <div class="inv-title-box">
+            <h1 class="inv-title">📦 Módulo de Inventarios</h1>
+            <p class="inv-subtitle">Control de stock, semaforización de vencimientos y trazabilidad</p>
+        </div>
+
+        {# ── Botón único compacto de Alertas ── #}
+        {% set n_alertas = alertas|length if alertas else 0 %}
+        {% set n_proximos = proximos_vencer|length if proximos_vencer else 0 %}
+        {% set n_vencidos = vencidos|length if vencidos else 0 %}
+        {% set total_alertas = n_alertas + n_proximos + n_vencidos %}
+
+        <div class="inv-dropdown" id="dropdownAlertas">
+            <button type="button" class="inv-btn btn-warning-alert inv-dropdown-toggle" onclick="toggleInvDropdown('dropdownAlertas', event)">
+                <span>🔔 Alertas</span>
+                {% if total_alertas > 0 %}
+                    <span class="alert-badge-count">{{ total_alertas }}</span>
+                {% endif %}
+                <span class="dropdown-arrow">▼</span>
+            </button>
+            <div class="inv-dropdown-menu alert-dropdown-menu">
+                <button type="button" class="dropdown-item-btn item-warn" onclick="handleDropdownAction('dropdownAlertas', function(){ openAlertModal('modalStockMinimo'); })">
+                    <span class="item-icon">⚠️</span>
+                    <div class="item-details" style="flex: 1;">
+                        <span class="item-title">Stock Mínimo</span>
+                        <span class="item-desc">Artículos bajo existencia mínima</span>
+                    </div>
+                    <span class="alert-item-badge badge-warning">{{ n_alertas }}</span>
+                </button>
+                <button type="button" class="dropdown-item-btn item-orange" onclick="handleDropdownAction('dropdownAlertas', function(){ openAlertModal('modalProximosVencer'); })">
+                    <span class="item-icon">⏳</span>
+                    <div class="item-details" style="flex: 1;">
+                        <span class="item-title">Próximos a Vencer</span>
+                        <span class="item-desc">Vencimiento en los próximos 30 días</span>
+                    </div>
+                    <span class="alert-item-badge badge-orange">{{ n_proximos }}</span>
+                </button>
+                <button type="button" class="dropdown-item-btn item-danger" onclick="handleDropdownAction('dropdownAlertas', function(){ openAlertModal('modalVencidos'); })">
+                    <span class="item-icon">🚫</span>
+                    <div class="item-details" style="flex: 1;">
+                        <span class="item-title">Vencidos</span>
+                        <span class="item-desc">Artículos caducados con stock activo</span>
+                    </div>
+                    <span class="alert-item-badge badge-danger">{{ n_vencidos }}</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    {# ── Barra de acciones agrupada ── #}
     <div class="inv-actions">
-        <button class="inv-btn btn-green" onclick="openScanner('ingreso')">📸 QR Ingreso</button>
-        <button class="inv-btn btn-red" onclick="openScanner('egreso')">📸 QR Egreso</button>
-        <button class="inv-btn btn-green" onclick="openManualUpdate('ingreso')">➕ Ingreso Manual</button>
-        <button class="inv-btn btn-red" onclick="openManualUpdate('egreso')">➖ Egreso Manual</button>
-        <button class="inv-btn btn-purple" onclick="openScanner('nuevo')">✨ Nuevo Producto</button>
-        <button class="inv-btn btn-purple" style="background: #6366f1;" onclick="openCatalogModal()">📋 ITEMS</button>
+        <!-- Menú Desplegable: Ingreso -->
+        <div class="inv-dropdown" id="dropdownIngreso">
+            <button type="button" class="inv-btn btn-green inv-dropdown-toggle" onclick="toggleInvDropdown('dropdownIngreso', event)">
+                <span>📥 Ingreso</span>
+                <span class="dropdown-arrow">▼</span>
+            </button>
+            <div class="inv-dropdown-menu">
+                <button type="button" class="dropdown-item-btn item-green" onclick="handleDropdownAction('dropdownIngreso', function(){ openScanner('ingreso'); })">
+                    <span class="item-icon">📸</span>
+                    <div class="item-details">
+                        <span class="item-title">QR Ingreso</span>
+                        <span class="item-desc">Escanear código con cámara o lector</span>
+                    </div>
+                </button>
+                <button type="button" class="dropdown-item-btn item-green" onclick="handleDropdownAction('dropdownIngreso', function(){ openManualUpdate('ingreso'); })">
+                    <span class="item-icon">➕</span>
+                    <div class="item-details">
+                        <span class="item-title">Ingreso Manual</span>
+                        <span class="item-desc">Cargar existencias manualmente</span>
+                    </div>
+                </button>
+            </div>
+        </div>
+
+        <!-- Menú Desplegable: Egreso -->
+        <div class="inv-dropdown" id="dropdownEgreso">
+            <button type="button" class="inv-btn btn-red inv-dropdown-toggle" onclick="toggleInvDropdown('dropdownEgreso', event)">
+                <span>📤 Egreso</span>
+                <span class="dropdown-arrow">▼</span>
+            </button>
+            <div class="inv-dropdown-menu">
+                <button type="button" class="dropdown-item-btn item-red" onclick="handleDropdownAction('dropdownEgreso', function(){ openScanner('egreso'); })">
+                    <span class="item-icon">📸</span>
+                    <div class="item-details">
+                        <span class="item-title">QR Egreso</span>
+                        <span class="item-desc">Escanear código para salida</span>
+                    </div>
+                </button>
+                <button type="button" class="dropdown-item-btn item-red" onclick="handleDropdownAction('dropdownEgreso', function(){ openManualUpdate('egreso'); })">
+                    <span class="item-icon">➖</span>
+                    <div class="item-details">
+                        <span class="item-title">Egreso Manual</span>
+                        <span class="item-desc">Descargar existencias manualmente</span>
+                    </div>
+                </button>
+            </div>
+        </div>
+
+        <!-- Botones Adicionales -->
+        <button type="button" class="inv-btn btn-purple" onclick="openScanner('nuevo')">
+            <span>✨ Nuevo Producto</span>
+        </button>
+        <button type="button" class="inv-btn btn-indigo" onclick="openCatalogModal()">
+            <span>📋 ITEMS</span>
+        </button>
         {% if is_superadmin %}
-        <button class="inv-btn" style="background: #eab308; color: #1e293b;" onclick="openMinStockModal()">⚠️ Parametrizar Existencias Mínimas</button>
+        <button type="button" class="inv-btn btn-amber" onclick="openMinStockModal()">
+            <span>⚠️ Parametrizar Existencias Mínimas</span>
+        </button>
         {% endif %}
-        <a href="{{ url_for('inventarios.inventarios_movimientos') }}" class="inv-btn" style="background: #334155; text-decoration: none;">📋 Consultar Movimientos</a>
+        <a href="{{ url_for('inventarios.inventarios_movimientos') }}" class="inv-btn btn-slate" style="text-decoration: none;">
+            <span>📋 Consultar Movimientos</span>
+        </a>
     </div>
 </div>
 
@@ -401,28 +753,6 @@
 }
 </style>
 
-{# ── 3 Botones de alertas ── #}
-<div class="alert-btns">
-
-    <button class="alert-btn" onclick="openAlertModal('modalStockMinimo')"
-            style="background: linear-gradient(135deg, #f59e0b, #d97706); box-shadow:0 3px 10px rgba(245,158,11,0.35);">
-        ⚠️ Stock Mínimo
-        {% if alertas %}<span class="alert-btn-badge" style="color:#d97706;">{{ alertas|length }}</span>{% endif %}
-    </button>
-
-    <button class="alert-btn" onclick="openAlertModal('modalProximosVencer')"
-            style="background: linear-gradient(135deg, #f97316, #ea580c); box-shadow:0 3px 10px rgba(249,115,22,0.35);">
-        ⏳ Próximos a Vencer
-        {% if proximos_vencer %}<span class="alert-btn-badge" style="color:#ea580c;">{{ proximos_vencer|length }}</span>{% endif %}
-    </button>
-
-    <button class="alert-btn" onclick="openAlertModal('modalVencidos')"
-            style="background: linear-gradient(135deg, #ef4444, #dc2626); box-shadow:0 3px 10px rgba(239,68,68,0.35);">
-        🚫 Vencidos
-        {% if vencidos %}<span class="alert-btn-badge" style="color:#dc2626;">{{ vencidos|length }}</span>{% endif %}
-    </button>
-
-</div>
 
 {# ══════════════════════════════════════════════════════
    MODAL: STOCK MÍNIMO
@@ -621,6 +951,39 @@
 </div>
 
 <script>
+/* ── Dropdowns de Ingreso y Egreso ── */
+function toggleInvDropdown(id, event) {
+    if (event) {
+        event.stopPropagation();
+    }
+    const current = document.getElementById(id);
+    if (!current) return;
+    const isOpen = current.classList.contains('open');
+    document.querySelectorAll('.inv-dropdown').forEach(function(d) {
+        d.classList.remove('open');
+    });
+    if (!isOpen) {
+        current.classList.add('open');
+    }
+}
+
+function handleDropdownAction(dropdownId, actionFn) {
+    const el = document.getElementById(dropdownId);
+    if (el) el.classList.remove('open');
+    if (typeof actionFn === 'function') {
+        actionFn();
+    }
+}
+
+// Cerrar dropdowns al hacer clic fuera
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('.inv-dropdown')) {
+        document.querySelectorAll('.inv-dropdown').forEach(function(d) {
+            d.classList.remove('open');
+        });
+    }
+});
+
 /* ── Abrir/cerrar modales de alerta ── */
 function openAlertModal(id) {
     document.getElementById(id).style.display = 'block';
