@@ -577,8 +577,26 @@ def init_db():
             identificador TEXT NOT NULL,
             nombre TEXT NOT NULL,
             activo INTEGER DEFAULT 1,
-            cantidad INTEGER DEFAULT NULL
+            cantidad INTEGER DEFAULT NULL,
+            aplica_vencimiento INTEGER DEFAULT 0
         )
+    """)
+
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS checklist_pasb_traslados (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            item_inventario_id INT,
+            nombre VARCHAR(255) NOT NULL,
+            cantidad INT NOT NULL,
+            fecha_vencimiento DATE NULL,
+            destino VARCHAR(50) DEFAULT 'PASB',
+            estado VARCHAR(50) DEFAULT 'pendiente',
+            registrado_por VARCHAR(255),
+            fecha_salida DATETIME DEFAULT CURRENT_TIMESTAMP,
+            aceptado_por VARCHAR(255) NULL,
+            fecha_aceptado DATETIME NULL,
+            checklist_id INT NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
     """)
     
     conn.execute("""
@@ -1391,6 +1409,15 @@ def init_db():
             conn.execute("ALTER TABLE calif_atencion ADD COLUMN responsable_tipo_doc TEXT")
         if "responsable_identificacion" not in calif_cols:
             conn.execute("ALTER TABLE calif_atencion ADD COLUMN responsable_identificacion TEXT")
+    except Exception:
+        pass
+
+    # Migration for checklist_items aplica_vencimiento
+    try:
+        cursor.execute("DESCRIBE checklist_items")
+        ci_cols = [row["Field"] for row in cursor.fetchall()]
+        if "aplica_vencimiento" not in ci_cols:
+            conn.execute("ALTER TABLE checklist_items ADD COLUMN aplica_vencimiento INTEGER DEFAULT 0")
     except Exception:
         pass
             
