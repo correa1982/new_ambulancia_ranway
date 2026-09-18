@@ -321,6 +321,8 @@ def register_routes(app):
             except (ValueError, TypeError):
                 cantidad = 1
 
+        aplica_vencimiento = 1 if request.form.get("aplica_vencimiento") else 0
+
         # Generate a slug from category + name to allow same name in different categories
         import re
         cat_slug  = re.sub(r"[^a-z0-9]+", "_", categoria.lower().strip())[:30]
@@ -337,13 +339,32 @@ def register_routes(app):
             flash("Ya existe un ítem con ese nombre en esta categoría del checklist.", "error")
         else:
             conn.execute(
-                "INSERT INTO checklist_items (tipo_checklist, categoria, identificador, nombre, activo, cantidad) VALUES (?, ?, ?, ?, 1, ?)",
-                (tipo, categoria, identificador, nombre, cantidad)
+                "INSERT INTO checklist_items (tipo_checklist, categoria, identificador, nombre, activo, cantidad, aplica_vencimiento) VALUES (?, ?, ?, ?, 1, ?, ?)",
+                (tipo, categoria, identificador, nombre, cantidad, aplica_vencimiento)
             )
             conn.commit()
             flash(f"Ítem «{nombre}» agregado al checklist {tipo.upper()}.", "success")
         conn.close()
         return redirect(url_for("admin_checklists", tipo=tipo))
+
+
+    @app.route("/admin/checklists/toggle_vencimiento/<int:item_id>")
+    @login_required
+    @admin_required
+    def admin_checklist_toggle_vencimiento(item_id):
+        conn = get_db()
+        item = conn.execute("SELECT * FROM checklist_items WHERE id = ?", (item_id,)).fetchone()
+        if item:
+            nuevo = 0 if item.get("aplica_vencimiento") else 1
+            conn.execute("UPDATE checklist_items SET aplica_vencimiento = ? WHERE id = ?", (nuevo, item_id))
+            conn.commit()
+            msg = f"Control de vencimiento activado para «{item['nombre']}»." if nuevo else f"Control de vencimiento desactivado para «{item['nombre']}»."
+            flash(msg, "success")
+            conn.close()
+            return redirect(url_for("admin_checklists", tipo=item["tipo_checklist"]))
+        conn.close()
+        flash("Ítem no encontrado.", "error")
+        return redirect(url_for("admin_checklists"))
 
 
     @app.route("/admin/checklists/toggle/<int:item_id>")

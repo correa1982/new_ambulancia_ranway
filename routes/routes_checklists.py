@@ -101,12 +101,26 @@ def register_routes(app):
             for item in items_db:
                 val = data.get(item["identificador"], "")
                 obs = data.get("obs_" + item["identificador"], "")
+                fecha_venc = data.get("vencimiento_" + item["identificador"], "")
+                if fecha_venc:
+                    try:
+                        fecha_venc_parsed = json.loads(fecha_venc)
+                        if isinstance(fecha_venc_parsed, (list, dict)):
+                            fecha_venc = fecha_venc_parsed
+                    except Exception:
+                        pass
+                cant_actual = data.get("cant_actual_" + item["identificador"], "")
+                tipo_incumplimiento = data.get("tipo_incumplimiento_" + item["identificador"], "")
                 datos[item["identificador"]] = {
                     "nombre": item["nombre"],
                     "categoria": item["categoria"],
                     "cantidad": item.get("cantidad"),
+                    "aplica_vencimiento": item.get("aplica_vencimiento", 0),
                     "valor": val,
-                    "observacion": obs
+                    "observacion": obs,
+                    "fecha_vencimiento": fecha_venc,
+                    "cant_actual": cant_actual,
+                    "tipo_incumplimiento": tipo_incumplimiento
                 }
             if tipo in ("avanzada", "tam", "tab", "pasm", "pasb"):
                 nombres = request.form.getlist("integrante_nombre[]")
@@ -240,6 +254,43 @@ def register_routes(app):
                         flash("Este checklist ya fue finalizado y no se puede editar.", "error")
             except (ValueError, Exception):
                 pass
+        else:
+            # Nuevo checklist: cargar las fechas de vencimiento del último checklist realizado
+            precargado_ultimo = False
+            try:
+                last_row = conn.execute(
+                    f"SELECT datos_json FROM {cfg['table']} WHERE datos_json IS NOT NULL AND datos_json != '' ORDER BY id DESC LIMIT 1"
+                ).fetchone()
+                if last_row and last_row["datos_json"]:
+                    ultimo_datos = json.loads(last_row["datos_json"])
+                    for field, info in ultimo_datos.items():
+                        if field.startswith("_") or not isinstance(info, dict):
+                            continue
+                        datos[field] = {
+                            "valor": info.get("valor", ""),
+                            "fecha_vencimiento": info.get("fecha_vencimiento", ""),
+                            "observacion": info.get("observacion", ""),
+                            "cant_actual": info.get("cant_actual", ""),
+                            "tipo_incumplimiento": info.get("tipo_incumplimiento", "")
+                        }
+                    precargado_ultimo = True
+            except Exception:
+                pass
+
+        # Load pending transfers from inventory for PASB
+        traslados_pendientes = []
+        if tipo == "pasb":
+            try:
+                rows_traslados = conn.execute(
+                    "SELECT * FROM checklist_pasb_traslados WHERE estado = 'pendiente' ORDER BY fecha_salida DESC"
+                ).fetchall()
+                for tr in rows_traslados:
+                    d_tr = dict(tr)
+                    if d_tr.get("fecha_vencimiento") and hasattr(d_tr["fecha_vencimiento"], "strftime"):
+                        d_tr["fecha_vencimiento"] = d_tr["fecha_vencimiento"].strftime("%Y-%m-%d")
+                    traslados_pendientes.append(d_tr)
+            except Exception:
+                traslados_pendientes = []
 
         conn.close()
         for item in items_db:
@@ -264,9 +315,71 @@ def register_routes(app):
             enfermeros=enfermeros,
             aphs=aphs,
             todos_usuarios=todos_usuarios,
+            traslados_pendientes=traslados_pendientes,
+            precargado_ultimo=locals().get("precargado_ultimo", False),
             record=record,
             datos=datos
         )
+
+
+    @app.route("/checklist/pasb/aceptar_traslado/<int:traslado_id>", methods=["POST"])
+    @login_required
+    def aceptar_traslado_pasb(traslado_id):
+        conn = get_db()
+        traslado = conn.execute("SELECT * FROM checklist_pasb_traslados WHERE id = ?", (traslado_id,)).fetchone()
+        if not traslado:
+            conn.close()
+            return jsonify({"status": "error", "message": "Traslado no encontrado."}), 404
+            
+        now_str = ahora().strftime("%Y-%m-%d %H:%M:%S")
+        user_name = session["usuario"]["nombre"]
+        conn.execute(
+            "UPDATE checklist_pasb_traslados SET estado = 'aceptado', aceptado_por = ?, fecha_aceptado = ? WHERE id = ?",
+            (user_name, now_str, traslado_id)
+        )
+        conn.commit()
+        
+        tr_dict = dict(traslado)
+        if tr_dict.get("fecha_vencimiento") and hasattr(tr_dict["fecha_vencimiento"], "strftime"):
+            tr_dict["fecha_vencimiento"] = tr_dict["fecha_vencimiento"].strftime("%Y-%m-%d")
+        elif tr_dict.get("fecha_vencimiento"):
+            tr_dict["fecha_vencimiento"] = str(tr_dict["fecha_vencimiento"])
+            
+        conn.close()
+        return jsonify({"status": "success", "message": f"Artículo '{traslado['nombre']}' aceptado correctamente.", "traslado": tr_dict})
+
+
+    @app.route("/api/checklist/ultimo_datos")
+    @login_required
+    def api_checklist_ultimo_datos():
+        tipo = request.args.get("tipo", "pasb")
+        cfg = CHECKLIST_CONFIG.get(tipo)
+        if not cfg:
+            return jsonify({"status": "error", "message": "Tipo no válido"}), 400
+            
+        pasb_numero = request.args.get("pasb_numero")
+        conn = get_db()
+        try:
+            row = None
+            if tipo == "pasb" and pasb_numero:
+                row = conn.execute(
+                    f"SELECT datos_json FROM {cfg['table']} WHERE pasb_numero = ? AND datos_json IS NOT NULL AND datos_json != '' ORDER BY id DESC LIMIT 1",
+                    (pasb_numero,)
+                ).fetchone()
+            if not row:
+                row = conn.execute(
+                    f"SELECT datos_json FROM {cfg['table']} WHERE datos_json IS NOT NULL AND datos_json != '' ORDER BY id DESC LIMIT 1"
+                ).fetchone()
+            
+            if row and row.get("datos_json"):
+                datos_obj = json.loads(row["datos_json"])
+                conn.close()
+                return jsonify({"status": "success", "datos": datos_obj})
+            conn.close()
+            return jsonify({"status": "not_found", "datos": {}})
+        except Exception as e:
+            conn.close()
+            return jsonify({"status": "error", "message": str(e)}), 500
 
 
     @app.route("/formularios/checklist/<tipo>/registros")
@@ -321,6 +434,21 @@ def register_routes(app):
                 datos = json.loads(record_dict["datos_json"])
             except Exception:
                 pass
+
+        for field, info in datos.items():
+            if isinstance(info, dict):
+                fv = info.get("fecha_vencimiento")
+                if isinstance(fv, str) and fv.strip().startswith("["):
+                    try:
+                        fv = json.loads(fv)
+                    except Exception:
+                        pass
+                if isinstance(fv, list):
+                    info["vencimiento_entries"] = fv
+                elif fv:
+                    info["vencimiento_entries"] = [{"cant": info.get("cantidad") or 1, "fecha": str(fv)}]
+                else:
+                    info["vencimiento_entries"] = []
 
         # Validar permisos para no administradores
         is_admin = session.get("usuario", {}).get("rol") == "admin"

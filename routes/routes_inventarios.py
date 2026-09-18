@@ -411,6 +411,14 @@ def inventarios_scan():
         accion, cantidad_op, tipo_egreso if accion == 'egreso' else '', 
         destino if accion == 'egreso' else '', registrado_por
     ))
+
+    # Integración con Checklist PASB si el destino es PASB
+    if accion == 'egreso' and destino and 'PASB' in str(destino).upper():
+        conn.execute("""
+            INSERT INTO checklist_pasb_traslados
+            (item_inventario_id, nombre, cantidad, fecha_vencimiento, destino, estado, registrado_por)
+            VALUES (%s, %s, %s, %s, %s, 'pendiente', %s)
+        """, (item['id'], item['nombre'], cantidad_op, item.get('fecha_vencimiento'), destino, registrado_por))
     
     conn.commit()
     conn.close()
@@ -611,6 +619,14 @@ def inventarios_manual_update():
         accion, cantidad_op, tipo_egreso if accion == 'egreso' else '', 
         destino if accion == 'egreso' else '', registrado_por
     ))
+
+    # Integración con Checklist PASB si el destino es PASB
+    if accion == 'egreso' and destino and 'PASB' in str(destino).upper():
+        conn.execute("""
+            INSERT INTO checklist_pasb_traslados
+            (item_inventario_id, nombre, cantidad, fecha_vencimiento, destino, estado, registrado_por)
+            VALUES (%s, %s, %s, %s, %s, 'pendiente', %s)
+        """, (item['id'], item['nombre'], cantidad_op, item.get('fecha_vencimiento'), destino, registrado_por))
     
     conn.commit()
     conn.close()

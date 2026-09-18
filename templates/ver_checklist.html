@@ -147,10 +147,74 @@ tr { page-break-inside: avoid; break-inside: avoid; }
 .pdf-mode .doc-section { margin-top: 2px !important; }
 
 
-@media (max-width: 700px) {
-    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-    .table-wrap table { min-width: 600px; }
-    #checklist-doc { padding: 12px !important; }
+@media (max-width: 768px) {
+    .detail-header {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 12px !important;
+    }
+    .detail-header > div {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 8px !important;
+        width: 100% !important;
+    }
+    .detail-header .action-btn {
+        flex: 1 1 auto !important;
+        text-align: center !important;
+    }
+    .doc-header {
+        flex-direction: column !important;
+        align-items: center !important;
+        text-align: center !important;
+        gap: 12px !important;
+    }
+    .doc-inst {
+        text-align: center !important;
+    }
+    .doc-title-band {
+        flex-direction: column !important;
+        text-align: center !important;
+        padding: 12px !important;
+        gap: 6px !important;
+    }
+    .table-wrap {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        margin-bottom: 15px;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+        background: #ffffff;
+    }
+    .table-wrap table {
+        min-width: 580px;
+    }
+    .formal-table td {
+        padding: 6px 8px !important;
+        font-size: 11px !important;
+    }
+    .formal-table .lbl {
+        font-size: 9.5px !important;
+        width: 30% !important;
+    }
+    #checklist-doc {
+        padding: 14px 10px !important;
+    }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+    /* Tablet optimizations (iPad, Android tablets) */
+    .table-wrap {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    .col-split-table th, .col-split-table td {
+        font-size: 10.5px !important;
+        padding: 6px 6px !important;
+    }
+    #checklist-doc {
+        padding: 18px 14px !important;
+    }
 }
 
 
@@ -411,6 +475,36 @@ tr { page-break-inside: avoid; break-inside: avoid; }
                 {# Render left item #}
                 <td>
                     <strong>{{ left_info.nombre }}</strong>{% if left_info.get('cantidad') is not none %} <span style="font-size: 11px; color: #64748b; font-weight: normal;">(Cant: {{ left_info.cantidad }})</span>{% endif %}
+                    {% if left_info.get('vencimiento_entries') %}
+                        <div style="margin-top: 2px; display: flex; flex-direction: column; gap: 2px;">
+                            {% for vent in left_info.vencimiento_entries %}
+                                <div>
+                                    <span class="venc-badge-cl" data-date="{{ vent.fecha }}" data-cant="{{ vent.cant }}" style="font-size: 8.5px; padding: 1px 5px; border-radius: 3px; font-weight: 700; display: inline-block;">
+                                        {% if left_info.get('cantidad', 1) > 1 or left_info.vencimiento_entries|length > 1 %}<strong>({{ vent.cant }} unids)</strong> {% endif %}📅 {{ vent.fecha }}
+                                    </span>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% elif left_info.get('fecha_vencimiento') %}
+                        <div style="margin-top: 2px;">
+                            <span class="venc-badge-cl" data-date="{{ left_info.fecha_vencimiento }}" style="font-size: 8.5px; padding: 1px 5px; border-radius: 3px; font-weight: 700; display: inline-block;">
+                                📅 {{ left_info.fecha_vencimiento }}
+                            </span>
+                        </div>
+                    {% endif %}
+                    {% if left_info.valor == 'NO' and left_info.get('tipo_incumplimiento') %}
+                        <div style="margin-top: 2px;">
+                            {% if left_info.tipo_incumplimiento == 'parcial' %}
+                                <span style="background: #fef3c7; color: #b45309; border: 1px solid #f59e0b; padding: 1px 5px; border-radius: 3px; font-size: 8px; font-weight: 700; display: inline-block;">
+                                    ⚠️ Incumple Parcial (Cant: {{ left_info.get('cant_actual', '0') }})
+                                </span>
+                            {% elif left_info.tipo_incumplimiento == 'total' %}
+                                <span style="background: #fee2e2; color: #b91c1c; border: 1px solid #ef4444; padding: 1px 5px; border-radius: 3px; font-size: 8px; font-weight: 700; display: inline-block;">
+                                    ❌ Incumple Total (0 existencias)
+                                </span>
+                            {% endif %}
+                        </div>
+                    {% endif %}
                 </td>
                 <td style="text-align: center;">
                     {% if left_info.valor == 'SI' %}
@@ -439,6 +533,36 @@ tr { page-break-inside: avoid; break-inside: avoid; }
                     {% set right_info = datos[right_field] %}
                     <td style="border-left: 2px solid #cbd5e1; padding-left: 10px;">
                         <strong>{{ right_info.nombre }}</strong>{% if right_info.get('cantidad') is not none %} <span style="font-size: 11px; color: #64748b; font-weight: normal;">(Cant: {{ right_info.cantidad }})</span>{% endif %}
+                        {% if right_info.get('vencimiento_entries') %}
+                            <div style="margin-top: 2px; display: flex; flex-direction: column; gap: 2px;">
+                                {% for vent in right_info.vencimiento_entries %}
+                                    <div>
+                                        <span class="venc-badge-cl" data-date="{{ vent.fecha }}" data-cant="{{ vent.cant }}" style="font-size: 8.5px; padding: 1px 5px; border-radius: 3px; font-weight: 700; display: inline-block;">
+                                            {% if right_info.get('cantidad', 1) > 1 or right_info.vencimiento_entries|length > 1 %}<strong>({{ vent.cant }} unids)</strong> {% endif %}📅 {{ vent.fecha }}
+                                        </span>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% elif right_info.get('fecha_vencimiento') %}
+                            <div style="margin-top: 2px;">
+                                <span class="venc-badge-cl" data-date="{{ right_info.fecha_vencimiento }}" style="font-size: 8.5px; padding: 1px 5px; border-radius: 3px; font-weight: 700; display: inline-block;">
+                                    📅 {{ right_info.fecha_vencimiento }}
+                                </span>
+                            </div>
+                        {% endif %}
+                        {% if right_info.valor == 'NO' and right_info.get('tipo_incumplimiento') %}
+                            <div style="margin-top: 2px;">
+                                {% if right_info.tipo_incumplimiento == 'parcial' %}
+                                    <span style="background: #fef3c7; color: #b45309; border: 1px solid #f59e0b; padding: 1px 5px; border-radius: 3px; font-size: 8px; font-weight: 700; display: inline-block;">
+                                        ⚠️ Incumple Parcial (Cant: {{ right_info.get('cant_actual', '0') }})
+                                    </span>
+                                {% elif right_info.tipo_incumplimiento == 'total' %}
+                                    <span style="background: #fee2e2; color: #b91c1c; border: 1px solid #ef4444; padding: 1px 5px; border-radius: 3px; font-size: 8px; font-weight: 700; display: inline-block;">
+                                        ❌ Incumple Total (0 existencias)
+                                    </span>
+                                {% endif %}
+                            </div>
+                        {% endif %}
                     </td>
                     <td style="text-align: center;">
                         {% if right_info.valor == 'SI' %}
@@ -501,6 +625,36 @@ tr { page-break-inside: avoid; break-inside: avoid; }
             <tr>
                 <td>
                     <strong>{{ info.nombre }}</strong>{% if info.get('cantidad') is not none %} <span style="font-size: 11px; color: #64748b; font-weight: normal;">(Cant: {{ info.cantidad }})</span>{% endif %}
+                    {% if info.get('vencimiento_entries') %}
+                        <div style="margin-top: 2px; display: flex; flex-direction: column; gap: 2px;">
+                            {% for vent in info.vencimiento_entries %}
+                                <div>
+                                    <span class="venc-badge-cl" data-date="{{ vent.fecha }}" data-cant="{{ vent.cant }}" style="font-size: 8.5px; padding: 1px 5px; border-radius: 3px; font-weight: 700; display: inline-block;">
+                                        {% if info.get('cantidad', 1) > 1 or info.vencimiento_entries|length > 1 %}<strong>({{ vent.cant }} unids)</strong> {% endif %}📅 {{ vent.fecha }}
+                                    </span>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% elif info.get('fecha_vencimiento') %}
+                        <div style="margin-top: 2px;">
+                            <span class="venc-badge-cl" data-date="{{ info.fecha_vencimiento }}" style="font-size: 8.5px; padding: 1px 5px; border-radius: 3px; font-weight: 700; display: inline-block;">
+                                📅 {{ info.fecha_vencimiento }}
+                            </span>
+                        </div>
+                    {% endif %}
+                    {% if info.valor == 'NO' and info.get('tipo_incumplimiento') %}
+                        <div style="margin-top: 2px;">
+                            {% if info.tipo_incumplimiento == 'parcial' %}
+                                <span style="background: #fef3c7; color: #b45309; border: 1px solid #f59e0b; padding: 1px 5px; border-radius: 3px; font-size: 8px; font-weight: 700; display: inline-block;">
+                                    ⚠️ Incumple Parcial (Cant: {{ info.get('cant_actual', '0') }})
+                                </span>
+                            {% elif info.tipo_incumplimiento == 'total' %}
+                                <span style="background: #fee2e2; color: #b91c1c; border: 1px solid #ef4444; padding: 1px 5px; border-radius: 3px; font-size: 8px; font-weight: 700; display: inline-block;">
+                                    ❌ Incumple Total (0 existencias)
+                                </span>
+                            {% endif %}
+                        </div>
+                    {% endif %}
                 </td>
                 <td style="text-align: center;">
                     {% if info.valor == 'SI' %}
@@ -649,5 +803,53 @@ function descargarPDF() {
 }
 </script>
 {% endif %}
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const threeMonths = new Date();
+    threeMonths.setDate(today.getDate() + 90);
+    const sixMonths = new Date();
+    sixMonths.setDate(today.getDate() + 180);
+
+    document.querySelectorAll('.venc-badge-cl').forEach(el => {
+        const dateStr = el.getAttribute('data-date');
+        const cantStr = el.getAttribute('data-cant');
+        if (!dateStr) return;
+        const parts = dateStr.split('-');
+        if (parts.length !== 3) return;
+        const expDate = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+
+        let cantPrefix = cantStr ? `<strong>(${cantStr} unids)</strong> ` : '';
+
+        if (expDate <= today) {
+            el.style.backgroundColor = '#f5f5f4';
+            el.style.color = '#78350f';
+            el.style.border = '1px solid #b45309';
+            el.innerHTML = `${cantPrefix}📅 Vencido: ${dateStr}`;
+            el.title = '¡Vencido!';
+        } else if (expDate <= threeMonths) {
+            el.style.backgroundColor = '#fee2e2';
+            el.style.color = '#dc2626';
+            el.style.border = '1px solid #f87171';
+            el.innerHTML = `${cantPrefix}📅 Vence < 3m: ${dateStr}`;
+            el.title = 'Vence en menos de 3 meses';
+        } else if (expDate <= sixMonths) {
+            el.style.backgroundColor = '#fef9c3';
+            el.style.color = '#ca8a04';
+            el.style.border = '1px solid #facc15';
+            el.innerHTML = `${cantPrefix}📅 Vence 3-6m: ${dateStr}`;
+            el.title = 'Vence de 3 a 6 meses';
+        } else {
+            el.style.backgroundColor = '#dcfce7';
+            el.style.color = '#166534';
+            el.style.border = '1px solid #4ade80';
+            el.innerHTML = `${cantPrefix}📅 Vigente > 6m: ${dateStr}`;
+            el.title = 'Vigente por más de 6 meses';
+        }
+    });
+});
+</script>
 
 {% endblock %}
