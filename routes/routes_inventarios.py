@@ -412,8 +412,8 @@ def inventarios_scan():
         destino if accion == 'egreso' else '', registrado_por
     ))
 
-    # Integración con Checklist PASB si el destino es PASB
-    if accion == 'egreso' and destino and 'PASB' in str(destino).upper():
+    # Integración con Checklist PASB / PASM si el destino es PASB o PASM
+    if accion == 'egreso' and destino and any(p in str(destino).upper() for p in ('PASB', 'PASM')):
         conn.execute("""
             INSERT INTO checklist_pasb_traslados
             (item_inventario_id, nombre, cantidad, fecha_vencimiento, destino, estado, registrado_por)
@@ -620,8 +620,8 @@ def inventarios_manual_update():
         destino if accion == 'egreso' else '', registrado_por
     ))
 
-    # Integración con Checklist PASB si el destino es PASB
-    if accion == 'egreso' and destino and 'PASB' in str(destino).upper():
+    # Integración con Checklist PASB / PASM si el destino es PASB o PASM
+    if accion == 'egreso' and destino and any(p in str(destino).upper() for p in ('PASB', 'PASM')):
         conn.execute("""
             INSERT INTO checklist_pasb_traslados
             (item_inventario_id, nombre, cantidad, fecha_vencimiento, destino, estado, registrado_por)

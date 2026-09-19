@@ -313,6 +313,15 @@ document.addEventListener("DOMContentLoaded", function() {
     </a>
     {% endif %}
 
+    {% set tiene_permiso_gasto = session.usuario.rol == 'admin' or has_permiso_formulario(session.usuario.formularios_acceso, 'avanzada') or has_permiso_formulario(session.usuario.formularios_acceso, 'pasm') or has_permiso_formulario(session.usuario.formularios_acceso, 'pasb') or has_permiso_formulario(session.usuario.formularios_acceso, 'tab') or has_permiso_formulario(session.usuario.formularios_acceso, 'tam') or 'avanzada' in session.usuario.get('formularios_acceso', []) or 'pasm' in session.usuario.get('formularios_acceso', []) or 'pasb' in session.usuario.get('formularios_acceso', []) or 'tab' in session.usuario.get('formularios_acceso', []) or 'tam' in session.usuario.get('formularios_acceso', []) or 'reporte_gasto' in session.usuario.get('formularios_acceso', []) %}
+    {% if tiene_permiso_gasto %}
+    <a href="{{ url_for('form_reporte_gasto') }}" class="dash-card">
+        <div class="card-icon" style="background: #fee2e2;"><i class="ph ph-receipt" style="color: #dc2626;"></i></div>
+        <div class="card-title">Reporte de Gasto</div>
+        <div class="card-desc">Registro de insumos y medicamentos utilizados en eventos.</div>
+    </a>
+    {% endif %}
+
     {% if session.usuario.rol == 'admin' or 'equipos' in session.usuario.get('formularios_acceso', []) %}
     <a href="{{ url_for('form_checklist', tipo='equipos') }}" class="dash-card">
         <div class="card-icon" style="background: #ffedd5;"><i class="ph ph-heartbeat" style="color: #ea580c;"></i></div>

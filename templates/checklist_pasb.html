@@ -56,6 +56,24 @@
 }
 .pasb-meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
 
+/* Entregas Pendientes Panel & Responsive */
+#panel-traslados-pasb {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+}
+.traslados-table-wrap {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+.traslados-cards-mobile {
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+}
+
 /* SweetAlert Responsive Styles for Mobile & Tablets */
 .swal2-popup.swal-venc-modal {
     width: 95% !important;
@@ -75,6 +93,16 @@
     .pasb-meta-grid { grid-template-columns: 1fr; }
     .row.row-3 { display: grid; grid-template-columns: 1fr; gap: 10px; }
     
+    .traslados-table-wrap {
+        display: none !important;
+    }
+    .traslados-cards-mobile {
+        display: flex !important;
+    }
+    #panel-traslados-pasb {
+        padding: 12px 10px !important;
+    }
+
     .check-table thead { display: none; }
     .check-table, .check-table tbody, .check-table tr, .check-table td { display: block; width: 100%; box-sizing: border-box; }
     .check-table tr { border: 1px solid #e2e8f0; border-radius: 12px; margin-bottom: 12px; padding: 14px; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.03); }
@@ -142,27 +170,25 @@
 <form method="POST" class="pwa-offline-form">
 {% if record %}<input type="hidden" name="id" value="{{ record.id }}">{% endif %}
 
-{% if precargado_ultimo and not record %}
-<div style="background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 8px; padding: 12px 16px; margin-bottom: 18px; font-size: 13px; color: #166534; display: flex; align-items: center; justify-content: space-between; gap: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+<div id="banner-precargado-pasb" style="background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 8px; padding: 12px 16px; margin-bottom: 18px; font-size: 13px; color: #166534; display: {% if precargado_ultimo and not record %}flex{% else %}none{% endif %}; align-items: center; justify-content: space-between; gap: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
     <div style="display: flex; align-items: center; gap: 8px;">
         <span style="font-size: 18px;">ℹ️</span>
-        <span><strong>Fechas de vencimiento precargadas:</strong> Se han cargado automáticamente las fechas de vencimiento y cumplimiento del último checklist realizado. Puede revisarlas o modificarlas haciendo clic en ✏️.</span>
+        <span id="banner-precargado-text"><strong>Fechas de vencimiento precargadas:</strong> Se han cargado automáticamente las fechas de vencimiento y cumplimiento del último checklist realizado para <strong id="banner-pasb-nom">{{ record.pasb_numero if record else '' }}</strong>. Puede revisarlas o modificarlas haciendo clic en ✏️.</span>
     </div>
 </div>
-{% endif %}
 <fieldset>
 <legend>📋 Datos del Puesto</legend>
 <div class="row row-3">
     <div><label>Fecha <span style="color:#ef4444">*</span></label>
         <input onclick="this.showPicker()" type="date" name="fecha" max="{{ hoy }}" required value="{{ record.fecha if record else hoy }}"></div>
-    <div><label>Hora</label><input onclick="this.showPicker()" type="time" name="hora" value="{{ record.hora if record else hora_actual }}"></div>
-    <div><label>Ubicación / Lugar</label>
-        <input type="text" name="ubicacion" placeholder="Ej. Parque principal, Estadio, Vía principal Km 5..." value="{{ record.ubicacion if record else '' }}"></div>
+    <div><label>Hora <span style="color:#ef4444">*</span></label><input onclick="this.showPicker()" type="time" name="hora" required value="{{ record.hora if record else hora_actual }}"></div>
+    <div><label>Ubicación / Lugar <span style="color:#ef4444">*</span></label>
+        <input type="text" name="ubicacion" required placeholder="Ej. Parque principal, Estadio, Vía principal Km 5..." value="{{ record.ubicacion if record else '' }}"></div>
 </div>
 <div class="pasb-meta-grid">
     <div>
-        <label>Número del PASB</label>
-        <select name="pasb_numero" class="select-btn">
+        <label>Número del PASB <span style="color:#ef4444">*</span></label>
+        <select name="pasb_numero" class="select-btn" required>
             <option value="">— Seleccione —</option>
             {% for opcion in pasb_opciones %}
             <option value="{{ opcion }}" {% if record and record.pasb_numero == opcion %}selected{% endif %}>{{ opcion }}</option>
@@ -241,14 +267,16 @@
 
 <!-- Panel de Entregas Pendientes desde Inventario -->
 {% if traslados_pendientes and traslados_pendientes|length > 0 %}
-<fieldset id="panel-traslados-pasb" style="border: 1.5px solid #3b82f6; background: #eff6ff; border-radius: 10px; padding: 14px 18px; margin-bottom: 20px;">
+<fieldset id="panel-traslados-pasb" style="display: none; min-width: 0; max-width: 100%; width: 100%; box-sizing: border-box; overflow: hidden; border: 1.5px solid #3b82f6; background: #eff6ff; border-radius: 10px; padding: 14px 18px; margin-bottom: 20px;">
     <legend style="color: #1e40af; font-weight: 700; font-size: 14px; padding: 0 8px; display: flex; align-items: center; gap: 6px;">
-        📦 Entregas Pendientes desde Inventario (<span id="count-traslados">{{ traslados_pendientes|length }}</span>)
+        📦 Entregas Pendientes desde Inventario<span id="traslados-pasb-label"></span> (<span id="count-traslados">0</span>)
     </legend>
     <p style="font-size: 12px; color: #1e3a8a; margin: 0 0 10px 0;">
         Se registraron salidas de inventario con destino a este PASB. Verifique y acepte los suministros recibidos para incorporarlos al checklist:
     </p>
-    <div style="overflow-x: auto;">
+    
+    <!-- Vista Escritorio / Tablet: Tabla -->
+    <div class="traslados-table-wrap">
         <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 6px; overflow: hidden; border: 1px solid #bfdbfe; font-size: 12px;">
             <thead>
                 <tr style="background: #dbeafe; color: #1e40af; text-align: left;">
@@ -261,7 +289,7 @@
             </thead>
             <tbody>
                 {% for tr in traslados_pendientes %}
-                <tr id="row-traslado-{{ tr.id }}" style="border-top: 1px solid #e2e8f0;">
+                <tr id="row-traslado-{{ tr.id }}" class="traslado-table-row" data-id="{{ tr.id }}" data-destino="{{ tr.destino }}" style="border-top: 1px solid #e2e8f0;">
                     <td style="padding: 8px 12px; font-weight: 600; color: #1e293b;">{{ tr.nombre }}</td>
                     <td style="padding: 8px 12px; text-align: center; font-weight: 700; color: #0f172a;">{{ tr.cantidad }}</td>
                     <td style="padding: 8px 12px; text-align: center;">
@@ -271,11 +299,11 @@
                             <span style="color: #94a3b8;">—</span>
                         {% endif %}
                     </td>
-                    <td style="padding: 8px 12px; text-align: center; color: #64748b;">{{ tr.destino }}</td>
+                    <td style="padding: 8px 12px; text-align: center; color: #64748b; font-weight: 600;">{{ tr.destino }}</td>
                     <td style="padding: 8px 12px; text-align: center;">
                         <button type="button" 
                                 onclick="aceptarTraslado('{{ tr.id }}', '{{ tr.nombre|escape }}', '{{ tr.cantidad }}', '{{ tr.fecha_vencimiento or '' }}')" 
-                                style="background: #10b981; color: white; border: none; padding: 5px 12px; border-radius: 5px; font-weight: 600; font-size: 11px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 2px 4px rgba(16,185,129,0.2);">
+                                style="background: #10b981; color: white; border: none; padding: 6px 12px; border-radius: 5px; font-weight: 600; font-size: 11px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 2px 4px rgba(16,185,129,0.2);">
                             ✓ Aceptar e Ingresar
                         </button>
                     </td>
@@ -283,6 +311,39 @@
                 {% endfor %}
             </tbody>
         </table>
+    </div>
+
+    <!-- Vista Móvil: Tarjetas compactas -->
+    <div class="traslados-cards-mobile" id="cards-traslados-mobile">
+        {% for tr in traslados_pendientes %}
+        <div id="card-traslado-{{ tr.id }}" class="traslado-card-item" data-id="{{ tr.id }}" data-destino="{{ tr.destino }}" style="background: white; border: 1px solid #bfdbfe; border-radius: 8px; padding: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 8px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
+                <div style="font-weight: 700; color: #1e293b; font-size: 13px; line-height: 1.3;">
+                    {{ tr.nombre }}
+                </div>
+                <span style="background: #e0f2fe; color: #0369a1; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 4px; white-space: nowrap;">
+                    {{ tr.destino }}
+                </span>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px; font-size: 12px; color: #475569;">
+                <div>
+                    <span>Cantidad: </span><strong style="color: #0f172a; font-size: 13px;">{{ tr.cantidad }}</strong> unid(s)
+                </div>
+                <div>
+                    {% if tr.fecha_vencimiento %}
+                        <span class="venc-badge-calc" data-date="{{ tr.fecha_vencimiento }}">{{ tr.fecha_vencimiento }}</span>
+                    {% else %}
+                        <span style="color: #94a3b8; font-size: 11px;">Sin vencimiento</span>
+                    {% endif %}
+                </div>
+            </div>
+            <button type="button" 
+                    onclick="aceptarTraslado('{{ tr.id }}', '{{ tr.nombre|escape }}', '{{ tr.cantidad }}', '{{ tr.fecha_vencimiento or '' }}')" 
+                    style="width: 100%; margin-top: 4px; background: #10b981; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-weight: 700; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 2px 4px rgba(16,185,129,0.25);">
+                ✓ Aceptar e Ingresar
+            </button>
+        </div>
+        {% endfor %}
     </div>
 </fieldset>
 {% endif %}
@@ -368,8 +429,8 @@
 <legend>🟢 Estado Operativo</legend>
 <div class="row">
     <div>
-        <label>Estado del Puesto</label>
-        <select name="estado_operativo">
+        <label>Estado del Puesto <span style="color:#ef4444">*</span></label>
+        <select name="estado_operativo" required>
             <option value="">— Seleccione —</option>
             <option value="Operativo" {% if record and record.estado_operativo == 'Operativo' %}selected{% endif %}>🟢 Operativo</option>
             <option value="Operativo con novedades" {% if record and record.estado_operativo == 'Operativo con novedades' %}selected{% endif %}>🟡 Operativo con novedades</option>
@@ -1016,77 +1077,439 @@ function abrirModalIncumplimiento(field, nombre, cantReq, aplicaVenc) {
     });
 }
 
+function updatePendingTrasladosVisibility(selectedPasb) {
+    const panel = document.getElementById('panel-traslados-pasb');
+    if (!panel) return;
+
+    if (!selectedPasb) {
+        panel.style.display = 'none';
+        return;
+    }
+
+    const normSel = selectedPasb.trim().toUpperCase();
+    let visibleCount = 0;
+
+    // Filter table rows
+    const tableRows = panel.querySelectorAll('.traslado-table-row');
+    tableRows.forEach(row => {
+        const dest = (row.getAttribute('data-destino') || '').trim().toUpperCase();
+        if (dest === normSel || dest === 'PASB' || dest.includes(normSel) || normSel.includes(dest)) {
+            row.style.display = '';
+            visibleCount++;
+        } else {
+            row.style.display = 'none';
+        }
+    });
+
+    // Filter mobile cards
+    const mobileCards = panel.querySelectorAll('.traslado-card-item');
+    mobileCards.forEach(card => {
+        const dest = (card.getAttribute('data-destino') || '').trim().toUpperCase();
+        if (dest === normSel || dest === 'PASB' || dest.includes(normSel) || normSel.includes(dest)) {
+            card.style.display = '';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+
+    const countSpan = document.getElementById('count-traslados');
+    if (countSpan) countSpan.textContent = visibleCount;
+
+    const pasbLabel = document.getElementById('traslados-pasb-label');
+    if (pasbLabel) pasbLabel.textContent = ` (${selectedPasb})`;
+
+    if (visibleCount > 0) {
+        panel.style.display = 'block';
+    } else {
+        panel.style.display = 'none';
+    }
+}
+
+function removerTrasladoUI(trId) {
+    const trRow = document.getElementById('row-traslado-' + trId);
+    const trCard = document.getElementById('card-traslado-' + trId);
+    if (trRow) {
+        trRow.style.transition = 'all 0.3s';
+        trRow.style.opacity = '0';
+        setTimeout(() => trRow.remove(), 300);
+    }
+    if (trCard) {
+        trCard.style.transition = 'all 0.3s';
+        trCard.style.opacity = '0';
+        setTimeout(() => trCard.remove(), 300);
+    }
+    setTimeout(() => {
+        const selPasb = document.querySelector('select[name="pasb_numero"]');
+        updatePendingTrasladosVisibility(selPasb ? selPasb.value : '');
+    }, 350);
+}
+
 function aceptarTraslado(trId, nombre, cant, fechaVenc) {
+    const incomingCant = parseInt(cant, 10) || 1;
+    const incomingFecha = (fechaVenc || '').trim();
+
+    // Match with item in checklist
+    const normName = nombre.trim().toLowerCase();
+    let matchedRow = null;
+    document.querySelectorAll('.item-row-tr').forEach(row => {
+        const rowName = (row.getAttribute('data-nombre') || '').trim().toLowerCase();
+        if (!matchedRow && (rowName === normName || rowName.includes(normName) || normName.includes(rowName))) {
+            matchedRow = row;
+        }
+    });
+
+    if (!matchedRow) {
+        // Fallback if item is not found in checklist items
+        Swal.fire({
+            title: '¿Aceptar Ingreso al Check List?',
+            html: `¿Desea ingresar <strong>${nombre}</strong> (${incomingCant} unidades${incomingFecha ? ' - Vence: ' + incomingFecha : ''}) a este PASB?`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, Aceptar',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#10b981'
+        }).then(res => {
+            if (!res.isConfirmed) return;
+            fetch(`/checklist/pasb/aceptar_traslado/${trId}`, { method: 'POST' })
+            .then(r => r.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    removerTrasladoUI(trId);
+                    Swal.fire({ icon: 'success', title: '¡Ingreso Exitoso!', text: data.message, timer: 2500, showConfirmButton: false });
+                } else {
+                    Swal.fire('Error', data.message || 'No se pudo aceptar el traslado', 'error');
+                }
+            }).catch(() => Swal.fire('Error', 'Error al procesar el traslado.', 'error'));
+        });
+        return;
+    }
+
+    const field = matchedRow.getAttribute('data-field');
+    const cantReq = parseInt(matchedRow.getAttribute('data-cantidad'), 10) || 1;
+    const aplicaVenc = matchedRow.getAttribute('data-aplica-venc') === '1';
+
+    const vencRaw = document.getElementById('vencimiento_' + field)?.value || '';
+    const cantActualVal = parseInt(document.getElementById('cant_actual_' + field)?.value, 10);
+    const tipoInc = document.getElementById('tipo_incumplimiento_' + field)?.value || '';
+    const radioSi = document.getElementById('pasb_' + field + '_si');
+    const radioNo = document.getElementById('pasb_' + field + '_no');
+
+    // Parse current lots
+    let currentEntries = [];
+    if (aplicaVenc) {
+        currentEntries = parseVencEntries(vencRaw, isNaN(cantActualVal) ? cantReq : cantActualVal);
+    }
+
+    // Determine if there is active prior stock
+    const isIncumpleTotal = (radioNo && radioNo.checked && tipoInc === 'total');
+    const hasPreviousStock = !isIncumpleTotal && (
+        (currentEntries.length > 0) ||
+        (radioSi && radioSi.checked) ||
+        (radioNo && radioNo.checked && tipoInc === 'parcial') ||
+        (!isNaN(cantActualVal) && cantActualVal > 0)
+    );
+
+    // Scenario A: NO prior stock -> Accept directly without alert
+    if (!hasPreviousStock || currentEntries.length === 0) {
+        ejecutarIngresoSinAlerta(trId, nombre, incomingCant, incomingFecha, field, cantReq, aplicaVenc);
+        return;
+    }
+
+    // Scenario B: Has prior stock and lots -> Show interactive modal to indicate which lots exit
+    ejecutarIngresoConLotes(trId, nombre, incomingCant, incomingFecha, field, cantReq, aplicaVenc, currentEntries);
+}
+
+function ejecutarIngresoSinAlerta(trId, nombre, incomingCant, incomingFecha, field, cantReq, aplicaVenc) {
+    fetch(`/checklist/pasb/aceptar_traslado/${trId}`, { method: 'POST' })
+    .then(r => r.json())
+    .then(data => {
+        if (data.status === 'success') {
+            removerTrasladoUI(trId);
+
+            if (aplicaVenc) {
+                const newEntries = [{ cant: incomingCant, fecha: incomingFecha }];
+                setFieldVencimiento(field, JSON.stringify(newEntries));
+            }
+
+            const radioSi = document.getElementById('pasb_' + field + '_si');
+            const radioNo = document.getElementById('pasb_' + field + '_no');
+            const cantInput = document.getElementById('cant_actual_' + field);
+            const tipoIncInput = document.getElementById('tipo_incumplimiento_' + field);
+            const obsRow = document.getElementById('obs_row_' + field);
+            const obsInput = document.getElementById('obs_' + field);
+
+            if (cantInput) cantInput.value = incomingCant;
+
+            if (incomingCant >= cantReq) {
+                if (radioSi) radioSi.checked = true;
+                if (tipoIncInput) tipoIncInput.value = '';
+                if (obsRow) obsRow.style.display = 'none';
+                if (obsInput) { obsInput.required = false; obsInput.value = ''; }
+            } else {
+                if (radioNo) radioNo.checked = true;
+                if (tipoIncInput) tipoIncInput.value = 'parcial';
+                if (obsRow) obsRow.style.display = '';
+                if (obsInput) { 
+                    obsInput.required = true; 
+                    obsInput.value = `Incumple parcial: ${incomingCant} de ${cantReq} requeridas tras reposición.`; 
+                }
+            }
+
+            updateBadgeInfo(field);
+            if (typeof triggerAutosavePasb === 'function') triggerAutosavePasb();
+
+            Swal.fire({
+                icon: 'success',
+                title: '¡Reposición Ingresada!',
+                text: `${incomingCant} unid(s) de ${nombre} agregada(s) al checklist sin stock previo.`,
+                timer: 2800,
+                showConfirmButton: false
+            });
+        } else {
+            Swal.fire('Error', data.message || 'No se pudo ingresar el traslado.', 'error');
+        }
+    })
+    .catch(() => {
+        Swal.fire('Error', 'Ocurrió un error al procesar el traslado.', 'error');
+    });
+}
+
+function ejecutarIngresoConLotes(trId, nombre, incomingCant, incomingFecha, field, cantReq, aplicaVenc, currentEntries) {
+    let lotsHtml = '';
+    let totalCurrentUnits = 0;
+
+    currentEntries.forEach((ent, idx) => {
+        totalCurrentUnits += ent.cant;
+        const alert = ent.fecha ? getAlertInfo(ent.fecha) : null;
+        lotsHtml += `
+            <div class="swal-lote-card" data-idx="${idx}" style="background:#ffffff; border:1.5px solid #e2e8f0; border-radius:8px; padding:10px 12px; margin-bottom:8px; text-align:left; box-shadow:0 1px 2px rgba(0,0,0,0.03);">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-wrap:wrap; gap:4px;">
+                    <span style="font-size:12px; font-weight:700; color:#1e293b;">
+                        📅 Lote: ${ent.fecha || 'Sin fecha'}
+                    </span>
+                    ${alert ? `<span style="background-color:${alert.bg}; color:${alert.color}; border:1px solid ${alert.border}; padding:2px 6px; border-radius:4px; font-weight:700; font-size:10px;">${alert.text}</span>` : ''}
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center; font-size:12px; color:#475569; margin-bottom:8px;">
+                    <span>Stock actual en checklist:</span>
+                    <strong style="color:#0f172a; font-size:13px;">${ent.cant} unid(s)</strong>
+                </div>
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <label style="font-size:11px; font-weight:700; color:#dc2626; flex:none;">Cantidad que SALE:</label>
+                    <input type="number" class="lote-sale-input" data-idx="${idx}" min="0" max="${ent.cant}" value="0" 
+                           style="flex:1; padding:6px; border:1.5px solid #fca5a5; border-radius:6px; font-weight:700; font-size:13px; text-align:center; color:#b91c1c; box-sizing:border-box;">
+                    <button type="button" class="btn-sale-todo" data-idx="${idx}" data-max="${ent.cant}" 
+                            style="background:#fee2e2; border:1px solid #fca5a5; color:#991b1b; padding:6px 10px; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer;">
+                        Sale todo
+                    </button>
+                </div>
+                <div style="font-size:11px; color:#64748b; margin-top:5px; text-align:right;">
+                    Quedarán de este lote: <strong class="lote-quedan-txt" data-idx="${idx}" style="color:#0f172a;">${ent.cant}</strong> unids
+                </div>
+            </div>
+        `;
+    });
+
     Swal.fire({
-        title: '¿Aceptar Ingreso al Check List?',
-        html: `¿Desea ingresar <strong>${nombre}</strong> (${cant} unidades${fechaVenc ? ' - Vence: ' + fechaVenc : ''}) a este PASB?`,
-        icon: 'question',
+        title: 'Reposición de Suministro',
+        customClass: { popup: 'swal-venc-modal' },
+        html: `
+            <div style="text-align: left; font-size: 13px; color: #334155; margin-bottom: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px;">
+                <strong style="color: #0f172a; font-size: 15px;">${nombre}</strong><br>
+                <span style="color: #64748b;">Requerido en PASB: <strong>${cantReq} unidad(es)</strong></span>
+            </div>
+
+            <div style="background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 8px; padding: 8px 12px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; text-align: left;">
+                <span style="color: #065f46; font-weight: 700; font-size: 12px;">📦 Reposición que ingresa:</span>
+                <span style="background: #10b981; color: white; font-weight: 700; padding: 3px 8px; border-radius: 5px; font-size: 11px;">
+                    +${incomingCant} unid(s) ${incomingFecha ? '· Vence: ' + incomingFecha : ''}
+                </span>
+            </div>
+
+            <p style="font-size: 12px; color: #475569; margin: 0 0 10px 0; text-align: left;">
+                Indique la cantidad de cada lote anterior que <strong>sale / se retira</strong> del checklist para incorporar la reposición:
+            </p>
+
+            <div style="max-height: 250px; overflow-y: auto; margin-bottom: 10px; padding: 2px;">
+                ${lotsHtml}
+            </div>
+
+            <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px 12px; font-size: 12px; text-align: left;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 4px; color: #475569;">
+                    <span>Total unidades que salen:</span>
+                    <strong id="modal-tot-salen" style="color: #dc2626;">0 unids</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 4px; color: #475569;">
+                    <span>Lotes anteriores que se conservan:</span>
+                    <strong id="modal-tot-conservan" style="color: #1e293b;">${totalCurrentUnits} unids</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 4px; color: #475569;">
+                    <span>Nueva reposición que ingresa:</span>
+                    <strong style="color: #10b981;">+${incomingCant} unids</strong>
+                </div>
+                <hr style="border: none; border-top: 1px dashed #cbd5e1; margin: 6px 0;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-weight: 700; color: #0f172a;">Stock Total resultante:</span>
+                    <strong id="modal-tot-resultante" style="font-size: 15px; color: #1d4ed8;">${totalCurrentUnits + incomingCant} unids</strong>
+                </div>
+                <div id="modal-estado-cumplimiento" style="margin-top: 6px; font-weight: 700; font-size: 11px;"></div>
+            </div>
+        `,
         showCancelButton: true,
-        confirmButtonText: 'Sí, Aceptar e Ingresar',
+        confirmButtonText: 'Aceptar e Incorporar',
         cancelButtonText: 'Cancelar',
-        confirmButtonColor: '#10b981'
+        confirmButtonColor: '#10b981',
+        didOpen: () => {
+            function updateLoteModalCalcs() {
+                let totalSalen = 0;
+                let totalConservan = 0;
+
+                currentEntries.forEach((ent, idx) => {
+                    const inp = document.querySelector(`.lote-sale-input[data-idx="${idx}"]`);
+                    let val = parseInt(inp ? inp.value : 0, 10);
+                    if (isNaN(val) || val < 0) val = 0;
+                    if (val > ent.cant) { val = ent.cant; if (inp) inp.value = val; }
+                    
+                    const quedan = ent.cant - val;
+                    const quedanTxt = document.querySelector(`.lote-quedan-txt[data-idx="${idx}"]`);
+                    if (quedanTxt) quedanTxt.textContent = quedan;
+
+                    totalSalen += val;
+                    totalConservan += quedan;
+                });
+
+                const totalResultante = totalConservan + incomingCant;
+
+                const spanSalen = document.getElementById('modal-tot-salen');
+                const spanConservan = document.getElementById('modal-tot-conservan');
+                const spanResultante = document.getElementById('modal-tot-resultante');
+                const estadoDiv = document.getElementById('modal-estado-cumplimiento');
+
+                if (spanSalen) spanSalen.textContent = totalSalen + ' unids';
+                if (spanConservan) spanConservan.textContent = totalConservan + ' unids';
+                if (spanResultante) spanResultante.textContent = totalResultante + ' unids';
+
+                if (estadoDiv) {
+                    if (totalResultante >= cantReq) {
+                        estadoDiv.style.color = '#15803d';
+                        estadoDiv.innerHTML = `✓ Cumple requerimiento (${totalResultante} de ${cantReq} requeridas)`;
+                    } else if (totalResultante > 0) {
+                        estadoDiv.style.color = '#b45309';
+                        estadoDiv.innerHTML = `⚠️ Incumple parcial (${totalResultante} de ${cantReq} requeridas)`;
+                    } else {
+                        estadoDiv.style.color = '#b91c1c';
+                        estadoDiv.innerHTML = `❌ Incumple total (0 existencias)`;
+                    }
+                }
+            }
+
+            document.querySelectorAll('.lote-sale-input').forEach(inp => {
+                inp.addEventListener('input', updateLoteModalCalcs);
+            });
+
+            document.querySelectorAll('.btn-sale-todo').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const idx = this.getAttribute('data-idx');
+                    const max = parseInt(this.getAttribute('data-max'), 10) || 0;
+                    const inp = document.querySelector(`.lote-sale-input[data-idx="${idx}"]`);
+                    if (inp) {
+                        inp.value = (parseInt(inp.value, 10) === max) ? 0 : max;
+                        updateLoteModalCalcs();
+                    }
+                });
+            });
+
+            updateLoteModalCalcs();
+        },
+        preConfirm: () => {
+            const remainingEntries = [];
+            let totalConservan = 0;
+
+            for (let i = 0; i < currentEntries.length; i++) {
+                const inp = document.querySelector(`.lote-sale-input[data-idx="${i}"]`);
+                let salen = parseInt(inp ? inp.value : 0, 10);
+                if (isNaN(salen) || salen < 0) salen = 0;
+                if (salen > currentEntries[i].cant) salen = currentEntries[i].cant;
+
+                const quedan = currentEntries[i].cant - salen;
+                if (quedan > 0) {
+                    remainingEntries.push({ cant: quedan, fecha: currentEntries[i].fecha });
+                    totalConservan += quedan;
+                }
+            }
+
+            // Merge or append incoming lot
+            const matchingLot = remainingEntries.find(e => e.fecha === incomingFecha);
+            if (matchingLot && incomingFecha) {
+                matchingLot.cant += incomingCant;
+            } else {
+                remainingEntries.push({ cant: incomingCant, fecha: incomingFecha });
+            }
+
+            const totalFinal = totalConservan + incomingCant;
+            return { remainingEntries, totalFinal };
+        }
     }).then(res => {
-        if (!res.isConfirmed) return;
+        if (!res.isConfirmed || !res.value) return;
 
         fetch(`/checklist/pasb/aceptar_traslado/${trId}`, { method: 'POST' })
         .then(r => r.json())
         .then(data => {
             if (data.status === 'success') {
-                // Remove row with animation
-                const trRow = document.getElementById('row-traslado-' + trId);
-                if (trRow) {
-                    trRow.style.transition = 'all 0.3s';
-                    trRow.style.opacity = '0';
-                    setTimeout(() => {
-                        trRow.remove();
-                        const tbody = document.querySelector('#panel-traslados-pasb tbody');
-                        if (tbody && tbody.children.length === 0) {
-                            document.getElementById('panel-traslados-pasb').remove();
-                        } else {
-                            const countSpan = document.getElementById('count-traslados');
-                            if (countSpan && tbody) countSpan.textContent = tbody.children.length;
-                        }
-                    }, 300);
+                removerTrasladoUI(trId);
+
+                const finalEntries = res.value.remainingEntries;
+                const totalFinal = res.value.totalFinal;
+
+                setFieldVencimiento(field, JSON.stringify(finalEntries));
+
+                const radioSi = document.getElementById('pasb_' + field + '_si');
+                const radioNo = document.getElementById('pasb_' + field + '_no');
+                const cantInput = document.getElementById('cant_actual_' + field);
+                const tipoIncInput = document.getElementById('tipo_incumplimiento_' + field);
+                const obsRow = document.getElementById('obs_row_' + field);
+                const obsInput = document.getElementById('obs_' + field);
+
+                if (cantInput) cantInput.value = totalFinal;
+
+                if (totalFinal >= cantReq) {
+                    if (radioSi) radioSi.checked = true;
+                    if (tipoIncInput) tipoIncInput.value = '';
+                    if (obsRow) obsRow.style.display = 'none';
+                    if (obsInput) { obsInput.required = false; obsInput.value = ''; }
+                } else if (totalFinal > 0) {
+                    if (radioNo) radioNo.checked = true;
+                    if (tipoIncInput) tipoIncInput.value = 'parcial';
+                    if (obsRow) obsRow.style.display = '';
+                    if (obsInput) { 
+                        obsInput.required = true; 
+                        obsInput.value = `Incumple parcial: ${totalFinal} de ${cantReq} requeridas tras reposición.`; 
+                    }
+                } else {
+                    if (radioNo) radioNo.checked = true;
+                    if (tipoIncInput) tipoIncInput.value = 'total';
+                    if (obsRow) obsRow.style.display = '';
+                    if (obsInput) { 
+                        obsInput.required = true; 
+                        obsInput.value = `Incumple total: Sin existencias tras salida de lotes.`; 
+                    }
                 }
 
-                // Match with item in checklist
-                const normName = nombre.trim().toLowerCase();
-                let matchedField = null;
-                document.querySelectorAll('.item-row-tr').forEach(row => {
-                    const rowName = (row.getAttribute('data-nombre') || '').trim().toLowerCase();
-                    if (rowName === normName || rowName.includes(normName) || normName.includes(rowName)) {
-                        matchedField = row.getAttribute('data-field');
-                        const radioSi = document.getElementById('pasb_' + matchedField + '_si');
-                        if (radioSi) radioSi.checked = true;
-
-                        if (fechaVenc) {
-                            const entries = [{ cant: parseInt(cant, 10) || 1, fecha: fechaVenc }];
-                            setFieldVencimiento(matchedField, JSON.stringify(entries));
-                        }
-
-                        // Clear NC
-                        document.getElementById('tipo_incumplimiento_' + matchedField).value = '';
-                        const obsRow = document.getElementById('obs_row_' + matchedField);
-                        const obsInput = document.getElementById('obs_' + matchedField);
-                        if (obsRow) obsRow.style.display = 'none';
-                        if (obsInput) { obsInput.required = false; obsInput.value = ''; }
-                        updateBadgeInfo(matchedField);
-                    }
-                });
+                updateBadgeInfo(field);
+                if (typeof triggerAutosavePasb === 'function') triggerAutosavePasb();
 
                 Swal.fire({
                     icon: 'success',
-                    title: '¡Ingreso Exitoso!',
-                    text: data.message + (matchedField ? ' Se ha marcado automáticamente como CUMPLE (SÍ).' : ''),
-                    timer: 3000,
+                    title: '¡Reposición Actualizada!',
+                    text: `Se actualizaron los lotes de ${nombre}. Stock actual: ${totalFinal} unidad(es).`,
+                    timer: 2800,
                     showConfirmButton: false
                 });
             } else {
-                Swal.fire('Error', data.message || 'No se pudo aceptar el traslado', 'error');
+                Swal.fire('Error', data.message || 'No se pudo procesar la reposición.', 'error');
             }
         })
         .catch(() => {
-            Swal.fire('Error', 'Ocurrió un error al procesar el traslado.', 'error');
+            Swal.fire('Error', 'Ocurrió un error al procesar la reposición.', 'error');
         });
     });
 }
@@ -1109,34 +1532,237 @@ document.addEventListener('DOMContentLoaded', function() {
         updateBadgeInfo(field);
     });
 
-    // Auto-update when changing PASB number on new records
+    // Auto-update & Restore when changing PASB number on new records
     const selPasb = document.querySelector('select[name="pasb_numero"]');
     if (selPasb) {
+        // Initial visibility filter based on current/restored PASB selection
+        updatePendingTrasladosVisibility(selPasb.value);
+
         selPasb.addEventListener('change', function() {
             const num = this.value;
+            // Always update pending transfers panel when selection changes
+            updatePendingTrasladosVisibility(num);
+
             const hasExistingId = document.querySelector('input[type="hidden"][name="id"]');
             if (hasExistingId) return;
-            if (!num) return;
 
+            // Siempre consultar el último checklist almacenado más reciente en base de datos para este PASB
+            resetFormItems();
             fetch(`/api/checklist/ultimo_datos?tipo=pasb&pasb_numero=${encodeURIComponent(num)}`)
             .then(r => r.json())
             .then(res => {
-                if (res.status === 'success' && res.datos) {
+                if (res.status === 'success' && res.datos && Object.keys(res.datos).length > 0) {
                     applyUltimoDatos(res.datos);
+                    const banner = document.getElementById('banner-precargado-pasb');
+                    const nomSpan = document.getElementById('banner-pasb-nom');
+                    if (banner) banner.style.display = 'flex';
+                    if (nomSpan) nomSpan.textContent = num;
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        icon: 'success',
+                        title: `📅 Fechas de vencimiento previas cargadas de ${num}`,
+                        showConfirmButton: false,
+                        timer: 3000
+                    });
+                } else {
+                    const banner = document.getElementById('banner-precargado-pasb');
+                    if (banner) banner.style.display = 'none';
                     Swal.fire({
                         toast: true,
                         position: 'top-end',
                         icon: 'info',
-                        title: `Datos y vencimientos cargados de ${num}`,
+                        title: `📋 Checklist iniciado para ${num}`,
                         showConfirmButton: false,
-                        timer: 2500
+                        timer: 2000
                     });
                 }
             })
             .catch(() => {});
         });
+
+        // Limpiar borrador local al enviar formulario
+        const formEl = document.querySelector('.pwa-offline-form') || document.querySelector('form');
+        if (formEl) {
+            formEl.addEventListener('submit', function() {
+                const sel = document.querySelector('select[name="pasb_numero"]');
+                if (sel && sel.value) {
+                    try {
+                        localStorage.removeItem('autosave_pasb_' + sel.value);
+                        localStorage.removeItem('autosave_pasb_last_selected');
+                    } catch(e) {}
+                }
+            });
+        }
+    }
+
+    // Attach autosave listeners to form
+    const mainForm = document.querySelector('.pwa-offline-form') || document.querySelector('form');
+    if (mainForm) {
+        mainForm.addEventListener('input', triggerAutosavePasb);
+        mainForm.addEventListener('change', triggerAutosavePasb);
+        mainForm.addEventListener('submit', function() {
+            const curPasb = document.querySelector('select[name="pasb_numero"]')?.value;
+            if (curPasb) {
+                localStorage.removeItem('autosave_pasb_' + curPasb);
+            }
+            localStorage.removeItem('autosave_pasb_last_selected');
+        });
+    }
+
+    // Restore last selected PASB if empty on page load
+    const hasExistingId = document.querySelector('input[type="hidden"][name="id"]');
+    if (!hasExistingId && selPasb && !selPasb.value) {
+        const lastSelected = localStorage.getItem('autosave_pasb_last_selected');
+        if (lastSelected) {
+            const opt = Array.from(selPasb.options).find(o => o.value === lastSelected);
+            if (opt) {
+                selPasb.value = lastSelected;
+                selPasb.dispatchEvent(new Event('change'));
+            }
+        }
     }
 });
+
+function resetFormItems() {
+    document.querySelectorAll('.item-row-tr').forEach(row => {
+        const field = row.getAttribute('data-field');
+        const vencInput = document.getElementById('vencimiento_' + field);
+        if (vencInput) vencInput.value = '';
+        const cantInput = document.getElementById('cant_actual_' + field);
+        if (cantInput) cantInput.value = '';
+        const tipoIncInput = document.getElementById('tipo_incumplimiento_' + field);
+        if (tipoIncInput) tipoIncInput.value = '';
+        const obsInput = document.getElementById('obs_' + field);
+        if (obsInput) {
+            obsInput.value = '';
+            obsInput.required = false;
+        }
+        const obsRow = document.getElementById('obs_row_' + field);
+        if (obsRow) obsRow.style.display = 'none';
+
+        ['si', 'no', 'na'].forEach(val => {
+            const radio = document.getElementById(`pasb_${field}_${val}`);
+            if (radio) radio.checked = false;
+        });
+
+        updateBadgeInfo(field);
+    });
+
+    const banner = document.getElementById('banner-precargado-pasb');
+    if (banner) banner.style.display = 'none';
+}
+
+let autosaveTimeout = null;
+function triggerAutosavePasb() {
+    if (autosaveTimeout) clearTimeout(autosaveTimeout);
+    autosaveTimeout = setTimeout(saveAutosavePasb, 400);
+}
+
+function saveAutosavePasb() {
+    const selPasb = document.querySelector('select[name="pasb_numero"]');
+    const num = selPasb ? selPasb.value : '';
+    const hasExistingId = document.querySelector('input[type="hidden"][name="id"]');
+    if (hasExistingId) return; // Do not use local draft when editing a DB record
+    if (!num) return;
+
+    const storageKey = 'autosave_pasb_' + num;
+    const form = document.querySelector('.pwa-offline-form') || document.querySelector('form');
+    if (!form) return;
+
+    const data = {
+        fecha: form.querySelector('input[name="fecha"]')?.value || '',
+        hora: form.querySelector('input[name="hora"]')?.value || '',
+        ubicacion: form.querySelector('input[name="ubicacion"]')?.value || '',
+        pasb_numero: num,
+        estado_operativo: form.querySelector('select[name="estado_operativo"]')?.value || '',
+        observaciones: form.querySelector('textarea[name="observaciones"]')?.value || '',
+        items: {}
+    };
+
+    document.querySelectorAll('.item-row-tr').forEach(row => {
+        const field = row.getAttribute('data-field');
+        let radioVal = '';
+        const rSi = document.getElementById(`pasb_${field}_si`);
+        const rNo = document.getElementById(`pasb_${field}_no`);
+        const rNa = document.getElementById(`pasb_${field}_na`);
+        if (rSi && rSi.checked) radioVal = 'SI';
+        else if (rNo && rNo.checked) radioVal = 'NO';
+        else if (rNa && rNa.checked) radioVal = 'NA';
+
+        data.items[field] = {
+            valor: radioVal,
+            fecha_vencimiento: document.getElementById('vencimiento_' + field)?.value || '',
+            cant_actual: document.getElementById('cant_actual_' + field)?.value || '',
+            tipo_incumplimiento: document.getElementById('tipo_incumplimiento_' + field)?.value || '',
+            observacion: document.getElementById('obs_' + field)?.value || ''
+        };
+    });
+
+    // Integrantes
+    const integrantes = [];
+    document.querySelectorAll('#tbody-integrantes-tam .integrante-row').forEach(tr => {
+        const cargo = tr.querySelector('.integrante-cargo')?.value || '';
+        const nom = tr.querySelector('.integrante-nombre')?.value || '';
+        const doc = tr.querySelector('.integrante-doc')?.value || '';
+        if (cargo || nom || doc) {
+            integrantes.push({ perfil: cargo, nombre: nom, identificacion: doc });
+        }
+    });
+    data._integrantes = integrantes;
+
+    try {
+        localStorage.setItem(storageKey, JSON.stringify(data));
+        localStorage.setItem('autosave_pasb_last_selected', num);
+    } catch (e) {
+        console.warn('Error guardando autosave PASB:', e);
+    }
+}
+
+function restoreFormDataPasb(data) {
+    if (!data) return;
+    const form = document.querySelector('.pwa-offline-form') || document.querySelector('form');
+    if (!form) return;
+
+    if (data.fecha) {
+        const fInput = form.querySelector('input[name="fecha"]');
+        if (fInput) fInput.value = data.fecha;
+    }
+    if (data.hora) {
+        const hInput = form.querySelector('input[name="hora"]');
+        if (hInput) hInput.value = data.hora;
+    }
+    if (data.ubicacion) {
+        const uInput = form.querySelector('input[name="ubicacion"]');
+        if (uInput) uInput.value = data.ubicacion;
+    }
+    if (data.estado_operativo) {
+        const eSelect = form.querySelector('select[name="estado_operativo"]');
+        if (eSelect) eSelect.value = data.estado_operativo;
+    }
+    if (data.observaciones) {
+        const oText = form.querySelector('textarea[name="observaciones"]');
+        if (oText) oText.value = data.observaciones;
+    }
+
+    if (data.items) {
+        applyUltimoDatos(data.items);
+    }
+
+    // Integrantes
+    if (data._integrantes && Array.isArray(data._integrantes) && data._integrantes.length > 0) {
+        const tbody = document.getElementById('tbody-integrantes-tam');
+        if (tbody) {
+            tbody.innerHTML = '';
+            data._integrantes.forEach(m => {
+                const tr = document.createElement('tr');
+                tr.className = 'integrante-row';
+                tr.innerHTML = makeRowTam(m.nombre, m.identificacion, m.perfil);
+                tbody.appendChild(tr);
+            });
+        }
+    }
+}
 
 function applyUltimoDatos(datos) {
     if (!datos || typeof datos !== 'object') return;

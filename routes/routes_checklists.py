@@ -2,7 +2,7 @@ import json
 import os
 from datetime import datetime, date
 from flask import render_template, request, redirect, url_for, session, flash, jsonify
-from db import get_db
+from db import get_db, get_pas_opciones
 from utils import login_required, admin_required, calcular_edad, get_user_info, ahora, hoy
 # _load_config imported lazily inside functions to avoid circular import
 from itsdangerous import URLSafeSerializer, BadSignature
@@ -75,6 +75,29 @@ def register_routes(app):
 
             accion = data.get("accion", "finalizar")
             finalizado = 0 if accion == "borrador" else 1
+
+            # Validar variables obligatorias de Datos del Puesto para PASB y PASM al finalizar
+            if finalizado == 1 and tipo in ("pasb", "pasm"):
+                fecha_val = data.get("fecha", "").strip()
+                hora_val = data.get("hora", "").strip()
+                ubicacion_val = data.get("ubicacion", "").strip()
+                pas_val = data.get("pasb_numero" if tipo == "pasb" else "pasm_numero", "").strip()
+                estado_val = data.get("estado_operativo", "").strip()
+                faltantes = []
+                if not fecha_val:
+                    faltantes.append("Fecha")
+                if not hora_val:
+                    faltantes.append("Hora")
+                if not ubicacion_val:
+                    faltantes.append("Ubicación / Lugar")
+                if not pas_val:
+                    faltantes.append("Número del PASB" if tipo == "pasb" else "Número del PASM")
+                if not estado_val:
+                    faltantes.append("Estado del Puesto")
+                if faltantes:
+                    conn.close()
+                    flash(f"Los siguientes campos son obligatorios para finalizar: {', '.join(faltantes)}.", "error")
+                    return redirect(request.referrer or url_for("form_checklist", tipo=tipo))
 
             # Dynamic: collect all checklist_item responses into JSON
             pasb_numero = data.get("pasb_numero", "")
@@ -258,28 +281,58 @@ def register_routes(app):
             # Nuevo checklist: cargar las fechas de vencimiento del último checklist realizado
             precargado_ultimo = False
             try:
-                last_row = conn.execute(
-                    f"SELECT datos_json FROM {cfg['table']} WHERE datos_json IS NOT NULL AND datos_json != '' ORDER BY id DESC LIMIT 1"
-                ).fetchone()
-                if last_row and last_row["datos_json"]:
-                    ultimo_datos = json.loads(last_row["datos_json"])
-                    for field, info in ultimo_datos.items():
-                        if field.startswith("_") or not isinstance(info, dict):
-                            continue
-                        datos[field] = {
-                            "valor": info.get("valor", ""),
-                            "fecha_vencimiento": info.get("fecha_vencimiento", ""),
-                            "observacion": info.get("observacion", ""),
-                            "cant_actual": info.get("cant_actual", ""),
-                            "tipo_incumplimiento": info.get("tipo_incumplimiento", "")
-                        }
-                    precargado_ultimo = True
+                if tipo in ("pasb", "pasm"):
+                    col_pas = "pasb_numero" if tipo == "pasb" else "pasm_numero"
+                    pas_num_param = request.args.get(col_pas)
+                    if pas_num_param:
+                        last_row = conn.execute(
+                            f"SELECT datos_json FROM {cfg['table']} WHERE {col_pas} = ? AND finalizado = 1 AND datos_json IS NOT NULL AND datos_json != '' ORDER BY id DESC LIMIT 1",
+                            (pas_num_param,)
+                        ).fetchone()
+                        if not last_row:
+                            last_row = conn.execute(
+                                f"SELECT datos_json FROM {cfg['table']} WHERE {col_pas} = ? AND datos_json IS NOT NULL AND datos_json != '' ORDER BY id DESC LIMIT 1",
+                                (pas_num_param,)
+                            ).fetchone()
+                        if last_row and last_row["datos_json"]:
+                            ultimo_datos = json.loads(last_row["datos_json"])
+                            for field, info in ultimo_datos.items():
+                                if field.startswith("_") or not isinstance(info, dict):
+                                    continue
+                                datos[field] = {
+                                    "valor": info.get("valor", ""),
+                                    "fecha_vencimiento": info.get("fecha_vencimiento", ""),
+                                    "observacion": info.get("observacion", ""),
+                                    "cant_actual": info.get("cant_actual", ""),
+                                    "tipo_incumplimiento": info.get("tipo_incumplimiento", "")
+                                }
+                            precargado_ultimo = True
+                    else:
+                        precargado_ultimo = False
+                        datos = {}
+                else:
+                    last_row = conn.execute(
+                        f"SELECT datos_json FROM {cfg['table']} WHERE datos_json IS NOT NULL AND datos_json != '' ORDER BY id DESC LIMIT 1"
+                    ).fetchone()
+                    if last_row and last_row["datos_json"]:
+                        ultimo_datos = json.loads(last_row["datos_json"])
+                        for field, info in ultimo_datos.items():
+                            if field.startswith("_") or not isinstance(info, dict):
+                                continue
+                            datos[field] = {
+                                "valor": info.get("valor", ""),
+                                "fecha_vencimiento": info.get("fecha_vencimiento", ""),
+                                "observacion": info.get("observacion", ""),
+                                "cant_actual": info.get("cant_actual", ""),
+                                "tipo_incumplimiento": info.get("tipo_incumplimiento", "")
+                            }
+                        precargado_ultimo = True
             except Exception:
                 pass
 
-        # Load pending transfers from inventory for PASB
+        # Load pending transfers from inventory for PASB and PASM
         traslados_pendientes = []
-        if tipo == "pasb":
+        if tipo in ("pasb", "pasm"):
             try:
                 rows_traslados = conn.execute(
                     "SELECT * FROM checklist_pasb_traslados WHERE estado = 'pendiente' ORDER BY fecha_salida DESC"
@@ -291,6 +344,9 @@ def register_routes(app):
                     traslados_pendientes.append(d_tr)
             except Exception:
                 traslados_pendientes = []
+
+        pasb_opciones = get_pas_opciones(conn, "pasb")
+        pasm_opciones = get_pas_opciones(conn, "pasm")
 
         conn.close()
         for item in items_db:
@@ -309,8 +365,8 @@ def register_routes(app):
             hora_actual=ahora().strftime("%H:%M"),
             checklist_items=checklist_items_by_cat,
             vehiculos=vehiculos,
-            pasb_opciones=PASB_OPCIONES,
-            pasm_opciones=PASM_OPCIONES,
+            pasb_opciones=pasb_opciones,
+            pasm_opciones=pasm_opciones,
             medicos=medicos,
             enfermeros=enfermeros,
             aphs=aphs,
@@ -323,8 +379,9 @@ def register_routes(app):
 
 
     @app.route("/checklist/pasb/aceptar_traslado/<int:traslado_id>", methods=["POST"])
+    @app.route("/checklist/pasm/aceptar_traslado/<int:traslado_id>", methods=["POST"])
     @login_required
-    def aceptar_traslado_pasb(traslado_id):
+    def aceptar_traslado_pas(traslado_id):
         conn = get_db()
         traslado = conn.execute("SELECT * FROM checklist_pasb_traslados WHERE id = ?", (traslado_id,)).fetchone()
         if not traslado:
@@ -358,18 +415,46 @@ def register_routes(app):
             return jsonify({"status": "error", "message": "Tipo no válido"}), 400
             
         pasb_numero = request.args.get("pasb_numero")
+        pasm_numero = request.args.get("pasm_numero")
         conn = get_db()
         try:
             row = None
-            if tipo == "pasb" and pasb_numero:
+            if tipo == "pasb":
+                if pasb_numero:
+                    row = conn.execute(
+                        f"SELECT datos_json FROM {cfg['table']} WHERE pasb_numero = ? AND finalizado = 1 AND datos_json IS NOT NULL AND datos_json != '' ORDER BY id DESC LIMIT 1",
+                        (pasb_numero,)
+                    ).fetchone()
+                    if not row:
+                        row = conn.execute(
+                            f"SELECT datos_json FROM {cfg['table']} WHERE pasb_numero = ? AND datos_json IS NOT NULL AND datos_json != '' ORDER BY id DESC LIMIT 1",
+                            (pasb_numero,)
+                        ).fetchone()
+                else:
+                    conn.close()
+                    return jsonify({"status": "not_found", "datos": {}})
+            elif tipo == "pasm":
+                if pasm_numero:
+                    row = conn.execute(
+                        f"SELECT datos_json FROM {cfg['table']} WHERE pasm_numero = ? AND finalizado = 1 AND datos_json IS NOT NULL AND datos_json != '' ORDER BY id DESC LIMIT 1",
+                        (pasm_numero,)
+                    ).fetchone()
+                    if not row:
+                        row = conn.execute(
+                            f"SELECT datos_json FROM {cfg['table']} WHERE pasm_numero = ? AND datos_json IS NOT NULL AND datos_json != '' ORDER BY id DESC LIMIT 1",
+                            (pasm_numero,)
+                        ).fetchone()
+                else:
+                    conn.close()
+                    return jsonify({"status": "not_found", "datos": {}})
+            else:
                 row = conn.execute(
-                    f"SELECT datos_json FROM {cfg['table']} WHERE pasb_numero = ? AND datos_json IS NOT NULL AND datos_json != '' ORDER BY id DESC LIMIT 1",
-                    (pasb_numero,)
+                    f"SELECT datos_json FROM {cfg['table']} WHERE finalizado = 1 AND datos_json IS NOT NULL AND datos_json != '' ORDER BY id DESC LIMIT 1"
                 ).fetchone()
-            if not row:
-                row = conn.execute(
-                    f"SELECT datos_json FROM {cfg['table']} WHERE datos_json IS NOT NULL AND datos_json != '' ORDER BY id DESC LIMIT 1"
-                ).fetchone()
+                if not row:
+                    row = conn.execute(
+                        f"SELECT datos_json FROM {cfg['table']} WHERE datos_json IS NOT NULL AND datos_json != '' ORDER BY id DESC LIMIT 1"
+                    ).fetchone()
             
             if row and row.get("datos_json"):
                 datos_obj = json.loads(row["datos_json"])
@@ -397,7 +482,13 @@ def register_routes(app):
         is_admin = session.get("usuario", {}).get("rol") == "admin"
         user_ident = session.get("usuario", {}).get("identificacion")
 
-        if not is_admin:
+        if tipo in ("pasb", "pasm"):
+            # Para PASB y PASM cada usuario solo visualiza los que él mismo almacenó
+            items = conn.execute(
+                f"SELECT * FROM {cfg['table']} WHERE fecha_registro LIKE ? AND registrado_por_identificacion = ? ORDER BY id DESC",
+                (fecha_like, user_ident)
+            ).fetchall()
+        elif not is_admin:
             items = conn.execute(
                 f"SELECT * FROM {cfg['table']} WHERE fecha_registro LIKE ? AND registrado_por_identificacion = ? ORDER BY id DESC",
                 (fecha_like, user_ident)

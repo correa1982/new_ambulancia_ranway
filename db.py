@@ -607,6 +607,33 @@ def init_db():
             activo INTEGER DEFAULT 1
         )
     """)
+
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS checklist_pas_opciones (
+            id INTEGER PRIMARY KEY AUTO_INCREMENT,
+            tipo VARCHAR(20) NOT NULL,
+            nombre VARCHAR(100) NOT NULL,
+            activo INTEGER DEFAULT 1
+        )
+    """)
+
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS reporte_gasto (
+            id INTEGER PRIMARY KEY AUTO_INCREMENT,
+            fecha DATE NOT NULL,
+            nombre_evento VARCHAR(255) NOT NULL,
+            tipo_origen VARCHAR(50) NOT NULL,
+            identificador_origen VARCHAR(100) NOT NULL,
+            observaciones TEXT,
+            datos_json MEDIUMTEXT NOT NULL,
+            registrado_por VARCHAR(255) NOT NULL,
+            registrado_por_identificacion VARCHAR(100) NOT NULL,
+            perfil_registrador VARCHAR(100),
+            firma_registrador MEDIUMTEXT,
+            fecha_registro DATETIME NOT NULL,
+            finalizado INTEGER DEFAULT 1
+        )
+    """)
     
     conn.execute("""
         CREATE TABLE IF NOT EXISTS vehiculos (
@@ -1378,7 +1405,7 @@ def init_db():
                 pass
 
     # ── Checklist tables: add finalizado column if missing ──────────────────────
-    for _cl_table in ("checklist_tam", "checklist_tab", "checklist_pasb", "checklist_pasm", "checklist_equipos", "checklist_avanzada"):
+    for _cl_table in ("checklist_tam", "checklist_tab", "checklist_pasb", "checklist_pasm", "checklist_equipos", "checklist_avanzada", "reporte_gasto"):
         try:
             cursor = conn.execute(f"SHOW COLUMNS FROM {_cl_table}")
             _cl_cols = [row["Field"] for row in cursor.fetchall()]
@@ -1749,5 +1776,48 @@ def init_db():
     except Exception:
         pass
 
+    # Seed checklist_pas_opciones if empty
+    try:
+        pasb_row = conn.execute("SELECT COUNT(*) AS c FROM checklist_pas_opciones WHERE tipo = 'pasb'").fetchone()
+        if pasb_row and pasb_row["c"] == 0:
+            for opt in ["PASB-1", "PASB-2", "PASB-3", "PASB-4"]:
+                conn.execute("INSERT INTO checklist_pas_opciones (tipo, nombre, activo) VALUES ('pasb', ?, 1)", (opt,))
+        pasm_row = conn.execute("SELECT COUNT(*) AS c FROM checklist_pas_opciones WHERE tipo = 'pasm'").fetchone()
+        if pasm_row and pasm_row["c"] == 0:
+            for opt in ["PASM-1", "PASM-2", "PASM-3", "PASM-4"]:
+                conn.execute("INSERT INTO checklist_pas_opciones (tipo, nombre, activo) VALUES ('pasm', ?, 1)", (opt,))
+    except Exception as e:
+        print("Error seeding checklist_pas_opciones:", e)
+
     conn.commit()
     conn.close()
+
+def get_pas_opciones(conn=None, tipo="pasb"):
+    should_close = False
+    if conn is None:
+        conn = get_db()
+        should_close = True
+    try:
+        rows = conn.execute("SELECT nombre FROM checklist_pas_opciones WHERE tipo = ? AND activo = 1 ORDER BY id", (tipo,)).fetchall()
+        if rows:
+            res = [r["nombre"] for r in rows]
+            if should_close: conn.close()
+            return res
+    except Exception:
+        pass
+    if should_close: conn.close()
+    return ["PASB-1", "PASB-2", "PASB-3", "PASB-4"] if tipo == "pasb" else ["PASM-1", "PASM-2", "PASM-3", "PASM-4"]
+
+def get_all_pas_opciones(conn=None, tipo="pasb"):
+    should_close = False
+    if conn is None:
+        conn = get_db()
+        should_close = True
+    try:
+        rows = conn.execute("SELECT * FROM checklist_pas_opciones WHERE tipo = ? ORDER BY id", (tipo,)).fetchall()
+        res = [dict(r) for r in rows]
+        if should_close: conn.close()
+        return res
+    except Exception:
+        if should_close: conn.close()
+        return []
