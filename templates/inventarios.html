@@ -449,7 +449,7 @@
                     <span class="item-icon">⏳</span>
                     <div class="item-details" style="flex: 1;">
                         <span class="item-title">Próximos a Vencer</span>
-                        <span class="item-desc">Vencimiento en los próximos 30 días</span>
+                        <span class="item-desc">≤ 30 días (Bodega y Unidades)</span>
                     </div>
                     <span class="alert-item-badge badge-orange">{{ n_proximos }}</span>
                 </button>
@@ -457,7 +457,7 @@
                     <span class="item-icon">🚫</span>
                     <div class="item-details" style="flex: 1;">
                         <span class="item-title">Vencidos</span>
-                        <span class="item-desc">Artículos caducados con stock activo</span>
+                        <span class="item-desc">Caducados (Bodega y Unidades)</span>
                     </div>
                     <span class="alert-item-badge badge-danger">{{ n_vencidos }}</span>
                 </button>
@@ -743,6 +743,81 @@
 .alert-item-card .ac-meta  { font-size: 11px; color: #6b7280; display: flex; flex-wrap: wrap; gap: 8px; }
 .alert-item-card .ac-meta span { display: inline-flex; align-items: center; gap: 3px; }
 .alert-item-card .ac-meta strong { color: #374151; }
+/* ── Badges de Ubicación Operativa ── */
+.badge-location {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+.badge-bodega {
+    background: #e0f2fe;
+    color: #0369a1;
+    border: 1px solid #bae6fd;
+}
+.badge-pasb {
+    background: #fef3c7;
+    color: #92400e;
+    border: 1px solid #fde68a;
+}
+.badge-pasm {
+    background: #ffedd5;
+    color: #9a3412;
+    border: 1px solid #fed7aa;
+}
+.badge-avanzada {
+    background: #f3e8ff;
+    color: #6b21a8;
+    border: 1px solid #e9d5ff;
+}
+.badge-tam {
+    background: #ecfdf5;
+    color: #065f46;
+    border: 1px solid #a7f3d0;
+}
+.badge-tab {
+    background: #e0e7ff;
+    color: #3730a3;
+    border: 1px solid #c7d2fe;
+}
+
+/* ── Filtros por ubicación en modales ── */
+.modal-location-filters {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding: 4px 0 10px 0;
+    margin-bottom: 12px;
+    border-bottom: 1px solid #f1f5f9;
+    -webkit-overflow-scrolling: touch;
+}
+.loc-filter-btn {
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    color: #475569;
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 11.5px;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.18s;
+}
+.loc-filter-btn:hover {
+    background: #e2e8f0;
+    color: #1e293b;
+}
+.loc-filter-btn.active {
+    background: #1e3a5f;
+    color: white;
+    border-color: #1e3a5f;
+    box-shadow: 0 2px 5px rgba(30,58,95,0.25);
+}
+
 /* ── Modal footer ── */
 .alert-modal-foot {
     padding: 12px 20px;
@@ -815,13 +890,25 @@
    MODAL: PRÓXIMOS A VENCER
 ══════════════════════════════════════════════════════ #}
 <div id="modalProximosVencer" class="alert-modal-overlay">
-    <div class="alert-modal-box" style="max-width:640px;">
+    <div class="alert-modal-box" style="max-width:780px;">
         <div class="alert-modal-head" style="background:linear-gradient(135deg,#f97316,#ea580c);">
             <h2>⏳ Próximos a Vencer (≤ 30 días)</h2>
             <button class="alert-modal-close" onclick="closeAlertModal('modalProximosVencer')">×</button>
         </div>
         <div class="alert-modal-body">
             {% if proximos_vencer %}
+            <div class="modal-location-filters">
+                <button type="button" class="loc-filter-btn active" onclick="filterModalByLocation('modalProximosVencer', 'todos', this)">Todos ({{ proximos_vencer|length }})</button>
+                <button type="button" class="loc-filter-btn" onclick="filterModalByLocation('modalProximosVencer', 'bodega', this)">Bodega Central</button>
+                <button type="button" class="loc-filter-btn" onclick="filterModalByLocation('modalProximosVencer', 'pasb', this)">PASB</button>
+                <button type="button" class="loc-filter-btn" onclick="filterModalByLocation('modalProximosVencer', 'pasm', this)">PASM</button>
+                <button type="button" class="loc-filter-btn" onclick="filterModalByLocation('modalProximosVencer', 'avanzada', this)">Botiquines Avanzada</button>
+                <button type="button" class="loc-filter-btn" onclick="filterModalByLocation('modalProximosVencer', 'ambulancias', this)">Ambulancias</button>
+            </div>
+
+            <div class="filter-empty-msg" style="display:none; text-align:center; color:#64748b; padding:25px; font-size:13px;">
+                🔍 No hay artículos próximos a vencer para la ubicación seleccionada.
+            </div>
 
             {# Desktop: tabla #}
             <div class="alert-tbl-wrap">
@@ -829,6 +916,7 @@
                     <thead style="background:#fff7ed; color:#9a3412;">
                         <tr>
                             <th>Artículo</th>
+                            <th>Ubicación / Sitio</th>
                             <th>Lote</th>
                             <th style="text-align:center;">Vence</th>
                             <th style="text-align:center;">Días</th>
@@ -837,8 +925,14 @@
                     </thead>
                     <tbody>
                         {% for p in proximos_vencer %}
-                        <tr style="{% if p.dias <= 7 %}background:#fff7ed;{% endif %}">
+                        <tr class="alert-row-item" data-origen="{{ p.origen }}" style="{% if p.dias <= 7 %}background:#fff7ed;{% endif %}">
                             <td style="font-weight:600;">{{ p.nombre }}</td>
+                            <td>
+                                <span class="badge-location {{ p.ubicacion_badge_class }}">
+                                    {% if p.origen == 'bodega' %}🏢{% elif p.origen in ['pasb', 'pasm'] %}⛺{% elif p.origen == 'avanzada' %}🧰{% else %}🚑{% endif %}
+                                    {{ p.ubicacion_detalle }}
+                                </span>
+                            </td>
                             <td style="color:#6b7280; font-size:12px;">{{ p.lote or 'N/A' }}</td>
                             <td style="text-align:center;">{{ p.fecha_vencimiento }}</td>
                             <td style="text-align:center; font-weight:700; {% if p.dias <= 7 %}color:#dc2626;{% else %}color:#ea580c;{% endif %}">{{ p.dias }}d</td>
@@ -852,8 +946,14 @@
             {# Móvil: cards #}
             <div class="alert-cards">
                 {% for p in proximos_vencer %}
-                <div class="alert-item-card orange">
-                    <div class="ac-name">{{ p.nombre }}</div>
+                <div class="alert-item-card orange alert-card-item" data-origen="{{ p.origen }}">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:6px; margin-bottom:6px;">
+                        <div class="ac-name" style="margin-bottom:0;">{{ p.nombre }}</div>
+                        <span class="badge-location {{ p.ubicacion_badge_class }}">
+                            {% if p.origen == 'bodega' %}🏢{% elif p.origen in ['pasb', 'pasm'] %}⛺{% elif p.origen == 'avanzada' %}🧰{% else %}🚑{% endif %}
+                            {{ p.ubicacion_detalle }}
+                        </span>
+                    </div>
                     <div class="ac-meta">
                         <span>📅 Vence: <strong>{{ p.fecha_vencimiento }}</strong></span>
                         <span style="{% if p.dias <= 7 %}color:#dc2626;{% else %}color:#ea580c;{% endif %}; font-weight:700;">⏰ {{ p.dias }} día(s)</span>
@@ -878,15 +978,28 @@
    MODAL: VENCIDOS
 ══════════════════════════════════════════════════════ #}
 <div id="modalVencidos" class="alert-modal-overlay">
-    <div class="alert-modal-box" style="max-width:680px;">
+    <div class="alert-modal-box" style="max-width:800px;">
         <div class="alert-modal-head" style="background:linear-gradient(135deg,#ef4444,#dc2626);">
             <h2>🚫 Artículos Vencidos</h2>
             <button class="alert-modal-close" onclick="closeAlertModal('modalVencidos')">×</button>
         </div>
         <div class="alert-modal-body">
             {% if vencidos %}
+            <div class="modal-location-filters">
+                <button type="button" class="loc-filter-btn active" onclick="filterModalByLocation('modalVencidos', 'todos', this)">Todos ({{ vencidos|length }})</button>
+                <button type="button" class="loc-filter-btn" onclick="filterModalByLocation('modalVencidos', 'bodega', this)">Bodega Central</button>
+                <button type="button" class="loc-filter-btn" onclick="filterModalByLocation('modalVencidos', 'pasb', this)">PASB</button>
+                <button type="button" class="loc-filter-btn" onclick="filterModalByLocation('modalVencidos', 'pasm', this)">PASM</button>
+                <button type="button" class="loc-filter-btn" onclick="filterModalByLocation('modalVencidos', 'avanzada', this)">Botiquines Avanzada</button>
+                <button type="button" class="loc-filter-btn" onclick="filterModalByLocation('modalVencidos', 'ambulancias', this)">Ambulancias</button>
+            </div>
+
+            <div class="filter-empty-msg" style="display:none; text-align:center; color:#64748b; padding:25px; font-size:13px;">
+                🔍 No hay artículos vencidos para la ubicación seleccionada.
+            </div>
+
             <p style="font-size:13px; color:#6b7280; margin:0 0 14px;">
-                Estos artículos están vencidos y tienen stock. Presione <strong>Descartar</strong> para dar de baja el stock y registrar el egreso en el historial.
+                Puede descartar artículos vencidos tanto de <strong>Bodega Central</strong> como de <strong>Puestos y Ambulancias</strong>. Al descartar un insumo de una unidad, su fecha de vencimiento quedará vacía en el próximo checklist para ser verificada.
             </p>
 
             {# Desktop: tabla #}
@@ -895,25 +1008,44 @@
                     <thead style="background:#fef2f2; color:#991b1b;">
                         <tr>
                             <th>Artículo</th>
+                            <th>Ubicación / Sitio</th>
                             <th>Lote</th>
                             <th style="text-align:center;">Venció</th>
                             <th style="text-align:center;">Cant.</th>
-                            <th style="text-align:center;">Descarte</th>
+                            <th style="text-align:center;">Acción</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for v in vencidos %}
-                        <tr id="fila-vencido-{{ v.id }}">
+                        {% set row_id = v.id if (v.origen == 'bodega' and v.id) else 'unit-' ~ loop.index %}
+                        <tr id="fila-vencido-{{ row_id }}" class="alert-row-item" data-origen="{{ v.origen }}">
                             <td style="font-weight:600;">{{ v.nombre }}</td>
+                            <td>
+                                <span class="badge-location {{ v.ubicacion_badge_class }}">
+                                    {% if v.origen == 'bodega' %}🏢{% elif v.origen in ['pasb', 'pasm'] %}⛺{% elif v.origen == 'avanzada' %}🧰{% else %}🚑{% endif %}
+                                    {{ v.ubicacion_detalle }}
+                                </span>
+                            </td>
                             <td style="color:#6b7280; font-size:12px;">{{ v.lote or 'N/A' }}</td>
                             <td style="text-align:center; color:#dc2626; font-weight:600;">{{ v.fecha_vencimiento }}</td>
-                            <td style="text-align:center; font-weight:700;" id="cant-vencido-{{ v.id }}">{{ v.cantidad }}</td>
+                            <td style="text-align:center; font-weight:700;" id="cant-vencido-{{ row_id }}">{{ v.cantidad }}</td>
                             <td style="text-align:center;">
-                                <button onclick="descartarVencido({{ v.id }}, '{{ v.nombre|replace("'","\\'")|replace('"','\\"') }}')"
-                                        id="btn-descartar-{{ v.id }}"
-                                        style="background:#ef4444; color:white; border:none; border-radius:6px; padding:5px 12px; font-size:12px; font-weight:700; cursor:pointer;">
-                                    🗑️ Descartar
-                                </button>
+                                {% if v.origen == 'bodega' and v.id %}
+                                    <button type="button"
+                                            onclick="descartarItemVencido({ origen: 'bodega', itemId: {{ v.id }}, nombre: '{{ v.nombre|replace("'","\\'")|replace('"','\\"') }}', rowId: '{{ row_id }}' })"
+                                            class="btn-descarte-{{ row_id }}"
+                                            style="background:#ef4444; color:white; border:none; border-radius:6px; padding:5px 12px; font-size:12px; font-weight:700; cursor:pointer;">
+                                        🗑️ Descartar
+                                    </button>
+                                {% else %}
+                                    <button type="button"
+                                            onclick="descartarItemVencido({ origen: '{{ v.origen }}', checklistId: {{ v.checklist_id }}, fieldKey: '{{ v.field_key }}', nombre: '{{ v.nombre|replace("'","\\'")|replace('"','\\"') }}', fechaVencimiento: '{{ v.fecha_vencimiento }}', ubicacion: '{{ v.ubicacion_detalle|replace("'","\\'")|replace('"','\\"') }}', rowId: '{{ row_id }}' })"
+                                            class="btn-descarte-{{ row_id }}"
+                                            style="background:#dc2626; color:white; border:none; border-radius:6px; padding:5px 12px; font-size:12px; font-weight:700; cursor:pointer;"
+                                            title="Descartar de {{ v.ubicacion_detalle }}. Quedará vacío en el próximo checklist.">
+                                        🗑️ Descartar
+                                    </button>
+                                {% endif %}
                             </td>
                         </tr>
                         {% endfor %}
@@ -924,18 +1056,35 @@
             {# Móvil: cards #}
             <div class="alert-cards">
                 {% for v in vencidos %}
-                <div class="alert-item-card danger" id="card-vencido-{{ v.id }}">
-                    <div class="ac-name">{{ v.nombre }}</div>
+                {% set row_id = v.id if (v.origen == 'bodega' and v.id) else 'unit-' ~ loop.index %}
+                <div class="alert-item-card danger alert-card-item" id="card-vencido-{{ row_id }}" data-origen="{{ v.origen }}">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:6px; margin-bottom:6px;">
+                        <div class="ac-name" style="margin-bottom:0;">{{ v.nombre }}</div>
+                        <span class="badge-location {{ v.ubicacion_badge_class }}">
+                            {% if v.origen == 'bodega' %}🏢{% elif v.origen in ['pasb', 'pasm'] %}⛺{% elif v.origen == 'avanzada' %}🧰{% else %}🚑{% endif %}
+                            {{ v.ubicacion_detalle }}
+                        </span>
+                    </div>
                     <div class="ac-meta" style="margin-bottom:10px;">
                         <span>📅 Venció: <strong style="color:#dc2626;">{{ v.fecha_vencimiento }}</strong></span>
                         {% if v.lote %}<span>🏷️ Lote: <strong>{{ v.lote }}</strong></span>{% endif %}
-                        <span>📦 Cant: <strong id="cant-vencido-{{ v.id }}">{{ v.cantidad }}</strong></span>
+                        <span>📦 Cant: <strong id="cant-vencido-{{ row_id }}">{{ v.cantidad }}</strong></span>
                     </div>
-                    <button onclick="descartarVencido({{ v.id }}, '{{ v.nombre|replace("'","\\'")|replace('"','\\"') }}')"
-                            id="btn-descartar-{{ v.id }}"
+                    {% if v.origen == 'bodega' and v.id %}
+                    <button type="button"
+                            onclick="descartarItemVencido({ origen: 'bodega', itemId: {{ v.id }}, nombre: '{{ v.nombre|replace("'","\\'")|replace('"','\\"') }}', rowId: '{{ row_id }}' })"
+                            class="btn-descarte-{{ row_id }}"
                             style="width:100%; background:#ef4444; color:white; border:none; border-radius:8px; padding:9px; font-size:13px; font-weight:700; cursor:pointer;">
-                        🗑️ Descartar este artículo
+                        🗑️ Descartar de Bodega Central
                     </button>
+                    {% else %}
+                    <button type="button"
+                            onclick="descartarItemVencido({ origen: '{{ v.origen }}', checklistId: {{ v.checklist_id }}, fieldKey: '{{ v.field_key }}', nombre: '{{ v.nombre|replace("'","\\'")|replace('"','\\"') }}', fechaVencimiento: '{{ v.fecha_vencimiento }}', ubicacion: '{{ v.ubicacion_detalle|replace("'","\\'")|replace('"','\\"') }}', rowId: '{{ row_id }}' })"
+                            class="btn-descarte-{{ row_id }}"
+                            style="width:100%; background:#dc2626; color:white; border:none; border-radius:8px; padding:9px; font-size:13px; font-weight:700; cursor:pointer;">
+                        🗑️ Descartar de {{ v.ubicacion_detalle }}
+                    </button>
+                    {% endif %}
                 </div>
                 {% endfor %}
             </div>
@@ -1002,18 +1151,76 @@ function closeAlertModal(id) {
     }
 });
 
-/* ── Descarte de vencidos ── */
-function descartarVencido(itemId, nombre) {
-    if (!confirm('¿Confirmar descarte de "' + nombre + '"?\nSe registrará egreso por vencimiento y el stock quedará en 0.')) return;
+/* ── Filtro interactivo por ubicación en modales de alerta ── */
+function filterModalByLocation(modalId, locationType, btn) {
+    const modal = document.getElementById(modalId);
+    if (!modal) return;
+    
+    // Actualizar clase activa en botones
+    modal.querySelectorAll('.loc-filter-btn').forEach(function(b) {
+        b.classList.remove('active');
+    });
+    if (btn) btn.classList.add('active');
+    
+    const rows = modal.querySelectorAll('.alert-row-item');
+    const cards = modal.querySelectorAll('.alert-card-item');
+    
+    const matches = function(type) {
+        if (locationType === 'todos') return true;
+        if (locationType === 'ambulancias') return type === 'tam' || type === 'tab';
+        return type === locationType;
+    };
+    
+    let visibleCount = 0;
+    rows.forEach(function(r) {
+        const itemType = r.getAttribute('data-origen');
+        if (matches(itemType)) {
+            r.style.display = '';
+            visibleCount++;
+        } else {
+            r.style.display = 'none';
+        }
+    });
+    cards.forEach(function(c) {
+        const itemType = c.getAttribute('data-origen');
+        if (matches(itemType)) {
+            c.style.display = '';
+        } else {
+            c.style.display = 'none';
+        }
+    });
+    
+    const emptyMsg = modal.querySelector('.filter-empty-msg');
+    if (emptyMsg) {
+        emptyMsg.style.display = (visibleCount === 0 && (rows.length > 0 || cards.length > 0)) ? 'block' : 'none';
+    }
+}
 
-    // Deshabilitar AMBOS botones (tabla desktop + card móvil)
-    document.querySelectorAll('#btn-descartar-' + itemId).forEach(function(b) {
+/* ── Descarte de vencidos (Bodega Central y Unidades Operativas) ── */
+function descartarItemVencido(opts) {
+    const isBodega = opts.origen === 'bodega';
+    const confirmMsg = isBodega 
+        ? '¿Confirmar descarte de "' + opts.nombre + '" en Bodega Central?\nSe registrará egreso por vencimiento y el stock quedará en 0.'
+        : '¿Confirmar descarte de "' + opts.nombre + '" en ' + opts.ubicacion + '?\nEl artículo quedará con fecha vacía en el próximo checklist de esta unidad para que sea verificada e ingresada la nueva fecha.';
+
+    if (!confirm(confirmMsg)) return;
+
+    // Deshabilitar botones de la fila y la tarjeta móvil
+    document.querySelectorAll('.btn-descarte-' + opts.rowId).forEach(function(b) {
         b.disabled = true;
         b.textContent = 'Procesando...';
     });
 
-    var fd = new FormData();
-    fd.append('item_id', itemId);
+    const fd = new FormData();
+    fd.append('origen', opts.origen);
+    if (isBodega) {
+        fd.append('item_id', opts.itemId);
+    } else {
+        fd.append('checklist_id', opts.checklistId);
+        fd.append('field_key', opts.fieldKey);
+        fd.append('fecha_vencimiento', opts.fechaVencimiento || '');
+        fd.append('nombre', opts.nombre);
+    }
 
     fetch('{{ url_for("inventarios.inventarios_descarte") }}', {
         method: 'POST',
@@ -1023,23 +1230,23 @@ function descartarVencido(itemId, nombre) {
     .then(function(r) { return r.json(); })
     .then(function(data) {
         if (data.status === 'success') {
-            // Actualizar cantidad a 0 en todos los elementos con ese id
-            document.querySelectorAll('#cant-vencido-' + itemId).forEach(function(el) { el.textContent = '0'; });
-            // Tachar la fila desktop
-            var fila = document.getElementById('fila-vencido-' + itemId);
+            // Actualizar cantidad visual
+            document.querySelectorAll('#cant-vencido-' + opts.rowId).forEach(function(el) { el.textContent = '0'; });
+            // Tachar fila desktop
+            const fila = document.getElementById('fila-vencido-' + opts.rowId);
             if (fila) { fila.style.opacity = '0.4'; fila.style.textDecoration = 'line-through'; }
-            // Tachar la card móvil
-            var card = document.getElementById('card-vencido-' + itemId);
+            // Tachar card móvil
+            const card = document.getElementById('card-vencido-' + opts.rowId);
             if (card) { card.style.opacity = '0.4'; }
             // Actualizar botones
-            document.querySelectorAll('#btn-descartar-' + itemId).forEach(function(b) {
+            document.querySelectorAll('.btn-descarte-' + opts.rowId).forEach(function(b) {
                 b.textContent = '✅ Descartado';
                 b.style.background = '#10b981';
             });
-            setTimeout(function() { location.reload(); }, 2000);
+            setTimeout(function() { location.reload(); }, 1800);
         } else {
             alert('Error: ' + data.message);
-            document.querySelectorAll('#btn-descartar-' + itemId).forEach(function(b) {
+            document.querySelectorAll('.btn-descarte-' + opts.rowId).forEach(function(b) {
                 b.disabled = false;
                 b.textContent = '🗑️ Descartar';
             });
@@ -1047,11 +1254,15 @@ function descartarVencido(itemId, nombre) {
     })
     .catch(function() {
         alert('Error de conexión. Intente de nuevo.');
-        document.querySelectorAll('#btn-descartar-' + itemId).forEach(function(b) {
+        document.querySelectorAll('.btn-descarte-' + opts.rowId).forEach(function(b) {
             b.disabled = false;
             b.textContent = '🗑️ Descartar';
         });
     });
+}
+
+function descartarVencido(itemId, nombre) {
+    descartarItemVencido({ origen: 'bodega', itemId: itemId, nombre: nombre, rowId: itemId });
 }
 </script>
 

@@ -751,22 +751,29 @@
     {% endif %}
 </div>
 
-{% if tipo in ('pasb', 'pasm') %}
-<!-- ══════════ GESTIÓN DE PUESTOS PAS ({{ tipo|upper }}) ══════════ -->
+{% if tipo in ('pasb', 'pasm', 'avanzada') %}
+<!-- ══════════ GESTIÓN DE OPCIONES (PUESTOS O BOTIQUINES) ══════════ -->
+{% set es_avanzada = (tipo == 'avanzada') %}
+{% set entidad_label = 'Botiquines' if es_avanzada else 'Puestos' %}
+{% set entidad_singular = 'Botiquín' if es_avanzada else 'Puesto' %}
 <div class="add-form" style="margin-bottom: 24px; border-color: #38bdf8; background: #f0f9ff;">
     <h3 style="color: #0369a1; display: flex; align-items: center; gap: 6px;">
+        {% if es_avanzada %}
+        <i class="ph ph-first-aid"></i> 🧰 Gestión de Botiquines para AVANZADA (Opciones del Checklist)
+        {% else %}
         <i class="ph ph-hospital"></i> 🏕️ Gestión de Puestos para {{ tipo|upper }} (Opciones del Checklist)
+        {% endif %}
     </h3>
     
     <form method="POST" action="{{ url_for('admin_pas_opcion_agregar') }}" style="margin-bottom: 16px;" id="form-add-pas-opcion">
         <input type="hidden" name="tipo" value="{{ tipo }}">
         <div class="add-row">
             <div class="field" style="flex: 2;">
-                <label style="color: #0369a1;">Nuevo Puesto / Nombre de {{ tipo|upper }}</label>
-                <input type="text" name="nombre" required placeholder="Ej. {{ tipo|upper }}-5 o {{ tipo|upper }}-1 (Tarima Principal)">
+                <label style="color: #0369a1;">Nuevo {{ entidad_singular }} / Nombre de {{ entidad_singular if es_avanzada else tipo|upper }}</label>
+                <input type="text" name="nombre" required placeholder="{% if es_avanzada %}Ej. Botiquín 1, Botiquín A o Botiquín Trauma{% else %}Ej. {{ tipo|upper }}-5 o {{ tipo|upper }}-1 (Tarima Principal){% endif %}">
             </div>
             <div>
-                <button type="submit" class="btn-add" style="background: #0284c7; color: white;">➕ Añadir Puesto</button>
+                <button type="submit" class="btn-add" style="background: #0284c7; color: white;">➕ Añadir {{ entidad_singular }}</button>
             </div>
         </div>
     </form>
@@ -776,7 +783,7 @@
     <table class="items-table" style="margin-bottom: 0;">
         <thead><tr>
             <th style="width: 50px;">#</th>
-            <th>Nombre / Identificador del Puesto</th>
+            <th>Nombre / Identificador del {{ entidad_singular }}</th>
             <th style="width: 120px;">Estado</th>
             <th style="width: 180px;">Acciones</th>
         </tr></thead>
@@ -802,7 +809,7 @@
                     <a href="{{ url_for('admin_pas_opcion_toggle', opcion_id=op.id) }}" class="action-btn btn-toggle" style="padding: 4px 8px;">
                         {{ '⏸ Desactivar' if op.activo else '▶ Activar' }}
                     </a>
-                    <a href="{{ url_for('admin_pas_opcion_eliminar', opcion_id=op.id) }}" class="action-btn btn-delete" style="padding: 4px 8px;" onclick="return confirm('¿Eliminar el puesto «{{ op.nombre }}»?')">
+                    <a href="{{ url_for('admin_pas_opcion_eliminar', opcion_id=op.id) }}" class="action-btn btn-delete" style="padding: 4px 8px;" onclick="return confirm('¿Eliminar el {{ entidad_singular.lower() }} «{{ op.nombre }}»?')">
                         🗑 Eliminar
                     </a>
                 </div>
@@ -813,7 +820,7 @@
     </table>
     </div>
     {% else %}
-    <div style="font-size:13px; color:#0369a1;">No hay puestos configurados para {{ tipo|upper }}.</div>
+    <div style="font-size:13px; color:#0369a1;">No hay {{ entidad_label.lower() }} configurados para {{ 'AVANZADA' if es_avanzada else tipo|upper }}.</div>
     {% endif %}
 </div>
 {% endif %}

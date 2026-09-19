@@ -76,24 +76,38 @@ def register_routes(app):
             accion = data.get("accion", "finalizar")
             finalizado = 0 if accion == "borrador" else 1
 
-            # Validar variables obligatorias de Datos del Puesto para PASB y PASM al finalizar
-            if finalizado == 1 and tipo in ("pasb", "pasm"):
+            # Validar variables obligatorias al finalizar
+            if finalizado == 1:
+                faltantes = []
                 fecha_val = data.get("fecha", "").strip()
                 hora_val = data.get("hora", "").strip()
-                ubicacion_val = data.get("ubicacion", "").strip()
-                pas_val = data.get("pasb_numero" if tipo == "pasb" else "pasm_numero", "").strip()
-                estado_val = data.get("estado_operativo", "").strip()
-                faltantes = []
                 if not fecha_val:
                     faltantes.append("Fecha")
                 if not hora_val:
                     faltantes.append("Hora")
-                if not ubicacion_val:
-                    faltantes.append("Ubicación / Lugar")
-                if not pas_val:
-                    faltantes.append("Número del PASB" if tipo == "pasb" else "Número del PASM")
-                if not estado_val:
-                    faltantes.append("Estado del Puesto")
+
+                if tipo in ("pasb", "pasm"):
+                    ubicacion_val = data.get("ubicacion", "").strip()
+                    pas_val = data.get("pasb_numero" if tipo == "pasb" else "pasm_numero", "").strip()
+                    estado_val = data.get("estado_operativo", "").strip()
+                    if not ubicacion_val:
+                        faltantes.append("Ubicación / Lugar")
+                    if not pas_val:
+                        faltantes.append("Número del PASB" if tipo == "pasb" else "Número del PASM")
+                    if not estado_val:
+                        faltantes.append("Estado del Puesto")
+                elif tipo in ("tam", "tab"):
+                    placa_val = data.get("placa", "").strip()
+                    if not placa_val:
+                        faltantes.append("Placa del Vehículo")
+                elif tipo == "avanzada":
+                    evento_val = data.get("evento", "").strip()
+                    botiquin_val = data.get("botiquin", "").strip()
+                    if not evento_val:
+                        faltantes.append("Evento")
+                    if not botiquin_val:
+                        faltantes.append("Botiquín")
+
                 if faltantes:
                     conn.close()
                     flash(f"Los siguientes campos son obligatorios para finalizar: {', '.join(faltantes)}.", "error")
@@ -221,9 +235,47 @@ def register_routes(app):
             "SELECT * FROM checklist_items WHERE tipo_checklist = ? AND activo = 1 ORDER BY categoria, id",
             (tipo,)
         ).fetchall()
-        vehiculos = conn.execute(
-            "SELECT placa, tipo FROM vehiculos WHERE activo = 1 ORDER BY tipo, placa"
-        ).fetchall()
+        vehiculos = []
+        if tipo == "tam":
+            try:
+                veh_rows = conn.execute(
+                    "SELECT placa, tipo FROM vehiculos WHERE (tipo = 'TAM' OR tipo LIKE '%TAM%') AND activo = 1 ORDER BY placa"
+                ).fetchall()
+                veh_placas = {r["placa"] for r in veh_rows}
+                vehiculos = [dict(r) for r in veh_rows]
+                tam_db = conn.execute(
+                    "SELECT DISTINCT placa FROM checklist_tam WHERE placa IS NOT NULL AND placa != '' ORDER BY placa"
+                ).fetchall()
+                for r in tam_db:
+                    if r["placa"] not in veh_placas:
+                        vehiculos.append({"placa": r["placa"], "tipo": "TAM"})
+                        veh_placas.add(r["placa"])
+            except Exception:
+                pass
+            if not vehiculos:
+                vehiculos = conn.execute("SELECT placa, tipo FROM vehiculos WHERE activo = 1 ORDER BY placa").fetchall()
+        elif tipo == "tab":
+            try:
+                veh_rows = conn.execute(
+                    "SELECT placa, tipo FROM vehiculos WHERE (tipo = 'TAB' OR tipo LIKE '%TAB%') AND activo = 1 ORDER BY placa"
+                ).fetchall()
+                veh_placas = {r["placa"] for r in veh_rows}
+                vehiculos = [dict(r) for r in veh_rows]
+                tab_db = conn.execute(
+                    "SELECT DISTINCT placa FROM checklist_tab WHERE placa IS NOT NULL AND placa != '' ORDER BY placa"
+                ).fetchall()
+                for r in tab_db:
+                    if r["placa"] not in veh_placas:
+                        vehiculos.append({"placa": r["placa"], "tipo": "TAB"})
+                        veh_placas.add(r["placa"])
+            except Exception:
+                pass
+            if not vehiculos:
+                vehiculos = conn.execute("SELECT placa, tipo FROM vehiculos WHERE activo = 1 ORDER BY placa").fetchall()
+        else:
+            vehiculos = conn.execute(
+                "SELECT placa, tipo FROM vehiculos WHERE activo = 1 ORDER BY tipo, placa"
+            ).fetchall()
 
         if tipo == "pasm":
             medicos = conn.execute(
@@ -310,6 +362,64 @@ def register_routes(app):
                     else:
                         precargado_ultimo = False
                         datos = {}
+                elif tipo in ("tam", "tab"):
+                    placa_param = request.args.get("placa")
+                    if placa_param:
+                        placa_clean = placa_param.strip()
+                        last_row = conn.execute(
+                            f"""SELECT datos_json FROM {cfg['table']} 
+                                WHERE (UPPER(TRIM(placa)) = UPPER(TRIM(?)) 
+                                       OR UPPER(REPLACE(REPLACE(TRIM(placa), '-', ''), ' ', '')) = UPPER(REPLACE(REPLACE(TRIM(?), '-', ''), ' ', '')))
+                                  AND finalizado = 1 
+                                  AND datos_json IS NOT NULL 
+                                  AND datos_json != '' 
+                                ORDER BY id DESC LIMIT 1""",
+                            (placa_clean, placa_clean)
+                        ).fetchone()
+                        if last_row and last_row["datos_json"]:
+                            ultimo_datos = json.loads(last_row["datos_json"])
+                            for field, info in ultimo_datos.items():
+                                if field.startswith("_") or not isinstance(info, dict):
+                                    continue
+                                datos[field] = {
+                                    "valor": info.get("valor", ""),
+                                    "fecha_vencimiento": info.get("fecha_vencimiento", ""),
+                                    "observacion": info.get("observacion", ""),
+                                    "cant_actual": info.get("cant_actual", ""),
+                                    "tipo_incumplimiento": info.get("tipo_incumplimiento", "")
+                                }
+                            precargado_ultimo = True
+                    else:
+                        precargado_ultimo = False
+                        datos = {}
+                elif tipo == "avanzada":
+                    botiquin_param = request.args.get("botiquin")
+                    if botiquin_param:
+                        last_row = conn.execute(
+                            f"SELECT datos_json FROM checklist_avanzada WHERE botiquin = ? AND finalizado = 1 AND datos_json IS NOT NULL AND datos_json != '' ORDER BY id DESC LIMIT 1",
+                            (botiquin_param,)
+                        ).fetchone()
+                        if not last_row:
+                            last_row = conn.execute(
+                                f"SELECT datos_json FROM checklist_avanzada WHERE botiquin = ? AND datos_json IS NOT NULL AND datos_json != '' ORDER BY id DESC LIMIT 1",
+                                (botiquin_param,)
+                            ).fetchone()
+                        if last_row and last_row["datos_json"]:
+                            ultimo_datos = json.loads(last_row["datos_json"])
+                            for field, info in ultimo_datos.items():
+                                if field.startswith("_") or not isinstance(info, dict):
+                                    continue
+                                datos[field] = {
+                                    "valor": info.get("valor", ""),
+                                    "fecha_vencimiento": info.get("fecha_vencimiento", ""),
+                                    "observacion": info.get("observacion", ""),
+                                    "cant_actual": info.get("cant_actual", ""),
+                                    "tipo_incumplimiento": info.get("tipo_incumplimiento", "")
+                                }
+                            precargado_ultimo = True
+                    else:
+                        precargado_ultimo = False
+                        datos = {}
                 else:
                     last_row = conn.execute(
                         f"SELECT datos_json FROM {cfg['table']} WHERE datos_json IS NOT NULL AND datos_json != '' ORDER BY id DESC LIMIT 1"
@@ -330,9 +440,9 @@ def register_routes(app):
             except Exception:
                 pass
 
-        # Load pending transfers from inventory for PASB and PASM
+        # Cargar entregas/traslados pendientes desde inventario
         traslados_pendientes = []
-        if tipo in ("pasb", "pasm"):
+        if tipo in ("pasb", "pasm", "tam", "tab", "avanzada"):
             try:
                 rows_traslados = conn.execute(
                     "SELECT * FROM checklist_pasb_traslados WHERE estado = 'pendiente' ORDER BY fecha_salida DESC"
@@ -347,6 +457,7 @@ def register_routes(app):
 
         pasb_opciones = get_pas_opciones(conn, "pasb")
         pasm_opciones = get_pas_opciones(conn, "pasm")
+        botiquines_opciones = get_pas_opciones(conn, "avanzada")
 
         conn.close()
         for item in items_db:
@@ -367,6 +478,7 @@ def register_routes(app):
             vehiculos=vehiculos,
             pasb_opciones=pasb_opciones,
             pasm_opciones=pasm_opciones,
+            botiquines_opciones=botiquines_opciones,
             medicos=medicos,
             enfermeros=enfermeros,
             aphs=aphs,
@@ -374,14 +486,16 @@ def register_routes(app):
             traslados_pendientes=traslados_pendientes,
             precargado_ultimo=locals().get("precargado_ultimo", False),
             record=record,
-            datos=datos
+            datos=datos,
+            placa_param=request.args.get("placa", "").strip()
         )
 
 
+    @app.route("/checklist/<tipo>/aceptar_traslado/<int:traslado_id>", methods=["POST"])
     @app.route("/checklist/pasb/aceptar_traslado/<int:traslado_id>", methods=["POST"])
     @app.route("/checklist/pasm/aceptar_traslado/<int:traslado_id>", methods=["POST"])
     @login_required
-    def aceptar_traslado_pas(traslado_id):
+    def aceptar_traslado_tipo(traslado_id, tipo="pasb"):
         conn = get_db()
         traslado = conn.execute("SELECT * FROM checklist_pasb_traslados WHERE id = ?", (traslado_id,)).fetchone()
         if not traslado:
@@ -416,6 +530,9 @@ def register_routes(app):
             
         pasb_numero = request.args.get("pasb_numero")
         pasm_numero = request.args.get("pasm_numero")
+        placa = request.args.get("placa")
+        botiquin = request.args.get("botiquin")
+
         conn = get_db()
         try:
             row = None
@@ -443,6 +560,36 @@ def register_routes(app):
                         row = conn.execute(
                             f"SELECT datos_json FROM {cfg['table']} WHERE pasm_numero = ? AND datos_json IS NOT NULL AND datos_json != '' ORDER BY id DESC LIMIT 1",
                             (pasm_numero,)
+                        ).fetchone()
+                else:
+                    conn.close()
+                    return jsonify({"status": "not_found", "datos": {}})
+            elif tipo in ("tam", "tab"):
+                if placa:
+                    placa_clean = placa.strip()
+                    row = conn.execute(
+                        f"""SELECT datos_json FROM {cfg['table']} 
+                            WHERE (UPPER(TRIM(placa)) = UPPER(TRIM(?)) 
+                                   OR UPPER(REPLACE(REPLACE(TRIM(placa), '-', ''), ' ', '')) = UPPER(REPLACE(REPLACE(TRIM(?), '-', ''), ' ', '')))
+                              AND finalizado = 1 
+                              AND datos_json IS NOT NULL 
+                              AND datos_json != '' 
+                            ORDER BY id DESC LIMIT 1""",
+                        (placa_clean, placa_clean)
+                    ).fetchone()
+                else:
+                    conn.close()
+                    return jsonify({"status": "not_found", "datos": {}})
+            elif tipo == "avanzada":
+                if botiquin:
+                    row = conn.execute(
+                        f"SELECT datos_json FROM checklist_avanzada WHERE botiquin = ? AND finalizado = 1 AND datos_json IS NOT NULL AND datos_json != '' ORDER BY id DESC LIMIT 1",
+                        (botiquin,)
+                    ).fetchone()
+                    if not row:
+                        row = conn.execute(
+                            f"SELECT datos_json FROM checklist_avanzada WHERE botiquin = ? AND datos_json IS NOT NULL AND datos_json != '' ORDER BY id DESC LIMIT 1",
+                            (botiquin,)
                         ).fetchone()
                 else:
                     conn.close()
@@ -482,8 +629,8 @@ def register_routes(app):
         is_admin = session.get("usuario", {}).get("rol") == "admin"
         user_ident = session.get("usuario", {}).get("identificacion")
 
-        if tipo in ("pasb", "pasm"):
-            # Para PASB y PASM cada usuario solo visualiza los que él mismo almacenó
+        if tipo in ("pasb", "pasm", "tam", "tab", "avanzada"):
+            # Para PASB, PASM, TAM, TAB y Avanzada cada usuario solo visualiza los que él mismo almacenó
             items = conn.execute(
                 f"SELECT * FROM {cfg['table']} WHERE fecha_registro LIKE ? AND registrado_por_identificacion = ? ORDER BY id DESC",
                 (fecha_like, user_ident)

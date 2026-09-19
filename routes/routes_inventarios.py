@@ -40,12 +40,211 @@ def check_access():
         flash("No tiene permisos para acceder al Módulo de Inventarios.", "error")
         return redirect(url_for('dashboard'))
 
+def obtener_alertas_unidades_operativas(conn, hoy):
+    """
+    Obtiene los artículos vencidos y próximos a vencer (<= 30 días)
+    desde el checklist finalizado más reciente de cada unidad operativa:
+    - PASB (por pasb_numero)
+    - PASM (por pasm_numero)
+    - Botiquín de Avanzada (por botiquin)
+    - Ambulancia TAM (por placa)
+    - Ambulancia TAB (por placa)
+    """
+    import json
+    from datetime import date
+    
+    vencidos = []
+    proximos = []
+    
+    configs = [
+        {
+            "tipo_key": "pasb",
+            "ubicacion_tipo": "PASB",
+            "badge_class": "badge-pasb",
+            "label_template": "PASB ({})",
+            "query": """
+                SELECT c.id, c.pasb_numero AS unit_id, c.datos_json, c.ubicacion, c.fecha
+                FROM checklist_pasb c
+                INNER JOIN (
+                    SELECT pasb_numero, MAX(id) AS max_id
+                    FROM checklist_pasb
+                    WHERE finalizado = 1 AND pasb_numero IS NOT NULL AND TRIM(pasb_numero) != ''
+                    GROUP BY pasb_numero
+                ) latest ON c.id = latest.max_id
+            """
+        },
+        {
+            "tipo_key": "pasm",
+            "ubicacion_tipo": "PASM",
+            "badge_class": "badge-pasm",
+            "label_template": "PASM ({})",
+            "query": """
+                SELECT c.id, c.pasm_numero AS unit_id, c.datos_json, c.ubicacion, c.fecha
+                FROM checklist_pasm c
+                INNER JOIN (
+                    SELECT pasm_numero, MAX(id) AS max_id
+                    FROM checklist_pasm
+                    WHERE finalizado = 1 AND pasm_numero IS NOT NULL AND TRIM(pasm_numero) != ''
+                    GROUP BY pasm_numero
+                ) latest ON c.id = latest.max_id
+            """
+        },
+        {
+            "tipo_key": "avanzada",
+            "ubicacion_tipo": "Botiquín Avanzada",
+            "badge_class": "badge-avanzada",
+            "label_template": "Avanzada ({})",
+            "query": """
+                SELECT c.id, c.botiquin AS unit_id, c.datos_json, c.evento, c.fecha
+                FROM checklist_avanzada c
+                INNER JOIN (
+                    SELECT botiquin, MAX(id) AS max_id
+                    FROM checklist_avanzada
+                    WHERE finalizado = 1 AND botiquin IS NOT NULL AND TRIM(botiquin) != ''
+                    GROUP BY botiquin
+                ) latest ON c.id = latest.max_id
+            """
+        },
+        {
+            "tipo_key": "tam",
+            "ubicacion_tipo": "Ambulancia TAM",
+            "badge_class": "badge-tam",
+            "label_template": "Ambulancia TAM ({})",
+            "query": """
+                SELECT c.id, c.placa AS unit_id, c.datos_json, c.fecha
+                FROM checklist_tam c
+                INNER JOIN (
+                    SELECT UPPER(TRIM(placa)) AS placa_norm, MAX(id) AS max_id
+                    FROM checklist_tam
+                    WHERE finalizado = 1 AND placa IS NOT NULL AND TRIM(placa) != ''
+                    GROUP BY UPPER(TRIM(placa))
+                ) latest ON c.id = latest.max_id
+            """
+        },
+        {
+            "tipo_key": "tab",
+            "ubicacion_tipo": "Ambulancia TAB",
+            "badge_class": "badge-tab",
+            "label_template": "Ambulancia TAB ({})",
+            "query": """
+                SELECT c.id, c.placa AS unit_id, c.datos_json, c.fecha
+                FROM checklist_tab c
+                INNER JOIN (
+                    SELECT UPPER(TRIM(placa)) AS placa_norm, MAX(id) AS max_id
+                    FROM checklist_tab
+                    WHERE finalizado = 1 AND placa IS NOT NULL AND TRIM(placa) != ''
+                    GROUP BY UPPER(TRIM(placa))
+                ) latest ON c.id = latest.max_id
+            """
+        },
+    ]
+
+    for cfg in configs:
+        try:
+            rows = conn.execute(cfg["query"]).fetchall()
+        except Exception:
+            continue
+
+        for r in rows:
+            unit_id = (r.get("unit_id") or "").strip()
+            if not unit_id:
+                continue
+            ubicacion_label = cfg["label_template"].format(unit_id)
+            datos_raw = r.get("datos_json")
+            if not datos_raw:
+                continue
+
+            try:
+                datos = json.loads(datos_raw) if isinstance(datos_raw, str) else datos_raw
+            except Exception:
+                continue
+
+            if not isinstance(datos, dict):
+                continue
+
+            for field_name, item_data in datos.items():
+                if not isinstance(item_data, dict):
+                    continue
+                if field_name.startswith("_"):
+                    continue
+
+                nombre_articulo = item_data.get("nombre") or field_name
+                raw_venc = item_data.get("fecha_vencimiento")
+                if not raw_venc:
+                    continue
+
+                # Procesar múltiples lotes o string individual
+                if isinstance(raw_venc, str) and raw_venc.strip().startswith("["):
+                    try:
+                        raw_venc = json.loads(raw_venc)
+                    except Exception:
+                        pass
+
+                venc_entries = []
+                if isinstance(raw_venc, list):
+                    for v_item in raw_venc:
+                        if isinstance(v_item, dict):
+                            f_str = str(v_item.get("fecha") or "").strip()
+                            if f_str:
+                                try:
+                                    cant_val = int(v_item.get("cant") or 1)
+                                except Exception:
+                                    cant_val = 1
+                                venc_entries.append({
+                                    "cant": cant_val,
+                                    "fecha": f_str[:10],
+                                    "lote": str(v_item.get("lote") or "").strip()
+                                })
+                elif isinstance(raw_venc, str):
+                    f_str = raw_venc.strip()[:10]
+                    if f_str:
+                        cant_val = item_data.get("cant_actual") or item_data.get("cantidad") or 1
+                        try:
+                            cant_val = int(cant_val)
+                        except Exception:
+                            cant_val = 1
+                        venc_entries.append({
+                            "cant": cant_val,
+                            "fecha": f_str,
+                            "lote": str(item_data.get("lote") or "").strip()
+                        })
+
+                for entry in venc_entries:
+                    if entry["cant"] <= 0:
+                        continue
+                    try:
+                        fv = date.fromisoformat(entry["fecha"])
+                    except Exception:
+                        continue
+
+                    dias = (fv - hoy).days
+                    item_alert = {
+                        "id": None,
+                        "checklist_id": r.get("id"),
+                        "field_key": field_name,
+                        "origen": cfg["tipo_key"],
+                        "ubicacion_tipo": cfg["ubicacion_tipo"],
+                        "ubicacion_detalle": ubicacion_label,
+                        "ubicacion_badge_class": cfg["badge_class"],
+                        "nombre": nombre_articulo,
+                        "lote": entry["lote"] or "N/A",
+                        "cantidad": entry["cant"],
+                        "fecha_vencimiento": fv.strftime('%Y-%m-%d'),
+                        "dias": dias
+                    }
+
+                    if dias < 0:
+                        vencidos.append(item_alert)
+                    elif dias <= 30:
+                        proximos.append(item_alert)
+
+    return vencidos, proximos
+
 @bp_inventarios.route('/', methods=['GET'])
 def inventarios_index():
     conn = get_db()
     items_raw = conn.execute("SELECT * FROM inventarios ORDER BY tipo, nombre").fetchall()
     catalogo = conn.execute("SELECT * FROM inventarios_catalogo ORDER BY nombre").fetchall()
-    conn.close()
     
     # Pre-calculate max quantity for each product name
     max_quantities = {}
@@ -103,10 +302,9 @@ def inventarios_index():
                 "minimo": min_stock
             })
 
-    # Calcular próximos a vencer (1-30 días) y vencidos
-    from datetime import date, timedelta
+    # Calcular próximos a vencer (0-30 días) y vencidos (< 0 días) de Bodega Central
+    from datetime import date
     hoy = date.today()
-    limite_prox = hoy + timedelta(days=30)
     proximos_vencer = []
     vencidos = []
     for row in items_raw:
@@ -126,6 +324,10 @@ def inventarios_index():
         dias = (fv - hoy).days
         entry = {
             "id": row['id'],
+            "origen": "bodega",
+            "ubicacion_tipo": "Bodega Central",
+            "ubicacion_detalle": "Bodega Central",
+            "ubicacion_badge_class": "badge-bodega",
             "nombre": row['nombre'],
             "lote": row.get('lote') or '',
             "cantidad": row['cantidad'],
@@ -137,6 +339,13 @@ def inventarios_index():
         elif dias <= 30:
             proximos_vencer.append(entry)
 
+    # Consolidar alertas desde Unidades Operativas (PASB, PASM, Botiquines Avanzada, Ambulancias TAM y TAB)
+    unidades_vencidos, unidades_proximos = obtener_alertas_unidades_operativas(conn, hoy)
+    conn.close()
+
+    vencidos.extend(unidades_vencidos)
+    proximos_vencer.extend(unidades_proximos)
+
     proximos_vencer.sort(key=lambda x: x['dias'])
     vencidos.sort(key=lambda x: x['dias'])
         
@@ -147,29 +356,139 @@ def inventarios_index():
 
 @bp_inventarios.route('/descarte', methods=['POST'])
 def inventarios_descarte():
-    """Registra el descarte/egreso de un item vencido y pone su cantidad en 0."""
-    item_id = request.form.get('item_id')
-    if not item_id:
-        return jsonify({"status": "error", "message": "item_id requerido."}), 400
+    """Registra el descarte/egreso de un item vencido (Bodega o Unidad Operativa)."""
+    origen = request.form.get('origen', 'bodega')
+    registrado_por = session.get('usuario', {}).get('nombre', 'Sistema')
     conn = get_db()
-    item = conn.execute("SELECT * FROM inventarios WHERE id = %s", (item_id,)).fetchone()
-    if not item:
+    
+    if origen == 'bodega':
+        item_id = request.form.get('item_id')
+        if not item_id:
+            conn.close()
+            return jsonify({"status": "error", "message": "item_id requerido."}), 400
+        item = conn.execute("SELECT * FROM inventarios WHERE id = %s", (item_id,)).fetchone()
+        if not item:
+            conn.close()
+            return jsonify({"status": "error", "message": "Ítem no encontrado."}), 404
+        cantidad_descartada = item['cantidad']
+        conn.execute("UPDATE inventarios SET cantidad = 0 WHERE id = %s", (item_id,))
+        conn.execute("""
+            INSERT INTO inventarios_historial
+            (item_id, codigo_barras, nombre, lote, accion, cantidad, tipo_egreso, destino, registrado_por)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """, (
+            item['id'], item.get('codigo_barras', ''), item['nombre'], item.get('lote', ''),
+            'egreso', cantidad_descartada, 'Descarte por vencimiento', 'Baja Bodega Central', registrado_por
+        ))
+        conn.commit()
         conn.close()
-        return jsonify({"status": "error", "message": "Ítem no encontrado."}), 404
-    registrado_por = session['usuario']['nombre']
-    cantidad_descartada = item['cantidad']
-    conn.execute("UPDATE inventarios SET cantidad = 0 WHERE id = %s", (item_id,))
-    conn.execute("""
-        INSERT INTO inventarios_historial
-        (item_id, codigo_barras, nombre, lote, accion, cantidad, tipo_egreso, destino, registrado_por)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-    """, (
-        item['id'], item.get('codigo_barras', ''), item['nombre'], item.get('lote', ''),
-        'egreso', cantidad_descartada, 'Descarte por vencimiento', 'Baja', registrado_por
-    ))
-    conn.commit()
-    conn.close()
-    return jsonify({"status": "success", "message": f"'{item['nombre']}' descartado. {cantidad_descartada} unidades dadas de baja."})
+        return jsonify({"status": "success", "message": f"'{item['nombre']}' descartado de Bodega Central. {cantidad_descartada} unidades dadas de baja."})
+
+    elif origen in ('pasb', 'pasm', 'avanzada', 'tam', 'tab'):
+        import json
+        from datetime import date
+        hoy = date.today()
+        
+        checklist_id = request.form.get('checklist_id')
+        field_key = request.form.get('field_key')
+        fecha_venc_descartar = request.form.get('fecha_vencimiento', '').strip()
+        nombre_art = request.form.get('nombre', '').strip()
+        
+        if not checklist_id or not field_key:
+            conn.close()
+            return jsonify({"status": "error", "message": "checklist_id y field_key son requeridos para descarte en unidades operativas."}), 400
+            
+        table_name = f"checklist_{origen}"
+        row = conn.execute(f"SELECT * FROM {table_name} WHERE id = %s", (checklist_id,)).fetchone()
+        if not row:
+            conn.close()
+            return jsonify({"status": "error", "message": "Checklist de la unidad no encontrado."}), 404
+            
+        datos_raw = row.get('datos_json')
+        try:
+            datos = json.loads(datos_raw) if isinstance(datos_raw, str) else (datos_raw or {})
+        except Exception:
+            datos = {}
+            
+        if field_key not in datos or not isinstance(datos[field_key], dict):
+            conn.close()
+            return jsonify({"status": "error", "message": "El artículo no fue encontrado en los datos del checklist."}), 404
+            
+        item_info = datos[field_key]
+        if not nombre_art:
+            nombre_art = item_info.get('nombre') or field_key
+            
+        # Determinar ubicación legible para trazabilidad
+        ubicacion_str = f"Unidad {origen.upper()} (Checklist #{checklist_id})"
+        if origen == 'pasb':
+            ubicacion_str = f"PASB ({row.get('pasb_numero') or ''})"
+        elif origen == 'pasm':
+            ubicacion_str = f"PASM ({row.get('pasm_numero') or ''})"
+        elif origen == 'avanzada':
+            ubicacion_str = f"Botiquín Avanzada ({row.get('botiquin') or ''})"
+        elif origen in ('tam', 'tab'):
+            ubicacion_str = f"Ambulancia {origen.upper()} ({row.get('placa') or ''})"
+            
+        # Limpiar fecha de vencimiento:
+        # Si tenía lista de lotes, remover el lote vencido (o vaciar si todos eran vencidos)
+        raw_venc = item_info.get('fecha_vencimiento')
+        if isinstance(raw_venc, str) and raw_venc.strip().startswith('['):
+            try:
+                raw_venc = json.loads(raw_venc)
+            except Exception:
+                pass
+                
+        if isinstance(raw_venc, list):
+            lotes_restantes = []
+            for v_lot in raw_venc:
+                if isinstance(v_lot, dict):
+                    f_date_str = str(v_lot.get('fecha') or '').strip()
+                    try:
+                        fv_d = date.fromisoformat(f_date_str[:10])
+                        if fecha_venc_descartar and f_date_str[:10] == fecha_venc_descartar:
+                            continue
+                        elif fv_d < hoy:
+                            continue
+                        lotes_restantes.append(v_lot)
+                    except Exception:
+                        continue
+            if lotes_restantes:
+                item_info['fecha_vencimiento'] = lotes_restantes
+            else:
+                item_info['fecha_vencimiento'] = ''
+                item_info['cant_actual'] = ''
+        else:
+            # String simple
+            item_info['fecha_vencimiento'] = ''
+            item_info['cant_actual'] = ''
+            
+        # Actualizar datos_json en la tabla de la unidad
+        conn.execute(f"UPDATE {table_name} SET datos_json = %s WHERE id = %s", (json.dumps(datos, ensure_ascii=False), checklist_id))
+        
+        # Registrar trazabilidad en inventarios_historial si el ítem existe en inventarios
+        item_match = conn.execute("SELECT id, codigo_barras, lote FROM inventarios WHERE UPPER(TRIM(nombre)) = UPPER(TRIM(%s)) LIMIT 1", (nombre_art,)).fetchone()
+        if item_match:
+            try:
+                conn.execute("""
+                    INSERT INTO inventarios_historial
+                    (item_id, codigo_barras, nombre, lote, accion, cantidad, tipo_egreso, destino, registrado_por)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                """, (
+                    item_match['id'], item_match.get('codigo_barras', ''), nombre_art, item_info.get('lote') or item_match.get('lote', ''),
+                    'egreso', 0, 'Descarte por vencimiento en unidad', ubicacion_str, registrado_por
+                ))
+            except Exception:
+                pass
+        
+        conn.commit()
+        conn.close()
+        return jsonify({
+            "status": "success",
+            "message": f"'{nombre_art}' en {ubicacion_str} descartado correctamente. La fecha de vencimiento quedó vacía para ser verificada en el próximo checklist."
+        })
+    else:
+        conn.close()
+        return jsonify({"status": "error", "message": "Origen no válido."}), 400
 
 @bp_inventarios.route('/catalogo/add', methods=['POST'])
 def catalogo_add():
@@ -412,8 +731,8 @@ def inventarios_scan():
         destino if accion == 'egreso' else '', registrado_por
     ))
 
-    # Integración con Checklist PASB / PASM si el destino es PASB o PASM
-    if accion == 'egreso' and destino and any(p in str(destino).upper() for p in ('PASB', 'PASM')):
+    # Integración con Checklists (PASB, PASM, TAM, TAB, AVANZADA) si el destino corresponde
+    if accion == 'egreso' and destino and any(p in str(destino).upper() for p in ('PASB', 'PASM', 'TAM', 'TAB', 'AVANZADA', 'BOTIQUIN')):
         conn.execute("""
             INSERT INTO checklist_pasb_traslados
             (item_inventario_id, nombre, cantidad, fecha_vencimiento, destino, estado, registrado_por)
@@ -620,8 +939,8 @@ def inventarios_manual_update():
         destino if accion == 'egreso' else '', registrado_por
     ))
 
-    # Integración con Checklist PASB / PASM si el destino es PASB o PASM
-    if accion == 'egreso' and destino and any(p in str(destino).upper() for p in ('PASB', 'PASM')):
+    # Integración con Checklists (PASB, PASM, TAM, TAB, AVANZADA) si el destino corresponde
+    if accion == 'egreso' and destino and any(p in str(destino).upper() for p in ('PASB', 'PASM', 'TAM', 'TAB', 'AVANZADA', 'BOTIQUIN')):
         conn.execute("""
             INSERT INTO checklist_pasb_traslados
             (item_inventario_id, nombre, cantidad, fecha_vencimiento, destino, estado, registrado_por)
