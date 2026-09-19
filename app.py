@@ -437,6 +437,7 @@ from routes.routes_programacion_operativa import register_routes as register_pro
 from routes.routes_personal_operativo import register_routes as register_personal_operativo
 from routes.routes_voluntariado import register_routes as register_voluntariado
 from routes.routes_reporte_actividades import register_routes as register_reporte_actividades
+from routes.routes_reporte_gasto import register_routes as register_reporte_gasto
 
 # Registrar todas las rutas
 register_auth(app)
@@ -458,6 +459,7 @@ register_programacion_operativa(app)
 register_personal_operativo(app)
 register_voluntariado(app)
 register_reporte_actividades(app)
+register_reporte_gasto(app)
 
 # Programar el backup periódico (lee frecuencia de BD/entorno)
 init_scheduler()

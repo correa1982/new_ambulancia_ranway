@@ -219,8 +219,8 @@ def register_routes(app, serializer):
             ("tam",    "checklist_tam",    "Check List TAM",    "🏥", "placa",        "placa"),
             ("tab",    "checklist_tab",    "Check List TAB",    "🩺", "placa",        "placa"),
             ("avanzada","checklist_avanzada","Check List Avanzada","⚡", "placa",        "placa"),
-            ("pasb",   "checklist_pasb",   "Check List PASB",   "🧰", "ubicacion",    "ubicacion"),
-            ("pasm",   "checklist_pasm",   "Check List PASM",   "🎒", "ubicacion",    "ubicacion"),
+            ("pasb",   "checklist_pasb",   "Check List PASB",   "🧰", "pasb_numero",  "pasb_numero"),
+            ("pasm",   "checklist_pasm",   "Check List PASM",   "🎒", "pasm_numero",  "pasm_numero"),
             ("equipos","checklist_equipos","Preop. Equipos",    "🔧", "grupo_equipos","grupo_equipos"),
         ]
 
