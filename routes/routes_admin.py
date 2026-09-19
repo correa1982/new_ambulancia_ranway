@@ -297,7 +297,7 @@ def register_routes(app):
             (tipo,)
         ).fetchall()
         pas_opciones = []
-        if tipo in ("pasb", "pasm"):
+        if tipo in ("pasb", "pasm", "avanzada"):
             from db import get_all_pas_opciones
             pas_opciones = get_all_pas_opciones(conn, tipo)
         conn.close()
@@ -442,17 +442,18 @@ def register_routes(app):
         return redirect(url_for("admin_checklists"))
 
 
-    # ── Admin: Gestión de Puestos PAS (PASB / PASM) ──────────────────────────────────
+    # ── Admin: Gestión de Opciones PAS / Botiquines Avanzada ────────────────────────
     @app.route("/admin/pas_opciones/agregar", methods=["POST"])
     @login_required
     @admin_required
     def admin_pas_opcion_agregar():
         tipo = request.form.get("tipo", "pasb").strip().lower()
-        if tipo not in ("pasb", "pasm"):
+        if tipo not in ("pasb", "pasm", "avanzada"):
             tipo = "pasb"
+        termo = "botiquín" if tipo == "avanzada" else "puesto"
         nombre = request.form.get("nombre", "").strip()
         if not nombre:
-            flash("El nombre del puesto es obligatorio.", "error")
+            flash(f"El nombre del {termo} es obligatorio.", "error")
             return redirect(url_for("admin_checklists", tipo=tipo))
 
         conn = get_db()
@@ -461,14 +462,14 @@ def register_routes(app):
             (tipo, nombre)
         ).fetchone()
         if existing:
-            flash("Ya existe un puesto con ese identificador.", "error")
+            flash(f"Ya existe un {termo} con ese identificador.", "error")
         else:
             conn.execute(
                 "INSERT INTO checklist_pas_opciones (tipo, nombre, activo) VALUES (?, ?, 1)",
                 (tipo, nombre)
             )
             conn.commit()
-            flash(f"Puesto «{nombre}» agregado con éxito.", "success")
+            flash(f"{termo.capitalize()} «{nombre}» agregado con éxito.", "success")
         conn.close()
         return redirect(url_for("admin_checklists", tipo=tipo))
 
@@ -481,13 +482,14 @@ def register_routes(app):
         opcion = conn.execute("SELECT * FROM checklist_pas_opciones WHERE id = ?", (opcion_id,)).fetchone()
         if not opcion:
             conn.close()
-            flash("Puesto no encontrado.", "error")
+            flash("Registro no encontrado.", "error")
             return redirect(url_for("admin_checklists"))
 
+        termo = "botiquín" if opcion["tipo"] == "avanzada" else "puesto"
         nuevo_nombre = request.form.get("nombre", "").strip()
         if not nuevo_nombre:
             conn.close()
-            flash("El nombre del puesto no puede estar vacío.", "error")
+            flash(f"El nombre del {termo} no puede estar vacío.", "error")
             return redirect(url_for("admin_checklists", tipo=opcion["tipo"]))
 
         conn.execute(
@@ -496,7 +498,7 @@ def register_routes(app):
         )
         conn.commit()
         conn.close()
-        flash(f"Puesto actualizado a «{nuevo_nombre}».", "success")
+        flash(f"{termo.capitalize()} actualizado a «{nuevo_nombre}».", "success")
         return redirect(url_for("admin_checklists", tipo=opcion["tipo"]))
 
 
@@ -507,14 +509,15 @@ def register_routes(app):
         conn = get_db()
         opcion = conn.execute("SELECT * FROM checklist_pas_opciones WHERE id = ?", (opcion_id,)).fetchone()
         if opcion:
+            termo = "botiquín" if opcion["tipo"] == "avanzada" else "puesto"
             nuevo = 0 if opcion["activo"] else 1
             conn.execute("UPDATE checklist_pas_opciones SET activo = ? WHERE id = ?", (nuevo, opcion_id))
             conn.commit()
-            flash(f"Puesto «{opcion['nombre']}» {'activado' if nuevo else 'desactivado'}.", "success")
+            flash(f"{termo.capitalize()} «{opcion['nombre']}» {'activado' if nuevo else 'desactivado'}.", "success")
             conn.close()
             return redirect(url_for("admin_checklists", tipo=opcion["tipo"]))
         conn.close()
-        flash("Puesto no encontrado.", "error")
+        flash("Registro no encontrado.", "error")
         return redirect(url_for("admin_checklists"))
 
 
@@ -526,13 +529,14 @@ def register_routes(app):
         opcion = conn.execute("SELECT * FROM checklist_pas_opciones WHERE id = ?", (opcion_id,)).fetchone()
         if opcion:
             tipo = opcion["tipo"]
+            termo = "botiquín" if tipo == "avanzada" else "puesto"
             conn.execute("DELETE FROM checklist_pas_opciones WHERE id = ?", (opcion_id,))
             conn.commit()
-            flash(f"Puesto «{opcion['nombre']}» eliminado.", "success")
+            flash(f"{termo.capitalize()} «{opcion['nombre']}» eliminado.", "success")
             conn.close()
             return redirect(url_for("admin_checklists", tipo=tipo))
         conn.close()
-        flash("Puesto no encontrado.", "error")
+        flash("Registro no encontrado.", "error")
         return redirect(url_for("admin_checklists"))
 
 
