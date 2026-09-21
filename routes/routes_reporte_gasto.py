@@ -200,23 +200,25 @@ def register_routes(app):
         pasm_ops = get_pas_opciones(conn, "pasm")
 
         # Vehículos TAM y TAB
-        tam_rows = conn.execute("SELECT placa FROM vehiculos WHERE (tipo = 'TAM' OR tipo LIKE '%TAM%') AND activo = 1 ORDER BY placa").fetchall()
+        tam_rows = conn.execute("SELECT placa FROM vehiculos WHERE (tipo = 'TAM' OR tipo_ambulancia = 'TAM' OR tipo LIKE '%TAM%' OR tipo_ambulancia LIKE '%TAM%') AND activo = 1 ORDER BY placa").fetchall()
         tam_ops = [r["placa"] for r in tam_rows]
-        if not tam_ops:
-            try:
-                tam_db = conn.execute("SELECT DISTINCT placa FROM checklist_tam WHERE placa IS NOT NULL AND placa != '' ORDER BY placa").fetchall()
-                tam_ops = [r["placa"] for r in tam_db]
-            except Exception:
-                pass
+        try:
+            tam_db = conn.execute("SELECT DISTINCT placa FROM checklist_tam WHERE placa IS NOT NULL AND placa != '' ORDER BY placa").fetchall()
+            for r in tam_db:
+                if r["placa"] not in tam_ops:
+                    tam_ops.append(r["placa"])
+        except Exception:
+            pass
 
-        tab_rows = conn.execute("SELECT placa FROM vehiculos WHERE (tipo = 'TAB' OR tipo LIKE '%TAB%') AND activo = 1 ORDER BY placa").fetchall()
+        tab_rows = conn.execute("SELECT placa FROM vehiculos WHERE (tipo = 'TAB' OR tipo_ambulancia = 'TAB' OR tipo LIKE '%TAB%' OR tipo_ambulancia LIKE '%TAB%') AND activo = 1 ORDER BY placa").fetchall()
         tab_ops = [r["placa"] for r in tab_rows]
-        if not tab_ops:
-            try:
-                tab_db = conn.execute("SELECT DISTINCT placa FROM checklist_tab WHERE placa IS NOT NULL AND placa != '' ORDER BY placa").fetchall()
-                tab_ops = [r["placa"] for r in tab_db]
-            except Exception:
-                pass
+        try:
+            tab_db = conn.execute("SELECT DISTINCT placa FROM checklist_tab WHERE placa IS NOT NULL AND placa != '' ORDER BY placa").fetchall()
+            for r in tab_db:
+                if r["placa"] not in tab_ops:
+                    tab_ops.append(r["placa"])
+        except Exception:
+            pass
 
         # Buscar si el usuario actual tiene un borrador guardado en BD
         borrador_row = conn.execute(
