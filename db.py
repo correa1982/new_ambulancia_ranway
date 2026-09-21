@@ -1786,6 +1786,10 @@ def init_db():
         if pasm_row and pasm_row["c"] == 0:
             for opt in ["PASM-1", "PASM-2", "PASM-3", "PASM-4"]:
                 conn.execute("INSERT INTO checklist_pas_opciones (tipo, nombre, activo) VALUES ('pasm', ?, 1)", (opt,))
+        avanzada_row = conn.execute("SELECT COUNT(*) AS c FROM checklist_pas_opciones WHERE tipo = 'avanzada'").fetchone()
+        if avanzada_row and avanzada_row["c"] == 0:
+            for opt in ["Botiquín 1", "Botiquín 2", "Botiquín 3", "Botiquín 4"]:
+                conn.execute("INSERT INTO checklist_pas_opciones (tipo, nombre, activo) VALUES ('avanzada', ?, 1)", (opt,))
     except Exception as e:
         print("Error seeding checklist_pas_opciones:", e)
 
@@ -1806,7 +1810,13 @@ def get_pas_opciones(conn=None, tipo="pasb"):
     except Exception:
         pass
     if should_close: conn.close()
-    return ["PASB-1", "PASB-2", "PASB-3", "PASB-4"] if tipo == "pasb" else ["PASM-1", "PASM-2", "PASM-3", "PASM-4"]
+    if tipo == "pasb":
+        return ["PASB-1", "PASB-2", "PASB-3", "PASB-4"]
+    elif tipo == "pasm":
+        return ["PASM-1", "PASM-2", "PASM-3", "PASM-4"]
+    elif tipo == "avanzada":
+        return ["Botiquín 1", "Botiquín 2", "Botiquín 3", "Botiquín 4"]
+    return []
 
 def get_all_pas_opciones(conn=None, tipo="pasb"):
     should_close = False
