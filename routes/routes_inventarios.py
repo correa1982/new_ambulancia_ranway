@@ -3,7 +3,7 @@ import io
 import pandas as pd
 import zoneinfo
 from datetime import datetime
-from db import get_db
+from db import get_db, get_pas_opciones
 from utils import login_required
 
 bp_inventarios = Blueprint('inventarios', __name__, url_prefix='/inventarios')
@@ -341,6 +341,18 @@ def inventarios_index():
 
     # Consolidar alertas desde Unidades Operativas (PASB, PASM, Botiquines Avanzada, Ambulancias TAM y TAB)
     unidades_vencidos, unidades_proximos = obtener_alertas_unidades_operativas(conn, hoy)
+    
+    pasb_opciones = get_pas_opciones(conn, "pasb")
+    pasm_opciones = get_pas_opciones(conn, "pasm")
+    botiquines_opciones = get_pas_opciones(conn, "avanzada")
+
+    vehiculos_ops = []
+    try:
+        v_rows = conn.execute("SELECT placa, tipo, tipo_ambulancia, movil FROM vehiculos WHERE activo = 1 ORDER BY placa").fetchall()
+        vehiculos_ops = [dict(v) for v in v_rows]
+    except Exception:
+        vehiculos_ops = []
+
     conn.close()
 
     vencidos.extend(unidades_vencidos)
@@ -350,7 +362,9 @@ def inventarios_index():
     vencidos.sort(key=lambda x: x['dias'])
         
     return render_template('inventarios.html', items=items, catalogo=catalogo, is_superadmin=is_superadmin,
-                           alertas=alertas, proximos_vencer=proximos_vencer, vencidos=vencidos)
+                           alertas=alertas, proximos_vencer=proximos_vencer, vencidos=vencidos,
+                           pasb_opciones=pasb_opciones, pasm_opciones=pasm_opciones,
+                           botiquines_opciones=botiquines_opciones, vehiculos=vehiculos_ops)
 
 
 
@@ -731,8 +745,8 @@ def inventarios_scan():
         destino if accion == 'egreso' else '', registrado_por
     ))
 
-    # Integración con Checklists (PASB, PASM, TAM, TAB, AVANZADA) si el destino corresponde
-    if accion == 'egreso' and destino and any(p in str(destino).upper() for p in ('PASB', 'PASM', 'TAM', 'TAB', 'AVANZADA', 'BOTIQUIN')):
+    # Integración con Checklists (PASB, PASM, TAM, TAB, AVANZADA, Móviles) si el destino corresponde
+    if accion == 'egreso' and destino and (tipo_egreso == 'Reposicion' or any(p in str(destino).upper() for p in ('PASB', 'PASM', 'TAM', 'TAB', 'AVANZADA', 'BOTIQUIN', 'MOVIL'))):
         conn.execute("""
             INSERT INTO checklist_pasb_traslados
             (item_inventario_id, nombre, cantidad, fecha_vencimiento, destino, estado, registrado_por)
@@ -939,8 +953,8 @@ def inventarios_manual_update():
         destino if accion == 'egreso' else '', registrado_por
     ))
 
-    # Integración con Checklists (PASB, PASM, TAM, TAB, AVANZADA) si el destino corresponde
-    if accion == 'egreso' and destino and any(p in str(destino).upper() for p in ('PASB', 'PASM', 'TAM', 'TAB', 'AVANZADA', 'BOTIQUIN')):
+    # Integración con Checklists (PASB, PASM, TAM, TAB, AVANZADA, Móviles) si el destino corresponde
+    if accion == 'egreso' and destino and (tipo_egreso == 'Reposicion' or any(p in str(destino).upper() for p in ('PASB', 'PASM', 'TAM', 'TAB', 'AVANZADA', 'BOTIQUIN', 'MOVIL'))):
         conn.execute("""
             INSERT INTO checklist_pasb_traslados
             (item_inventario_id, nombre, cantidad, fecha_vencimiento, destino, estado, registrado_por)

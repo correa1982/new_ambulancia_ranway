@@ -1692,16 +1692,61 @@ function descartarVencido(itemId, nombre) {
                     <label style="font-size: 13px; margin-bottom: 3px;">Destino</label>
                     <select id="scannerDestino" style="padding: 6px; font-size: 13px;">
                         <option value="" disabled selected>-- Seleccione Destino --</option>
-                        <option value="Movil 1">Móvil 1</option>
-                        <option value="Movil 2">Móvil 2</option>
-                        <option value="Movil 3">Móvil 3</option>
-                        <option value="Movil 4">Móvil 4</option>
-                        <option value="Movil 5">Móvil 5</option>
-                        <option value="Movil 6">Móvil 6</option>
-                        <option value="Unidad de Rescate">Unidad de Rescate</option>
-                        <option value="PASM">PASM</option>
-                        <option value="PASB">PASB</option>
-                        <option value="Botiquines Avanzada">Botiquines Avanzada</option>
+                        <optgroup label="Móviles / Vehículos">
+                            <option value="Movil 1">Móvil 1</option>
+                            <option value="Movil 2">Móvil 2</option>
+                            <option value="Movil 3">Móvil 3</option>
+                            <option value="Movil 4">Móvil 4</option>
+                            <option value="Movil 5">Móvil 5</option>
+                            <option value="Movil 6">Móvil 6</option>
+                            <option value="Unidad de Rescate">Unidad de Rescate</option>
+                            {% if vehiculos %}
+                                {% for v in vehiculos %}
+                                    {% if v.placa and v.placa not in ['Movil 1', 'Movil 2', 'Movil 3', 'Movil 4', 'Movil 5', 'Movil 6'] %}
+                                    <option value="{{ v.placa }}">{{ v.placa }}{% if v.tipo_ambulancia %} ({{ v.tipo_ambulancia }}{% if v.movil %} - {{ v.movil }}{% endif %}){% elif v.tipo %} ({{ v.tipo }}){% endif %}</option>
+                                    {% endif %}
+                                {% endfor %}
+                            {% endif %}
+                        </optgroup>
+                        <optgroup label="Puestos de Atención Básica (PASB)">
+                            <option value="PASB">PASB General</option>
+                            {% if pasb_opciones %}
+                                {% for op in pasb_opciones %}
+                                <option value="{{ op }}">{{ op }}</option>
+                                {% endfor %}
+                            {% else %}
+                                <option value="PASB-1">PASB-1</option>
+                                <option value="PASB-2">PASB-2</option>
+                                <option value="PASB-3">PASB-3</option>
+                                <option value="PASB-4">PASB-4</option>
+                            {% endif %}
+                        </optgroup>
+                        <optgroup label="Puestos de Atención Medicalizada (PASM)">
+                            <option value="PASM">PASM General</option>
+                            {% if pasm_opciones %}
+                                {% for op in pasm_opciones %}
+                                <option value="{{ op }}">{{ op }}</option>
+                                {% endfor %}
+                            {% else %}
+                                <option value="PASM-1">PASM-1</option>
+                                <option value="PASM-2">PASM-2</option>
+                                <option value="PASM-3">PASM-3</option>
+                                <option value="PASM-4">PASM-4</option>
+                            {% endif %}
+                        </optgroup>
+                        <optgroup label="Botiquines de Atención Médica Avanzada">
+                            <option value="Botiquines Avanzada">Botiquines Avanzada General</option>
+                            {% if botiquines_opciones %}
+                                {% for op in botiquines_opciones %}
+                                <option value="{{ op }}">{{ op }}</option>
+                                {% endfor %}
+                            {% else %}
+                                <option value="Botiquín 1">Botiquín 1</option>
+                                <option value="Botiquín 2">Botiquín 2</option>
+                                <option value="Botiquín 3">Botiquín 3</option>
+                                <option value="Botiquín 4">Botiquín 4</option>
+                            {% endif %}
+                        </optgroup>
                     </select>
                 </div>
             </div>
@@ -1812,20 +1857,61 @@ function descartarVencido(itemId, nombre) {
                     <label>Destino</label>
                     <select name="destino" id="manualDestino">
                         <option value="" disabled selected>-- Seleccione Destino --</option>
-                        <option value="Movil 1">Móvil 1</option>
-                        <option value="Movil 2">Móvil 2</option>
-                        <option value="Movil 3">Móvil 3</option>
-                        <option value="Movil 4">Móvil 4</option>
-                        <option value="Movil 5">Móvil 5</option>
-                        <option value="Movil 6">Móvil 6</option>
-                        <option value="Unidad de Rescate">Unidad de Rescate</option>
-                        <option value="PASM">PASM</option>
-                        <option value="PASB">PASB General</option>
-                        <option value="PASB-1">PASB-1</option>
-                        <option value="PASB-2">PASB-2</option>
-                        <option value="PASB-3">PASB-3</option>
-                        <option value="PASB-4">PASB-4</option>
-                        <option value="Botiquines Avanzada">Botiquines Avanzada</option>
+                        <optgroup label="Móviles / Vehículos">
+                            <option value="Movil 1">Móvil 1</option>
+                            <option value="Movil 2">Móvil 2</option>
+                            <option value="Movil 3">Móvil 3</option>
+                            <option value="Movil 4">Móvil 4</option>
+                            <option value="Movil 5">Móvil 5</option>
+                            <option value="Movil 6">Móvil 6</option>
+                            <option value="Unidad de Rescate">Unidad de Rescate</option>
+                            {% if vehiculos %}
+                                {% for v in vehiculos %}
+                                    {% if v.placa and v.placa not in ['Movil 1', 'Movil 2', 'Movil 3', 'Movil 4', 'Movil 5', 'Movil 6'] %}
+                                    <option value="{{ v.placa }}">{{ v.placa }}{% if v.tipo_ambulancia %} ({{ v.tipo_ambulancia }}{% if v.movil %} - {{ v.movil }}{% endif %}){% elif v.tipo %} ({{ v.tipo }}){% endif %}</option>
+                                    {% endif %}
+                                {% endfor %}
+                            {% endif %}
+                        </optgroup>
+                        <optgroup label="Puestos de Atención Básica (PASB)">
+                            <option value="PASB">PASB General</option>
+                            {% if pasb_opciones %}
+                                {% for op in pasb_opciones %}
+                                <option value="{{ op }}">{{ op }}</option>
+                                {% endfor %}
+                            {% else %}
+                                <option value="PASB-1">PASB-1</option>
+                                <option value="PASB-2">PASB-2</option>
+                                <option value="PASB-3">PASB-3</option>
+                                <option value="PASB-4">PASB-4</option>
+                            {% endif %}
+                        </optgroup>
+                        <optgroup label="Puestos de Atención Medicalizada (PASM)">
+                            <option value="PASM">PASM General</option>
+                            {% if pasm_opciones %}
+                                {% for op in pasm_opciones %}
+                                <option value="{{ op }}">{{ op }}</option>
+                                {% endfor %}
+                            {% else %}
+                                <option value="PASM-1">PASM-1</option>
+                                <option value="PASM-2">PASM-2</option>
+                                <option value="PASM-3">PASM-3</option>
+                                <option value="PASM-4">PASM-4</option>
+                            {% endif %}
+                        </optgroup>
+                        <optgroup label="Botiquines de Atención Médica Avanzada">
+                            <option value="Botiquines Avanzada">Botiquines Avanzada General</option>
+                            {% if botiquines_opciones %}
+                                {% for op in botiquines_opciones %}
+                                <option value="{{ op }}">{{ op }}</option>
+                                {% endfor %}
+                            {% else %}
+                                <option value="Botiquín 1">Botiquín 1</option>
+                                <option value="Botiquín 2">Botiquín 2</option>
+                                <option value="Botiquín 3">Botiquín 3</option>
+                                <option value="Botiquín 4">Botiquín 4</option>
+                            {% endif %}
+                        </optgroup>
                     </select>
                 </div>
             </div>
@@ -2152,26 +2238,29 @@ function descartarVencido(itemId, nombre) {
             if (tipo_egreso === 'Reposicion') {
                 destino = document.getElementById('scannerDestino').value;
                 if (!destino) {
+                    const swalDestinoOptions = {};
+                    const destSelect = document.getElementById('scannerDestino') || document.getElementById('manualDestino');
+                    if (destSelect) {
+                        Array.from(destSelect.children).forEach(child => {
+                            if (child.tagName === 'OPTGROUP') {
+                                const groupObj = {};
+                                Array.from(child.children).forEach(opt => {
+                                    if (opt.value) groupObj[opt.value] = opt.text;
+                                });
+                                if (Object.keys(groupObj).length > 0) {
+                                    swalDestinoOptions[child.label] = groupObj;
+                                }
+                            } else if (child.tagName === 'OPTION' && child.value) {
+                                swalDestinoOptions[child.value] = child.text;
+                            }
+                        });
+                    }
+
                     Swal.fire({
                         title: 'Destino Requerido',
                         text: 'Seleccione el destino de la reposición:',
                         input: 'select',
-                        inputOptions: {
-                            'Movil 1': 'Móvil 1',
-                            'Movil 2': 'Móvil 2',
-                            'Movil 3': 'Móvil 3',
-                            'Movil 4': 'Móvil 4',
-                            'Movil 5': 'Móvil 5',
-                            'Movil 6': 'Móvil 6',
-                            'Unidad de Rescate': 'Unidad de Rescate',
-                            'PASM': 'PASM',
-                            'PASB': 'PASB General',
-                            'PASB-1': 'PASB-1',
-                            'PASB-2': 'PASB-2',
-                            'PASB-3': 'PASB-3',
-                            'PASB-4': 'PASB-4',
-                            'Botiquines Avanzada': 'Botiquines Avanzada'
-                        },
+                        inputOptions: swalDestinoOptions,
                         inputPlaceholder: '-- Seleccione Destino --',
                         showCancelButton: true,
                         confirmButtonText: 'Continuar',
