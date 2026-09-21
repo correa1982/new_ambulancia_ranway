@@ -240,61 +240,41 @@ def register_routes(app):
             try:
                 veh_rows = conn.execute(
                     """SELECT placa, tipo, tipo_ambulancia, movil FROM vehiculos 
-                       WHERE (tipo = 'TAM' OR tipo_ambulancia = 'TAM' OR tipo LIKE '%TAM%' OR tipo_ambulancia LIKE '%TAM%') 
+                       WHERE (UPPER(TRIM(tipo_ambulancia)) = 'TAM' OR UPPER(TRIM(tipo)) = 'TAM') 
                          AND activo = 1 ORDER BY placa"""
                 ).fetchall()
-                veh_placas = {r["placa"] for r in veh_rows}
                 vehiculos = []
                 for r in veh_rows:
                     d = dict(r)
-                    subtipo = d.get("tipo_ambulancia") or d.get("tipo")
+                    subtipo = d.get("tipo_ambulancia") or d.get("tipo") or "TAM"
                     if d.get("movil"):
                         d["tipo"] = f"{subtipo} ({d['movil']})"
                     else:
                         d["tipo"] = subtipo
                     vehiculos.append(d)
-                tam_db = conn.execute(
-                    "SELECT DISTINCT placa FROM checklist_tam WHERE placa IS NOT NULL AND placa != '' ORDER BY placa"
-                ).fetchall()
-                for r in tam_db:
-                    if r["placa"] not in veh_placas:
-                        vehiculos.append({"placa": r["placa"], "tipo": "TAM"})
-                        veh_placas.add(r["placa"])
             except Exception:
-                pass
-            if not vehiculos:
-                vehiculos = conn.execute("SELECT placa, tipo FROM vehiculos WHERE activo = 1 ORDER BY placa").fetchall()
+                vehiculos = []
         elif tipo == "tab":
             try:
                 veh_rows = conn.execute(
                     """SELECT placa, tipo, tipo_ambulancia, movil FROM vehiculos 
-                       WHERE (tipo = 'TAB' OR tipo_ambulancia = 'TAB' OR tipo LIKE '%TAB%' OR tipo_ambulancia LIKE '%TAB%') 
+                       WHERE (UPPER(TRIM(tipo_ambulancia)) = 'TAB' OR UPPER(TRIM(tipo)) = 'TAB') 
                          AND activo = 1 ORDER BY placa"""
                 ).fetchall()
-                veh_placas = {r["placa"] for r in veh_rows}
                 vehiculos = []
                 for r in veh_rows:
                     d = dict(r)
-                    subtipo = d.get("tipo_ambulancia") or d.get("tipo")
+                    subtipo = d.get("tipo_ambulancia") or d.get("tipo") or "TAB"
                     if d.get("movil"):
                         d["tipo"] = f"{subtipo} ({d['movil']})"
                     else:
                         d["tipo"] = subtipo
                     vehiculos.append(d)
-                tab_db = conn.execute(
-                    "SELECT DISTINCT placa FROM checklist_tab WHERE placa IS NOT NULL AND placa != '' ORDER BY placa"
-                ).fetchall()
-                for r in tab_db:
-                    if r["placa"] not in veh_placas:
-                        vehiculos.append({"placa": r["placa"], "tipo": "TAB"})
-                        veh_placas.add(r["placa"])
             except Exception:
-                pass
-            if not vehiculos:
-                vehiculos = conn.execute("SELECT placa, tipo FROM vehiculos WHERE activo = 1 ORDER BY placa").fetchall()
+                vehiculos = []
         else:
             vehiculos = conn.execute(
-                "SELECT placa, tipo FROM vehiculos WHERE activo = 1 ORDER BY tipo, placa"
+                "SELECT placa, tipo, tipo_ambulancia, movil FROM vehiculos WHERE activo = 1 ORDER BY tipo, placa"
             ).fetchall()
 
         if tipo == "pasm":

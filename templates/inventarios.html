@@ -1693,17 +1693,10 @@ function descartarVencido(itemId, nombre) {
                     <select id="scannerDestino" style="padding: 6px; font-size: 13px;">
                         <option value="" disabled selected>-- Seleccione Destino --</option>
                         <optgroup label="Móviles / Vehículos">
-                            <option value="Movil 1">Móvil 1</option>
-                            <option value="Movil 2">Móvil 2</option>
-                            <option value="Movil 3">Móvil 3</option>
-                            <option value="Movil 4">Móvil 4</option>
-                            <option value="Movil 5">Móvil 5</option>
-                            <option value="Movil 6">Móvil 6</option>
-                            <option value="Unidad de Rescate">Unidad de Rescate</option>
                             {% if vehiculos %}
                                 {% for v in vehiculos %}
-                                    {% if v.placa and v.placa not in ['Movil 1', 'Movil 2', 'Movil 3', 'Movil 4', 'Movil 5', 'Movil 6'] %}
-                                    <option value="{{ v.placa }}">{{ v.placa }}{% if v.tipo_ambulancia %} ({{ v.tipo_ambulancia }}{% if v.movil %} - {{ v.movil }}{% endif %}){% elif v.tipo %} ({{ v.tipo }}){% endif %}</option>
+                                    {% if v.placa %}
+                                    <option value="{{ v.placa }}">{{ v.placa }}{% if v.tipo_ambulancia %} ({{ v.tipo_ambulancia }}{% if v.movil %} - {{ v.movil }}{% endif %}){% elif v.tipo %} ({{ v.tipo }}{% if v.movil %} - {{ v.movil }}{% endif %}){% elif v.movil %} ({{ v.movil }}){% endif %}</option>
                                     {% endif %}
                                 {% endfor %}
                             {% endif %}
@@ -1858,17 +1851,10 @@ function descartarVencido(itemId, nombre) {
                     <select name="destino" id="manualDestino">
                         <option value="" disabled selected>-- Seleccione Destino --</option>
                         <optgroup label="Móviles / Vehículos">
-                            <option value="Movil 1">Móvil 1</option>
-                            <option value="Movil 2">Móvil 2</option>
-                            <option value="Movil 3">Móvil 3</option>
-                            <option value="Movil 4">Móvil 4</option>
-                            <option value="Movil 5">Móvil 5</option>
-                            <option value="Movil 6">Móvil 6</option>
-                            <option value="Unidad de Rescate">Unidad de Rescate</option>
                             {% if vehiculos %}
                                 {% for v in vehiculos %}
-                                    {% if v.placa and v.placa not in ['Movil 1', 'Movil 2', 'Movil 3', 'Movil 4', 'Movil 5', 'Movil 6'] %}
-                                    <option value="{{ v.placa }}">{{ v.placa }}{% if v.tipo_ambulancia %} ({{ v.tipo_ambulancia }}{% if v.movil %} - {{ v.movil }}{% endif %}){% elif v.tipo %} ({{ v.tipo }}){% endif %}</option>
+                                    {% if v.placa %}
+                                    <option value="{{ v.placa }}">{{ v.placa }}{% if v.tipo_ambulancia %} ({{ v.tipo_ambulancia }}{% if v.movil %} - {{ v.movil }}{% endif %}){% elif v.tipo %} ({{ v.tipo }}{% if v.movil %} - {{ v.movil }}{% endif %}){% elif v.movil %} ({{ v.movil }}){% endif %}</option>
                                     {% endif %}
                                 {% endfor %}
                             {% endif %}

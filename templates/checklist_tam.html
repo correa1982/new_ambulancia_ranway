@@ -271,7 +271,7 @@
         <select name="placa" id="placa" class="select-btn" required>
             <option value="">— Seleccionar Placa —</option>
             {% for v in vehiculos %}
-            <option value="{{ v.placa }}" {% if (record and record.placa == v.placa) or (placa_param and placa_param == v.placa) %}selected{% endif %}>{{ v.placa }} - {{ v.tipo }}</option>
+            <option value="{{ v.placa }}" data-movil="{{ v.movil or '' }}" data-tipo="{{ v.tipo or '' }}" {% if (record and record.placa == v.placa) or (placa_param and placa_param == v.placa) %}selected{% endif %}>{{ v.placa }} - {{ v.tipo }}</option>
             {% endfor %}
             {% if record and record.placa and record.placa not in vehiculos|map(attribute='placa') %}
             <option value="{{ record.placa }}" selected>{{ record.placa }} (Registrado)</option>
@@ -1208,13 +1208,24 @@ function updatePendingTrasladosVisibility(selectedPlaca) {
     }
 
     const normSel = selectedPlaca.trim().toUpperCase();
+    const selElem = document.getElementById('placa');
+    const selOpt = selElem ? selElem.options[selElem.selectedIndex] : null;
+    const normMovil = (selOpt ? (selOpt.getAttribute('data-movil') || '') : '').trim().toUpperCase();
     let visibleCount = 0;
+
+    const checkMatch = (dest) => {
+        if (!dest) return false;
+        if (dest === normSel || dest.includes(normSel) || normSel.includes(dest)) return true;
+        if (normMovil && (dest === normMovil || dest.includes(normMovil) || normMovil.includes(dest))) return true;
+        if (dest === 'TAM') return true;
+        return false;
+    };
 
     // Filter table rows
     const tableRows = panel.querySelectorAll('.traslado-table-row');
     tableRows.forEach(row => {
         const dest = (row.getAttribute('data-destino') || '').trim().toUpperCase();
-        if (dest === normSel || dest === 'TAM' || dest.includes(normSel) || normSel.includes(dest)) {
+        if (checkMatch(dest)) {
             row.style.display = '';
             visibleCount++;
         } else {
@@ -1226,7 +1237,7 @@ function updatePendingTrasladosVisibility(selectedPlaca) {
     const mobileCards = panel.querySelectorAll('.traslado-card-item');
     mobileCards.forEach(card => {
         const dest = (card.getAttribute('data-destino') || '').trim().toUpperCase();
-        if (dest === normSel || dest === 'TAM' || dest.includes(normSel) || normSel.includes(dest)) {
+        if (checkMatch(dest)) {
             card.style.display = '';
         } else {
             card.style.display = 'none';
