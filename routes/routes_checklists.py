@@ -117,7 +117,7 @@ def register_routes(app):
             pasb_numero = data.get("pasb_numero", "")
             pasm_numero = data.get("pasm_numero", "")
             items_db = conn.execute(
-                "SELECT * FROM checklist_items WHERE tipo_checklist = ? AND activo = 1 ORDER BY categoria, id",
+                "SELECT * FROM checklist_items WHERE tipo_checklist = ? AND activo = 1 ORDER BY categoria, orden ASC, id ASC",
                 (tipo,)
             ).fetchall()
             datos = {}
@@ -232,7 +232,7 @@ def register_routes(app):
 
         conn = get_db()
         items_db = conn.execute(
-            "SELECT * FROM checklist_items WHERE tipo_checklist = ? AND activo = 1 ORDER BY categoria, id",
+            "SELECT * FROM checklist_items WHERE tipo_checklist = ? AND activo = 1 ORDER BY categoria, orden ASC, id ASC",
             (tipo,)
         ).fetchall()
         vehiculos = []
@@ -705,7 +705,7 @@ def register_routes(app):
                 
         # Load checklist_items to preserve exact order
         items_db = conn.execute(
-            "SELECT * FROM checklist_items WHERE tipo_checklist = ? ORDER BY categoria, id",
+            "SELECT * FROM checklist_items WHERE tipo_checklist = ? ORDER BY categoria, orden ASC, id ASC",
             (tipo,)
         ).fetchall()
         checklist_items_by_cat = {}
