@@ -849,6 +849,12 @@
                 <label>Nombre del ítem</label>
                 <input type="text" name="nombre" id="input-nombre-item" required placeholder="Ej. Adrenalina / Epinefrina">
             </div>
+            <div class="field" style="flex: 1.5; min-width: 180px;">
+                <label>Ubicación / Posición</label>
+                <select name="posicion" id="select-posicion-item" style="padding: 8px 12px; border: 1.5px solid #cbd5e1; border-radius: 7px; font-size: 13px; font-family: inherit; width: 100%;">
+                    <option value="final">Al final (por defecto)</option>
+                </select>
+            </div>
             {% if tipo in ('tam', 'tab', 'pasm', 'pasb', 'avanzada') %}
             <div class="field" style="flex: 1; min-width: 100px;">
                 <label>Cantidad</label>
@@ -897,7 +903,7 @@
 <div class="table-responsive">
 <table class="items-table">
 <thead><tr>
-    <th>#</th>
+    <th style="width: 70px; text-align: center;">#</th>
     <th>Nombre del Ítem</th>
     {% if tipo in ('tam', 'tab', 'pasm', 'pasb', 'avanzada') %}
     <th>Cantidad</th>
@@ -910,7 +916,27 @@
 <tbody>
 {% for item in items_por_cat[cat] %}
 <tr style="{{ 'opacity: 0.5;' if not item.activo }}">
-    <td style="color: #94a3b8; font-weight: 600;">{{ loop.index }}</td>
+    <td style="color: #64748b; font-weight: 700; text-align: center; white-space: nowrap; width: 70px;">
+        <div style="display: inline-flex; align-items: center; justify-content: center; gap: 4px;">
+            <span>{{ loop.index }}</span>
+            <div style="display: inline-flex; flex-direction: column; gap: 2px;">
+                {% if not loop.first %}
+                <a href="{{ url_for('admin_checklist_mover', item_id=item.id, direccion='arriba') }}" 
+                   title="Subir ítem en la lista" 
+                   style="text-decoration: none; font-size: 9px; line-height: 1; padding: 2px 4px; background: #f1f5f9; border-radius: 3px; color: #475569; border: 1px solid #cbd5e1; transition: all 0.15s ease;"
+                   onmouseover="this.style.background='#dbeafe'; this.style.color='#1e40af';"
+                   onmouseout="this.style.background='#f1f5f9'; this.style.color='#475569';">▲</a>
+                {% endif %}
+                {% if not loop.last %}
+                <a href="{{ url_for('admin_checklist_mover', item_id=item.id, direccion='abajo') }}" 
+                   title="Bajar ítem en la lista" 
+                   style="text-decoration: none; font-size: 9px; line-height: 1; padding: 2px 4px; background: #f1f5f9; border-radius: 3px; color: #475569; border: 1px solid #cbd5e1; transition: all 0.15s ease;"
+                   onmouseover="this.style.background='#dbeafe'; this.style.color='#1e40af';"
+                   onmouseout="this.style.background='#f1f5f9'; this.style.color='#475569';">▼</a>
+                {% endif %}
+            </div>
+        </div>
+    </td>
     <td style="font-weight: 600;">{{ item.nombre }}</td>
     {% if tipo in ('tam', 'tab', 'pasm', 'pasb', 'avanzada') %}
     <td style="font-weight: 600;">{{ item.cantidad if item.cantidad is not none else '—' }}</td>
@@ -938,7 +964,9 @@
                     data-nombre="{{ item.nombre }}" 
                     data-cantidad="{{ item.cantidad if item.cantidad is not none else '' }}" 
                     data-tipo="{{ tipo }}"
-                    onclick="openEditItemModal(this.dataset.id, this.dataset.nombre, this.dataset.cantidad, this.dataset.tipo)">
+                    data-categoria="{{ item.categoria }}"
+                    data-orden="{{ loop.index }}"
+                    onclick="openEditItemModal(this.dataset.id, this.dataset.nombre, this.dataset.cantidad, this.dataset.tipo, this.dataset.categoria, this.dataset.orden)">
                 ✏️ Editar
             </button>
             <a href="{{ url_for('admin_checklist_toggle', item_id=item.id) }}" class="action-btn btn-toggle" style="padding: 4px 8px;">
@@ -1172,8 +1200,57 @@
         });
     }
 
+    // --- Mapa de ítems por categoría para asignación de ubicación/orden ---
+    const itemsPorCategoria = {
+        {% if items_por_cat %}
+            {% for c_name, c_items in items_por_cat.items() %}
+                {{ c_name|tojson }}: [
+                    {% for it in c_items %}
+                        { id: {{ it.id }}, nombre: {{ it.nombre|tojson }}, orden: {{ loop.index }} },
+                    {% endfor %}
+                ],
+            {% endfor %}
+        {% endif %}
+    };
+
+    function actualizarSelectPosicion(categoria) {
+        const selectPos = document.getElementById('select-posicion-item');
+        if (!selectPos) return;
+        selectPos.innerHTML = '';
+
+        const list = itemsPorCategoria[categoria] || [];
+        const total = list.length;
+
+        // Opción por defecto: Al final
+        const optFinal = document.createElement('option');
+        optFinal.value = 'final';
+        optFinal.textContent = `Al final (Posición ${total + 1})`;
+        optFinal.selected = true;
+        selectPos.appendChild(optFinal);
+
+        // Opciones para cada posición
+        list.forEach((item, index) => {
+            const pos = index + 1;
+            const opt = document.createElement('option');
+            opt.value = pos;
+            const nomCorto = item.nombre.length > 28 ? item.nombre.substring(0, 28) + '...' : item.nombre;
+            opt.textContent = `${pos}. Antes de: ${nomCorto}`;
+            selectPos.appendChild(opt);
+        });
+    }
+
+    const selectCategoria = document.getElementById('select-categoria');
+    if (selectCategoria) {
+        selectCategoria.addEventListener('change', function() {
+            actualizarSelectPosicion(this.value);
+        });
+        if (selectCategoria.value) {
+            actualizarSelectPosicion(selectCategoria.value);
+        }
+    }
+
     // --- Modal Edit Checklist Item JS ---
-    function openEditItemModal(id, nombre, cantidad, tipo) {
+    function openEditItemModal(id, nombre, cantidad, tipo, categoria, ordenActual) {
         const modal = document.getElementById('modal-editar-item');
         const form = document.getElementById('form-editar-item');
         form.action = `/admin/checklists/editar/${id}`;
@@ -1187,6 +1264,33 @@
         } else {
             fieldCant.style.display = 'none';
             inputCant.value = '';
+        }
+
+        // Llenar selector de posición en el modal de edición
+        const selectEditPos = document.getElementById('edit-item-posicion');
+        if (selectEditPos) {
+            selectEditPos.innerHTML = '';
+            const list = itemsPorCategoria[categoria] || [];
+            const currentPos = parseInt(ordenActual, 10) || 1;
+            list.forEach((item, index) => {
+                const pos = index + 1;
+                const opt = document.createElement('option');
+                opt.value = pos;
+                const nomCorto = item.nombre.length > 30 ? item.nombre.substring(0, 30) + '...' : item.nombre;
+                if (pos === currentPos) {
+                    opt.textContent = `Posición ${pos} (Actual: ${nomCorto})`;
+                    opt.selected = true;
+                } else {
+                    opt.textContent = `Posición ${pos} (En lugar de: ${nomCorto})`;
+                }
+                selectEditPos.appendChild(opt);
+            });
+            if (list.length === 0) {
+                const opt = document.createElement('option');
+                opt.value = '1';
+                opt.textContent = 'Posición 1';
+                selectEditPos.appendChild(opt);
+            }
         }
         
         modal.style.display = 'flex';
@@ -1306,6 +1410,11 @@
                 <div id="edit-item-field-cantidad">
                     <label style="font-size: 12px; font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">Cantidad Requerida</label>
                     <input type="number" name="cantidad" id="edit-item-cantidad" min="0" style="width: 100%; padding: 8px 12px; border: 1.5px solid #cbd5e1; border-radius: 7px; font-size: 13px; font-family: inherit; box-sizing: border-box;">
+                </div>
+                <div id="edit-item-field-posicion">
+                    <label style="font-size: 12px; font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">Ubicación / Posición en la categoría</label>
+                    <select name="posicion" id="edit-item-posicion" style="width: 100%; padding: 8px 12px; border: 1.5px solid #cbd5e1; border-radius: 7px; font-size: 13px; font-family: inherit; box-sizing: border-box;">
+                    </select>
                 </div>
             </div>
             <div style="padding: 16px 24px; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; gap: 10px; background: #f8fafc;">

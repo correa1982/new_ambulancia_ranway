@@ -117,7 +117,7 @@ def register_routes(app):
             pasb_numero = data.get("pasb_numero", "")
             pasm_numero = data.get("pasm_numero", "")
             items_db = conn.execute(
-                "SELECT * FROM checklist_items WHERE tipo_checklist = ? AND activo = 1 ORDER BY categoria, id",
+                "SELECT * FROM checklist_items WHERE tipo_checklist = ? AND activo = 1 ORDER BY categoria, orden ASC, id ASC",
                 (tipo,)
             ).fetchall()
             datos = {}
@@ -232,17 +232,27 @@ def register_routes(app):
 
         conn = get_db()
         items_db = conn.execute(
-            "SELECT * FROM checklist_items WHERE tipo_checklist = ? AND activo = 1 ORDER BY categoria, id",
+            "SELECT * FROM checklist_items WHERE tipo_checklist = ? AND activo = 1 ORDER BY categoria, orden ASC, id ASC",
             (tipo,)
         ).fetchall()
         vehiculos = []
         if tipo == "tam":
             try:
                 veh_rows = conn.execute(
-                    "SELECT placa, tipo FROM vehiculos WHERE (tipo = 'TAM' OR tipo LIKE '%TAM%') AND activo = 1 ORDER BY placa"
+                    """SELECT placa, tipo, tipo_ambulancia, movil FROM vehiculos 
+                       WHERE (tipo = 'TAM' OR tipo_ambulancia = 'TAM' OR tipo LIKE '%TAM%' OR tipo_ambulancia LIKE '%TAM%') 
+                         AND activo = 1 ORDER BY placa"""
                 ).fetchall()
                 veh_placas = {r["placa"] for r in veh_rows}
-                vehiculos = [dict(r) for r in veh_rows]
+                vehiculos = []
+                for r in veh_rows:
+                    d = dict(r)
+                    subtipo = d.get("tipo_ambulancia") or d.get("tipo")
+                    if d.get("movil"):
+                        d["tipo"] = f"{subtipo} ({d['movil']})"
+                    else:
+                        d["tipo"] = subtipo
+                    vehiculos.append(d)
                 tam_db = conn.execute(
                     "SELECT DISTINCT placa FROM checklist_tam WHERE placa IS NOT NULL AND placa != '' ORDER BY placa"
                 ).fetchall()
@@ -257,10 +267,20 @@ def register_routes(app):
         elif tipo == "tab":
             try:
                 veh_rows = conn.execute(
-                    "SELECT placa, tipo FROM vehiculos WHERE (tipo = 'TAB' OR tipo LIKE '%TAB%') AND activo = 1 ORDER BY placa"
+                    """SELECT placa, tipo, tipo_ambulancia, movil FROM vehiculos 
+                       WHERE (tipo = 'TAB' OR tipo_ambulancia = 'TAB' OR tipo LIKE '%TAB%' OR tipo_ambulancia LIKE '%TAB%') 
+                         AND activo = 1 ORDER BY placa"""
                 ).fetchall()
                 veh_placas = {r["placa"] for r in veh_rows}
-                vehiculos = [dict(r) for r in veh_rows]
+                vehiculos = []
+                for r in veh_rows:
+                    d = dict(r)
+                    subtipo = d.get("tipo_ambulancia") or d.get("tipo")
+                    if d.get("movil"):
+                        d["tipo"] = f"{subtipo} ({d['movil']})"
+                    else:
+                        d["tipo"] = subtipo
+                    vehiculos.append(d)
                 tab_db = conn.execute(
                     "SELECT DISTINCT placa FROM checklist_tab WHERE placa IS NOT NULL AND placa != '' ORDER BY placa"
                 ).fetchall()
@@ -705,7 +725,7 @@ def register_routes(app):
                 
         # Load checklist_items to preserve exact order
         items_db = conn.execute(
-            "SELECT * FROM checklist_items WHERE tipo_checklist = ? ORDER BY categoria, id",
+            "SELECT * FROM checklist_items WHERE tipo_checklist = ? ORDER BY categoria, orden ASC, id ASC",
             (tipo,)
         ).fetchall()
         checklist_items_by_cat = {}
