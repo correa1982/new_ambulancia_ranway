@@ -578,7 +578,8 @@ def init_db():
             nombre TEXT NOT NULL,
             activo INTEGER DEFAULT 1,
             cantidad INTEGER DEFAULT NULL,
-            aplica_vencimiento INTEGER DEFAULT 0
+            aplica_vencimiento INTEGER DEFAULT 0,
+            orden INTEGER DEFAULT 0
         )
     """)
 
@@ -1445,6 +1446,31 @@ def init_db():
         ci_cols = [row["Field"] for row in cursor.fetchall()]
         if "aplica_vencimiento" not in ci_cols:
             conn.execute("ALTER TABLE checklist_items ADD COLUMN aplica_vencimiento INTEGER DEFAULT 0")
+    except Exception:
+        pass
+
+    # Migration for checklist_items orden
+    try:
+        cursor.execute("DESCRIBE checklist_items")
+        ci_cols = [row["Field"] for row in cursor.fetchall()]
+        if "orden" not in ci_cols:
+            conn.execute("ALTER TABLE checklist_items ADD COLUMN orden INTEGER DEFAULT 0")
+        
+        # Inicializar orden secuencial si hay items con orden 0 o nulo
+        rows_sin_orden = conn.execute("SELECT id FROM checklist_items WHERE orden IS NULL OR orden = 0 LIMIT 1").fetchone()
+        if rows_sin_orden:
+            rows = conn.execute("SELECT id, tipo_checklist, categoria FROM checklist_items ORDER BY tipo_checklist, categoria, id").fetchall()
+            curr_key = None
+            curr_order = 0
+            for r in rows:
+                key = (r["tipo_checklist"], r["categoria"])
+                if key != curr_key:
+                    curr_key = key
+                    curr_order = 1
+                else:
+                    curr_order += 1
+                conn.execute("UPDATE checklist_items SET orden = ? WHERE id = ?", (curr_order, r["id"]))
+            conn.commit()
     except Exception:
         pass
             

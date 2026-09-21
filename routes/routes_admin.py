@@ -289,7 +289,7 @@ def register_routes(app):
                                    usuario=session["usuario"])
 
         items = conn.execute(
-            "SELECT * FROM checklist_items WHERE tipo_checklist = ? ORDER BY categoria, id",
+            "SELECT * FROM checklist_items WHERE tipo_checklist = ? ORDER BY categoria, orden ASC, id ASC",
             (tipo,)
         ).fetchall()
         categorias = conn.execute(
@@ -312,6 +312,7 @@ def register_routes(app):
         tipo = request.form.get("tipo_checklist", "tam")
         categoria = request.form.get("categoria", "").strip()
         nombre = request.form.get("nombre", "").strip()
+        posicion_raw = request.form.get("posicion", "").strip()
 
         if not categoria or not nombre:
             flash("La categoría y el nombre son obligatorios.", "error")
@@ -342,12 +343,41 @@ def register_routes(app):
         if existing:
             flash("Ya existe un ítem con ese nombre en esta categoría del checklist.", "error")
         else:
+            # Obtener el máximo orden existente en esta categoría
+            max_row = conn.execute(
+                "SELECT MAX(orden) as max_o FROM checklist_items WHERE tipo_checklist = ? AND categoria = ?",
+                (tipo, categoria)
+            ).fetchone()
+            max_orden = (max_row["max_o"] or 0) if max_row else 0
+
+            target_pos = None
+            if posicion_raw and posicion_raw.isdigit():
+                target_pos = int(posicion_raw)
+
+            if target_pos is not None and 1 <= target_pos <= max_orden:
+                conn.execute(
+                    "UPDATE checklist_items SET orden = orden + 1 WHERE tipo_checklist = ? AND categoria = ? AND orden >= ?",
+                    (tipo, categoria, target_pos)
+                )
+                orden_nuevo = target_pos
+            else:
+                orden_nuevo = max_orden + 1
+
             conn.execute(
-                "INSERT INTO checklist_items (tipo_checklist, categoria, identificador, nombre, activo, cantidad, aplica_vencimiento) VALUES (?, ?, ?, ?, 1, ?, ?)",
-                (tipo, categoria, identificador, nombre, cantidad, aplica_vencimiento)
+                "INSERT INTO checklist_items (tipo_checklist, categoria, identificador, nombre, activo, cantidad, aplica_vencimiento, orden) VALUES (?, ?, ?, ?, 1, ?, ?, ?)",
+                (tipo, categoria, identificador, nombre, cantidad, aplica_vencimiento, orden_nuevo)
             )
+
+            # Normalizar los órdenes de la categoría (1..N)
+            items_cat = conn.execute(
+                "SELECT id FROM checklist_items WHERE tipo_checklist = ? AND categoria = ? ORDER BY orden ASC, id ASC",
+                (tipo, categoria)
+            ).fetchall()
+            for idx, it in enumerate(items_cat, start=1):
+                conn.execute("UPDATE checklist_items SET orden = ? WHERE id = ?", (idx, it["id"]))
+
             conn.commit()
-            flash(f"Ítem «{nombre}» agregado al checklist {tipo.upper()}.", "success")
+            flash(f"Ítem «{nombre}» agregado al checklist {tipo.upper()} en la posición {orden_nuevo}.", "success")
         conn.close()
         return redirect(url_for("admin_checklists", tipo=tipo))
 
@@ -377,14 +407,72 @@ def register_routes(app):
             except (ValueError, TypeError):
                 cantidad = 1
 
+        posicion_raw = request.form.get("posicion", "").strip()
+
         conn.execute(
             "UPDATE checklist_items SET nombre = ?, cantidad = ? WHERE id = ?",
             (nombre, cantidad, item_id)
         )
+
+        tipo = item["tipo_checklist"]
+        categoria = item["categoria"]
+
+        # Si se envió nueva posición, reubicar
+        if posicion_raw and posicion_raw.isdigit():
+            nueva_pos = int(posicion_raw)
+            items_cat = conn.execute(
+                "SELECT id FROM checklist_items WHERE tipo_checklist = ? AND categoria = ? ORDER BY orden ASC, id ASC",
+                (tipo, categoria)
+            ).fetchall()
+            ids = [it["id"] for it in items_cat if it["id"] != item_id]
+            nueva_pos = max(1, min(nueva_pos, len(ids) + 1))
+            ids.insert(nueva_pos - 1, item_id)
+            for idx, it_id in enumerate(ids, start=1):
+                conn.execute("UPDATE checklist_items SET orden = ? WHERE id = ?", (idx, it_id))
+
         conn.commit()
         conn.close()
         flash(f"Ítem «{nombre}» actualizado con éxito.", "success")
         return redirect(url_for("admin_checklists", tipo=item["tipo_checklist"]))
+
+
+    @app.route("/admin/checklists/mover/<int:item_id>/<direccion>")
+    @login_required
+    @admin_required
+    def admin_checklist_mover(item_id, direccion):
+        if direccion not in ("arriba", "abajo"):
+            flash("Dirección inválida.", "error")
+            return redirect(url_for("admin_checklists"))
+
+        conn = get_db()
+        item = conn.execute("SELECT * FROM checklist_items WHERE id = ?", (item_id,)).fetchone()
+        if not item:
+            conn.close()
+            flash("Ítem no encontrado.", "error")
+            return redirect(url_for("admin_checklists"))
+
+        tipo = item["tipo_checklist"]
+        categoria = item["categoria"]
+
+        items_cat = conn.execute(
+            "SELECT id FROM checklist_items WHERE tipo_checklist = ? AND categoria = ? ORDER BY orden ASC, id ASC",
+            (tipo, categoria)
+        ).fetchall()
+        ids = [it["id"] for it in items_cat]
+
+        if item_id in ids:
+            curr_idx = ids.index(item_id)
+            if direccion == "arriba" and curr_idx > 0:
+                ids[curr_idx], ids[curr_idx - 1] = ids[curr_idx - 1], ids[curr_idx]
+            elif direccion == "abajo" and curr_idx < len(ids) - 1:
+                ids[curr_idx], ids[curr_idx + 1] = ids[curr_idx + 1], ids[curr_idx]
+
+            for idx, it_id in enumerate(ids, start=1):
+                conn.execute("UPDATE checklist_items SET orden = ? WHERE id = ?", (idx, it_id))
+            conn.commit()
+
+        conn.close()
+        return redirect(url_for("admin_checklists", tipo=tipo))
 
 
     @app.route("/admin/checklists/toggle_vencimiento/<int:item_id>")
@@ -432,7 +520,15 @@ def register_routes(app):
         item = conn.execute("SELECT * FROM checklist_items WHERE id = ?", (item_id,)).fetchone()
         if item:
             tipo = item["tipo_checklist"]
+            categoria = item["categoria"]
             conn.execute("DELETE FROM checklist_items WHERE id = ?", (item_id,))
+            # Renumerar items restantes
+            items_cat = conn.execute(
+                "SELECT id FROM checklist_items WHERE tipo_checklist = ? AND categoria = ? ORDER BY orden ASC, id ASC",
+                (tipo, categoria)
+            ).fetchall()
+            for idx, it in enumerate(items_cat, start=1):
+                conn.execute("UPDATE checklist_items SET orden = ? WHERE id = ?", (idx, it["id"]))
             conn.commit()
             flash(f"Ítem «{item['nombre']}» eliminado permanentemente.", "success")
             conn.close()
