@@ -120,6 +120,47 @@ def register_routes(app):
                 "SELECT * FROM checklist_items WHERE tipo_checklist = ? AND activo = 1 ORDER BY categoria, orden ASC, id ASC",
                 (tipo,)
             ).fetchall()
+
+            if finalizado == 1:
+                faltantes_venc = []
+                for item in items_db:
+                    if item.get("aplica_vencimiento") == 1:
+                        ident = item["identificador"]
+                        val = data.get(ident, "")
+                        fecha_venc_raw = data.get("vencimiento_" + ident, "")
+                        tipo_inc = data.get("tipo_incumplimiento_" + ident, "")
+                        cant_act = data.get("cant_actual_" + ident, "")
+
+                        has_venc = False
+                        if fecha_venc_raw:
+                            try:
+                                parsed_v = json.loads(fecha_venc_raw) if isinstance(fecha_venc_raw, str) else fecha_venc_raw
+                                if isinstance(parsed_v, list) and len(parsed_v) > 0:
+                                    has_venc = any(e.get("fecha") for e in parsed_v if isinstance(e, dict))
+                                elif isinstance(parsed_v, dict) and parsed_v.get("fecha"):
+                                    has_venc = True
+                                elif isinstance(parsed_v, str) and parsed_v.strip():
+                                    has_venc = True
+                            except Exception:
+                                has_venc = bool(str(fecha_venc_raw).strip())
+
+                        if val == "SI" and not has_venc:
+                            faltantes_venc.append(item["nombre"])
+                        elif val == "NO" and tipo_inc == "parcial":
+                            try:
+                                cant_num = int(cant_act)
+                            except Exception:
+                                cant_num = 0
+                            if cant_num > 0 and not has_venc:
+                                faltantes_venc.append(item["nombre"])
+
+                if faltantes_venc:
+                    conn.close()
+                    nombres_str = ", ".join(faltantes_venc[:4])
+                    if len(faltantes_venc) > 4:
+                        nombres_str += f" y {len(faltantes_venc) - 4} más"
+                    flash(f"Los siguientes artículos requieren fecha de vencimiento obligatoria: {nombres_str}.", "error")
+                    return redirect(request.referrer or url_for("form_checklist", tipo=tipo))
             datos = {}
             if tipo == "pasb" and pasb_numero:
                 datos["pasb_numero"] = {
@@ -305,6 +346,16 @@ def register_routes(app):
                     todos_usuarios = [dict(u) for u in usuarios_db]
                 except Exception:
                     todos_usuarios = []
+
+            for u in todos_usuarios:
+                raw_p = u.get("perfil")
+                try:
+                    p_list = json.loads(raw_p) if raw_p else []
+                    if not isinstance(p_list, list):
+                        p_list = [str(p_list)]
+                except Exception:
+                    p_list = [str(raw_p)] if raw_p else []
+                u["perfiles"] = p_list
 
         # Load draft if ?id= provided
         record_id = request.args.get("id")

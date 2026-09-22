@@ -548,7 +548,7 @@
     <button type="submit" name="accion" value="borrador" style="margin:0; box-sizing: border-box; height: 44px; font-family: inherit; background:linear-gradient(135deg,#1e6fbf,#185999); color:white; border:none; padding:0 24px; border-radius:10px; font-weight:600; font-size:14px; display:inline-flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(30,111,191,0.3);" formnovalidate onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(30,111,191,0.4)'" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 6px -1px rgba(30,111,191,0.3)'">
         <i class="ph ph-floppy-disk" style="font-size:18px;"></i> Guardar Borrador
     </button>
-    <button type="submit" name="accion" value="finalizar" style="margin:0; box-sizing: border-box; height: 44px; font-family: inherit; background:linear-gradient(135deg,#10b981,#059669); color:white; border:none; padding:0 24px; border-radius:10px; font-weight:600; font-size:14px; display:inline-flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(16,185,129,0.2);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(16,185,129,0.3)'" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 6px -1px rgba(16,185,129,0.2)'" onclick="return confirm('¿Está seguro de finalizar este registro? Una vez finalizado no podrá ser editado.');">
+    <button type="submit" name="accion" value="finalizar" style="margin:0; box-sizing: border-box; height: 44px; font-family: inherit; background:linear-gradient(135deg,#10b981,#059669); color:white; border:none; padding:0 24px; border-radius:10px; font-weight:600; font-size:14px; display:inline-flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(16,185,129,0.2);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(16,185,129,0.3)'" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 6px -1px rgba(16,185,129,0.2)'" onclick="return validarYConfirmarFinalizacionAvanzada(event);">
         <i class="ph ph-check-circle" style="font-size:18px;"></i> Finalizar Check List Avanzada
     </button>
 </div>
@@ -892,6 +892,28 @@ function promptEditVenc(field, nombre, cantTotal) {
         if (res.isConfirmed && res.value) {
             setFieldVencimiento(field, JSON.stringify(res.value));
             triggerAutosaveAvanzada();
+        } else {
+            const curVal = document.getElementById('vencimiento_' + field)?.value;
+            const entries = parseVencEntries(curVal, cantReq);
+            if (entries.length === 0) {
+                const radioSi = document.getElementById('avanzada_' + field + '_si');
+                if (radioSi && radioSi.checked) {
+                    radioSi.checked = false;
+                    document.getElementById('cant_actual_' + field).value = '';
+                    updateBadgeInfo(field);
+                    recalcBadges();
+                    triggerAutosaveAvanzada();
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Fecha requerida',
+                        text: `El artículo "${nombre}" requiere fecha de vencimiento para registrarse como Cumple.`,
+                        toast: true,
+                        position: 'top-end',
+                        timer: 3500,
+                        showConfirmButton: false
+                    });
+                }
+            }
         }
     });
 }
@@ -1203,6 +1225,17 @@ function abrirModalIncumplimiento(field, nombre, cantReq, aplicaVenc) {
             updateBadgeInfo(field);
             recalcBadges();
             triggerAutosaveAvanzada();
+        } else {
+            const radioNo = document.getElementById('avanzada_' + field + '_no');
+            const curTipo = document.getElementById('tipo_incumplimiento_' + field)?.value;
+            const curObs = document.getElementById('obs_' + field)?.value;
+            if (radioNo && radioNo.checked && !curTipo && !curObs) {
+                radioNo.checked = false;
+                const obsRow = document.getElementById('obs_row_' + field);
+                if (obsRow) obsRow.style.display = 'none';
+                recalcBadges();
+                triggerAutosaveAvanzada();
+            }
         }
     });
 }
@@ -1929,15 +1962,57 @@ document.addEventListener('DOMContentLoaded', function() {
 (function() {
     const todosUsuarios = {{ todos_usuarios|tojson|safe if todos_usuarios else '[]' }};
 
-    function matchCargo(perfilUsuario, cargoBuscado) {
-        if (!perfilUsuario) return false;
-        const pu = perfilUsuario.toLowerCase();
-        const cb = cargoBuscado.toLowerCase();
-        if (cb.includes('enfermer') && pu.includes('enfermer')) return true;
-        if (cb.includes('aph') && pu.includes('aph')) return true;
-        if (cb.includes('auxiliar') && pu.includes('auxiliar')) return true;
-        if (cb.includes('socorrista') && pu.includes('socorrista')) return true;
-        return pu.includes(cb);
+    function stripAccents(s) {
+        if (!s) return '';
+        return String(s).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+    }
+
+    function getUserPerfiles(u) {
+        if (Array.isArray(u.perfiles)) return u.perfiles;
+        let raw = u.perfil;
+        if (!raw) return [];
+        if (Array.isArray(raw)) return raw;
+        try {
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed)) return parsed;
+            if (parsed) return [String(parsed)];
+        } catch(e) {}
+        if (typeof raw === 'string') {
+            return raw.replace(/[\[\]"']/g, '').split(',').map(s => s.trim()).filter(Boolean);
+        }
+        return [];
+    }
+
+    function matchCargo(u, cargoBuscado) {
+        if (!cargoBuscado) return false;
+        const cbNorm = stripAccents(cargoBuscado);
+        const perfiles = getUserPerfiles(u);
+        if (!perfiles.length) return false;
+
+        return perfiles.some(p => {
+            const pNorm = stripAccents(p);
+            if (!pNorm) return false;
+
+            if (cbNorm === 'enfermero' || cbNorm === 'enfermera' || cbNorm === 'enfermeria') {
+                return pNorm.includes('enfermer') && !pNorm.includes('auxiliar');
+            }
+            if (cbNorm.includes('auxiliar')) {
+                return pNorm.includes('auxiliar');
+            }
+            if (cbNorm.includes('aph')) {
+                return pNorm.includes('aph');
+            }
+            if (cbNorm.includes('socorrista')) {
+                return pNorm.includes('socorrista');
+            }
+            if (cbNorm.includes('medic')) {
+                return pNorm.includes('medic');
+            }
+            if (cbNorm.includes('conductor')) {
+                return pNorm.includes('conductor');
+            }
+            return (cbNorm in pNorm) || (pNorm in cbNorm);
+        });
     }
 
     function updateNombreInput(row, clearVal = false) {
@@ -1981,18 +2056,17 @@ document.addEventListener('DOMContentLoaded', function() {
             select.required = true;
             select.style.cssText = 'width: 100%; border: 1px solid #cbd5e1; border-radius: 5px; padding: 6px; font-size: 13px; box-sizing: border-box; background: white;';
 
-            const defaultOpt = document.createElement('option');
-            defaultOpt.value = '';
-            defaultOpt.textContent = '— Seleccione un integrante —';
-            select.appendChild(defaultOpt);
+            function renderUsersList(usersList) {
+                select.innerHTML = '';
+                const defaultOpt = document.createElement('option');
+                defaultOpt.value = '';
+                defaultOpt.textContent = '— Seleccione un integrante —';
+                select.appendChild(defaultOpt);
 
-            let docMap = {};
-            let matchCount = 0;
-            let foundCurrent = false;
+                let docMap = {};
+                let foundCurrent = false;
 
-            todosUsuarios.forEach(u => {
-                if (matchCargo(u.perfil, perfil)) {
-                    matchCount++;
+                usersList.forEach(u => {
                     const opt = document.createElement('option');
                     opt.value = u.nombre;
                     opt.textContent = u.nombre;
@@ -2006,32 +2080,46 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                     select.appendChild(opt);
                     docMap[u.nombre] = u.identificacion || '';
+                });
+
+                if (usersList.length === 0) {
+                    defaultOpt.textContent = '— No hay usuarios registrados como ' + perfil + ' —';
                 }
-            });
 
-            if (matchCount === 0) {
-                defaultOpt.textContent = '— No hay usuarios registrados como ' + perfil + ' —';
-            }
+                if (currentVal && !foundCurrent) {
+                    const optExtra = document.createElement('option');
+                    optExtra.value = currentVal;
+                    optExtra.textContent = currentVal + ' (registrado)';
+                    optExtra.selected = true;
+                    select.appendChild(optExtra);
+                }
 
-            if (currentVal && !foundCurrent) {
-                const optExtra = document.createElement('option');
-                optExtra.value = currentVal;
-                optExtra.textContent = currentVal + ' (registrado)';
-                optExtra.selected = true;
-                select.appendChild(optExtra);
-            }
-
-            select.addEventListener('change', function() {
-                const val = this.value;
-                container.setAttribute('data-val', val);
-                if (docInput) {
-                    if (val && docMap[val]) {
-                        docInput.value = docMap[val];
-                    } else if (!val) {
-                        docInput.value = '';
+                select.onchange = function() {
+                    const val = this.value;
+                    container.setAttribute('data-val', val);
+                    if (docInput) {
+                        if (val && docMap[val]) {
+                            docInput.value = docMap[val];
+                        } else if (!val) {
+                            docInput.value = '';
+                        }
                     }
-                }
-            });
+                };
+            }
+
+            // Población inmediata desde local/offline
+            const localMatches = todosUsuarios.filter(u => matchCargo(u, perfil));
+            renderUsersList(localMatches);
+
+            // Actualización asíncrona si hay conexión con el servidor
+            fetch(`/api/usuarios_por_cargo?cargo=${encodeURIComponent(perfil)}`)
+                .then(r => r.json())
+                .then(serverUsers => {
+                    if (Array.isArray(serverUsers) && serverUsers.length > 0) {
+                        renderUsersList(serverUsers);
+                    }
+                })
+                .catch(() => {});
 
             container.appendChild(select);
         }
@@ -2044,6 +2132,79 @@ document.addEventListener('DOMContentLoaded', function() {
             selectPerfil.addEventListener('change', () => updateNombreInput(row, true));
         }
     });
+
+    window.validarYConfirmarFinalizacionAvanzada = function(e) {
+        const botiquin = document.getElementById('botiquin');
+        if (botiquin && !botiquin.value.trim()) {
+            e.preventDefault();
+            Swal.fire({
+                icon: 'warning',
+                title: 'Botiquín requerido',
+                text: 'Debe seleccionar el botiquín antes de finalizar.',
+                customClass: { popup: 'swal2-custom-popup' }
+            });
+            botiquin.focus();
+            return false;
+        }
+
+        const rows = document.querySelectorAll('.item-row-tr[data-aplica-venc="1"]');
+        const missingVenc = [];
+
+        rows.forEach(row => {
+            const field = row.getAttribute('data-field');
+            const nombre = row.getAttribute('data-nombre') || field;
+            const cantReq = parseInt(row.getAttribute('data-cantidad')) || 1;
+
+            const radioSi = document.getElementById('avanzada_' + field + '_si');
+            const radioNo = document.getElementById('avanzada_' + field + '_no');
+            const tipoInc = document.getElementById('tipo_incumplimiento_' + field)?.value || '';
+            const cantActual = parseInt(document.getElementById('cant_actual_' + field)?.value || 0, 10);
+            const vencVal = document.getElementById('vencimiento_' + field)?.value || '';
+
+            const entries = parseVencEntries(vencVal, cantReq);
+            const hasValidDate = entries.length > 0 && entries.some(ent => Boolean(ent.fecha));
+
+            if (radioSi && radioSi.checked && !hasValidDate) {
+                missingVenc.push({ field, nombre, cantReq, row, motivo: 'Marcado como Cumple sin fecha' });
+            } else if (radioNo && radioNo.checked && tipoInc === 'parcial' && cantActual > 0 && !hasValidDate) {
+                missingVenc.push({ field, nombre, cantReq, row, motivo: 'Incumple parcial con unidades sin fecha' });
+            }
+        });
+
+        if (missingVenc.length > 0) {
+            e.preventDefault();
+            const listaNombres = missingVenc.map(m => `• <strong>${m.nombre}</strong> (${m.motivo})`).join('<br>');
+            Swal.fire({
+                icon: 'error',
+                title: 'Fechas de Vencimiento Requeridas',
+                html: `
+                    <div style="text-align: left; font-size: 13px; line-height: 1.5; color: #334155;">
+                        <p>Los siguientes artículos tienen control de vencimiento obligatorio y no tienen fecha asignada:</p>
+                        <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; padding: 10px; margin: 10px 0; color: #991b1b; max-height: 160px; overflow-y: auto;">
+                            ${listaNombres}
+                        </div>
+                        <p style="font-weight: 600; color: #0f172a;">Por favor asigne las fechas para poder finalizar el checklist.</p>
+                    </div>
+                `,
+                confirmButtonText: 'Corregir ahora',
+                customClass: { popup: 'swal-venc-modal' }
+            }).then(() => {
+                const first = missingVenc[0];
+                if (first && first.row) {
+                    const details = first.row.closest('details');
+                    if (details) details.open = true;
+                    first.row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    first.row.style.transition = 'background-color 0.5s';
+                    first.row.style.backgroundColor = '#fee2e2';
+                    setTimeout(() => { first.row.style.backgroundColor = ''; }, 3000);
+                    setTimeout(() => { promptEditVenc(first.field, first.nombre, first.cantReq); }, 400);
+                }
+            });
+            return false;
+        }
+
+        return confirm('¿Está seguro de finalizar este registro? Una vez finalizado no podrá ser editado.');
+    };
 
     const tbody = document.getElementById('tbody-integrantes');
     const btnAdd = document.getElementById('btn-add-integrante');
