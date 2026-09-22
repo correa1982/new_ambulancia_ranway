@@ -539,7 +539,7 @@
     <button type="submit" name="accion" value="borrador" style="margin:0; box-sizing: border-box; height: 44px; font-family: inherit; background:linear-gradient(135deg,#1e6fbf,#185999); color:white; border:none; padding:0 24px; border-radius:10px; font-weight:600; font-size:14px; display:inline-flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(30,111,191,0.3);" formnovalidate onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(30,111,191,0.4)'" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 6px -1px rgba(30,111,191,0.3)'">
         <i class="ph ph-floppy-disk" style="font-size:18px;"></i> Guardar Borrador
     </button>
-    <button type="submit" name="accion" value="finalizar" style="margin:0; box-sizing: border-box; height: 44px; font-family: inherit; background:linear-gradient(135deg,#10b981,#059669); color:white; border:none; padding:0 24px; border-radius:10px; font-weight:600; font-size:14px; display:inline-flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(16,185,129,0.2);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(16,185,129,0.3)'" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 6px -1px rgba(16,185,129,0.2)'" onclick="return confirm('¿Está seguro de finalizar este registro? Una vez finalizado no podrá ser editado.');">
+    <button type="submit" name="accion" value="finalizar" style="margin:0; box-sizing: border-box; height: 44px; font-family: inherit; background:linear-gradient(135deg,#10b981,#059669); color:white; border:none; padding:0 24px; border-radius:10px; font-weight:600; font-size:14px; display:inline-flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(16,185,129,0.2);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(16,185,129,0.3)'" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 6px -1px rgba(16,185,129,0.2)'" onclick="return validarYConfirmarFinalizacionTab(event);">
         <i class="ph ph-check-circle" style="font-size:18px;"></i> Finalizar Check List TAB
     </button>
 </div>
@@ -883,6 +883,28 @@ function promptEditVenc(field, nombre, cantTotal) {
         if (res.isConfirmed && res.value) {
             setFieldVencimiento(field, JSON.stringify(res.value));
             triggerAutosaveTab();
+        } else {
+            const curVal = document.getElementById('vencimiento_' + field)?.value;
+            const entries = parseVencEntries(curVal, cantReq);
+            if (entries.length === 0) {
+                const radioSi = document.getElementById('tab_' + field + '_si');
+                if (radioSi && radioSi.checked) {
+                    radioSi.checked = false;
+                    document.getElementById('cant_actual_' + field).value = '';
+                    updateBadgeInfo(field);
+                    recalcBadges();
+                    triggerAutosaveTab();
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Fecha requerida',
+                        text: `El artículo "${nombre}" requiere fecha de vencimiento para registrarse como Cumple.`,
+                        toast: true,
+                        position: 'top-end',
+                        timer: 3500,
+                        showConfirmButton: false
+                    });
+                }
+            }
         }
     });
 }
@@ -2000,6 +2022,79 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 });
+
+function validarYConfirmarFinalizacionTab(e) {
+    const selPlaca = document.getElementById('placa');
+    if (selPlaca && !selPlaca.value.trim()) {
+        e.preventDefault();
+        Swal.fire({
+            icon: 'warning',
+            title: 'Placa requerida',
+            text: 'Debe seleccionar la placa del vehículo antes de finalizar.',
+            customClass: { popup: 'swal2-custom-popup' }
+        });
+        selPlaca.focus();
+        return false;
+    }
+
+    const rows = document.querySelectorAll('.item-row-tr[data-aplica-venc="1"]');
+    const missingVenc = [];
+
+    rows.forEach(row => {
+        const field = row.getAttribute('data-field');
+        const nombre = row.getAttribute('data-nombre') || field;
+        const cantReq = parseInt(row.getAttribute('data-cantidad')) || 1;
+
+        const radioSi = document.getElementById('tab_' + field + '_si');
+        const radioNo = document.getElementById('tab_' + field + '_no');
+        const tipoInc = document.getElementById('tipo_incumplimiento_' + field)?.value || '';
+        const cantActual = parseInt(document.getElementById('cant_actual_' + field)?.value || 0, 10);
+        const vencVal = document.getElementById('vencimiento_' + field)?.value || '';
+
+        const entries = parseVencEntries(vencVal, cantReq);
+        const hasValidDate = entries.length > 0 && entries.some(ent => Boolean(ent.fecha));
+
+        if (radioSi && radioSi.checked && !hasValidDate) {
+            missingVenc.push({ field, nombre, cantReq, row, motivo: 'Marcado como Cumple sin fecha' });
+        } else if (radioNo && radioNo.checked && tipoInc === 'parcial' && cantActual > 0 && !hasValidDate) {
+            missingVenc.push({ field, nombre, cantReq, row, motivo: 'Incumple parcial con unidades sin fecha' });
+        }
+    });
+
+    if (missingVenc.length > 0) {
+        e.preventDefault();
+        const listaNombres = missingVenc.map(m => `• <strong>${m.nombre}</strong> (${m.motivo})`).join('<br>');
+        Swal.fire({
+            icon: 'error',
+            title: 'Fechas de Vencimiento Requeridas',
+            html: `
+                <div style="text-align: left; font-size: 13px; line-height: 1.5; color: #334155;">
+                    <p>Los siguientes artículos tienen control de vencimiento obligatorio y no tienen fecha asignada:</p>
+                    <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; padding: 10px; margin: 10px 0; color: #991b1b; max-height: 160px; overflow-y: auto;">
+                        ${listaNombres}
+                    </div>
+                    <p style="font-weight: 600; color: #0f172a;">Por favor asigne las fechas para poder finalizar el checklist.</p>
+                </div>
+            `,
+            confirmButtonText: 'Corregir ahora',
+            customClass: { popup: 'swal-venc-modal' }
+        }).then(() => {
+            const first = missingVenc[0];
+            if (first && first.row) {
+                const details = first.row.closest('details');
+                if (details) details.open = true;
+                first.row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                first.row.style.transition = 'background-color 0.5s';
+                first.row.style.backgroundColor = '#fee2e2';
+                setTimeout(() => { first.row.style.backgroundColor = ''; }, 3000);
+                setTimeout(() => { promptEditVenc(first.field, first.nombre, first.cantReq); }, 400);
+            }
+        });
+        return false;
+    }
+
+    return confirm('¿Está seguro de finalizar este registro? Una vez finalizado no podrá ser editado.');
+}
 
 // ── Integrantes TAB ──────────────────────────────────
 const CARGOS_TAB = ['Conductor','Medico','Enfermero','APH','Auxiliar en Enfermeria','Socorrista','Estudiante'];
