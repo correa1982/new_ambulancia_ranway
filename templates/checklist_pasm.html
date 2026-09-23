@@ -88,6 +88,16 @@
     padding: 0 0 8px 0 !important;
 }
 
+.venc-badge-trigger {
+    transition: all 0.15s ease-in-out;
+}
+.venc-badge-trigger:hover {
+    background: #bae6fd !important;
+    border-color: #0284c7 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(3, 105, 161, 0.2);
+}
+
 @media (max-width: 650px) {
     .cl-header { flex-direction: column; align-items: flex-start; gap: 8px; }
     .pasm-meta-grid { grid-template-columns: 1fr; }
@@ -387,7 +397,7 @@
                             <span style="font-size: 11px; color: #64748b; font-weight: normal;">(Cant req: {{ item.cantidad }})</span>
                         {% endif %}
                         {% if aplica_venc %}
-                            <span title="Control de Vencimiento Requerido" style="font-size: 10px; background: #e0f2fe; color: #0369a1; padding: 2px 6px; border-radius: 4px; font-weight: 700;">📅 Vencimiento</span>
+                            <span class="venc-badge-trigger" onclick="abrirVencimientoItem('{{ field }}')" title="Clic para gestionar fecha de vencimiento" style="font-size: 10px; background: #e0f2fe; color: #0369a1; padding: 2px 6px; border-radius: 4px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 3px; border: 1px solid #bae6fd;">📅 Vencimiento</span>
                         {% endif %}
                     </div>
                     <!-- Badges for Expiration and Non-compliance -->
@@ -395,11 +405,11 @@
                 </div>
                 <div class="radio-trio" style="margin-top: 2px;">
                     <div class="ri-si">
-                        <input type="radio" name="{{ field }}" id="pasm_{{ field }}_si" value="SI" onchange="handleRadioChange(this)" {% if val_exist == 'SI' %}checked{% endif %}>
+                        <input type="radio" name="{{ field }}" id="pasm_{{ field }}_si" value="SI" onchange="handleRadioChange(this)" onclick="handleRadioClick(this)" {% if val_exist == 'SI' %}checked{% endif %}>
                         <label for="pasm_{{ field }}_si">SI</label>
                     </div>
                     <div class="ri-no">
-                        <input type="radio" name="{{ field }}" id="pasm_{{ field }}_no" value="NO" onchange="handleRadioChange(this)" {% if val_exist == 'NO' %}checked{% endif %}>
+                        <input type="radio" name="{{ field }}" id="pasm_{{ field }}_no" value="NO" onchange="handleRadioChange(this)" onclick="handleRadioClick(this)" {% if val_exist == 'NO' %}checked{% endif %}>
                         <label for="pasm_{{ field }}_no">NO</label>
                     </div>
                     <div class="ri-na">
@@ -595,6 +605,14 @@ function updateBadgeInfo(field) {
             html += `
                 <button type="button" onclick="promptEditVenc('${field}', '${fieldNombre.replace(/'/g, "\\'")}', ${cantReq})" style="background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 4px; padding: 2px 6px; font-size: 11px; cursor: pointer; color: #475569;" title="Modificar fechas">✏️ Modificar</button>
             </div>`;
+        } else if (row && row.getAttribute('data-aplica-venc') === '1') {
+            html += `
+                <div style="display: flex; gap: 6px; align-items: center; margin-top: 4px;">
+                    <span style="background-color: #fee2e2; color: #b91c1c; border: 1px solid #ef4444; padding: 3px 8px; border-radius: 4px; font-weight: 700; font-size: 11px; display: inline-flex; align-items: center; gap: 4px;">
+                        ⚠️ Requiere fecha de vencimiento
+                    </span>
+                    <button type="button" onclick="promptEditVenc('${field}', '${fieldNombre.replace(/'/g, "\\'")}', ${cantReq})" style="background: #2563eb; color: white; border: none; border-radius: 4px; padding: 2px 8px; font-size: 11px; font-weight: 600; cursor: pointer;" title="Ingresar fechas">📅 Asignar Fecha</button>
+                </div>`;
         }
     } else if (radioNo && radioNo.checked) {
         if (tipoInc === 'parcial') {
@@ -618,6 +636,12 @@ function updateBadgeInfo(field) {
                         `;
                     }
                 });
+            } else if (row && row.getAttribute('data-aplica-venc') === '1' && numActual > 0) {
+                html += `
+                    <span style="background-color: #fee2e2; color: #b91c1c; border: 1px solid #ef4444; padding: 3px 8px; border-radius: 4px; font-weight: 700; font-size: 11px;">
+                        ⚠️ Falta fecha
+                    </span>
+                `;
             }
             html += `
                     <button type="button" onclick="reabrirModalNo('${field}')" style="background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 4px; padding: 2px 6px; font-size: 10px; cursor: pointer; color: #475569;" title="Modificar reporte">✏️ Modificar</button>
@@ -630,6 +654,15 @@ function updateBadgeInfo(field) {
                         ❌ Incumple Total (Sin existencias)
                     </span>
                     <button type="button" onclick="reabrirModalNo('${field}')" style="background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 4px; padding: 2px 6px; font-size: 10px; cursor: pointer; color: #475569;" title="Modificar reporte">✏️ Modificar</button>
+                </div>
+            `;
+        } else {
+            html += `
+                <div style="display: flex; gap: 6px; align-items: center; margin-top: 4px;">
+                    <span style="background-color: #fffbeb; color: #b45309; border: 1px solid #fde68a; padding: 3px 8px; border-radius: 4px; font-weight: 700; font-size: 11px;">
+                        ⚠️ Novedad sin detallar
+                    </span>
+                    <button type="button" onclick="reabrirModalNo('${field}')" style="background: #ea580c; color: white; border: none; border-radius: 4px; padding: 2px 8px; font-size: 11px; font-weight: 600; cursor: pointer;" title="Detallar novedad">✏️ Detallar Novedad</button>
                 </div>
             `;
         }
@@ -667,6 +700,8 @@ function promptEditVenc(field, nombre, cantTotal) {
     Swal.fire({
         title: 'Fechas de Vencimiento',
         customClass: { popup: 'swal-venc-modal' },
+        allowOutsideClick: false,
+        backdrop: 'rgba(15, 23, 42, 0.65)',
         html: `
             <div style="text-align: left; font-size: 13px; color: #334155; margin-bottom: 12px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px;">
                 <strong style="color: #0f172a; font-size: 15px;">${nombre}</strong><br>
@@ -799,9 +834,11 @@ function promptEditVenc(field, nombre, cantTotal) {
     }).then(res => {
         if (res.isConfirmed && res.value) {
             setFieldVencimiento(field, JSON.stringify(res.value));
+            recalcBadges();
+            if (typeof triggerAutosavePasm === 'function') triggerAutosavePasm();
         } else {
             const curVal = document.getElementById('vencimiento_' + field)?.value;
-            const entries = parseVencEntries(curVal, cantReq);
+            const entries = parseVencEntries(curVal, cantTotal);
             if (entries.length === 0) {
                 const radioSi = document.getElementById('pasm_' + field + '_si');
                 if (radioSi && radioSi.checked) {
@@ -809,6 +846,7 @@ function promptEditVenc(field, nombre, cantTotal) {
                     document.getElementById('cant_actual_' + field).value = '';
                     updateBadgeInfo(field);
                     recalcBadges();
+                    if (typeof triggerAutosavePasm === 'function') triggerAutosavePasm();
                     Swal.fire({
                         icon: 'warning',
                         title: 'Fecha requerida',
@@ -887,6 +925,8 @@ function abrirModalIncumplimiento(field, nombre, cantReq, aplicaVenc) {
     Swal.fire({
         title: 'Reportar Novedad / Faltante',
         customClass: { popup: 'swal-venc-modal' },
+        allowOutsideClick: false,
+        backdrop: 'rgba(15, 23, 42, 0.65)',
         html: `
             <div style="text-align: left; font-size: 13px; color: #334155; margin-bottom: 12px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px;">
                 <strong style="color: #0f172a; font-size: 15px;">${nombre}</strong><br>
@@ -1053,6 +1093,8 @@ function abrirModalIncumplimiento(field, nombre, cantReq, aplicaVenc) {
                 if (obsInput) obsInput.required = true;
 
                 updateBadgeInfo(field);
+                recalcBadges();
+                if (typeof triggerAutosavePasm === 'function') triggerAutosavePasm();
                 Swal.close();
             });
 
@@ -1125,8 +1167,72 @@ function abrirModalIncumplimiento(field, nombre, cantReq, aplicaVenc) {
 
             if (obsInput) obsInput.value = finalObs;
             updateBadgeInfo(field);
+            recalcBadges();
+            if (typeof triggerAutosavePasm === 'function') triggerAutosavePasm();
+        } else {
+            const curTipo = document.getElementById('tipo_incumplimiento_' + field)?.value;
+            if (!curTipo) {
+                const radioNo = document.getElementById('pasm_' + field + '_no');
+                if (radioNo && radioNo.checked) {
+                    radioNo.checked = false;
+                    document.getElementById('cant_actual_' + field).value = '';
+                    const obsRow = document.getElementById('obs_row_' + field);
+                    if (obsRow) obsRow.style.display = 'none';
+                    if (obsInput) { obsInput.required = false; obsInput.value = ''; }
+                    updateBadgeInfo(field);
+                    recalcBadges();
+                    if (typeof triggerAutosavePasm === 'function') triggerAutosavePasm();
+                }
+            }
         }
     });
+}
+
+function handleRadioClick(radio) {
+    const field = radio.name;
+    const row = radio.closest('.item-row-tr');
+    if (!row) return;
+    const nombre = row.getAttribute('data-nombre');
+    const cantReq = parseInt(row.getAttribute('data-cantidad'), 10) || 1;
+    const aplicaVenc = row.getAttribute('data-aplica-venc') === '1';
+
+    if (radio.value === 'SI' && aplicaVenc) {
+        const curVal = document.getElementById('vencimiento_' + field)?.value;
+        const entries = parseVencEntries(curVal, cantReq);
+        if (entries.length === 0) {
+            promptEditVenc(field, nombre, cantReq);
+        }
+    } else if (radio.value === 'NO') {
+        const tipoInc = document.getElementById('tipo_incumplimiento_' + field)?.value;
+        if (!tipoInc) {
+            abrirModalIncumplimiento(field, nombre, cantReq, aplicaVenc);
+        }
+    }
+}
+
+function abrirVencimientoItem(field) {
+    const row = document.querySelector(`.item-row-tr[data-field="${field}"]`);
+    if (!row) return;
+    const nombre = row.getAttribute('data-nombre');
+    const cantReq = parseInt(row.getAttribute('data-cantidad'), 10) || 1;
+    const aplicaVenc = row.getAttribute('data-aplica-venc') === '1';
+    const radioSi = document.getElementById('pasm_' + field + '_si');
+    const radioNo = document.getElementById('pasm_' + field + '_no');
+
+    if (radioNo && radioNo.checked) {
+        abrirModalIncumplimiento(field, nombre, cantReq, aplicaVenc);
+    } else {
+        if (radioSi && !radioSi.checked) {
+            radioSi.checked = true;
+            document.getElementById('cant_actual_' + field).value = cantReq;
+            document.getElementById('tipo_incumplimiento_' + field).value = '';
+            const obsRow = document.getElementById('obs_row_' + field);
+            if (obsRow) obsRow.style.display = 'none';
+            const obsInput = document.getElementById('obs_' + field);
+            if (obsInput) { obsInput.required = false; obsInput.value = ''; }
+        }
+        promptEditVenc(field, nombre, cantReq);
+    }
 }
 
 function updatePendingTrasladosVisibility(selectedPasm) {
