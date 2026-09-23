@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Panel Principal - HC Prehospitalario{% endblock %}
+{% block title %}Panel Principal - Gestion Institucional y Operativa{% endblock %}
 {% block content %}
 
 <style>
@@ -144,7 +144,8 @@ document.addEventListener("DOMContentLoaded", function() {
 </div>
 {% endif %}
 
-{% if session.usuario.rol == 'admin' and vehiculo_alerts %}
+{% set es_conductor_o_admin = session.usuario.rol == 'admin' or session.usuario.get('rol_real') == 'admin' or session.usuario.get('perfil') in ['Administrador', 'Conductor'] or 'conductor' in (session.usuario.get('perfil')|string|lower) or 'admin' in (session.usuario.get('perfil')|string|lower) %}
+{% if es_conductor_o_admin and vehiculo_alerts %}
 <div id="vehiculo-alerts" style="background: #fff5f5; border: 1.5px solid #fca5a5; border-radius: 12px; padding: 16px 20px; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(239,68,68,0.05); transition: all 0.5s ease;">
     <div style="display: flex; align-items: flex-start; gap: 14px;">
         <span style="font-size: 28px; line-height: 1;">📅</span>
@@ -152,8 +153,17 @@ document.addEventListener("DOMContentLoaded", function() {
             <h4 style="margin: 0; color: #991b1b; font-size: 15px; font-weight: 700;">Alertas de Vencimiento de Vehículos</h4>
             <ul style="margin: 8px 0 0; padding-left: 20px; color: #7f1d1d; font-size: 13px; line-height: 1.6;">
                 {% for alert in vehiculo_alerts %}
-                <li>
+                <li style="margin-bottom: 4px;">
+                    {% if alert.dias < 0 %}
+                    <span style="background: #fee2e2; color: #991b1b; padding: 1px 7px; border-radius: 4px; font-weight: 700; font-size: 11px; margin-right: 4px; display: inline-block;">VENCIDO</span>
+                    El documento <strong>{{ alert.tipo }}</strong> del vehículo con placa <strong>{{ alert.placa }}</strong> se encuentra <strong>vencido hace {{ alert.dias|abs }} {{ 'día' if alert.dias|abs == 1 else 'días' }}</strong> (Fecha de vencimiento: {{ alert.fecha }}).
+                    {% elif alert.dias == 0 %}
+                    <span style="background: #fee2e2; color: #b91c1c; padding: 1px 7px; border-radius: 4px; font-weight: 700; font-size: 11px; margin-right: 4px; display: inline-block;">VENCE HOY</span>
+                    El documento <strong>{{ alert.tipo }}</strong> del vehículo con placa <strong>{{ alert.placa }}</strong> <strong>vence hoy</strong> (Fecha de vencimiento: {{ alert.fecha }}).
+                    {% else %}
+                    <span style="background: #fef3c7; color: #92400e; padding: 1px 7px; border-radius: 4px; font-weight: 700; font-size: 11px; margin-right: 4px; display: inline-block;">PRÓXIMO</span>
                     El documento <strong>{{ alert.tipo }}</strong> del vehículo con placa <strong>{{ alert.placa }}</strong> está próximo a vencer en <strong>{{ alert.dias }} {{ 'día' if alert.dias == 1 else 'días' }}</strong> (Fecha de vencimiento: {{ alert.fecha }}).
+                    {% endif %}
                 </li>
                 {% endfor %}
             </ul>
@@ -265,7 +275,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     {% if session.usuario.rol == 'admin' or 'tam' in session.usuario.get('formularios_acceso', []) %}
     <a href="{{ url_for('form_checklist', tipo='tam') }}" class="dash-card">
-        <div class="card-icon" style="background: #fee2e2;"><i class="ph ph-first-aid-kit" style="color: #dc2626;"></i></div>
+        <div class="card-icon" style="background: #fee2e2;"><i class="ph ph-ambulance" style="color: #dc2626;"></i></div>
         <div class="card-title">Check List TAM</div>
         <div class="card-desc">Transporte Asistencial Medicalizado.</div>
     </a>
@@ -273,7 +283,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     {% if session.usuario.rol == 'admin' or 'tab' in session.usuario.get('formularios_acceso', []) %}
     <a href="{{ url_for('form_checklist', tipo='tab') }}" class="dash-card">
-        <div class="card-icon" style="background: #dbeafe;"><i class="ph ph-stethoscope" style="color: #2563eb;"></i></div>
+        <div class="card-icon" style="background: #dbeafe;"><i class="ph ph-ambulance" style="color: #2563eb;"></i></div>
         <div class="card-title">Check List TAB</div>
         <div class="card-desc">Transporte Asistencial Básico.</div>
     </a>
@@ -281,7 +291,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     {% if session.usuario.rol == 'admin' or 'avanzada' in session.usuario.get('formularios_acceso', []) %}
     <a href="{{ url_for('form_checklist', tipo='avanzada') }}" class="dash-card">
-        <div class="card-icon" style="background: #e0f2fe;"><i class="ph ph-shield-plus" style="color: #0284c7;"></i></div>
+        <div class="card-icon" style="background: #e0f2fe;"><i class="ph ph-first-aid-kit" style="color: #0284c7;"></i></div>
         <div class="card-title">Check List Avanzada</div>
         <div class="card-desc">Check List Avanzada.</div>
     </a>
@@ -289,7 +299,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     {% if session.usuario.rol == 'admin' or 'pasb' in session.usuario.get('formularios_acceso', []) %}
     <a href="{{ url_for('form_checklist', tipo='pasb') }}" class="dash-card">
-        <div class="card-icon" style="background: #f3e8ff;"><i class="ph ph-toolbox" style="color: #9333ea;"></i></div>
+        <div class="card-icon" style="background: #f3e8ff;"><i class="ph ph-hospital" style="color: #9333ea;"></i></div>
         <div class="card-title">Check List PASB</div>
         <div class="card-desc">Puesto de Atención en Salud Básico.</div>
     </a>
@@ -297,9 +307,18 @@ document.addEventListener("DOMContentLoaded", function() {
 
     {% if session.usuario.rol == 'admin' or 'pasm' in session.usuario.get('formularios_acceso', []) %}
     <a href="{{ url_for('form_checklist', tipo='pasm') }}" class="dash-card">
-        <div class="card-icon" style="background: #fef9c3;"><i class="ph ph-backpack" style="color: #ca8a04;"></i></div>
+        <div class="card-icon" style="background: #fef9c3;"><i class="ph ph-hospital" style="color: #ca8a04;"></i></div>
         <div class="card-title">Check List PASM</div>
         <div class="card-desc">Puesto de Atención en Salud Medicalizado.</div>
+    </a>
+    {% endif %}
+
+    {% set tiene_permiso_gasto = session.usuario.rol == 'admin' or has_permiso_formulario(session.usuario.formularios_acceso, 'avanzada') or has_permiso_formulario(session.usuario.formularios_acceso, 'pasm') or has_permiso_formulario(session.usuario.formularios_acceso, 'pasb') or has_permiso_formulario(session.usuario.formularios_acceso, 'tab') or has_permiso_formulario(session.usuario.formularios_acceso, 'tam') or 'avanzada' in session.usuario.get('formularios_acceso', []) or 'pasm' in session.usuario.get('formularios_acceso', []) or 'pasb' in session.usuario.get('formularios_acceso', []) or 'tab' in session.usuario.get('formularios_acceso', []) or 'tam' in session.usuario.get('formularios_acceso', []) or 'reporte_gasto' in session.usuario.get('formularios_acceso', []) %}
+    {% if tiene_permiso_gasto %}
+    <a href="{{ url_for('form_reporte_gasto') }}" class="dash-card">
+        <div class="card-icon" style="background: #fee2e2;"><i class="ph ph-receipt" style="color: #dc2626;"></i></div>
+        <div class="card-title">Reporte de Gasto</div>
+        <div class="card-desc">Registro de insumos y medicamentos utilizados en eventos.</div>
     </a>
     {% endif %}
 
@@ -325,7 +344,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     {% if has_permiso_formulario(session.usuario.formularios_acceso, 'voluntariado') or has_permiso_formulario(session.usuario.formularios_acceso, 'voluntariado_admin') or session.usuario.rol == 'admin' %}
     <a href="{{ url_for('voluntariado.form_voluntariado') }}" class="dash-card">
-        <div class="card-icon" style="background: #fdf4ff;"><i class="ph ph-hand-heart" style="color: #d946ef;"></i></div>
+        <div class="card-icon" style="background: #fdf4ff;"><i class="ph ph-hard-hat" style="color: #d946ef;"></i></div>
         <div class="card-title">Registro Voluntariado</div>
         <div class="card-desc">Registro mensual de horas de voluntariado.</div>
     </a>
@@ -364,7 +383,7 @@ document.addEventListener("DOMContentLoaded", function() {
     </a>
     
     <a href="{{ url_for('archivador_list') }}" class="dash-card" style="border-color: #e2e8f0;">
-        <div class="card-icon" style="background: #e0e7ff;"><i class="ph ph-archive" style="color: #4338ca;"></i></div>
+        <div class="card-icon" style="background: #e0e7ff;"><i class="ph ph-scan" style="color: #4338ca;"></i></div>
         <div class="card-title">Archivador de Documentos</div>
         <div class="card-desc">Subir y consultar documentos escaneados o digitales anexos al sistema.</div>
     </a>

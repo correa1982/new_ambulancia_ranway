@@ -1,21 +1,104 @@
 {% extends "base.html" %}
 {% block title %}Registros de Reporte de Actividades{% endblock %}
+
 {% block content %}
+<style>
+/* ── Mobile: ocultar tabla, mostrar cards ── */
+@media (max-width: 768px) {
+    .ra-table-wrap { display: none !important; }
+    .ra-cards      { display: block !important; }
+    .ra-header h3  { font-size: 15px !important; }
+    .ra-header a   { font-size: 12px !important; padding: 7px 10px !important; }
+}
+/* ── Desktop: ocultar cards, mostrar tabla ── */
+@media (min-width: 769px) {
+    .ra-table-wrap { display: block; }
+    .ra-cards      { display: none !important; }
+}
+
+/* ── Card base ── */
+.ra-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    margin-bottom: 14px;
+    padding: 14px 14px 10px;
+    border-left: 4px solid #0d6efd;
+}
+.ra-card.avalado   { border-left-color: #10b981; }
+.ra-card.pendiente { border-left-color: #f59e0b; }
+
+.ra-card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+.ra-card-id    { font-size: 11px; color: #888; font-weight: 700; }
+.ra-card-badge { font-size: 11px; font-weight: 700; }
+.ra-card-badge.avalado   { color: #10b981; }
+.ra-card-badge.pendiente { color: #f59e0b; }
+
+.ra-card-body .row-item {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 5px;
+    align-items: flex-start;
+}
+.ra-card-body .row-item label {
+    font-size: 10px;
+    font-weight: 700;
+    color: #6c757d;
+    text-transform: uppercase;
+    min-width: 82px;
+    padding-top: 1px;
+    flex-shrink: 0;
+}
+.ra-card-body .row-item span { font-size: 12px; color: #222; }
+
+.ra-card-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px solid #f0f0f0;
+}
+.btn-ra {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    border-radius: 20px;
+    padding: 5px 12px;
+    font-size: 11px;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+}
+.btn-ra-avalar   { background: #10b981; color: white; }
+.btn-ra-inact    { background: white; color: #64748b; border: 1px solid #cbd5e1 !important; }
+.btn-ra-pdf      { background: white; color: #ef4444; border: 1.5px solid #ef4444 !important; }
+</style>
+
 <div class="container-fluid mt-4 mb-5">
-    <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:12px; margin-bottom:24px;">
-        <div style="display:flex; align-items:center; gap:12px;">
+
+    {# ── Header ── #}
+    <div class="ra-header" style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:12px; margin-bottom:24px;">
+        <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
             <a href="{{ url_for('dashboard') }}"
                style="display:inline-flex; align-items:center; gap:6px; background:#6c757d; color:white; border:none; border-radius:8px; padding:9px 18px; font-weight:700; font-size:14px; text-decoration:none; box-shadow:0 2px 6px rgba(0,0,0,0.15); transition:all 0.2s;">
                 <i class="ph ph-arrow-left" style="font-size:16px;"></i> Volver
             </a>
-            <h3 style="margin:0; font-weight:700; color:#0d6efd; display:flex; align-items:center; gap:8px;">
+            <h3 style="margin:0; font-weight:700; color:#0d6efd; display:flex; align-items:center; gap:8px; font-size:18px;">
                 <i class="ph ph-clipboard-text"></i> Registros de Actividades
             </h3>
         </div>
         <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
-            <a href="{{ url_for('inactivos_reporte_actividades') }}"
+            <a href="{{ url_for('anulados_reporte_actividades') }}"
                style="display:inline-flex; align-items:center; gap:6px; background:white; color:#dc3545; border:2px solid #dc3545; border-radius:8px; padding:8px 16px; font-weight:700; font-size:14px; text-decoration:none; box-shadow:0 2px 5px rgba(220,53,69,0.15); transition:all 0.2s;">
-                <i class="ph ph-archive" style="font-size:16px;"></i> Ver Inactivos
+                <i class="ph ph-x-circle" style="font-size:16px;"></i> Ver Anulados
             </a>
             <a href="{{ url_for('estadisticas_reporte') }}"
                style="display:inline-flex; align-items:center; gap:6px; background:#0dcaf0; color:white; border:none; border-radius:8px; padding:9px 16px; font-weight:700; font-size:14px; text-decoration:none; box-shadow:0 2px 6px rgba(13,202,240,0.3); transition:all 0.2s;">
@@ -28,7 +111,8 @@
         </div>
     </div>
 
-    <div class="card shadow-sm">
+    {# ── Desktop: tabla ── #}
+    <div class="ra-table-wrap card shadow-sm">
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
@@ -69,13 +153,11 @@
                                         </button>
                                     </form>
                                     {% endif %}
-                                    
-                                    <form id="form-inactivar-{{ row.id }}" method="POST" action="{{ url_for('inactivar_reporte', record_id=row.id) }}" class="m-0 p-0">
-                                        <button type="button" onclick="confirmarInactivar('form-inactivar-{{ row.id }}')" class="btn btn-sm shadow-sm" style="background:white; color:#64748b; border:1px solid #cbd5e1; border-radius:6px; font-weight:600; font-size:12px; display:inline-flex; align-items:center; justify-content:center; gap:4px; cursor:pointer; transition:all 0.2s;" title="Inactivar Registro">
-                                            <i class="ph ph-archive" style="font-size:14px;"></i>
+                                    <form id="form-anular-{{ row.id }}" method="POST" action="{{ url_for('anular_reporte', record_id=row.id) }}" class="m-0 p-0">
+                                        <button type="button" onclick="confirmarAnular('form-anular-{{ row.id }}')" class="btn btn-sm shadow-sm" style="background:white; color:#dc3545; border:1px solid #dc3545; border-radius:6px; font-weight:600; font-size:12px; display:inline-flex; align-items:center; justify-content:center; gap:4px; cursor:pointer; transition:all 0.2s;" title="Anular Reporte">
+                                            <i class="ph ph-x-circle" style="font-size:14px;"></i> Anular
                                         </button>
                                     </form>
-
                                     <a href="{{ url_for('imprimir_reporte', record_id=row.id) }}" target="_blank" class="btn btn-sm shadow-sm" style="background:white; color:#ef4444; border:1px solid #ef4444; border-radius:6px; text-decoration:none; font-weight:600; font-size:12px; display:inline-flex; align-items:center; justify-content:center; gap:4px; transition:all 0.2s;" title="Generar PDF Formal">
                                         <i class="ph ph-file-pdf" style="font-size:14px;"></i> PDF
                                     </a>
@@ -95,6 +177,67 @@
             </div>
         </div>
     </div>
+
+    {# ── Mobile: cards ── #}
+    <div class="ra-cards">
+        {% for row in registros %}
+        <div class="ra-card {% if row.estado == 'Avalado' %}avalado{% else %}pendiente{% endif %}">
+
+            <div class="ra-card-top">
+                <span class="ra-card-id">#{{ row.id }} · {{ row.fecha_evento }}</span>
+                {% if row.estado == 'Avalado' %}
+                    <span class="ra-card-badge avalado"><i class="ph ph-check-circle"></i> Avalado</span>
+                {% else %}
+                    <span class="ra-card-badge pendiente"><i class="ph ph-clock"></i> Pendiente</span>
+                {% endif %}
+            </div>
+
+            <div class="ra-card-body">
+                <div class="row-item">
+                    <label>Evento</label>
+                    <span>{{ row.nombre_evento }}<br><small style="color:#888;">{{ row.lugar_evento }}</small></span>
+                </div>
+                <div class="row-item">
+                    <label>Tipo</label>
+                    <span><span class="badge bg-secondary" style="font-size:10px;">{{ row.tipo_servicio }}</span></span>
+                </div>
+                <div class="row-item">
+                    <label>Horario</label>
+                    <span>{{ row.hora_inicio }} – {{ row.hora_fin }}</span>
+                </div>
+                <div class="row-item">
+                    <label>Registrado</label>
+                    <span>{{ row.registrado_por }}</span>
+                </div>
+            </div>
+
+            <div class="ra-card-actions">
+                {% if row.estado != 'Avalado' %}
+                <form id="form-avalar-m-{{ row.id }}" method="POST" action="{{ url_for('avalar_reporte', record_id=row.id) }}" class="m-0 p-0">
+                    <button type="button" onclick="confirmarAval('form-avalar-m-{{ row.id }}')" class="btn-ra btn-ra-avalar">
+                        <i class="ph ph-check-circle"></i> Avalar
+                    </button>
+                </form>
+                {% endif %}
+                <form id="form-anular-m-{{ row.id }}" method="POST" action="{{ url_for('anular_reporte', record_id=row.id) }}" class="m-0 p-0">
+                    <button type="button" onclick="confirmarAnular('form-anular-m-{{ row.id }}')" class="btn-ra btn-ra-inact" style="background:white; color:#dc3545; border:1px solid #dc3545;">
+                        <i class="ph ph-x-circle"></i> Anular
+                    </button>
+                </form>
+                <a href="{{ url_for('imprimir_reporte', record_id=row.id) }}" target="_blank" class="btn-ra btn-ra-pdf">
+                    <i class="ph ph-file-pdf"></i> PDF
+                </a>
+            </div>
+
+        </div>
+        {% else %}
+        <div class="text-center text-muted py-4">
+            <i class="ph ph-folder-open d-block mb-2" style="font-size: 2rem;"></i>
+            No se encontraron registros de actividades.
+        </div>
+        {% endfor %}
+    </div>
+
 </div>
 
 <script>
@@ -119,14 +262,14 @@
         });
     }
 
-    function confirmarInactivar(formId) {
+    function confirmarAnular(formId) {
         Swal.fire({
-            title: '¿Inactivar Registro?',
-            text: "El registro pasará a la lista de inactivos y no se mostrará en las estadísticas.",
+            title: '¿Anular Reporte?',
+            text: "El reporte pasará a la lista de anulados y no se sumará a las estadísticas.",
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#ef4444',
-            confirmButtonText: 'Sí, Inactivar',
+            confirmButtonText: 'Sí, Anular',
             cancelButtonText: 'Cancelar',
             customClass: {
                 popup: 'swal2-custom-popup',
@@ -140,5 +283,7 @@
             }
         });
     }
+    const confirmarInactivar = confirmarAnular;
 </script>
 {% endblock %}
+

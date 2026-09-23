@@ -377,10 +377,26 @@ def _load_config():
         config["subtitulo_institucion"] = "RED DE ATENCIÓN PREHOSPITALARIA Y AMBULANCIAS"
     if "nit" not in config:
         config["nit"] = "NIT: 900.123.456-7"
+    import os
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    if not config.get("logo"):
+        for ext in ['png', 'jpg', 'jpeg']:
+            if os.path.exists(os.path.join(base_dir, 'static', 'uploads', f'logo_institucion.{ext}')):
+                config["logo"] = f"/static/uploads/logo_institucion.{ext}"
+                break
     if "logo" not in config:
         config["logo"] = ""
-    if "nombre_sistema" not in config:
-        config["nombre_sistema"] = "HC Prehospitalario"
+
+    if not config.get("marca_agua"):
+        for ext in ['jpg', 'png', 'jpeg']:
+            if os.path.exists(os.path.join(base_dir, 'static', 'uploads', f'marca_agua_institucion.{ext}')):
+                config["marca_agua"] = f"/static/uploads/marca_agua_institucion.{ext}"
+                break
+    if "marca_agua" not in config:
+        config["marca_agua"] = ""
+
+    if not config.get("nombre_sistema") or config.get("nombre_sistema") == "HC Prehospitalario":
+        config["nombre_sistema"] = "Gestion Institucional y Operativa"
 
     habilitaciones = parse_habilitaciones(config.get("habilitaciones"), config.get("habilitacion"))
     if not habilitaciones and "habilitacion" not in config:
@@ -421,6 +437,7 @@ from routes.routes_programacion_operativa import register_routes as register_pro
 from routes.routes_personal_operativo import register_routes as register_personal_operativo
 from routes.routes_voluntariado import register_routes as register_voluntariado
 from routes.routes_reporte_actividades import register_routes as register_reporte_actividades
+from routes.routes_reporte_gasto import register_routes as register_reporte_gasto
 
 # Registrar todas las rutas
 register_auth(app)
@@ -442,6 +459,7 @@ register_programacion_operativa(app)
 register_personal_operativo(app)
 register_voluntariado(app)
 register_reporte_actividades(app)
+register_reporte_gasto(app)
 
 # Programar el backup periódico (lee frecuencia de BD/entorno)
 init_scheduler()

@@ -271,7 +271,14 @@ def register_routes(app):
         checklist_total_pending = checklist_pending + preop_pending
 
         vehiculo_alerts = []
-        if session["usuario"].get("rol") == "admin":
+        is_conductor_o_admin = (
+            session["usuario"].get("rol") == "admin" or
+            session["usuario"].get("rol_real") == "admin" or
+            session["usuario"].get("perfil") in ("Administrador", "Conductor") or
+            "conductor" in str(session["usuario"].get("perfil") or "").lower() or
+            "admin" in str(session["usuario"].get("perfil") or "").lower()
+        )
+        if is_conductor_o_admin:
             try:
                 active_vehiculos = conn.execute("SELECT id, placa, soat_vigencia, rtm_vigencia FROM vehiculos WHERE activo = 1").fetchall()
                 fecha_hoy = hoy()
@@ -289,7 +296,7 @@ def register_routes(app):
                             
                             if d_val:
                                 diff = (d_val - fecha_hoy).days
-                                if diff in (1, 2, 3, 4, 5, 10, 15):
+                                if diff <= 15:
                                     vehiculo_alerts.append({
                                         "placa": placa,
                                         "tipo": doc_name,
@@ -301,7 +308,7 @@ def register_routes(app):
 
         conn.close()
         
-        # Ordenar las alertas por los dias mas cercanos primero
+        # Ordenar las alertas por los dias mas criticos (vencidos primero)
         vehiculo_alerts.sort(key=lambda x: x["dias"])
 
         return render_template(

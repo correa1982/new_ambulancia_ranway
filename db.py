@@ -577,8 +577,27 @@ def init_db():
             identificador TEXT NOT NULL,
             nombre TEXT NOT NULL,
             activo INTEGER DEFAULT 1,
-            cantidad INTEGER DEFAULT NULL
+            cantidad INTEGER DEFAULT NULL,
+            aplica_vencimiento INTEGER DEFAULT 0,
+            orden INTEGER DEFAULT 0
         )
+    """)
+
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS checklist_pasb_traslados (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            item_inventario_id INT,
+            nombre VARCHAR(255) NOT NULL,
+            cantidad INT NOT NULL,
+            fecha_vencimiento DATE NULL,
+            destino VARCHAR(50) DEFAULT 'PASB',
+            estado VARCHAR(50) DEFAULT 'pendiente',
+            registrado_por VARCHAR(255),
+            fecha_salida DATETIME DEFAULT CURRENT_TIMESTAMP,
+            aceptado_por VARCHAR(255) NULL,
+            fecha_aceptado DATETIME NULL,
+            checklist_id INT NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
     """)
     
     conn.execute("""
@@ -587,6 +606,33 @@ def init_db():
             tipo_checklist TEXT NOT NULL,
             nombre TEXT NOT NULL,
             activo INTEGER DEFAULT 1
+        )
+    """)
+
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS checklist_pas_opciones (
+            id INTEGER PRIMARY KEY AUTO_INCREMENT,
+            tipo VARCHAR(20) NOT NULL,
+            nombre VARCHAR(100) NOT NULL,
+            activo INTEGER DEFAULT 1
+        )
+    """)
+
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS reporte_gasto (
+            id INTEGER PRIMARY KEY AUTO_INCREMENT,
+            fecha DATE NOT NULL,
+            nombre_evento VARCHAR(255) NOT NULL,
+            tipo_origen VARCHAR(50) NOT NULL,
+            identificador_origen VARCHAR(100) NOT NULL,
+            observaciones TEXT,
+            datos_json MEDIUMTEXT NOT NULL,
+            registrado_por VARCHAR(255) NOT NULL,
+            registrado_por_identificacion VARCHAR(100) NOT NULL,
+            perfil_registrador VARCHAR(100),
+            firma_registrador MEDIUMTEXT,
+            fecha_registro DATETIME NOT NULL,
+            finalizado INTEGER DEFAULT 1
         )
     """)
     
@@ -1359,13 +1405,17 @@ def init_db():
             except Exception:
                 pass
 
-    # ── Checklist tables: add finalizado column if missing ──────────────────────
-    for _cl_table in ("checklist_tam", "checklist_tab", "checklist_pasb", "checklist_pasm", "checklist_equipos", "checklist_avanzada"):
+    # ── Checklist tables: add finalizado column if missing and ensure LONGTEXT ──
+    for _cl_table in ("checklist_tam", "checklist_tab", "checklist_pasb", "checklist_pasm", "checklist_equipos", "checklist_avanzada", "reporte_gasto"):
         try:
             cursor = conn.execute(f"SHOW COLUMNS FROM {_cl_table}")
-            _cl_cols = [row["Field"] for row in cursor.fetchall()]
-            if "finalizado" not in _cl_cols:
+            _cl_fields = {row["Field"]: row.get("Type", "").lower() for row in cursor.fetchall()}
+            if "finalizado" not in _cl_fields:
                 conn.execute(f"ALTER TABLE {_cl_table} ADD COLUMN finalizado INTEGER DEFAULT 1")
+            if "datos_json" in _cl_fields and "longtext" not in _cl_fields["datos_json"]:
+                conn.execute(f"ALTER TABLE {_cl_table} MODIFY COLUMN datos_json LONGTEXT")
+            if "firma_registrador" in _cl_fields and "longtext" not in _cl_fields["firma_registrador"]:
+                conn.execute(f"ALTER TABLE {_cl_table} MODIFY COLUMN firma_registrador LONGTEXT")
         except Exception:
             pass
 
@@ -1391,6 +1441,40 @@ def init_db():
             conn.execute("ALTER TABLE calif_atencion ADD COLUMN responsable_tipo_doc TEXT")
         if "responsable_identificacion" not in calif_cols:
             conn.execute("ALTER TABLE calif_atencion ADD COLUMN responsable_identificacion TEXT")
+    except Exception:
+        pass
+
+    # Migration for checklist_items aplica_vencimiento
+    try:
+        cursor.execute("DESCRIBE checklist_items")
+        ci_cols = [row["Field"] for row in cursor.fetchall()]
+        if "aplica_vencimiento" not in ci_cols:
+            conn.execute("ALTER TABLE checklist_items ADD COLUMN aplica_vencimiento INTEGER DEFAULT 0")
+    except Exception:
+        pass
+
+    # Migration for checklist_items orden
+    try:
+        cursor.execute("DESCRIBE checklist_items")
+        ci_cols = [row["Field"] for row in cursor.fetchall()]
+        if "orden" not in ci_cols:
+            conn.execute("ALTER TABLE checklist_items ADD COLUMN orden INTEGER DEFAULT 0")
+        
+        # Inicializar orden secuencial si hay items con orden 0 o nulo
+        rows_sin_orden = conn.execute("SELECT id FROM checklist_items WHERE orden IS NULL OR orden = 0 LIMIT 1").fetchone()
+        if rows_sin_orden:
+            rows = conn.execute("SELECT id, tipo_checklist, categoria FROM checklist_items ORDER BY tipo_checklist, categoria, id").fetchall()
+            curr_key = None
+            curr_order = 0
+            for r in rows:
+                key = (r["tipo_checklist"], r["categoria"])
+                if key != curr_key:
+                    curr_key = key
+                    curr_order = 1
+                else:
+                    curr_order += 1
+                conn.execute("UPDATE checklist_items SET orden = ? WHERE id = ?", (curr_order, r["id"]))
+            conn.commit()
     except Exception:
         pass
             
@@ -1716,5 +1800,64 @@ def init_db():
     except Exception as e:
         print("Error al migrar la tabla programacion_operativa:", e)
 
+    # Migration for reporte_actividades: harmonize 'Inactivo' to 'Anulado'
+    try:
+        conn.execute("UPDATE reporte_actividades SET estado = 'Anulado' WHERE estado = 'Inactivo'")
+    except Exception:
+        pass
+
+    # Seed checklist_pas_opciones if empty
+    try:
+        pasb_row = conn.execute("SELECT COUNT(*) AS c FROM checklist_pas_opciones WHERE tipo = 'pasb'").fetchone()
+        if pasb_row and pasb_row["c"] == 0:
+            for opt in ["PASB-1", "PASB-2", "PASB-3", "PASB-4"]:
+                conn.execute("INSERT INTO checklist_pas_opciones (tipo, nombre, activo) VALUES ('pasb', ?, 1)", (opt,))
+        pasm_row = conn.execute("SELECT COUNT(*) AS c FROM checklist_pas_opciones WHERE tipo = 'pasm'").fetchone()
+        if pasm_row and pasm_row["c"] == 0:
+            for opt in ["PASM-1", "PASM-2", "PASM-3", "PASM-4"]:
+                conn.execute("INSERT INTO checklist_pas_opciones (tipo, nombre, activo) VALUES ('pasm', ?, 1)", (opt,))
+        avanzada_row = conn.execute("SELECT COUNT(*) AS c FROM checklist_pas_opciones WHERE tipo = 'avanzada'").fetchone()
+        if avanzada_row and avanzada_row["c"] == 0:
+            for opt in ["Botiquín 1", "Botiquín 2", "Botiquín 3", "Botiquín 4"]:
+                conn.execute("INSERT INTO checklist_pas_opciones (tipo, nombre, activo) VALUES ('avanzada', ?, 1)", (opt,))
+    except Exception as e:
+        print("Error seeding checklist_pas_opciones:", e)
+
     conn.commit()
     conn.close()
+
+def get_pas_opciones(conn=None, tipo="pasb"):
+    should_close = False
+    if conn is None:
+        conn = get_db()
+        should_close = True
+    try:
+        rows = conn.execute("SELECT nombre FROM checklist_pas_opciones WHERE tipo = ? AND activo = 1 ORDER BY id", (tipo,)).fetchall()
+        if rows:
+            res = [r["nombre"] for r in rows]
+            if should_close: conn.close()
+            return res
+    except Exception:
+        pass
+    if should_close: conn.close()
+    if tipo == "pasb":
+        return ["PASB-1", "PASB-2", "PASB-3", "PASB-4"]
+    elif tipo == "pasm":
+        return ["PASM-1", "PASM-2", "PASM-3", "PASM-4"]
+    elif tipo == "avanzada":
+        return ["Botiquín 1", "Botiquín 2", "Botiquín 3", "Botiquín 4"]
+    return []
+
+def get_all_pas_opciones(conn=None, tipo="pasb"):
+    should_close = False
+    if conn is None:
+        conn = get_db()
+        should_close = True
+    try:
+        rows = conn.execute("SELECT * FROM checklist_pas_opciones WHERE tipo = ? ORDER BY id", (tipo,)).fetchall()
+        res = [dict(r) for r in rows]
+        if should_close: conn.close()
+        return res
+    except Exception:
+        if should_close: conn.close()
+        return []

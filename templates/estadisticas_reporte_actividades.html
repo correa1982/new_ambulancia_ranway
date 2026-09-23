@@ -1,246 +1,495 @@
 {% extends "base.html" %}
-{% block title %}Estadísticas - Reporte de Actividades{% endblock %}
+{% block title %}Estadísticas – Reporte de Actividades{% endblock %}
+
 {% block content %}
-<div class="container-fluid mt-4 mb-5">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+
+
+<style>
+.era-wrap { padding: 16px; max-width: 1100px; margin: 0 auto; }
+.era-header { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 22px; }
+.era-header h2 { margin: 0; font-size: 18px; font-weight: 800; color: #1e3a8a; flex: 1; }
+.era-section { font-size: 11px; font-weight: 800; text-transform: uppercase;
+               letter-spacing: .06em; color: #6b7280; margin: 22px 0 8px; }
+.era-divider  { border: none; border-top: 1px solid #e5e7eb; margin: 20px 0; }
+
+/* ── Tabla compacta estados ── */
+.tbl-compact { width: 100%; border-collapse: collapse; font-size: 13px; }
+.tbl-compact th { background: #f1f5f9; font-size: 10px; text-transform: uppercase;
+                  letter-spacing: .05em; color: #64748b; padding: 7px 12px;
+                  font-weight: 700; text-align: center; border-bottom: 2px solid #e2e8f0; }
+.tbl-compact td { padding: 8px 12px; text-align: center; border-bottom: 1px solid #f1f5f9; }
+.tbl-compact .lbl { text-align: left; font-weight: 600; }
+.badge-av  { background:#dcfce7;color:#15803d;border-radius:20px;padding:2px 10px;font-weight:700;font-size:12px; }
+.badge-an  { background:#fee2e2;color:#b91c1c;border-radius:20px;padding:2px 10px;font-weight:700;font-size:12px; }
+.badge-pe  { background:#fef9c3;color:#92400e;border-radius:20px;padding:2px 10px;font-weight:700;font-size:12px; }
+.badge-tot { background:#eff6ff;color:#1e40af;border-radius:20px;padding:2px 10px;font-weight:700;font-size:12px; }
+
+/* ── Tabla tipos servicio ── */
+.tbl-tipos { width: 100%; border-collapse: collapse; font-size: 13px; }
+.tbl-tipos th { background:#1e3a8a;color:white;font-size:10px;text-transform:uppercase;
+                letter-spacing:.05em;padding:9px 10px;font-weight:700; }
+.tbl-tipos td { padding:9px 10px;border-bottom:1px solid #f1f5f9;vertical-align:middle; }
+.tbl-tipos tr:hover td { background:#f8fafc; }
+.tbl-tipos tfoot td { background:#f0f4ff;font-weight:800;border-top:2px solid #c7d2fe; }
+
+/* ── Botón icono ── */
+.btn-icon { background:none;border:1px solid #e2e8f0;border-radius:7px;
+            width:30px;height:30px;display:inline-flex;align-items:center;
+            justify-content:center;cursor:pointer;color:#374151;transition:all .15s; }
+.btn-icon:hover { background:#eff6ff;border-color:#93c5fd;color:#2563eb; }
+
+/* ── Tabla recursos totales ── */
+.tbl-recursos { width:100%;border-collapse:collapse;font-size:13px; }
+.tbl-recursos th { background:#0f172a;color:white;font-size:10px;text-transform:uppercase;
+                   letter-spacing:.05em;padding:9px 10px;font-weight:700; }
+.tbl-recursos td { padding:9px 10px;border-bottom:1px solid #f1f5f9;vertical-align:middle; }
+.tbl-recursos .lbl { text-align:left;font-weight:600; }
+
+/* ── Modales ── */
+.era-overlay { display:none;position:fixed;inset:0;z-index:3000;
+               background:rgba(0,0,0,.55);overflow-y:auto;padding:16px;box-sizing:border-box; }
+.era-modal { background:#fff;border-radius:16px;width:100%;max-width:700px;
+             margin:0 auto 40px;box-shadow:0 24px 64px rgba(0,0,0,.22);overflow:hidden; }
+.era-modal-head { padding:16px 20px;display:flex;justify-content:space-between;align-items:center; }
+.era-modal-head h3 { margin:0;color:white;font-size:15px;font-weight:800; }
+.era-close { background:rgba(255,255,255,.22);border:none;color:white;
+             width:32px;height:32px;border-radius:50%;font-size:18px;
+             cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0; }
+.era-modal-body { padding:18px 20px;max-height:70vh;overflow-y:auto;-webkit-overflow-scrolling:touch; }
+.era-modal-foot { padding:12px 20px;border-top:1px solid #f1f5f9;display:flex;justify-content:flex-end;gap:8px; }
+
+/* ── Toggle ── */
+.toggle-group { display:flex;gap:6px;margin-bottom:14px; }
+.toggle-btn { padding:5px 14px;border-radius:20px;border:1.5px solid #e2e8f0;
+              font-size:12px;font-weight:700;cursor:pointer;background:white;color:#374151;transition:all .15s; }
+.toggle-btn.active { background:#2563eb;color:white;border-color:#2563eb; }
+
+/* ── Scroll horizontal ── */
+.tbl-scroll { width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:10px; }
+
+@media (max-width:640px) {
+    .era-wrap { padding:10px; }
+    .era-header h2 { font-size:15px; }
+    .tbl-compact,.tbl-tipos,.tbl-recursos { font-size:11px; }
+    .tbl-compact th,.tbl-compact td,
+    .tbl-tipos th,.tbl-tipos td,
+    .tbl-recursos th,.tbl-recursos td { padding:6px 7px; }
+    .era-modal-body { padding:12px 14px; }
+    .era-modal { border-radius:12px; }
+}
+</style>
+
+<div class="era-wrap">
 
     {# ── Encabezado ── #}
-    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
-        <div class="d-flex align-items-center gap-3 flex-wrap">
+    <div class="era-header" style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:22px; flex-wrap:wrap;">
+        <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
             <a href="{{ url_for('registros_reporte_actividades') }}"
-               style="display:inline-flex;align-items:center;gap:6px;background:#6c757d;color:white;border:none;border-radius:9px;padding:9px 18px;font-weight:700;font-size:14px;text-decoration:none;transition:all .2s;">
-                <i class="ph ph-arrow-left" style="font-size:15px;"></i> Volver a Registros
+               style="display:inline-flex;align-items:center;gap:6px;background:#6b7280;color:white;border:none;border-radius:9px;padding:8px 16px;font-weight:700;font-size:13px;text-decoration:none;">
+                <i class="ph ph-arrow-left"></i> Volver
             </a>
-            <h3 class="mb-0 fw-bold text-primary" style="font-size:1.3rem;">
-                <i class="ph ph-chart-line-up"></i> Estadísticas por Tipo de Servicio
-            </h3>
+            <h2 style="margin:0;"><i class="ph ph-chart-line-up" style="color:#2563eb;"></i> Estadísticas – Reporte de Actividades</h2>
+        </div>
+        <div>
+            <button type="button" onclick="abrirModalExportarExcel()"
+                    style="display:inline-flex; align-items:center; gap:6px; background:linear-gradient(135deg, #10b981, #059669); color:white; border:none; border-radius:9px; padding:9px 18px; font-weight:700; font-size:13px; cursor:pointer; box-shadow:0 2px 6px rgba(16,185,129,0.35); transition:all 0.2s;">
+                <i class="ph ph-file-xls" style="font-size:18px;"></i> Exportar Excel
+            </button>
         </div>
     </div>
 
-    {# ── Totales globales (resumen compacto) ── #}
-    {% set g_personal = namespace(v=0) %}
-    {% set g_atend    = namespace(v=0) %}
-    {% set g_trasl    = namespace(v=0) %}
-    {% set g_eventos  = namespace(v=0) %}
-    {% for tipo, s in stats_servicios.items() %}
-        {% set g_personal.v = g_personal.v + s.total_personal %}
-        {% set g_atend.v    = g_atend.v    + s.pacientes_atendidos %}
-        {% set g_trasl.v    = g_trasl.v    + s.pacientes_trasladados %}
-        {% set g_eventos.v  = g_eventos.v  + s.cantidad %}
-    {% endfor %}
-
-    <div class="row g-3 mb-4">
-        <div class="col-6 col-md-3">
-            <div class="card border-0 shadow-sm text-center h-100"
-                 style="border-radius:14px;background:linear-gradient(135deg,#1e3a8a,#2563eb);">
-                <div class="card-body py-3">
-                    <i class="ph ph-calendar-check text-white" style="font-size:2rem;opacity:.8;"></i>
-                    <div class="text-white fw-bold mt-1" style="font-size:.78rem;letter-spacing:.04em;">EVENTOS AVALADOS</div>
-                    <div class="text-white fw-bold" style="font-size:2rem;line-height:1.1;">{{ g_eventos.v }}</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="card border-0 shadow-sm text-center h-100"
-                 style="border-radius:14px;background:linear-gradient(135deg,#065f46,#10b981);">
-                <div class="card-body py-3">
-                    <i class="ph ph-users text-white" style="font-size:2rem;opacity:.8;"></i>
-                    <div class="text-white fw-bold mt-1" style="font-size:.78rem;letter-spacing:.04em;">TOTAL PERSONAL</div>
-                    <div class="text-white fw-bold" style="font-size:2rem;line-height:1.1;">{{ g_personal.v }}</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="card border-0 shadow-sm text-center h-100"
-                 style="border-radius:14px;background:linear-gradient(135deg,#92400e,#f59e0b);">
-                <div class="card-body py-3">
-                    <i class="ph ph-bandaids text-white" style="font-size:2rem;opacity:.8;"></i>
-                    <div class="text-white fw-bold mt-1" style="font-size:.78rem;letter-spacing:.04em;">PACIENTES ATENDIDOS</div>
-                    <div class="text-white fw-bold" style="font-size:2rem;line-height:1.1;">{{ g_atend.v }}</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="card border-0 shadow-sm text-center h-100"
-                 style="border-radius:14px;background:linear-gradient(135deg,#6d28d9,#a855f7);">
-                <div class="card-body py-3">
-                    <i class="ph ph-ambulance text-white" style="font-size:2rem;opacity:.8;"></i>
-                    <div class="text-white fw-bold mt-1" style="font-size:.78rem;letter-spacing:.04em;">PACIENTES TRASLADADOS</div>
-                    <div class="text-white fw-bold" style="font-size:2rem;line-height:1.1;">{{ g_trasl.v }}</div>
-                </div>
-            </div>
-        </div>
+    {# ════════════════════════════════════
+       BLOQUE 1: RESUMEN DE ESTADOS
+    ════════════════════════════════════ #}
+    <div class="era-section">📋 Resumen de reportes</div>
+    <div class="tbl-scroll" style="box-shadow:0 2px 8px rgba(0,0,0,.06);">
+        <table class="tbl-compact">
+            <thead>
+                <tr>
+                    <th style="text-align:left;">Indicador</th>
+                    <th>✅ Avalados</th>
+                    <th>❌ Anulados</th>
+                    <th>⏳ Pendientes</th>
+                    <th>📊 Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="lbl"><i class="ph ph-clipboard-text" style="color:#2563eb;"></i> Reportes</td>
+                    <td><span class="badge-av">{{ resumen_estados.avalados }}</span></td>
+                    <td><span class="badge-an">{{ resumen_estados.anulados }}</span></td>
+                    <td><span class="badge-pe">{{ resumen_estados.pendientes }}</span></td>
+                    <td><span class="badge-tot">{{ resumen_estados.total }}</span></td>
+                </tr>
+            </tbody>
+        </table>
     </div>
 
-    {# ── Tarjetas por Tipo de Servicio ── #}
-    <h4 class="fw-bold text-primary mb-3 border-bottom pb-2">
-        <i class="ph ph-tag"></i> Detalle por Tipo de Servicio
-        <small class="text-muted fw-normal" style="font-size:.85rem;"> — clic en cada tarjeta para ver recursos y detalle</small>
-    </h4>
+    <hr class="era-divider">
+
+    {# ════════════════════════════════════
+       BLOQUE 2: POR TIPO DE SERVICIO
+    ════════════════════════════════════ #}
+    <div class="era-section" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;">
+        <span>📊 Estadísticas por tipo de reporte</span>
+        <button class="btn-icon" title="Ver distribución por tipo (torta / tabla)"
+                onclick="openChartModal(-1)"
+                style="color:#0284c7;border-color:#bae6fd;width:auto;padding:5px 12px;gap:5px;font-size:12px;font-weight:700;">
+            <i class="ph ph-chart-pie" style="font-size:14px;"></i> Ver distribución
+        </button>
+    </div>
 
     {% if stats_servicios %}
-    <div class="row g-4">
-        {% for tipo, s in stats_servicios.items() %}
-        {% set modal_id = "modal_srv_" ~ loop.index %}
-
-        <div class="col-md-6 col-lg-4">
-            <div class="card shadow-sm border-0 h-100"
-                 style="border-radius:16px;border-left:5px solid #2563eb !important;transition:transform .18s,box-shadow .18s;cursor:pointer;"
-                 onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 14px 32px rgba(37,99,235,.18)';"
-                 onmouseout="this.style.transform='';this.style.boxShadow='';">
-                <div class="card-body p-4">
-
-                    {# Encabezado tarjeta #}
-                    <div class="d-flex align-items-start justify-content-between mb-3">
-                        <h5 class="fw-bold text-dark mb-0" style="font-size:1rem;line-height:1.3;">
-                            <i class="ph ph-tag" style="color:#2563eb;"></i> {{ tipo }}
-                        </h5>
-                        <span class="badge rounded-pill"
-                              style="background:#eff6ff;color:#2563eb;font-size:.78rem;padding:4px 10px;white-space:nowrap;">
-                            {{ s.cantidad }} evento{{ 's' if s.cantidad != 1 }}
-                        </span>
-                    </div>
-
-                    {# Mini stats #}
-                    <div class="row g-2 mb-3">
-                        <div class="col-4 text-center">
-                            <div style="background:#f0fdf4;border-radius:10px;padding:8px 4px;">
-                                <i class="ph ph-clock" style="color:#16a34a;font-size:1.2rem;"></i>
-                                <div class="fw-bold text-success" style="font-size:1.1rem;">{{ s.horas }}h</div>
-                                <div style="font-size:.68rem;color:#6b7280;">Horas</div>
-                            </div>
-                        </div>
-                        <div class="col-4 text-center">
-                            <div style="background:#fffbeb;border-radius:10px;padding:8px 4px;">
-                                <i class="ph ph-bandaids" style="color:#d97706;font-size:1.2rem;"></i>
-                                <div class="fw-bold text-warning" style="font-size:1.1rem;">{{ s.pacientes_atendidos }}</div>
-                                <div style="font-size:.68rem;color:#6b7280;">Atendidos</div>
-                            </div>
-                        </div>
-                        <div class="col-4 text-center">
-                            <div style="background:#f5f3ff;border-radius:10px;padding:8px 4px;">
-                                <i class="ph ph-ambulance" style="color:#7c3aed;font-size:1.2rem;"></i>
-                                <div class="fw-bold" style="color:#7c3aed;font-size:1.1rem;">{{ s.pacientes_trasladados }}</div>
-                                <div style="font-size:.68rem;color:#6b7280;">Trasladados</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {# Botón abrir modal #}
-                    <button class="btn w-100 fw-bold"
-                            data-bs-toggle="modal"
-                            data-bs-target="#{{ modal_id }}"
-                            style="background:linear-gradient(135deg,#2563eb,#1d4ed8);color:white;border:none;border-radius:10px;padding:8px;font-size:.86rem;">
-                        <i class="ph ph-magnifying-glass-plus"></i> Ver Recursos y Detalle
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        {# ══════════ MODAL ══════════ #}
-        <div class="modal fade" id="{{ modal_id }}" tabindex="-1"
-             aria-labelledby="{{ modal_id }}_lbl" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
-                <div class="modal-content border-0 shadow-lg" style="border-radius:18px;overflow:hidden;">
-
-                    <div class="modal-header text-white"
-                         style="background:linear-gradient(135deg,#1e3a8a,#2563eb);border:none;">
-                        <h5 class="modal-title fw-bold" id="{{ modal_id }}_lbl">
-                            <i class="ph ph-tag me-2"></i>{{ tipo }}
-                        </h5>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                    </div>
-
-                    <div class="modal-body p-4">
-
-                        {# Pacientes y personal #}
-                        <h6 class="fw-bold text-primary mb-3 border-bottom pb-1">
-                            <i class="ph ph-heartbeat"></i> Pacientes y Personal
-                        </h6>
-                        <div class="row g-3 mb-4">
-                            <div class="col-4 text-center">
-                                <div class="p-3 rounded-3" style="background:#fffbeb;border:1px solid #fde68a;">
-                                    <i class="ph ph-bandaids" style="font-size:1.8rem;color:#d97706;"></i>
-                                    <div class="fw-bold mt-1" style="font-size:1.6rem;color:#92400e;">{{ s.pacientes_atendidos }}</div>
-                                    <div class="text-muted" style="font-size:.78rem;">Pacientes Atendidos</div>
-                                </div>
-                            </div>
-                            <div class="col-4 text-center">
-                                <div class="p-3 rounded-3" style="background:#f5f3ff;border:1px solid #ddd6fe;">
-                                    <i class="ph ph-ambulance" style="font-size:1.8rem;color:#7c3aed;"></i>
-                                    <div class="fw-bold mt-1" style="font-size:1.6rem;color:#6d28d9;">{{ s.pacientes_trasladados }}</div>
-                                    <div class="text-muted" style="font-size:.78rem;">Pacientes Trasladados</div>
-                                </div>
-                            </div>
-                            <div class="col-4 text-center">
-                                <div class="p-3 rounded-3" style="background:#f0fdf4;border:1px solid #bbf7d0;">
-                                    <i class="ph ph-users" style="font-size:1.8rem;color:#16a34a;"></i>
-                                    <div class="fw-bold mt-1" style="font-size:1.6rem;color:#15803d;">{{ s.total_personal }}</div>
-                                    <div class="text-muted" style="font-size:.78rem;">Total Personal</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {# Recursos #}
-                        <h6 class="fw-bold text-primary mb-3 border-bottom pb-1">
-                            <i class="ph ph-truck"></i> Recursos Utilizados
-                        </h6>
-                        <div class="row g-2">
-                            {%- set recursos = [
-                                ('Ambulancia TAB',   s.ambulancia_tab,       'ph-van',         '#1e40af','#eff6ff','#bfdbfe'),
-                                ('Ambulancia TAM',   s.ambulancia_tam,       'ph-van',         '#0c4a6e','#f0f9ff','#bae6fd'),
-                                ('PASM',             s.pasm,                 'ph-first-aid',   '#065f46','#f0fdf4','#bbf7d0'),
-                                ('PASB',             s.pasb,                 'ph-first-aid',   '#14532d','#dcfce7','#86efac'),
-                                ('Eq. Intervención', s.equipos_intervencion, 'ph-wrench',      '#7c2d12','#fff7ed','#fed7aa'),
-                                ('Moto APH',         s.moto_aph,             'ph-motorcycle',  '#6d28d9','#f5f3ff','#ddd6fe'),
-                                ('Unidad Rescate',   s.unidad_rescate,       'ph-lifebuoy',    '#9f1239','#fff1f2','#fecdd3'),
-                                ('Unidad Logística', s.unidad_logistica,     'ph-package',     '#374151','#f9fafb','#e5e7eb'),
-                            ] -%}
-                            {% for nombre, cantidad, icono, color, bg, borde in recursos %}
-                            <div class="col-6 col-md-3">
-                                <div class="text-center p-2 rounded-3 h-100"
-                                     style="background:{{ bg }};border:1px solid {{ borde }};{% if cantidad == 0 %}opacity:.4;{% endif %}">
-                                    <i class="ph {{ icono }}" style="font-size:1.4rem;color:{{ color }};"></i>
-                                    <div class="fw-bold mt-1" style="font-size:1.4rem;color:{{ color }};">{{ cantidad }}</div>
-                                    <div style="font-size:.7rem;color:#6b7280;line-height:1.2;">{{ nombre }}</div>
-                                </div>
-                            </div>
-                            {% endfor %}
-                        </div>
-
-                        {# Resumen horas #}
-                        <div class="mt-4 p-3 rounded-3 text-center"
-                             style="background:#f0f9ff;border:1px solid #bae6fd;">
-                            <i class="ph ph-clock" style="font-size:1.4rem;color:#0284c7;"></i>
-                            <span class="fw-bold ms-2" style="color:#0c4a6e;">
-                                <strong>{{ s.horas }}h</strong> acumuladas en
-                                <strong>{{ s.cantidad }}</strong> evento{{ 's' if s.cantidad != 1 }} de este tipo
-                            </span>
-                        </div>
-
-                    </div>
-                    <div class="modal-footer border-0 pt-0">
-                        <button type="button" class="btn btn-secondary fw-bold" data-bs-dismiss="modal"
-                                style="border-radius:9px;">
-                            <i class="ph ph-x"></i> Cerrar
+    <div class="tbl-scroll" style="box-shadow:0 2px 8px rgba(0,0,0,.06);">
+        <table class="tbl-tipos">
+            <thead>
+                <tr>
+                    <th style="min-width:130px;text-align:left;">Tipo de Reporte</th>
+                    <th>Eventos</th>
+                    <th>Horas</th>
+                    <th>Personal</th>
+                    <th>Atendidos</th>
+                    <th>Trasladados</th>
+                    <th style="text-align:center;">Recursos</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% set ns = namespace(ev=0, h=0.0, p=0, a=0, t=0) %}
+                {% for tipo, s in stats_servicios.items() %}
+                {% set ns.ev = ns.ev + s.cantidad %}
+                {% set ns.h  = ns.h  + s.horas %}
+                {% set ns.p  = ns.p  + s.total_personal %}
+                {% set ns.a  = ns.a  + s.pacientes_atendidos %}
+                {% set ns.t  = ns.t  + s.pacientes_trasladados %}
+                <tr>
+                    <td style="font-weight:700;white-space:nowrap;">
+                        <i class="ph ph-tag" style="color:#2563eb;font-size:12px;"></i> {{ tipo }}
+                    </td>
+                    <td style="text-align:center;font-weight:700;color:#1e40af;">{{ s.cantidad }}</td>
+                    <td style="text-align:center;color:#047857;">{{ s.horas }}h</td>
+                    <td style="text-align:center;">{{ s.total_personal }}</td>
+                    <td style="text-align:center;color:#b45309;">{{ s.pacientes_atendidos }}</td>
+                    <td style="text-align:center;color:#7c3aed;">{{ s.pacientes_trasladados }}</td>
+                    <td style="text-align:center;">
+                        <button class="btn-icon" title="Ver recursos implementados"
+                                onclick="openRecursosModal({{ loop.index0 }})"
+                                style="color:#7c3aed;border-color:#ddd6fe;">
+                            <i class="ph ph-eye" style="font-size:13px;"></i>
                         </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        {# fin modal #}
-
-        {% endfor %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td class="lbl" style="color:#1e3a8a;">TOTAL</td>
+                    <td style="text-align:center;color:#1e40af;">{{ ns.ev }}</td>
+                    <td style="text-align:center;color:#047857;">{{ ns.h|round(2) }}h</td>
+                    <td style="text-align:center;">{{ ns.p }}</td>
+                    <td style="text-align:center;color:#b45309;">{{ ns.a }}</td>
+                    <td style="text-align:center;color:#7c3aed;">{{ ns.t }}</td>
+                    <td></td>
+                </tr>
+            </tfoot>
+        </table>
     </div>
-
     {% else %}
-    <div class="alert alert-light border text-center text-muted py-5">
-        <i class="ph ph-info" style="font-size:2.5rem;"></i>
-        <div class="mt-2 fw-bold">No hay datos de servicios avalados para mostrar.</div>
+    <div style="text-align:center;color:#9ca3af;padding:30px;background:#f9fafb;border-radius:12px;font-size:14px;">
+        <i class="ph ph-folder-open" style="font-size:2rem;display:block;margin-bottom:8px;"></i>
+        No hay reportes avalados para mostrar estadísticas.
     </div>
     {% endif %}
 
+    <hr class="era-divider">
+
+    {# ════════════════════════════════════
+       BLOQUE 3: TOTAL DE RECURSOS
+    ════════════════════════════════════ #}
+    <div class="era-section">🚑 Total de recursos utilizados (todos los tipos)</div>
+    <div class="tbl-scroll" style="box-shadow:0 2px 8px rgba(0,0,0,.06);">
+        <table class="tbl-recursos">
+            <thead>
+                <tr>
+                    <th style="text-align:left;min-width:160px;">Recurso</th>
+                    <th style="text-align:center;min-width:80px;">Cantidad</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for nombre, cantidad, icono, color in [
+                    ('Ambulancia TAB',      total_recursos.ambulancia_tab,       'ph-van',        '#1e40af'),
+                    ('Ambulancia TAM',      total_recursos.ambulancia_tam,       'ph-van',        '#0c4a6e'),
+                    ('PASM',               total_recursos.pasm,                  'ph-first-aid',  '#065f46'),
+                    ('PASB',               total_recursos.pasb,                  'ph-first-aid',  '#14532d'),
+                    ('Eq. Intervención',   total_recursos.equipos_intervencion,  'ph-wrench',     '#7c2d12'),
+                    ('Moto APH',           total_recursos.moto_aph,              'ph-motorcycle', '#6d28d9'),
+                    ('Unidad Rescate',     total_recursos.unidad_rescate,        'ph-lifebuoy',   '#9f1239'),
+                    ('Unidad Logística',   total_recursos.unidad_logistica,      'ph-package',    '#374151'),
+                    ('Total Personal',     total_recursos.total_personal,        'ph-users',      '#047857'),
+                    ('Pacientes Atendidos',total_recursos.pacientes_atendidos,   'ph-bandaids',   '#b45309'),
+                    ('Pacientes Trasladados',total_recursos.pacientes_trasladados,'ph-ambulance', '#6d28d9'),
+                ] %}
+                <tr style="{% if cantidad == 0 %}opacity:.4;{% endif %}">
+                    <td class="lbl">
+                        <i class="ph {{ icono }}" style="color:{{ color }};font-size:14px;margin-right:6px;"></i>
+                        {{ nombre }}
+                    </td>
+                    <td style="text-align:center;font-weight:700;color:{{ color }};font-size:15px;">{{ cantidad }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</div>{# /era-wrap #}
+
+{# ══ Datos JS embebidos ══ #}
+<script>
+var ERA_TIPOS  = {{ stats_servicios | tojson }};
+var ERA_TOTAL  = {{ resumen_estados.avalados }};
+var ERA_KEYS   = Object.keys(ERA_TIPOS);
+var PALETTE    = ['#2563eb','#10b981','#f59e0b','#ef4444','#8b5cf6',
+                  '#06b6d4','#ec4899','#84cc16','#f97316','#6366f1'];
+
+var REC_LABELS = ['Ambulancia TAB','Ambulancia TAM','PASM','PASB',
+                  'Eq. Intervención','Moto APH','Unidad Rescate','Unidad Logística',
+                  'Total Personal','Pac. Atendidos','Trasladados'];
+var REC_KEYS   = ['ambulancia_tab','ambulancia_tam','pasm','pasb',
+                  'equipos_intervencion','moto_aph','unidad_rescate','unidad_logistica',
+                  'total_personal','pacientes_atendidos','pacientes_trasladados'];
+var REC_COLORS = ['#1e40af','#0c4a6e','#065f46','#14532d','#7c2d12',
+                  '#6d28d9','#9f1239','#374151','#047857','#b45309','#6d28d9'];
+
+/* ── Modal utils ── */
+function openEraModal(id) {
+    document.getElementById(id).style.display = 'block';
+    document.body.style.overflow = 'hidden';
+}
+function closeEraModal(id) {
+    document.getElementById(id).style.display = 'none';
+    document.body.style.overflow = '';
+}
+['modalChart','modalRecursos'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.addEventListener('click', function(e) {
+        if (e.target === el) closeEraModal(id);
+    });
+});
+
+/* ── Modal Distribución ── */
+var pieChartInstance = null;
+
+function openChartModal(idx) {
+    var tipo  = idx >= 0 ? ERA_KEYS[idx] : null;
+    var s     = tipo ? ERA_TIPOS[tipo] : null;
+
+    if (tipo) {
+        var pct = ERA_TOTAL > 0 ? ((s.cantidad / ERA_TOTAL) * 100).toFixed(1) : 0;
+        document.getElementById('chartModalTitle').innerHTML =
+            '<i class="ph ph-chart-pie" style="margin-right:5px;"></i>' + tipo +
+            ' <span style="font-size:11px;opacity:.8;">(' + s.cantidad + ' eventos \u2013 ' + pct + '% del total)</span>';
+    } else {
+        document.getElementById('chartModalTitle').innerHTML =
+            '<i class="ph ph-chart-pie" style="margin-right:5px;"></i> Distribuci\u00f3n por tipo de reporte';
+    }
+
+    var total = ERA_KEYS.reduce(function(acc, k) { return acc + ERA_TIPOS[k].cantidad; }, 0) || 1;
+    var tbody = document.getElementById('chartTableBody');
+    tbody.innerHTML = '';
+    ERA_KEYS.forEach(function(k, i) {
+        var v   = ERA_TIPOS[k].cantidad;
+        var p   = ((v / total) * 100).toFixed(1);
+        var sel = (tipo && k === tipo) ? 'font-weight:800;background:#eff6ff;' : '';
+        tbody.innerHTML +=
+            '<tr style="' + sel + '">' +
+            '<td style="text-align:left;padding:6px 10px;">' +
+                '<span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:' + PALETTE[i % PALETTE.length] + ';margin-right:6px;"></span>' + k +
+            '</td>' +
+            '<td style="text-align:center;padding:6px 10px;">' + v + '</td>' +
+            '<td style="text-align:center;padding:6px 10px;"><strong>' + p + '%</strong></td>' +
+            '</tr>';
+    });
+
+    if (pieChartInstance) pieChartInstance.destroy();
+    Chart.register(ChartDataLabels);
+    var ctx = document.getElementById('pieChart').getContext('2d');
+    pieChartInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ERA_KEYS,
+            datasets: [{
+                data: ERA_KEYS.map(function(k) { return ERA_TIPOS[k].cantidad; }),
+                backgroundColor: ERA_KEYS.map(function(_, i) { return PALETTE[i % PALETTE.length]; }),
+                borderWidth: 2, borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'bottom', labels: { font: { size: 11 }, padding: 10 } },
+                tooltip: { callbacks: { label: function(ctx) {
+                    var v = ctx.raw;
+                    return ' ' + v + ' evento' + (v !== 1 ? 's' : '') +
+                           ' (' + ((v / total) * 100).toFixed(1) + '%)';
+                }}},
+                datalabels: {
+                    color: '#fff',
+                    font: { weight: 'bold', size: 12 },
+                    formatter: function(value, ctx) {
+                        var pct = ((value / total) * 100).toFixed(1);
+                        return pct < 3 ? '' : pct + '%';
+                    },
+                    textShadowBlur: 4,
+                    textShadowColor: 'rgba(0,0,0,0.4)'
+                }
+            }
+        }
+    });
+
+    switchView('torta');
+    openEraModal('modalChart');
+}
+
+
+
+function switchView(view) {
+    document.getElementById('viewTorta').style.display = view === 'torta' ? '' : 'none';
+    document.getElementById('viewTabla').style.display = view === 'tabla' ? '' : 'none';
+    document.getElementById('btnTorta').classList.toggle('active', view === 'torta');
+    document.getElementById('btnTabla').classList.toggle('active', view === 'tabla');
+}
+
+/* ── Modal Recursos ── */
+function openRecursosModal(idx) {
+    var tipo = ERA_KEYS[idx];
+    var s    = ERA_TIPOS[tipo];
+
+    document.getElementById('recursosModalTitle').innerHTML =
+        '<i class="ph ph-truck" style="margin-right:5px;"></i> Recursos — ' + tipo;
+
+    var html = '<table class="tbl-recursos"><thead>' +
+        '<tr><th style="text-align:left;min-width:150px;">Recurso</th>' +
+        '<th style="text-align:center;">Cantidad</th></tr></thead><tbody>';
+    REC_KEYS.forEach(function(k, i) {
+        var v = s[k] !== undefined ? s[k] : 0;
+        html += '<tr style="' + (v === 0 ? 'opacity:.35;' : '') + '">' +
+            '<td style="text-align:left;font-weight:600;padding:8px 10px;">' + REC_LABELS[i] + '</td>' +
+            '<td style="text-align:center;font-weight:700;color:' + REC_COLORS[i] + ';font-size:15px;padding:8px 10px;">' + v + '</td>' +
+            '</tr>';
+    });
+    html += '</tbody></table>';
+
+    document.getElementById('recursosModalBody').innerHTML = html;
+    openEraModal('modalRecursos');
+}
+</script>
+
+{# ── MODAL: Distribución ── #}
+<div id="modalChart" class="era-overlay">
+    <div class="era-modal" style="max-width:520px;">
+        <div class="era-modal-head" style="background:linear-gradient(135deg,#1e3a8a,#2563eb);">
+            <h3 id="chartModalTitle"><i class="ph ph-chart-pie"></i> Distribución</h3>
+            <button class="era-close" onclick="closeEraModal('modalChart')">×</button>
+        </div>
+        <div class="era-modal-body">
+            <div class="toggle-group">
+                <button class="toggle-btn active" id="btnTorta" onclick="switchView('torta')">
+                    <i class="ph ph-chart-pie"></i> Torta
+                </button>
+                <button class="toggle-btn" id="btnTabla" onclick="switchView('tabla')">
+                    <i class="ph ph-table"></i> Tabla
+                </button>
+            </div>
+            <div id="viewTorta"><canvas id="pieChart" style="max-height:280px;"></canvas></div>
+            <div id="viewTabla" style="display:none;">
+                <table class="tbl-compact">
+                    <thead>
+                        <tr>
+                            <th style="text-align:left;">Tipo</th>
+                            <th>Eventos</th>
+                            <th>%</th>
+                        </tr>
+                    </thead>
+                    <tbody id="chartTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+        <div class="era-modal-foot">
+            <button onclick="closeEraModal('modalChart')"
+                    style="background:#6b7280;color:white;border:none;border-radius:8px;padding:8px 20px;font-weight:700;cursor:pointer;font-size:13px;">
+                Cerrar
+            </button>
+        </div>
+    </div>
 </div>
+
+{# ── MODAL: Recursos por tipo ── #}
+<div id="modalRecursos" class="era-overlay">
+    <div class="era-modal" style="max-width:560px;">
+        <div class="era-modal-head" style="background:linear-gradient(135deg,#4c1d95,#7c3aed);">
+            <h3 id="recursosModalTitle"><i class="ph ph-truck"></i> Recursos</h3>
+            <button class="era-close" onclick="closeEraModal('modalRecursos')">×</button>
+        </div>
+        <div class="era-modal-body" id="recursosModalBody"></div>
+        <div class="era-modal-foot">
+            <button onclick="closeEraModal('modalRecursos')"
+                    style="background:#6b7280;color:white;border:none;border-radius:8px;padding:8px 20px;font-weight:700;cursor:pointer;font-size:13px;">
+                Cerrar
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+function abrirModalExportarExcel() {
+    Swal.fire({
+        title: 'Exportar a Excel',
+        html: `
+            <div style="text-align:left; font-size:13px; color:#374151;">
+                <p style="margin-bottom:14px; color:#64748b; line-height:1.5;">
+                    Seleccione el rango de fechas de los eventos que desea exportar. Si deja los campos vacíos, se exportará el <strong>histórico completo</strong> (incluye Avalados, Pendientes y Anulados).
+                </p>
+                <div style="display:flex; flex-direction:column; gap:12px;">
+                    <div>
+                        <label style="font-weight:600; font-size:12px; display:block; margin-bottom:4px; color:#1e293b;">Fecha Desde:</label>
+                        <input type="date" id="export_fecha_desde" class="form-control" style="width:100%; border:1.5px solid #cbd5e1; border-radius:8px; padding:8px 12px; font-size:13px; box-sizing:border-box;">
+                    </div>
+                    <div>
+                        <label style="font-weight:600; font-size:12px; display:block; margin-bottom:4px; color:#1e293b;">Fecha Hasta:</label>
+                        <input type="date" id="export_fecha_hasta" class="form-control" style="width:100%; border:1.5px solid #cbd5e1; border-radius:8px; padding:8px 12px; font-size:13px; box-sizing:border-box;">
+                    </div>
+                </div>
+            </div>
+        `,
+        icon: 'info',
+        showCancelButton: true,
+        confirmButtonText: '<i class="ph ph-download-simple" style="margin-right:4px;"></i> Descargar Excel',
+        cancelButtonText: 'Cancelar',
+        confirmButtonColor: '#10b981',
+        cancelButtonColor: '#6b7280',
+        focusConfirm: false,
+        preConfirm: () => {
+            const desde = document.getElementById('export_fecha_desde').value;
+            const hasta = document.getElementById('export_fecha_hasta').value;
+            if (desde && hasta && desde > hasta) {
+                Swal.showValidationMessage('La fecha "Desde" no puede ser mayor que la fecha "Hasta".');
+                return false;
+            }
+            return { desde, hasta };
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const { desde, hasta } = result.value;
+            let url = "{{ url_for('exportar_excel_reporte_actividades') }}";
+            const params = new URLSearchParams();
+            if (desde) params.append('fecha_desde', desde);
+            if (hasta) params.append('fecha_hasta', hasta);
+            const queryStr = params.toString();
+            if (queryStr) url += '?' + queryStr;
+            window.location.href = url;
+        }
+    });
+}
+</script>
 {% endblock %}
-
-
-

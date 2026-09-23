@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <title>Reporte de Actividades #{{ registro.id }}</title>
     <style>
-        body { font-family: 'Arial', sans-serif; font-size: 12px; margin: 0; padding: 20px; color: #000; }
+        body { font-family: 'Arial', sans-serif; font-size: 12px; margin: 0; padding: 20px; color: #000; position: relative; }
         .institutional-header { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
         .institutional-header th, .institutional-header td { border: 1px solid #000; padding: 10px; text-align: center; }
-        .logo { max-height: 70px; max-width: 120px; }
+        .logo { max-height: 70px; max-width: 120px; object-fit: contain; }
         .header-title { font-size: 14px; font-weight: bold; text-transform: uppercase; }
         .header-meta { font-size: 10px; text-align: left; padding-left: 10px !important; }
         
@@ -17,42 +17,112 @@
         .data-table th, .data-table td { border: 1px solid #000; padding: 6px; text-align: center; }
         .data-table th { background-color: #f9f9f9; width: 25%; font-size: 11px; }
         
-        .signature-container { width: 100%; margin-top: 50px; display: table; }
-        .signature-box { display: table-cell; width: 50%; text-align: center; vertical-align: bottom; }
-        .signature-line { border-top: 1px solid #000; width: 80%; margin: 0 auto; margin-top: 50px; padding-top: 5px; }
-        .signature-img { max-height: 80px; max-width: 150px; margin-bottom: 5px; }
+        .signature-container { width: 100%; margin-top: 40px; display: table; position: relative; }
+        .signature-box { display: table-cell; width: 50%; text-align: center; vertical-align: bottom; position: relative; }
+        .signature-line { border-top: 1px solid #000; width: 80%; margin: 0 auto; margin-top: 20px; padding-top: 5px; position: relative; z-index: 2; }
+        .signature-img { max-height: 80px; max-width: 150px; margin-bottom: 5px; position: relative; z-index: 2; }
         
         .text-left { text-align: left !important; }
+
+        /* ── Marca de Agua Central en Documento ── */
+        .document-watermark {
+            position: fixed;
+            top: 52%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 320px;
+            height: 320px;
+            opacity: 0.08;
+            pointer-events: none;
+            z-index: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .document-watermark img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        /* ── Marca de Agua en Firmas ── */
+        .firma-marca {
+            position: absolute;
+            top: 25%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 85px;
+            height: 85px;
+            opacity: 0.18;
+            pointer-events: none;
+            object-fit: contain;
+            z-index: 1;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
         
         @media print {
             body { padding: 0; }
-            @page { margin: 1.5cm; }
+            @page { margin: 1.2cm; }
             .no-print { display: none !important; }
+            /* Forzar impresión de imágenes y colores */
+            img { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            .document-watermark {
+                position: fixed;
+                top: 52%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                width: 320px;
+                height: 320px;
+                opacity: 0.08 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            .firma-marca {
+                opacity: 0.18 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
         }
     </style>
 </head>
 <body onload="window.print()">
+
+    <!-- Resolver variables de logo y marca de agua -->
+    {% set logo_path = (cfg.get('logo') if cfg else None) or (cfg.get('logo_url') if cfg else None) or (institucion.logo if institucion is defined else None) %}
+    {% set marca_agua_path = (cfg.get('marca_agua') if cfg else None) or (institucion.marca_agua if institucion is defined else None) %}
+    {% set nombre_inst = (cfg.get('nombre_institucion') if cfg else None) or (institucion.nombre_institucion if institucion is defined else 'CORPORACIÓN SOCORRISTAS GRUPO DE APOYO') %}
 
     <!-- Botón volver (no se imprime) -->
     <div class="no-print" style="margin-bottom: 20px;">
         <button onclick="window.close()" style="padding: 10px 15px; background: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer;">Cerrar y Volver</button>
     </div>
 
+    <!-- Marca de agua central del documento -->
+    {% if marca_agua_path %}
+    <div class="document-watermark">
+        <img src="{{ marca_agua_path }}" alt="">
+    </div>
+    {% endif %}
+
     <!-- Encabezado Institucional -->
     <table class="institutional-header">
         <tr>
-            <td style="width: 20%;">
-                {% if cfg and cfg.logo_url %}
-                    <img src="{{ cfg.logo_url }}" alt="Logo Institución" class="logo">
+            <td style="width: 20%; vertical-align: middle; text-align: center;">
+                {% if logo_path %}
+                    <img src="{{ logo_path }}" alt="Logo Institución" class="logo">
                 {% else %}
                     <div style="font-size: 10px; color: #666;">Sin Logo</div>
                 {% endif %}
             </td>
-            <td style="width: 60%;" class="header-title">
+            <td style="width: 60%; vertical-align: middle;" class="header-title">
                 REPORTE DE ACTIVIDADES<br>
-                <span style="font-size: 11px; font-weight: normal;">CORPORACIÓN SOCORRISTAS GRUPO DE APOYO</span>
+                <span style="font-size: 11px; font-weight: normal;">{{ nombre_inst }}</span>
             </td>
-            <td style="width: 20%;" class="header-meta">
+            <td style="width: 20%; vertical-align: middle;" class="header-meta">
                 <strong>Código:</strong> REA-01<br>
                 <strong>Versión:</strong> 1.0<br>
                 <strong>Fecha:</strong> {{ registro.fecha_registro.split(' ')[0] if registro.fecha_registro else '' }}<br>
@@ -80,9 +150,9 @@
         </tr>
         <tr>
             <th>Hora Inicio</th>
-            <td>{{ registro.hora_inicio }}</td>
+            <td>{{ registro.hora_inicio_fmt }}</td>
             <th>Hora Fin</th>
-            <td>{{ registro.hora_fin }}</td>
+            <td>{{ registro.hora_fin_fmt }}</td>
         </tr>
         <tr>
             <th>Tipo de Servicio</th>
@@ -146,6 +216,9 @@
     <!-- Firmas -->
     <div class="signature-container">
         <div class="signature-box">
+            {% if marca_agua_path %}
+                <img src="{{ marca_agua_path }}" class="firma-marca" alt="">
+            {% endif %}
             {% if registro.firma_registrador %}
                 <img src="{{ registro.firma_registrador }}" class="signature-img" alt="Firma Voluntario">
             {% else %}
@@ -158,6 +231,9 @@
             </div>
         </div>
         <div class="signature-box">
+            {% if marca_agua_path %}
+                <img src="{{ marca_agua_path }}" class="firma-marca" alt="">
+            {% endif %}
             {% if registro.estado == 'Avalado' and registro.firma_avalador %}
                 <img src="{{ registro.firma_avalador }}" class="signature-img" alt="Firma Coordinador">
             {% else %}

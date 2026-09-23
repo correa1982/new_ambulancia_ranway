@@ -1,0 +1,948 @@
+{% extends "base.html" %}
+{% block title %}Reporte de Gasto – Gestión Institucional{% endblock %}
+{% block content %}
+
+<style>
+/* Estilos generales y de formulario */
+.gasto-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding-bottom: 14px;
+    border-bottom: 2px solid #fee2e2;
+}
+
+.form-box {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03);
+    margin-bottom: 25px;
+}
+
+fieldset {
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 18px 20px 20px;
+    margin-bottom: 22px;
+    background: #ffffff;
+}
+
+legend {
+    font-weight: 700;
+    font-size: 14px;
+    color: #1e3a5f;
+    padding: 0 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.form-grid-3 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+}
+
+.form-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+@media (max-width: 768px) {
+    .form-grid-2 {
+        grid-template-columns: 1fr;
+    }
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.form-group label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #334155;
+    margin: 0;
+}
+
+.req-star {
+    color: #ef4444;
+    font-weight: bold;
+}
+
+.form-control-custom {
+    width: 100%;
+    padding: 9px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    color: #1e293b;
+    background-color: #ffffff;
+    box-sizing: border-box;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-control-custom:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+/* Banner de estado de existencias */
+.stock-info-banner {
+    display: none;
+    align-items: center;
+    gap: 12px;
+    background: #f8fafc;
+    border: 1.5px dashed #cbd5e1;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    font-size: 13px;
+    color: #334155;
+}
+
+/* Tabla de artículos en Desktop */
+.items-table-desktop {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    display: table;
+}
+
+.items-table-desktop th {
+    background: #f8fafc;
+    border-bottom: 2px solid #e2e8f0;
+    padding: 10px 12px;
+    font-size: 12px;
+    text-transform: uppercase;
+    color: #475569;
+    font-weight: 700;
+    text-align: left;
+}
+
+.items-table-desktop td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+}
+
+/* Modo Móvil para Artículos */
+.items-cards-mobile {
+    display: none;
+    flex-direction: column;
+    gap: 14px;
+    margin-top: 10px;
+}
+
+.item-card-mobile {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 14px;
+    position: relative;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+
+.item-card-mobile .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.btn-remove-row {
+    background: #fee2e2;
+    color: #ef4444;
+    border: none;
+    border-radius: 6px;
+    width: 32px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background 0.2s, color 0.2s;
+}
+
+.btn-remove-row:hover {
+    background: #ef4444;
+    color: white;
+}
+
+.badge-stock {
+    background: #dcfce7;
+    color: #166534;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 700;
+    display: inline-block;
+    white-space: nowrap;
+}
+
+/* Responsividad en celular */
+@media (max-width: 768px) {
+    .items-table-desktop {
+        display: none;
+    }
+    .items-cards-mobile {
+        display: flex;
+    }
+    .form-box {
+        padding: 16px;
+    }
+}
+
+.btn-add-item {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    border: none;
+    padding: 9px 18px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2);
+    transition: all 0.2s;
+}
+
+.btn-add-item:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px rgba(16, 185, 129, 0.3);
+}
+
+.submit-bar {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 25px;
+    align-items: center;
+}
+
+.btn-action-base {
+    height: 44px;
+    padding: 0 22px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    text-decoration: none;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+    box-sizing: border-box;
+}
+
+.btn-volver {
+    background: #64748b;
+    color: white;
+}
+.btn-volver:hover {
+    background: #475569;
+}
+
+.btn-registros {
+    background: #f59e0b;
+    color: white;
+}
+.btn-registros:hover {
+    background: #d97706;
+}
+
+.btn-submit-main {
+    background: linear-gradient(135deg, #dc2626, #b91c1c);
+    color: white;
+    box-shadow: 0 4px 6px -1px rgba(220, 38, 38, 0.3);
+}
+.btn-submit-main:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(220, 38, 38, 0.4);
+}
+
+.btn-borrador {
+    background: linear-gradient(135deg, #0284c7, #0369a1);
+    color: white;
+    box-shadow: 0 4px 6px -1px rgba(2, 132, 199, 0.25);
+}
+.btn-borrador:hover {
+    background: linear-gradient(135deg, #0369a1, #075985);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(2, 132, 199, 0.35);
+}
+</style>
+
+<div class="gasto-header">
+    <div style="display:flex; align-items:center; gap:12px;">
+        <h1 style="margin:0; padding:0; border:none; font-size:20px; color:#0f172a;">
+            🧾 Reporte de Gasto de Insumos y Medicamentos
+        </h1>
+    </div>
+    <div>
+        <a href="{{ url_for('registros_reporte_gasto') }}" class="btn-action-base btn-registros" style="height:36px; padding:0 16px; font-size:13px;">
+            <i class="ph ph-folder-open"></i> Ver Registros de Gasto
+        </a>
+    </div>
+</div>
+
+<form method="POST" action="{{ url_for('form_reporte_gasto') }}" id="form-reporte-gasto" class="pwa-offline-form">
+    <div class="form-box">
+        
+        <!-- ── BANNER DE BORRADOR RECUPERADO ── -->
+        <div id="draft-alert-banner" style="display:none; margin-bottom:18px; padding:12px 18px; background:#f0fdfa; border:1.5px solid #99f6e4; border-radius:10px; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+            <div style="display:flex; align-items:center; gap:8px; color:#0f766e; font-size:13px;">
+                <i class="ph ph-note-pencil" style="font-size:20px; color:#0d9488;"></i>
+                <span><strong>Borrador autoguardado recuperado:</strong> Se cargaron los datos de tu avance guardado. Tus cambios se autoguardan continuamente.</span>
+            </div>
+            <div>
+                <a href="{{ url_for('descartar_borrador_gasto') }}" onclick="descartarStorageLocal();" style="background:#fee2e2; color:#b91c1c; border:1px solid #fca5a5; padding:5px 12px; border-radius:6px; font-size:12px; font-weight:600; text-decoration:none; display:inline-flex; align-items:center; gap:4px;">
+                    <i class="ph ph-trash"></i> Descartar borrador
+                </a>
+            </div>
+        </div>
+
+        <!-- ── DATOS GENERALES DEL EVENTO Y ORIGEN ── -->
+        <fieldset>
+            <legend><i class="ph ph-calendar-blank"></i> 1. Datos Generales y Origen de los Recursos</legend>
+            
+            <div class="form-grid-3">
+                <div class="form-group">
+                    <label>Fecha del Gasto <span class="req-star">*</span></label>
+                    <input type="date" name="fecha" id="input_fecha" class="form-control-custom" required value="{{ hoy }}" onclick="this.showPicker()">
+                </div>
+                
+                <div class="form-group" style="grid-column: span 2;">
+                    <label>Nombre del Evento <span class="req-star">*</span></label>
+                    <input type="text" name="nombre_evento" id="input_nombre_evento" class="form-control-custom" required placeholder="Ej. Concierto La Macarena, Maratón Medellín, Partido de Fútbol...">
+                </div>
+            </div>
+
+            <div class="form-grid-2" style="margin-top: 14px;">
+                <div class="form-group">
+                    <label>Seleccionar Tipo de Origen <span class="req-star">*</span></label>
+                    <select name="tipo_origen" id="select_tipo_origen" class="form-control-custom" required onchange="onTipoOrigenChange()">
+                        <option value="">— Seleccione origen —</option>
+                        <option value="PASM">🎒 Puesto Asistencial Medicalizado (PASM)</option>
+                        <option value="PASB">🧰 Puesto Asistencial Básico (PASB)</option>
+                        <option value="TAM">🚑 Ambulancia Medicalizada (TAM)</option>
+                        <option value="TAB">🩺 Ambulancia Básica (TAB)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label id="lbl_identificador_origen">Puesto / Móvil Específico <span class="req-star">*</span></label>
+                    <select name="identificador_origen" id="select_identificador_origen" class="form-control-custom" required onchange="onIdentificadorChange()">
+                        <option value="">— Primero seleccione el tipo de origen —</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Banner informativo del checklist consultado -->
+            <div id="stock-banner" class="stock-info-banner" style="margin-top: 16px;">
+                <span id="stock-banner-icon" style="font-size: 20px;">📦</span>
+                <span id="stock-banner-text">Seleccione un origen para cargar las existencias registradas en el último checklist.</span>
+            </div>
+        </fieldset>
+
+        <!-- ── ARTÍCULOS UTILIZADOS ── -->
+        <fieldset>
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:10px;">
+                <legend style="margin-bottom:0;"><i class="ph ph-pill"></i> 2. Listado de Artículos Utilizados</legend>
+                <button type="button" class="btn-add-item" id="btn-add-row" onclick="agregarFilaArticulo()">
+                    <i class="ph ph-plus-circle" style="font-size:16px;"></i> + Agregar Otro Artículo
+                </button>
+            </div>
+
+            <p style="font-size:12px; color:#64748b; margin: 4px 0 12px;">
+                Las opciones listadas corresponden únicamente a artículos con <strong>existencia disponible mayor a 0</strong> según el último checklist del origen seleccionado.
+            </p>
+
+            <!-- Vista Desktop (Tabla) -->
+            <table class="items-table-desktop" id="tabla-articulos-desktop">
+                <thead>
+                    <tr>
+                        <th style="width: 42%;">Artículo Disponible <span class="req-star">*</span></th>
+                        <th style="width: 16%;">Categoría</th>
+                        <th style="width: 14%; text-align:center;">Existencia Disp.</th>
+                        <th style="width: 14%;">Cant. Gastada <span class="req-star">*</span></th>
+                        <th style="width: 14%;">Detalle / Obs.</th>
+                        <th style="width: 40px; text-align:center;"></th>
+                    </tr>
+                </thead>
+                <tbody id="tbody-articulos-desktop">
+                    <!-- Filas dinámicas -->
+                </tbody>
+            </table>
+
+            <!-- Vista Móvil (Cards) -->
+            <div class="items-cards-mobile" id="container-articulos-mobile">
+                <!-- Cards dinámicas para móvil -->
+            </div>
+        </fieldset>
+
+        <!-- ── OBSERVACIONES GENERALES ── -->
+        <fieldset>
+            <legend><i class="ph ph-chat-text"></i> 3. Observaciones Generales del Gasto</legend>
+            <div class="form-group">
+                <textarea name="observaciones" id="input_observaciones" rows="3" class="form-control-custom" placeholder="Novedades adicionales, número de atenciones asociadas, reposiciones requeridas..."></textarea>
+            </div>
+        </fieldset>
+
+        <!-- ── BARRA DE ACCIONES ── -->
+        <div class="submit-bar">
+            <a href="{{ url_for('dashboard') }}" class="btn-action-base btn-volver">
+                <i class="ph ph-arrow-left"></i> Volver al Dashboard
+            </a>
+            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                <button type="submit" name="accion" value="borrador" class="btn-action-base btn-borrador" id="btn-borrador" title="Guarda el avance para continuar luego">
+                    <i class="ph ph-floppy-disk" style="font-size: 18px;"></i> Guardar como Borrador
+                </button>
+                <button type="submit" name="accion" value="finalizar" class="btn-action-base btn-submit-main" id="btn-submit">
+                    <i class="ph ph-check-circle" style="font-size: 18px;"></i> Guardar Reporte de Gasto
+                </button>
+            </div>
+        </div>
+
+    </div>
+</form>
+
+<script>
+// Identificación del usuario en sesión y claves de almacenamiento
+const USER_IDENT = "{{ session.usuario.identificacion }}";
+const STORAGE_KEY = "autosave_reporte_gasto_" + USER_IDENT;
+const BORRADOR_SERVER = {{ (borrador if borrador else None)|tojson }};
+
+// Datos de unidades inyectados desde el servidor
+const UNIDADES_DATA = {
+    "PASB": {{ pasb_ops|tojson }},
+    "PASM": {{ pasm_ops|tojson }},
+    "TAM": {{ tam_ops|tojson }},
+    "TAB": {{ tab_ops|tojson }}
+};
+
+// Almacén en memoria de los artículos con existencia > 0 para la unidad seleccionada
+let articulosDisponibles = [];
+let rowCounter = 0;
+let isRestoring = false;
+let autosaveTimeout = null;
+let submitAction = 'finalizar';
+
+function descartarStorageLocal() {
+    try {
+        localStorage.removeItem(STORAGE_KEY);
+    } catch(e) {}
+}
+
+function onTipoOrigenChange(clearChildren = true) {
+    const tipo = document.getElementById('select_tipo_origen').value;
+    const selectIdent = document.getElementById('select_identificador_origen');
+    const lblIdent = document.getElementById('lbl_identificador_origen');
+
+    selectIdent.innerHTML = '<option value="">— Seleccione unidad —</option>';
+    if (clearChildren) {
+        articulosDisponibles = [];
+        limpiarFilasArticulos();
+        ocultarBanner();
+    }
+
+    if (!tipo) {
+        selectIdent.innerHTML = '<option value="">— Primero seleccione el tipo de origen —</option>';
+        return;
+    }
+
+    if (tipo === 'PASB') lblIdent.innerHTML = 'Número del PASB <span class="req-star">*</span>';
+    else if (tipo === 'PASM') lblIdent.innerHTML = 'Número del PASM <span class="req-star">*</span>';
+    else if (tipo === 'TAM') lblIdent.innerHTML = 'Placa Móvil TAM <span class="req-star">*</span>';
+    else if (tipo === 'TAB') lblIdent.innerHTML = 'Placa Móvil TAB <span class="req-star">*</span>';
+
+    const opciones = UNIDADES_DATA[tipo] || [];
+    if (opciones.length === 0) {
+        selectIdent.innerHTML = '<option value="">— No hay unidades registradas —</option>';
+    } else {
+        opciones.forEach(op => {
+            const optEl = document.createElement('option');
+            optEl.value = op;
+            optEl.textContent = op;
+            selectIdent.appendChild(optEl);
+        });
+    }
+}
+
+function onIdentificadorChange() {
+    if (isRestoring) return;
+    const tipo = document.getElementById('select_tipo_origen').value.toLowerCase();
+    const ident = document.getElementById('select_identificador_origen').value;
+
+    if (!tipo || !ident) {
+        articulosDisponibles = [];
+        limpiarFilasArticulos();
+        ocultarBanner();
+        dispararAutosave();
+        return;
+    }
+
+    fetchArticulosDisponibles();
+}
+
+function fetchArticulosDisponibles(itemsToRestore = null) {
+    const tipo = document.getElementById('select_tipo_origen').value.toLowerCase();
+    const ident = document.getElementById('select_identificador_origen').value;
+
+    if (!tipo || !ident) return;
+
+    mostrarBanner('⏳ Consultando existencias del último checklist...', '#f8fafc', '#475569', '#94a3b8', '🔄');
+
+    fetch(`/api/reporte_gasto/articulos_disponibles?tipo=${encodeURIComponent(tipo)}&identificador=${encodeURIComponent(ident)}`)
+    .then(r => r.json())
+    .then(res => {
+        if (res.status === 'success') {
+            articulosDisponibles = res.articulos || [];
+            if (articulosDisponibles.length > 0) {
+                mostrarBanner(`✅ Se encontraron <strong>${articulosDisponibles.length} artículos</strong> con existencia disponible en el checklist más reciente de <strong>${ident}</strong>.`, '#f0fdf4', '#166534', '#86efac', '📦');
+                limpiarFilasArticulos();
+                
+                if (itemsToRestore && itemsToRestore.length > 0) {
+                    itemsToRestore.forEach(it => {
+                        agregarFilaArticuloConValores(it);
+                    });
+                } else {
+                    agregarFilaArticulo(); // Agregar automáticamente la primera fila
+                }
+            } else {
+                mostrarBanner(`⚠️ El último checklist de <strong>${ident}</strong> no tiene artículos con existencias mayores a 0.`, '#fffbeb', '#92400e', '#fde68a', '⚠️');
+                limpiarFilasArticulos();
+            }
+        } else {
+            articulosDisponibles = [];
+            limpiarFilasArticulos();
+            mostrarBanner(`ℹ️ ${res.message || 'No se encontró un checklist previo para esta unidad.'}`, '#eff6ff', '#1e40af', '#bfdbfe', 'ℹ️');
+        }
+        dispararAutosave();
+    })
+    .catch(err => {
+        console.error(err);
+        mostrarBanner('❌ Ocurrió un error al consultar las existencias del origen.', '#fef2f2', '#991b1b', '#fca5a5', '❌');
+    });
+}
+
+function mostrarBanner(html, bg, color, border, icon) {
+    const b = document.getElementById('stock-banner');
+    const t = document.getElementById('stock-banner-text');
+    const ic = document.getElementById('stock-banner-icon');
+    if (!b) return;
+    b.style.display = 'flex';
+    b.style.backgroundColor = bg;
+    b.style.color = color;
+    b.style.borderColor = border;
+    if (ic) ic.textContent = icon;
+    if (t) t.innerHTML = html;
+}
+
+function ocultarBanner() {
+    const b = document.getElementById('stock-banner');
+    if (b) b.style.display = 'none';
+}
+
+function limpiarFilasArticulos() {
+    document.getElementById('tbody-articulos-desktop').innerHTML = '';
+    document.getElementById('container-articulos-mobile').innerHTML = '';
+    rowCounter = 0;
+}
+
+function buildArticleOptionsHtml(selectedNombre = '') {
+    if (!articulosDisponibles || articulosDisponibles.length === 0) {
+        return '<option value="">— No hay artículos con existencias —</option>';
+    }
+    let html = '<option value="">— Seleccione artículo —</option>';
+    articulosDisponibles.forEach(art => {
+        const isSel = (art.nombre === selectedNombre || art.identificador === selectedNombre) ? 'selected' : '';
+        html += `<option value="${escapeHtml(art.nombre)}" data-ident="${escapeHtml(art.identificador)}" data-cat="${escapeHtml(art.categoria)}" data-stock="${art.stock_disponible}" ${isSel}>${escapeHtml(art.nombre)} (Disp: ${art.stock_disponible})</option>`;
+    });
+    return html;
+}
+
+function agregarFilaArticulo() {
+    if (articulosDisponibles.length === 0) {
+        Swal.fire('Atención', 'Primero debe seleccionar un origen que tenga un checklist previo con artículos disponibles.', 'warning');
+        return;
+    }
+    agregarFilaArticuloConValores(null);
+}
+
+function agregarFilaArticuloConValores(itemData = null) {
+    rowCounter++;
+    const rowId = `row_${rowCounter}`;
+
+    const selNom = itemData ? (itemData.nombre || '') : '';
+    const selCant = itemData ? (itemData.cantidad || '') : '';
+    const selObs = itemData ? (itemData.observacion || '') : '';
+
+    // 1. Fila Desktop
+    const tr = document.createElement('tr');
+    tr.id = `dt_${rowId}`;
+    tr.className = 'gasto-row-desktop';
+    tr.innerHTML = `
+        <td>
+            <input type="hidden" name="item_identificador[]" id="ident_${rowId}">
+            <input type="hidden" name="item_categoria[]" id="cat_${rowId}">
+            <select name="item_nombre[]" class="form-control-custom select-item-gasto" required onchange="onItemSelectChange('${rowId}', this)">
+                ${buildArticleOptionsHtml(selNom)}
+            </select>
+        </td>
+        <td>
+            <span id="label_cat_${rowId}" style="font-size:12px; color:#64748b;">—</span>
+        </td>
+        <td style="text-align:center;">
+            <span id="badge_stock_${rowId}" class="badge-stock" style="display:none;">0</span>
+            <span id="empty_stock_${rowId}" style="color:#94a3b8; font-size:12px;">—</span>
+        </td>
+        <td>
+            <input type="number" name="item_cantidad[]" id="cant_${rowId}" class="form-control-custom input-cant-gasto" min="1" required placeholder="0" value="${escapeHtml(selCant)}" oninput="validarCantidadMax('${rowId}', this)">
+        </td>
+        <td>
+            <input type="text" name="item_observacion[]" class="form-control-custom" placeholder="Opcional..." value="${escapeHtml(selObs)}" oninput="syncDesktopToMobileObs('${rowId}', this)">
+        </td>
+        <td style="text-align:center;">
+            <button type="button" class="btn-remove-row" onclick="eliminarFilaArticulo('${rowId}')" title="Quitar">✕</button>
+        </td>
+    `;
+    document.getElementById('tbody-articulos-desktop').appendChild(tr);
+
+    // 2. Card Móvil
+    const card = document.createElement('div');
+    card.id = `mob_${rowId}`;
+    card.className = 'item-card-mobile';
+    card.innerHTML = `
+        <div class="card-header">
+            <span style="font-weight:700; font-size:13px; color:#1e3a5f;">Artículo #${rowCounter}</span>
+            <button type="button" class="btn-remove-row" onclick="eliminarFilaArticulo('${rowId}')">✕</button>
+        </div>
+        <div class="form-group" style="margin-bottom:8px;">
+            <label>Artículo Disponible <span class="req-star">*</span></label>
+            <select class="form-control-custom mob-select-item" onchange="syncMobileToDesktopSelect('${rowId}', this)">
+                ${buildArticleOptionsHtml(selNom)}
+            </select>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <span style="font-size:12px; color:#64748b;">Categoría: <strong id="mob_cat_${rowId}">—</strong></span>
+            <span id="mob_badge_stock_${rowId}" class="badge-stock" style="display:none;">Disp: 0</span>
+        </div>
+        <div class="form-group" style="margin-bottom:8px;">
+            <label>Cantidad Utilizada <span class="req-star">*</span></label>
+            <input type="number" min="1" class="form-control-custom mob-input-cant" placeholder="0" value="${escapeHtml(selCant)}" oninput="syncMobileToDesktopCant('${rowId}', this)">
+        </div>
+        <div class="form-group">
+            <label>Detalle / Observación</label>
+            <input type="text" class="form-control-custom mob-input-obs" placeholder="Opcional..." value="${escapeHtml(selObs)}" oninput="syncMobileToDesktopObs('${rowId}', this)">
+        </div>
+    `;
+    document.getElementById('container-articulos-mobile').appendChild(card);
+
+    if (selNom) {
+        const dtSelect = tr.querySelector('.select-item-gasto');
+        if (dtSelect) onItemSelectChange(rowId, dtSelect);
+    }
+}
+
+function eliminarFilaArticulo(rowId) {
+    const dtEl = document.getElementById(`dt_${rowId}`);
+    const mobEl = document.getElementById(`mob_${rowId}`);
+    if (dtEl) dtEl.remove();
+    if (mobEl) mobEl.remove();
+    dispararAutosave();
+}
+
+function onItemSelectChange(rowId, selectEl) {
+    const selOpt = selectEl.options[selectEl.selectedIndex];
+    const ident = selOpt.getAttribute('data-ident') || '';
+    const cat = selOpt.getAttribute('data-cat') || '';
+    const stock = parseInt(selOpt.getAttribute('data-stock') || '0', 10);
+
+    // Update Desktop elements
+    const identInput = document.getElementById(`ident_${rowId}`);
+    const catInput = document.getElementById(`cat_${rowId}`);
+    const labelCat = document.getElementById(`label_cat_${rowId}`);
+    const badgeStock = document.getElementById(`badge_stock_${rowId}`);
+    const emptyStock = document.getElementById(`empty_stock_${rowId}`);
+    const cantInput = document.getElementById(`cant_${rowId}`);
+
+    if (identInput) identInput.value = ident;
+    if (catInput) catInput.value = cat;
+    if (labelCat) labelCat.textContent = cat || '—';
+
+    if (badgeStock && emptyStock && cantInput) {
+        if (stock > 0) {
+            badgeStock.textContent = `Disp: ${stock}`;
+            badgeStock.style.display = 'inline-block';
+            emptyStock.style.display = 'none';
+            cantInput.max = stock;
+            cantInput.placeholder = `Máx ${stock}`;
+        } else {
+            badgeStock.style.display = 'none';
+            emptyStock.style.display = 'inline';
+            cantInput.removeAttribute('max');
+            cantInput.placeholder = '0';
+        }
+    }
+
+    // Sync Mobile Card
+    const mobCard = document.getElementById(`mob_${rowId}`);
+    if (mobCard) {
+        const mobSel = mobCard.querySelector('.mob-select-item');
+        if (mobSel && mobSel.value !== selectEl.value) mobSel.value = selectEl.value;
+        const mobCat = document.getElementById(`mob_cat_${rowId}`);
+        if (mobCat) mobCat.textContent = cat || '—';
+        const mobBadge = document.getElementById(`mob_badge_stock_${rowId}`);
+        if (mobBadge) {
+            if (stock > 0) {
+                mobBadge.textContent = `Disp: ${stock}`;
+                mobBadge.style.display = 'inline-block';
+            } else {
+                mobBadge.style.display = 'none';
+            }
+        }
+        const mobCant = mobCard.querySelector('.mob-input-cant');
+        if (mobCant) {
+            mobCant.max = stock;
+            mobCant.placeholder = `Máx ${stock}`;
+        }
+    }
+    dispararAutosave();
+}
+
+function validarCantidadMax(rowId, inputEl) {
+    const max = parseInt(inputEl.max, 10);
+    const val = parseInt(inputEl.value, 10);
+    if (!isNaN(max) && val > max) {
+        inputEl.value = max;
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'warning',
+            title: `La cantidad no puede superar la existencia disponible (${max})`,
+            showConfirmButton: false,
+            timer: 2500
+        });
+    }
+    // Sync to mobile input
+    const mobCard = document.getElementById(`mob_${rowId}`);
+    if (mobCard) {
+        const mobCant = mobCard.querySelector('.mob-input-cant');
+        if (mobCant && mobCant.value !== inputEl.value) mobCant.value = inputEl.value;
+    }
+    dispararAutosave();
+}
+
+// Sync helpers between Mobile card and Desktop hidden form inputs
+function syncMobileToDesktopSelect(rowId, mobSelect) {
+    const dtRow = document.getElementById(`dt_${rowId}`);
+    if (dtRow) {
+        const dtSelect = dtRow.querySelector('.select-item-gasto');
+        if (dtSelect) {
+            dtSelect.value = mobSelect.value;
+            onItemSelectChange(rowId, dtSelect);
+        }
+    }
+}
+
+function syncMobileToDesktopCant(rowId, mobInput) {
+    const dtRow = document.getElementById(`dt_${rowId}`);
+    if (dtRow) {
+        const dtCant = dtRow.querySelector('.input-cant-gasto');
+        if (dtCant) {
+            dtCant.value = mobInput.value;
+            validarCantidadMax(rowId, dtCant);
+        }
+    }
+}
+
+function syncMobileToDesktopObs(rowId, mobInput) {
+    const dtRow = document.getElementById(`dt_${rowId}`);
+    if (dtRow) {
+        const dtObs = dtRow.querySelector('input[name="item_observacion[]"]');
+        if (dtObs) dtObs.value = mobInput.value;
+    }
+    dispararAutosave();
+}
+
+function syncDesktopToMobileObs(rowId, dtInput) {
+    const mobCard = document.getElementById(`mob_${rowId}`);
+    if (mobCard) {
+        const mobObs = mobCard.querySelector('.mob-input-obs');
+        if (mobObs) mobObs.value = dtInput.value;
+    }
+    dispararAutosave();
+}
+
+function recopilarDatosFormulario() {
+    const fecha = document.getElementById('input_fecha')?.value || '';
+    const evento = document.getElementById('input_nombre_evento')?.value || '';
+    const tipo = document.getElementById('select_tipo_origen')?.value || '';
+    const ident = document.getElementById('select_identificador_origen')?.value || '';
+    const obs = document.getElementById('input_observaciones')?.value || '';
+
+    const rows = document.querySelectorAll('#tbody-articulos-desktop tr');
+    const articulos = [];
+    rows.forEach(tr => {
+        const nom = tr.querySelector('.select-item-gasto')?.value || '';
+        const idnt = tr.querySelector('input[name="item_identificador[]"]')?.value || '';
+        const cat = tr.querySelector('input[name="item_categoria[]"]')?.value || '';
+        const cant = parseInt(tr.querySelector('.input-cant-gasto')?.value || '0', 10) || 0;
+        const o = tr.querySelector('input[name="item_observacion[]"]')?.value || '';
+        if (nom) {
+            articulos.push({ nombre: nom, identificador: idnt, categoria: cat, cantidad: cant, observacion: o });
+        }
+    });
+
+    return {
+        fecha: fecha,
+        nombre_evento: evento,
+        tipo_origen: tipo,
+        identificador_origen: ident,
+        observaciones: obs,
+        articulos: articulos
+    };
+}
+
+function dispararAutosave() {
+    if (isRestoring) return;
+    if (autosaveTimeout) clearTimeout(autosaveTimeout);
+    autosaveTimeout = setTimeout(() => {
+        guardarAutosaveLocal();
+    }, 600);
+}
+
+function guardarAutosaveLocal() {
+    try {
+        const data = recopilarDatosFormulario();
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        
+        // Auto-guardar en servidor en segundo plano si hay al menos origen o evento
+        if (data.nombre_evento || data.identificador_origen || (data.articulos && data.articulos.length > 0)) {
+            fetch('/api/reporte_gasto/autosave', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            }).catch(() => {});
+        }
+    } catch(e) {}
+}
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('form-reporte-gasto');
+
+    // Botones de acción
+    const btnBorrador = document.getElementById('btn-borrador');
+    const btnSubmit = document.getElementById('btn-submit');
+    if (btnBorrador) {
+        btnBorrador.addEventListener('click', function() { submitAction = 'borrador'; });
+    }
+    if (btnSubmit) {
+        btnSubmit.addEventListener('click', function() { submitAction = 'finalizar'; });
+    }
+
+    // Escuchar cambios para autosave continuo
+    if (form) {
+        form.addEventListener('input', dispararAutosave);
+        form.addEventListener('change', dispararAutosave);
+
+        form.addEventListener('submit', function(e) {
+            if (submitAction === 'borrador') {
+                form.noValidate = true;
+                guardarAutosaveLocal();
+                return true;
+            } else {
+                form.noValidate = false;
+                const selects = form.querySelectorAll('.select-item-gasto');
+                let hasItem = false;
+                for (let sel of selects) {
+                    if (sel.value.trim() !== '') {
+                        hasItem = true;
+                        break;
+                    }
+                }
+                if (!hasItem) {
+                    e.preventDefault();
+                    Swal.fire('Atención', 'Debe agregar al menos un artículo utilizado con su respectiva cantidad.', 'warning');
+                    return false;
+                }
+                // Al finalizar correctamente, limpiar storage local del borrador
+                descartarStorageLocal();
+            }
+        });
+    }
+
+    // ── Restaurar Borrador (Servidor o LocalStorage) ──
+    let draftData = BORRADOR_SERVER;
+    if (!draftData) {
+        try {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if (raw) {
+                const parsed = JSON.parse(raw);
+                if (parsed && (parsed.nombre_evento || parsed.identificador_origen || (parsed.articulos && parsed.articulos.length > 0))) {
+                    draftData = parsed;
+                }
+            }
+        } catch(e) {}
+    }
+
+    if (draftData) {
+        isRestoring = true;
+        const banner = document.getElementById('draft-alert-banner');
+        if (banner) banner.style.display = 'flex';
+
+        if (draftData.fecha && document.getElementById('input_fecha')) {
+            document.getElementById('input_fecha').value = draftData.fecha;
+        }
+        if (draftData.nombre_evento && document.getElementById('input_nombre_evento')) {
+            document.getElementById('input_nombre_evento').value = draftData.nombre_evento;
+        }
+        if (draftData.observaciones && document.getElementById('input_observaciones')) {
+            document.getElementById('input_observaciones').value = draftData.observaciones;
+        }
+
+        if (draftData.tipo_origen) {
+            document.getElementById('select_tipo_origen').value = draftData.tipo_origen;
+            onTipoOrigenChange(false);
+            if (draftData.identificador_origen) {
+                document.getElementById('select_identificador_origen').value = draftData.identificador_origen;
+                isRestoring = false;
+                fetchArticulosDisponibles(draftData.articulos || []);
+            } else {
+                isRestoring = false;
+            }
+        } else {
+            isRestoring = false;
+        }
+    }
+});
+</script>
+
+{% endblock %}

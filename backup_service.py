@@ -115,6 +115,14 @@ def send_backup_email():
             smtp_password = _get_cfg("smtp_password", os.getenv("SMTP_PASSWORD"), conn)
             dest_str = _get_cfg("backup_email_dest", os.getenv("BACKUP_EMAIL_DEST", ""), conn)
 
+            if smtp_host:
+                smtp_host = smtp_host.strip()
+            if smtp_user:
+                smtp_user = smtp_user.strip()
+            if smtp_password:
+                # Limpiar espacios en blanco (Google genera las contraseñas de app en 4 grupos de 4 letras con espacios)
+                smtp_password = smtp_password.strip().replace(" ", "")
+
             dest_emails = [e.strip() for e in dest_str.split(",") if e.strip()]
             if not dest_emails and smtp_user:
                 dest_emails = [smtp_user]

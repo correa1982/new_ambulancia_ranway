@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}Registros – Reportes de Gasto{% endblock %}
+{% block content %}
+
+<div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:20px; padding-bottom:14px; border-bottom:2px solid #fee2e2;">
+    <div style="display:flex; align-items:center; gap:15px;">
+        <a href="{{ url_for('dashboard') }}" style="display:inline-flex; align-items:center; gap:5px; background:#f1f5f9; color:#475569; border:1px solid #e2e8f0; padding:6px 12px; border-radius:6px; text-decoration:none; font-weight:600; font-size:13px;">
+            ← Volver al Dashboard
+        </a>
+        <h1 style="margin:0; padding:0; border:none; font-size:20px; color:#0f172a;">📁 Registros: Reportes de Gasto</h1>
+    </div>
+    
+    <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+        <form method="GET" action="{{ request.path }}" style="display:flex; align-items:center; gap:8px; background:#f8fafc; padding:6px 12px; border-radius:8px; border:1px solid #e2e8f0;">
+            <label for="fecha" style="font-size:13px; font-weight:600; color:#475569; margin:0;">Fecha:</label>
+            <input onclick="this.showPicker()" type="date" id="fecha" name="fecha" value="{{ fecha_filtro }}" style="padding:4px 8px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px;">
+            <button type="submit" class="btn-primary" style="padding:5px 12px; font-size:12px; border-radius:6px; margin:0;">Filtrar</button>
+            <a href="{{ request.path }}?fecha=" style="font-size:12px; color:#ef4444; text-decoration:none; font-weight:600; margin-left:5px;" title="Ver todos">Todos</a>
+        </form>
+        
+        <a href="{{ url_for('form_reporte_gasto') }}" class="btn-primary" style="font-size:13px; padding:8px 18px; background:linear-gradient(135deg, #dc2626, #b91c1c); text-decoration:none; color:white; border-radius:8px; font-weight:700;">
+            + Nuevo Reporte de Gasto
+        </a>
+    </div>
+</div>
+
+{% if items %}
+<div style="overflow-x:auto;">
+<table style="width:100%; border-collapse:collapse; background:white; border-radius:8px; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+<thead>
+<tr style="background:#f8fafc; border-bottom:2px solid #e2e8f0; font-size:11px; text-transform:uppercase; color:#475569;">
+    <th style="padding:10px 12px; text-align:left;">#</th>
+    <th style="padding:10px 12px; text-align:left;">Fecha Gasto</th>
+    <th style="padding:10px 12px; text-align:left;">Nombre del Evento</th>
+    <th style="padding:10px 12px; text-align:left;">Origen</th>
+    <th style="padding:10px 12px; text-align:left;">Unidad / Móvil</th>
+    <th style="padding:10px 12px; text-align:center;">Artículos</th>
+    <th style="padding:10px 12px; text-align:center;">Total Unids</th>
+    <th style="padding:10px 12px; text-align:left;">Registrado por</th>
+    <th style="padding:10px 12px; text-align:left;">Fecha Registro</th>
+    <th style="padding:10px 12px; text-align:center;">Acciones</th>
+</tr>
+</thead>
+<tbody>
+{% for item in items %}
+<tr style="border-bottom:1px solid #f1f5f9; font-size:12px;">
+    <td style="padding:10px 12px; font-weight:700; color:#1e40af;">#{{ item.id }}</td>
+    <td style="padding:10px 12px; white-space:nowrap;">{{ item.fecha }}</td>
+    <td style="padding:10px 12px; font-weight:700; color:#0f172a;">{{ item.nombre_evento }}</td>
+    <td style="padding:10px 12px;">
+        <span style="background:#f1f5f9; color:#334155; padding:2px 8px; border-radius:12px; font-weight:700; font-size:10px;">
+            {{ item.tipo_origen }}
+        </span>
+    </td>
+    <td style="padding:10px 12px; font-weight:600; color:#1e3a5f;">{{ item.identificador_origen }}</td>
+    <td style="padding:10px 12px; text-align:center;">
+        <span style="background:#e0f2fe; color:#0369a1; padding:2px 8px; border-radius:12px; font-weight:700; font-size:11px;">
+            {{ item.total_articulos }} arts
+        </span>
+    </td>
+    <td style="padding:10px 12px; text-align:center;">
+        <span style="background:#fee2e2; color:#991b1b; padding:2px 8px; border-radius:12px; font-weight:700; font-size:11px;">
+            {{ item.total_unidades }} unids
+        </span>
+    </td>
+    <td style="padding:10px 12px; font-size:11.5px;">
+        <strong>{{ item.registrado_por }}</strong>
+        <span style="display:block; font-size:10px; color:#64748b;">{{ item.perfil_registrador or '' }}</span>
+    </td>
+    <td style="padding:10px 12px; font-size:11px; color:#64748b; white-space:nowrap;">{{ item.fecha_registro }}</td>
+    <td style="padding:10px 12px; text-align:center; white-space:nowrap;">
+        <a href="{{ url_for('ver_reporte_gasto', reporte_id=item.id) }}"
+           style="background:#dc2626; color:white; padding:5px 12px; border-radius:6px; text-decoration:none; font-size:11px; font-weight:700; display:inline-flex; align-items:center; gap:4px;">
+            👁 Ver / PDF
+        </a>
+    </td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+{% else %}
+<div style="text-align:center; padding:50px 20px; color:#94a3b8; background:white; border-radius:12px; border:1px dashed #cbd5e1; margin-top:20px;">
+    <p style="font-size:40px; margin:0 0 10px;">📭</p>
+    <h3 style="margin:0 0 6px; color:#475569; font-size:16px;">No se encontraron reportes de gasto</h3>
+    <p style="margin:0 0 16px; font-size:13px;">No hay reportes de gasto registrados para los filtros seleccionados.</p>
+    <a href="{{ url_for('form_reporte_gasto') }}" class="btn-primary" style="font-size:13px; padding:8px 18px; background:linear-gradient(135deg, #dc2626, #b91c1c); text-decoration:none; color:white; border-radius:8px;">
+        + Crear Primer Reporte de Gasto
+    </a>
+</div>
+{% endif %}
+
+{% endblock %}

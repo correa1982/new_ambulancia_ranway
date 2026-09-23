@@ -15,29 +15,16 @@
         body {
             font-family: Arial, sans-serif;
             font-size: 10px;
-            margin: 0;
+            margin: 0 auto;
             padding: 16px 20px;
             color: #000;
-            position: relative;
             width: 140mm;
             min-height: 216mm;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
         }
 
-        /* ── Marca de agua ── */
-        .marca-agua {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) rotate(-35deg);
-            opacity: 0.08;
-            z-index: 0;
-            pointer-events: none;
-            max-width: 110mm;
-            max-height: 110mm;
-        }
-
-        /* ── Contenido por encima de marca de agua ── */
-        .contenido { position: relative; z-index: 1; }
+        .contenido { position: relative; }
 
         /* ── Encabezado institucional ── */
         .inst-header { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
@@ -70,23 +57,88 @@
 
         /* ── Firmas ── */
         .firma-wrap { width: 100%; display: table; margin-top: 18px; }
-        .firma-col   { display: table-cell; width: 50%; text-align: center; padding: 0 8px; vertical-align: bottom; }
-        .firma-img   { max-height: 55px; max-width: 110px; display: block; margin: 0 auto 2px; }
-        .firma-line  { border-top: 1px solid #333; padding-top: 4px; margin-top: 4px; }
+        .firma-col {
+            display: table-cell; width: 50%; text-align: center;
+            padding: 10px 8px 6px;
+            vertical-align: bottom;
+            position: relative;
+        }
+        /* Marca de agua fija centrada para el documento */
+        .document-watermark {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 260px;
+            height: 260px;
+            opacity: 0.08;
+            pointer-events: none;
+            z-index: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .document-watermark img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        /* Marca de agua como <img> para que se imprima siempre */
+        .firma-marca {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80px; height: 80px;
+            opacity: 0.18;
+            pointer-events: none;
+            object-fit: contain;
+            z-index: 1;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+        .firma-img   { max-height: 55px; max-width: 110px; display: block; margin: 0 auto 2px; position: relative; z-index: 2; }
+        .firma-line  { border-top: 1px solid #333; padding-top: 4px; margin-top: 4px; position: relative; z-index: 2; }
         .firma-line strong { font-size: 8px; display: block; }
         .firma-line span   { font-size: 8px; color: #333; display: block; }
         .firma-pending { color: #aaa; font-style: italic; font-size: 8px; height: 55px;
-                         display: flex; align-items: flex-end; justify-content: center; }
+                         display: flex; align-items: flex-end; justify-content: center;
+                         position: relative; z-index: 2; }
 
         /* ── Botón no-imprimible ── */
         .no-print { margin-bottom: 14px; }
         @media print {
             .no-print { display: none !important; }
             body { padding: 0; }
+            img { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            .document-watermark {
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                width: 260px;
+                height: 260px;
+                opacity: 0.08 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            .firma-marca {
+                opacity: 0.18 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
         }
     </style>
 </head>
 <body onload="window.print()">
+
+    <!-- Resolver variables de logo y marca de agua -->
+    {% set logo_path = (cfg.get('logo') if cfg else None) or (cfg.get('logo_url') if cfg else None) or (institucion.logo if institucion is defined else None) %}
+    {% set tiene_marca = (cfg.get('marca_agua') if cfg else None) or (institucion.marca_agua if institucion is defined else None) %}
+    {% set nombre_inst = (cfg.get('nombre_institucion') if cfg else None) or (institucion.nombre_institucion if institucion is defined else 'CORPORACIÓN SOCORRISTAS GRUPO DE APOYO') %}
 
     <div class="no-print">
         <button onclick="window.close()"
@@ -95,9 +147,11 @@
         </button>
     </div>
 
-    {# ── Marca de agua ── #}
-    {% if cfg and cfg.marca_agua %}
-    <img src="{{ cfg.marca_agua }}" class="marca-agua" alt="Marca de agua">
+    <!-- Marca de agua central del documento -->
+    {% if tiene_marca %}
+    <div class="document-watermark">
+        <img src="{{ tiene_marca }}" alt="">
+    </div>
     {% endif %}
 
     <div class="contenido">
@@ -106,8 +160,8 @@
         <table class="inst-header">
             <tr>
                 <td style="width:18%; text-align:center;">
-                    {% if cfg and cfg.logo_url %}
-                        <img src="{{ cfg.logo_url }}" class="logo" alt="Logo">
+                    {% if logo_path %}
+                        <img src="{{ logo_path }}" class="logo" alt="Logo">
                     {% else %}
                         <span style="font-size:8px;color:#888;">Sin Logo</span>
                     {% endif %}
@@ -115,7 +169,7 @@
                 <td style="width:58%;" class="titulo-doc">
                     FORMATO DE REGISTRO MENSUAL<br>DE HORAS DE VOLUNTARIADO<br>
                     <span style="font-size:8.5px;font-weight:normal;">
-                        {{ cfg.nombre_institucion if cfg and cfg.nombre_institucion else 'CORPORACIÓN SOCORRISTAS GRUPO DE APOYO' }}
+                        {{ nombre_inst }}
                     </span>
                 </td>
                 <td style="width:24%;" class="header-meta">
@@ -162,10 +216,12 @@
         </table>
 
         {# ── Firmas ── #}
+        {% set tiene_marca = cfg and cfg.marca_agua %}
         <div class="firma-wrap">
 
             {# Firma del voluntario (registrador) #}
             <div class="firma-col">
+                {% if tiene_marca %}<img src="{{ cfg.marca_agua }}" class="firma-marca" alt="">{% endif %}
                 {% if firma_registrador %}
                     <img src="{{ firma_registrador }}" class="firma-img" alt="Firma Voluntario">
                 {% else %}
@@ -182,6 +238,7 @@
 
             {# Firma del avalador #}
             <div class="firma-col">
+                {% if tiene_marca %}<img src="{{ cfg.marca_agua }}" class="firma-marca" alt="">{% endif %}
                 {% if registro.estado == 'Avalado' and firma_avalador %}
                     <img src="{{ firma_avalador }}" class="firma-img" alt="Firma Avalador">
                 {% elif registro.estado != 'Avalado' %}

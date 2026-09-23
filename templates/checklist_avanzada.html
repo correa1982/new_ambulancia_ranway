@@ -3,8 +3,87 @@
 {% block content %}
 
 <style>
+/* ── General ─────────────────────────────────────────── */
 .cl-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; padding-bottom: 14px; border-bottom: 2px solid #dbeafe; flex-wrap: wrap; gap: 10px; }
 .cl-badge { background: linear-gradient(135deg,#1e6fbf,#185999); color: white; padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; letter-spacing: 0.3px; }
+
+/* ── Acordeón (native details/summary) ─────────────────── */
+.accordion-step {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    margin-bottom: 12px;
+    box-shadow: 0 1px 4px rgba(30,111,191,0.06);
+    transition: box-shadow 0.2s;
+}
+.accordion-step[open] {
+    box-shadow: 0 4px 16px rgba(30,111,191,0.12);
+    border-color: #bfdbfe;
+}
+
+.accordion-step > summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 18px;
+    cursor: pointer;
+    background: linear-gradient(135deg, #f0f7ff, #eff6ff);
+    user-select: none;
+    list-style: none;
+    border-radius: 10px;
+    transition: background 0.15s;
+    gap: 12px;
+    font-weight: 700;
+    font-size: 14px;
+    color: #1e3a5f;
+}
+.accordion-step > summary::-webkit-details-marker { display: none; }
+.accordion-step > summary:hover { background: linear-gradient(135deg, #dbeafe, #eff6ff); }
+.accordion-step > summary:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: -2px;
+}
+.accordion-step[open] > summary {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    border-bottom: 1px solid #e2e8f0;
+    background: linear-gradient(135deg, #dbeafe, #eff6ff);
+}
+
+.accordion-step > summary::after {
+    content: "▼";
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    background: white;
+    border: 1.5px solid #bfdbfe;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    color: #2563eb;
+    font-size: 12px;
+    transition: transform 0.25s, background 0.2s, color 0.2s;
+    line-height: 24px;
+    text-align: center;
+}
+.accordion-step[open] > summary::after {
+    transform: rotate(180deg);
+    background: #2563eb;
+    color: white;
+    border-color: #2563eb;
+}
+
+.summary-left { display: flex; align-items: center; gap: 10px; }
+.accordion-badge {
+    font-size: 11px; font-weight: 700;
+    background: #e0f2fe; color: #0369a1;
+    border-radius: 20px; padding: 2px 10px;
+    white-space: nowrap;
+}
+.accordion-badge.complete { background: #d1fae5; color: #065f46; }
+.accordion-badge.partial  { background: #fef3c7; color: #92400e; }
+
+.accordion-content { padding: 2px; }
+
+/* ── Tabla items ─────────────────────────────────────── */
 .check-table { width: 100%; border-collapse: collapse; }
 .check-table thead tr th { background: linear-gradient(135deg,#ebf4ff,#dbeafe); font-size:10px; text-transform:uppercase; letter-spacing:0.5px; color:#1e40af; padding:8px 14px; border: 1px solid #e2e8f0; }
 .check-table tbody td { padding: 0; border: 1px solid #f1f5f9; }
@@ -20,36 +99,153 @@
 .ri-no input:checked + label { background: #ef4444; color: white; border-color: #dc2626; }
 .ri-na label { border-color: #e2e8f0; color: #64748b; background: #f8fafc; }
 .ri-na input:checked + label { background: #94a3b8; color: white; border-color: #64748b; }
-.section-label { font-size:11px; text-transform:uppercase; letter-spacing:0.5px; color:#1e40af; font-weight:700; padding: 6px 14px; background: #f0f7ff; border-bottom: 1px solid #dbeafe; display: block; }
 .empty-msg { text-align: center; padding: 30px; color: #94a3b8; font-size: 14px; }
 
-/* ── Acordeón (native details/summary) ─────────────────── */
-.accordion-step { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; margin-bottom: 12px; box-shadow: 0 1px 4px rgba(30,111,191,0.06); transition: box-shadow 0.2s; }
-.accordion-step[open] { box-shadow: 0 4px 16px rgba(30,111,191,0.12); border-color: #bfdbfe; }
-.accordion-step > summary { display: flex; align-items: center; justify-content: space-between; padding: 12px 18px; cursor: pointer; background: linear-gradient(135deg, #f0f7ff, #eff6ff); user-select: none; list-style: none; border-radius: 10px; transition: background 0.15s; gap: 12px; font-weight: 700; font-size: 14px; color: #1e3a5f; }
-.accordion-step > summary::-webkit-details-marker { display: none; }
-.accordion-step > summary:hover { background: linear-gradient(135deg, #dbeafe, #eff6ff); }
-.accordion-step > summary:focus-visible { outline: 2px solid #2563eb; outline-offset: -2px; }
-.accordion-step[open] > summary { border-bottom-left-radius: 0; border-bottom-right-radius: 0; border-bottom: 1px solid #e2e8f0; background: linear-gradient(135deg, #dbeafe, #eff6ff); }
-.accordion-step > summary::after { content: "▼"; width: 24px; height: 24px; border-radius: 50%; background: white; border: 1.5px solid #bfdbfe; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #2563eb; font-size: 12px; transition: transform 0.25s, background 0.2s, color 0.2s; line-height: 24px; text-align: center; }
-.accordion-step[open] > summary::after { transform: rotate(180deg); background: #2563eb; color: white; border-color: #2563eb; }
-.summary-left { display: flex; align-items: center; gap: 10px; }
-.accordion-badge { font-size: 11px; font-weight: 700; background: #e0f2fe; color: #0369a1; border-radius: 20px; padding: 2px 10px; white-space: nowrap; }
-.accordion-badge.complete { background: #d1fae5; color: #065f46; }
-.accordion-badge.partial  { background: #fef3c7; color: #92400e; }
-.accordion-content { padding: 2px; }
+.select-btn {
+    appearance: none;
+    -webkit-appearance: none;
+    background-color: white;
+    color: #333;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    padding: 12px 36px 12px 16px;
+    font-weight: normal;
+    font-size: 14px;
+    cursor: pointer;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23333'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 20px;
+    transition: all 0.2s;
+    width: 100%;
+    box-sizing: border-box;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+.select-btn:hover {
+    background-color: #f8fafc;
+    border-color: #94a3b8;
+}
+.select-btn:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.2);
+}
+.select-btn option {
+    background-color: white;
+    color: #333;
+}
+
+/* Entregas Pendientes Panel & Responsive */
+#panel-traslados-avanzada {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+}
+.traslados-table-wrap {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+.traslados-cards-mobile {
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* SweetAlert Responsive Styles for Mobile & Tablets */
+.swal2-popup.swal-venc-modal {
+    width: 95% !important;
+    max-width: 540px !important;
+    padding: 18px 14px !important;
+    border-radius: 14px !important;
+    box-sizing: border-box !important;
+}
+.swal2-popup.swal-venc-modal .swal2-title {
+    font-size: 18px !important;
+    color: #0f172a !important;
+    padding: 0 0 8px 0 !important;
+}
+
+.venc-badge-trigger {
+    transition: all 0.15s ease-in-out;
+}
+.venc-badge-trigger:hover {
+    background: #bae6fd !important;
+    border-color: #0284c7 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(3, 105, 161, 0.2);
+}
 
 @media (max-width: 650px) {
+    .cl-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+    .row.row-4 { display: grid; grid-template-columns: 1fr; gap: 10px; }
+    
+    .traslados-table-wrap {
+        display: none !important;
+    }
+    .traslados-cards-mobile {
+        display: flex !important;
+    }
+    #panel-traslados-avanzada {
+        padding: 12px 10px !important;
+    }
+
     .check-table thead { display: none; }
     .check-table, .check-table tbody, .check-table tr, .check-table td { display: block; width: 100%; box-sizing: border-box; }
     .check-table tbody tr { border: 1px solid #e2e8f0; margin-bottom: 8px; border-radius: 8px; overflow: hidden; background: #fff; padding-bottom: 0; }
-    .check-table tbody td { border: none !important; }
-    .check-row { flex-direction: column; align-items: stretch; padding: 12px; }
-    .item-name { margin-bottom: 8px; width: 100%; text-align: center; font-weight: 600; }
-    .radio-trio { width: 100%; justify-content: space-between; gap: 6px; }
+    .check-table tbody td { border: none !important; padding: 0 !important; }
+    .check-row { display: flex; flex-direction: column; align-items: stretch !important; gap: 10px; padding: 12px; }
+    .item-name { margin-bottom: 2px; width: 100%; text-align: left; font-weight: 700; color: #1e293b; font-size: 14px; }
+    .radio-trio { display: flex; flex-direction: row; justify-content: space-between; width: 100%; gap: 6px; }
     .radio-trio > div { flex: 1; text-align: center; }
-    .radio-trio label { display: flex; align-items: center; justify-content: center; padding: 8px 2px; font-size: 12px; white-space: normal; line-height: 1.2; height: 100%; box-sizing: border-box; }
+    .radio-trio label { display: block; width: 100%; padding: 10px 0; font-size: 13px; border-radius: 6px; text-align: center; box-sizing: border-box; min-height: 40px; line-height: 20px; }
     .obs-item-row { padding: 0 12px 12px 12px; margin-bottom: 0; }
+    
+    .submit-row { flex-direction: column-reverse !important; width: 100% !important; }
+    .submit-row a, .submit-row button { width: 100% !important; justify-content: center !important; height: 44px !important; }
+
+    /* SweetAlert modal on smartphones */
+    .swal2-popup.swal-venc-modal {
+        width: 96% !important;
+        padding: 14px 10px !important;
+    }
+    .swal2-popup.swal-venc-modal .swal2-title {
+        font-size: 16px !important;
+    }
+    .swal-venc-row, .parcial-venc-row {
+        flex-wrap: wrap !important;
+        gap: 6px !important;
+        padding: 8px !important;
+    }
+    .row-col-cant {
+        flex: 0 0 75px !important;
+    }
+    .row-col-fecha {
+        flex: 1 1 140px !important;
+    }
+    .row-col-del {
+        flex: 0 0 34px !important;
+    }
+    .incumple-btn-container {
+        flex-direction: column !important;
+        gap: 8px !important;
+    }
+    #venc-balance-card {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 4px !important;
+    }
+}
+
+@media (min-width: 651px) and (max-width: 1024px) {
+    .check-row { padding: 10px 12px; gap: 10px; }
+    .radio-trio label { padding: 7px 14px; font-size: 12px; min-height: 36px; }
+    .item-name { font-size: 13px; }
+    .swal2-popup.swal-venc-modal {
+        width: 85% !important;
+        max-width: 560px !important;
+    }
 }
 </style>
 
@@ -58,8 +254,16 @@
     <span class="cl-badge">{{ subtitulo }}</span>
 </div>
 
-<form method="POST" class="pwa-offline-form">
+<form method="POST" class="pwa-offline-form" autocomplete="off">
 {% if record %}<input type="hidden" name="id" value="{{ record.id }}">{% endif %}
+
+<div id="banner-precargado-avanzada" style="background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 8px; padding: 12px 16px; margin-bottom: 18px; font-size: 13px; color: #166534; display: {% if precargado_ultimo and not record %}flex{% else %}none{% endif %}; align-items: center; justify-content: space-between; gap: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+    <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="font-size: 18px;">ℹ️</span>
+        <span id="banner-precargado-text"><strong>Fechas de vencimiento precargadas:</strong> Se han cargado automáticamente las fechas de vencimiento y cumplimiento del último checklist realizado para el botiquín <strong id="banner-avanzada-nom">{{ record.botiquin if record else '' }}</strong>. Puede revisarlas o modificarlas haciendo clic en ✏️.</span>
+    </div>
+</div>
+
 <!-- Datos generales -->
 <fieldset>
 <legend>📋 Datos Generales</legend>
@@ -69,16 +273,24 @@
         <input onclick="this.showPicker()" type="date" name="fecha" max="{{ hoy }}" required value="{{ record.fecha if record else hoy }}">
     </div>
     <div>
-        <label>Hora</label>
-        <input onclick="this.showPicker()" type="time" name="hora" value="{{ record.hora if record else hora_actual }}">
+        <label>Hora <span style="color:#ef4444">*</span></label>
+        <input onclick="this.showPicker()" type="time" name="hora" required value="{{ record.hora if record else hora_actual }}">
     </div>
     <div>
-        <label>Evento</label>
-        <input type="text" name="evento" placeholder="Ej. Evento 123" value="{{ record.evento if record else '' }}">
+        <label>Evento <span style="color:#ef4444">*</span></label>
+        <input type="text" name="evento" placeholder="Ej. Evento 123" required value="{{ record.evento if record else '' }}">
     </div>
     <div>
-        <label>Botiquín</label>
-        <input type="text" name="botiquin" placeholder="Ej. Botiquín A" value="{{ record.botiquin if record else '' }}">
+        <label>Botiquín <span style="color:#ef4444">*</span></label>
+        <select name="botiquin" id="botiquin" class="select-btn" required>
+            <option value="">— Seleccione —</option>
+            {% for opcion in botiquines_opciones %}
+            <option value="{{ opcion }}" {% if record and record.botiquin == opcion %}selected{% endif %}>{{ opcion }}</option>
+            {% endfor %}
+            {% if record and record.botiquin and record.botiquin not in botiquines_opciones %}
+            <option value="{{ record.botiquin }}" selected>{{ record.botiquin }} (Registrado)</option>
+            {% endif %}
+        </select>
     </div>
 </div>
 </fieldset>
@@ -111,9 +323,7 @@
                     </select>
                 </td>
                 <td style="padding: 6px 14px; border: 1px solid #f1f5f9;">
-                    <div class="nombre-container" data-val="{{ member.nombre }}">
-                        <input type="text" name="integrante_nombre[]" class="form-control input-nombre" required placeholder="Nombre completo" value="{{ member.nombre }}" style="width: 100%; border: 1px solid #cbd5e1; border-radius: 5px; padding: 6px; font-size: 13px; box-sizing: border-box;">
-                    </div>
+                    <div class="nombre-container" data-val="{{ member.nombre }}"></div>
                 </td>
                 <td style="padding: 6px 14px; border: 1px solid #f1f5f9;"><input type="text" name="integrante_doc[]" class="form-control input-doc" placeholder="Cédula / ID" value="{{ member.identificacion }}" style="width: 100%; border: 1px solid #cbd5e1; border-radius: 5px; padding: 6px; font-size: 13px; box-sizing: border-box;"></td>
                 <td style="text-align: center; vertical-align: middle; padding: 6px 14px; border: 1px solid #f1f5f9;">
@@ -136,9 +346,7 @@
                     </select>
                 </td>
                 <td style="padding: 6px 14px; border: 1px solid #f1f5f9;">
-                    <div class="nombre-container">
-                        <input type="text" name="integrante_nombre[]" class="form-control input-nombre" required placeholder="Nombre completo" style="width: 100%; border: 1px solid #cbd5e1; border-radius: 5px; padding: 6px; font-size: 13px; box-sizing: border-box;">
-                    </div>
+                    <div class="nombre-container" data-val=""></div>
                 </td>
                 <td style="padding: 6px 14px; border: 1px solid #f1f5f9;"><input type="text" name="integrante_doc[]" class="form-control input-doc" placeholder="Cédula / ID" style="width: 100%; border: 1px solid #cbd5e1; border-radius: 5px; padding: 6px; font-size: 13px; box-sizing: border-box;"></td>
                 <td style="text-align: center; vertical-align: middle; padding: 6px 14px; border: 1px solid #f1f5f9;">
@@ -157,6 +365,89 @@
     </button>
 </div>
 </fieldset>
+
+<!-- Panel de Entregas Pendientes desde Inventario -->
+{% if traslados_pendientes and traslados_pendientes|length > 0 %}
+<fieldset id="panel-traslados-avanzada" style="display: none; min-width: 0; max-width: 100%; width: 100%; box-sizing: border-box; overflow: hidden; border: 1.5px solid #3b82f6; background: #eff6ff; border-radius: 10px; padding: 14px 18px; margin-bottom: 20px;">
+    <legend style="color: #1e40af; font-weight: 700; font-size: 14px; padding: 0 8px; display: flex; align-items: center; gap: 6px;">
+        📦 Entregas Pendientes desde Inventario<span id="traslados-avanzada-label"></span> (<span id="count-traslados">0</span>)
+    </legend>
+    <p style="font-size: 12px; color: #1e3a8a; margin: 0 0 10px 0;">
+        Se registraron salidas de inventario con destino a este botiquín. Verifique y acepte los suministros recibidos para incorporarlos al checklist:
+    </p>
+    
+    <!-- Vista Escritorio / Tablet: Tabla -->
+    <div class="traslados-table-wrap">
+        <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 6px; overflow: hidden; border: 1px solid #bfdbfe; font-size: 12px;">
+            <thead>
+                <tr style="background: #dbeafe; color: #1e40af; text-align: left;">
+                    <th style="padding: 8px 12px;">Artículo / Suministro</th>
+                    <th style="padding: 8px 12px; text-align: center;">Cantidad</th>
+                    <th style="padding: 8px 12px; text-align: center;">Fecha de Vencimiento</th>
+                    <th style="padding: 8px 12px; text-align: center;">Destino</th>
+                    <th style="padding: 8px 12px; text-align: center;">Acción</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for tr in traslados_pendientes %}
+                <tr id="row-traslado-{{ tr.id }}" class="traslado-table-row" data-id="{{ tr.id }}" data-destino="{{ tr.destino }}" style="border-top: 1px solid #e2e8f0;">
+                    <td style="padding: 8px 12px; font-weight: 600; color: #1e293b;">{{ tr.nombre }}</td>
+                    <td style="padding: 8px 12px; text-align: center; font-weight: 700; color: #0f172a;">{{ tr.cantidad }}</td>
+                    <td style="padding: 8px 12px; text-align: center;">
+                        {% if tr.fecha_vencimiento %}
+                            <span class="venc-badge-calc" data-date="{{ tr.fecha_vencimiento }}">{{ tr.fecha_vencimiento }}</span>
+                        {% else %}
+                            <span style="color: #94a3b8;">—</span>
+                        {% endif %}
+                    </td>
+                    <td style="padding: 8px 12px; text-align: center; color: #64748b; font-weight: 600;">{{ tr.destino }}</td>
+                    <td style="padding: 8px 12px; text-align: center;">
+                        <button type="button" 
+                                onclick="aceptarTraslado('{{ tr.id }}', '{{ tr.nombre|escape }}', '{{ tr.cantidad }}', '{{ tr.fecha_vencimiento or '' }}')" 
+                                style="background: #10b981; color: white; border: none; padding: 6px 12px; border-radius: 5px; font-weight: 600; font-size: 11px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 2px 4px rgba(16,185,129,0.2);">
+                            ✓ Aceptar e Ingresar
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Vista Móvil: Tarjetas compactas -->
+    <div class="traslados-cards-mobile" id="cards-traslados-mobile">
+        {% for tr in traslados_pendientes %}
+        <div id="card-traslado-{{ tr.id }}" class="traslado-card-item" data-id="{{ tr.id }}" data-destino="{{ tr.destino }}" style="background: white; border: 1px solid #bfdbfe; border-radius: 8px; padding: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 8px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
+                <div style="font-weight: 700; color: #1e293b; font-size: 13px; line-height: 1.3;">
+                    {{ tr.nombre }}
+                </div>
+                <span style="background: #e0f2fe; color: #0369a1; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 4px; white-space: nowrap;">
+                    {{ tr.destino }}
+                </span>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px; font-size: 12px; color: #475569;">
+                <div>
+                    <span>Cantidad: </span><strong style="color: #0f172a; font-size: 13px;">{{ tr.cantidad }}</strong> unid(s)
+                </div>
+                <div>
+                    {% if tr.fecha_vencimiento %}
+                        <span class="venc-badge-calc" data-date="{{ tr.fecha_vencimiento }}">{{ tr.fecha_vencimiento }}</span>
+                    {% else %}
+                        <span style="color: #94a3b8; font-size: 11px;">Sin vencimiento</span>
+                    {% endif %}
+                </div>
+            </div>
+            <button type="button" 
+                    onclick="aceptarTraslado('{{ tr.id }}', '{{ tr.nombre|escape }}', '{{ tr.cantidad }}', '{{ tr.fecha_vencimiento or '' }}')" 
+                    style="width: 100%; margin-top: 4px; background: #10b981; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-weight: 700; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 2px 4px rgba(16,185,129,0.25);">
+                ✓ Aceptar e Ingresar
+            </button>
+        </div>
+        {% endfor %}
+    </div>
+</fieldset>
+{% endif %}
 
 {% set cat_labels = {
     'equipos': ('🏥 Equipos de Soporte Vital Avanzado', 'Equipo / Medicamento', 'Estado'),
@@ -190,21 +481,44 @@
     {% set field = item.identificador %}
     {% set val_exist = datos[field]['valor'] if (datos and field in datos) else '' %}
     {% set obs_exist = datos[field]['observacion'] if (datos and field in datos) else '' %}
-    <tr>
+    {% set raw_venc = datos[field].get('fecha_vencimiento', '') if (datos and field in datos) else '' %}
+    {% if raw_venc is iterable and raw_venc is not string %}
+        {% set venc_exist = raw_venc|tojson %}
+    {% else %}
+        {% set venc_exist = raw_venc %}
+    {% endif %}
+    {% set cant_actual_exist = datos[field].get('cant_actual', '') if (datos and field in datos) else '' %}
+    {% set tipo_inc_exist = datos[field].get('tipo_incumplimiento', '') if (datos and field in datos) else '' %}
+    {% set aplica_venc = item.get('aplica_vencimiento') or (1 if venc_exist else 0) %}
+    <tr class="item-row-tr" data-field="{{ field }}" data-nombre="{{ item.nombre }}" data-cantidad="{{ item.cantidad or 1 }}" data-aplica-venc="{{ 1 if aplica_venc else 0 }}">
         <td style="vertical-align: middle;">
-            <div class="check-row">
-                <span class="item-name">{{ item.nombre }}{% if item.cantidad is not none %} <span style="font-size: 11px; color: #64748b; font-weight: normal;">(Cant: {{ item.cantidad }})</span>{% endif %}</span>
-                <div class="radio-trio">
+            <input type="hidden" name="vencimiento_{{ field }}" id="vencimiento_{{ field }}" value="{{ venc_exist|forceescape }}">
+            <input type="hidden" name="cant_actual_{{ field }}" id="cant_actual_{{ field }}" value="{{ cant_actual_exist }}">
+            <input type="hidden" name="tipo_incumplimiento_{{ field }}" id="tipo_incumplimiento_{{ field }}" value="{{ tipo_inc_exist }}">
+            <div class="check-row" style="align-items: flex-start;">
+                <div style="flex: 1;">
+                    <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                        <span class="item-name" style="flex: none;">{{ item.nombre }}</span>
+                        {% if item.cantidad is not none %}
+                            <span style="font-size: 11px; color: #64748b; font-weight: normal;">(Cant req: {{ item.cantidad }})</span>
+                        {% endif %}
+                        {% if aplica_venc %}
+                            <span class="venc-badge-trigger" onclick="abrirVencimientoItem('{{ field }}')" title="Clic para gestionar fecha de vencimiento" style="font-size: 10px; background: #e0f2fe; color: #0369a1; padding: 2px 6px; border-radius: 4px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 3px; border: 1px solid #bae6fd;">📅 Vencimiento</span>
+                        {% endif %}
+                    </div>
+                    <div id="badge_info_{{ field }}" style="margin-top: 5px;"></div>
+                </div>
+                <div class="radio-trio" style="margin-top: 2px;">
                     <div class="ri-si">
-                        <input type="radio" name="{{ field }}" id="avanzada_{{ field }}_si" value="SI" {% if val_exist == 'SI' %}checked{% endif %} onchange="updateBadge(this)">
+                        <input type="radio" name="{{ field }}" id="avanzada_{{ field }}_si" value="SI" onchange="handleRadioChange(this)" onclick="handleRadioClick(this)" {% if val_exist == 'SI' %}checked{% endif %}>
                         <label for="avanzada_{{ field }}_si">Cumple</label>
                     </div>
                     <div class="ri-no">
-                        <input type="radio" name="{{ field }}" id="avanzada_{{ field }}_no" value="NO" {% if val_exist == 'NO' %}checked{% endif %} onchange="updateBadge(this)">
+                        <input type="radio" name="{{ field }}" id="avanzada_{{ field }}_no" value="NO" onchange="handleRadioChange(this)" onclick="handleRadioClick(this)" {% if val_exist == 'NO' %}checked{% endif %}>
                         <label for="avanzada_{{ field }}_no">No Cumple</label>
                     </div>
                     <div class="ri-na">
-                        <input type="radio" name="{{ field }}" id="avanzada_{{ field }}_na" value="NA" {% if val_exist == 'NA' %}checked{% endif %} onchange="updateBadge(this)">
+                        <input type="radio" name="{{ field }}" id="avanzada_{{ field }}_na" value="NA" onchange="handleRadioChange(this)" {% if val_exist == 'NA' %}checked{% endif %}>
                         <label for="avanzada_{{ field }}_na">No Aplica</label>
                     </div>
                 </div>
@@ -231,7 +545,7 @@
 
 <fieldset>
 <legend>📝 Observaciones</legend>
-<textarea name="observaciones" placeholder="Faltantes, daños, novedades, observaciones del turno...">{{ record.observaciones if record else '' }}</textarea>
+<textarea name="observaciones" placeholder="Faltantes, daños, novedades, observaciones del evento o botiquín...">{{ record.observaciones if record else '' }}</textarea>
 </fieldset>
 
 <div class="submit-row" style="display:flex; flex-wrap:wrap; gap:12px; justify-content: flex-end; margin-top:20px; align-items:center;">
@@ -241,130 +555,1948 @@
     <a href="{{ url_for('registros_checklist', tipo='avanzada') }}" style="margin:0; box-sizing: border-box; height: 44px; font-family: inherit; background: linear-gradient(135deg,#f59e0b,#d97706); color:white; text-decoration:none; border:none; padding:0 24px; border-radius:10px; font-weight:600; font-size:14px; display:inline-flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(245,158,11,0.2);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(245,158,11,0.3)'" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 6px -1px rgba(245,158,11,0.2)'">
         <i class="ph ph-folder-open" style="font-size:18px;"></i> Ver Registros
     </a>
+    <button type="button" onclick="limpiarBorradorAvanzada()" style="margin:0; box-sizing: border-box; height: 44px; font-family: inherit; background:linear-gradient(135deg,#ef4444,#dc2626); color:white; border:none; padding:0 24px; border-radius:10px; font-weight:600; font-size:14px; display:inline-flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(239,68,68,0.3);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(239,68,68,0.4)'" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 6px -1px rgba(239,68,68,0.3)'">
+        <i class="ph ph-trash" style="font-size:18px;"></i> Limpiar
+    </button>
     <button type="submit" name="accion" value="borrador" style="margin:0; box-sizing: border-box; height: 44px; font-family: inherit; background:linear-gradient(135deg,#1e6fbf,#185999); color:white; border:none; padding:0 24px; border-radius:10px; font-weight:600; font-size:14px; display:inline-flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(30,111,191,0.3);" formnovalidate onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(30,111,191,0.4)'" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 6px -1px rgba(30,111,191,0.3)'">
         <i class="ph ph-floppy-disk" style="font-size:18px;"></i> Guardar Borrador
     </button>
-    <button type="submit" name="accion" value="finalizar" style="margin:0; box-sizing: border-box; height: 44px; font-family: inherit; background:linear-gradient(135deg,#10b981,#059669); color:white; border:none; padding:0 24px; border-radius:10px; font-weight:600; font-size:14px; display:inline-flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(16,185,129,0.2);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(16,185,129,0.3)'" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 6px -1px rgba(16,185,129,0.2)'" onclick="return confirm('¿Está seguro de finalizar este registro? Una vez finalizado no podrá ser editado.');">
+    <button type="submit" name="accion" value="finalizar" style="margin:0; box-sizing: border-box; height: 44px; font-family: inherit; background:linear-gradient(135deg,#10b981,#059669); color:white; border:none; padding:0 24px; border-radius:10px; font-weight:600; font-size:14px; display:inline-flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(16,185,129,0.2);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(16,185,129,0.3)'" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 6px -1px rgba(16,185,129,0.2)'" onclick="return validarYConfirmarFinalizacionAvanzada(event);">
         <i class="ph ph-check-circle" style="font-size:18px;"></i> Finalizar Check List Avanzada
     </button>
 </div>
 </form>
 
+<!-- Expiration Calculation & Lot Modal Logic -->
 <script>
-(function() {
-    const todosUsuarios = {{ todos_usuarios | tojson }};
+function getAlertInfo(dateStr) {
+    if (!dateStr) return null;
+    const parts = dateStr.split('-');
+    if (parts.length !== 3) return null;
+    
+    const expDate = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    
+    const diffTime = expDate - today;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays < 0) {
+        return {
+            color: '#991b1b',
+            bg: '#fee2e2',
+            border: '#ef4444',
+            text: `Vencido (${dateStr})`,
+            title: `Vencido hace ${Math.abs(diffDays)} días`
+        };
+    } else if (diffDays <= 90) {
+        return {
+            color: '#991b1b',
+            bg: '#fee2e2',
+            border: '#f87171',
+            text: `Vence < 3 meses (${dateStr})`,
+            title: `Vence en ${diffDays} días (${dateStr})`
+        };
+    } else if (diffDays <= 180) {
+        return {
+            color: '#92400e',
+            bg: '#fef3c7',
+            border: '#f59e0b',
+            text: `Vence 3 a 6 meses (${dateStr})`,
+            title: `Vence en ${diffDays} días (${dateStr})`
+        };
+    } else {
+        return {
+            color: '#166534',
+            bg: '#dcfce7',
+            border: '#22c55e',
+            text: `Vigente > 6 meses (${dateStr})`,
+            title: `Vence en ${diffDays} días (${dateStr})`
+        };
+    }
+}
 
-    function checkNo() {
-        document.querySelectorAll('input[type="radio"]').forEach(function(radio) {
-            if (radio.checked) {
-                const fieldName = radio.name;
-                const obsRow = document.getElementById('obs_row_' + fieldName);
-                const obsInput = document.getElementById('obs_' + fieldName);
-                if (obsRow && obsInput) {
-                    if (radio.value === 'NO') {
-                        obsRow.style.display = 'block';
-                        obsInput.required = true;
+function parseVencEntries(val, defaultCant) {
+    if (!val) return [];
+    if (typeof val === 'string') {
+        val = val.trim();
+        if (val.startsWith('[') && val.endsWith(']')) {
+            try {
+                const parsed = JSON.parse(val);
+                if (Array.isArray(parsed)) {
+                    return parsed.map(item => ({
+                        cant: parseInt(item.cant, 10) || 1,
+                        fecha: item.fecha || ''
+                    })).filter(x => x.fecha);
+                }
+            } catch(e) {}
+        }
+        if (val) {
+            return [{ cant: defaultCant, fecha: val }];
+        }
+        return [];
+    } else if (Array.isArray(val)) {
+        return val.map(item => ({
+            cant: parseInt(item.cant, 10) || 1,
+            fecha: item.fecha || ''
+        })).filter(x => x.fecha);
+    } else if (typeof val === 'object' && val !== null) {
+        if (val.fecha) {
+            return [{ cant: parseInt(val.cant, 10) || defaultCant, fecha: val.fecha }];
+        }
+    }
+    return [];
+}
+
+function renderVencRowHtml(cant, fecha, canDelete, maxCant, prefix = 'swal-venc') {
+    return `
+        <div class="${prefix}-row" style="display: flex; gap: 8px; align-items: flex-end; margin-bottom: 8px; background: #ffffff; padding: 8px 10px; border-radius: 8px; border: 1px solid #e2e8f0; box-shadow: 0 1px 2px rgba(0,0,0,0.04);">
+            <div class="row-col-cant" style="flex: 0 0 85px; text-align: left;">
+                <label style="display: block; font-size: 11px; font-weight: 700; color: #475569; margin-bottom: 2px;">Cantidad</label>
+                <input type="number" class="${prefix}-cant" min="1" max="${maxCant}" value="${cant}" style="width: 100%; padding: 6px 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; font-weight: 700; text-align: center; box-sizing: border-box;" ${maxCant === 1 ? 'readonly' : ''}>
+            </div>
+            <div class="row-col-fecha" style="flex: 1; min-width: 120px; text-align: left;">
+                <label style="display: block; font-size: 11px; font-weight: 700; color: #475569; margin-bottom: 2px;">Fecha de Vencimiento</label>
+                <input type="date" class="${prefix}-fecha" value="${fecha}" style="width: 100%; padding: 6px 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; box-sizing: border-box;">
+            </div>
+            ${canDelete ? `
+            <div class="row-col-del" style="flex: 0 0 32px;">
+                <button type="button" class="${prefix}-del-btn" style="width: 34px; height: 34px; border-radius: 6px; border: 1px solid #fecaca; background: #fef2f2; color: #dc2626; font-size: 14px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;" title="Eliminar fecha">✕</button>
+            </div>
+            ` : ''}
+        </div>
+    `;
+}
+
+function updateBadgeInfo(field) {
+    const container = document.getElementById('badge_info_' + field);
+    if (!container) return;
+
+    const row = container.closest('.item-row-tr');
+    const fieldNombre = row ? row.getAttribute('data-nombre') : '';
+    const cantReq = row ? (parseInt(row.getAttribute('data-cantidad'), 10) || 1) : 1;
+    const vencRaw = document.getElementById('vencimiento_' + field)?.value || '';
+    const tipoInc = document.getElementById('tipo_incumplimiento_' + field)?.value || '';
+    const cantActual = document.getElementById('cant_actual_' + field)?.value || '';
+    const radioSi = document.getElementById('avanzada_' + field + '_si');
+    const radioNo = document.getElementById('avanzada_' + field + '_no');
+
+    let html = '';
+
+    if (radioSi && radioSi.checked) {
+        const entries = parseVencEntries(vencRaw, cantReq);
+        if (entries.length > 0) {
+            html += `<div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-top: 4px;">`;
+            entries.forEach(entry => {
+                const alert = getAlertInfo(entry.fecha);
+                if (alert) {
+                    const cantLabel = (cantReq > 1 || entries.length > 1) ? `<strong>(${entry.cant} unids)</strong> ` : '';
+                    html += `
+                        <span style="background-color: ${alert.bg}; color: ${alert.color}; border: 1px solid ${alert.border}; padding: 3px 8px; border-radius: 4px; font-weight: 700; font-size: 11px; display: inline-flex; align-items: center; gap: 4px;" title="${alert.title}">
+                            ${cantLabel}📅 ${alert.text}
+                        </span>
+                    `;
+                }
+            });
+            html += `
+                <button type="button" onclick="promptEditVenc('${field}', '${fieldNombre.replace(/'/g, "\\'")}', ${cantReq})" style="background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 4px; padding: 2px 6px; font-size: 11px; cursor: pointer; color: #475569;" title="Modificar fechas">✏️ Modificar</button>
+            </div>`;
+        } else if (row && row.getAttribute('data-aplica-venc') === '1') {
+            html += `
+                <div style="display: flex; gap: 6px; align-items: center; margin-top: 4px;">
+                    <span style="background-color: #fee2e2; color: #b91c1c; border: 1px solid #ef4444; padding: 3px 8px; border-radius: 4px; font-weight: 700; font-size: 11px; display: inline-flex; align-items: center; gap: 4px;">
+                        ⚠️ Requiere fecha de vencimiento
+                    </span>
+                    <button type="button" onclick="promptEditVenc('${field}', '${fieldNombre.replace(/'/g, "\\'")}', ${cantReq})" style="background: #2563eb; color: white; border: none; border-radius: 4px; padding: 2px 8px; font-size: 11px; font-weight: 600; cursor: pointer;" title="Ingresar fechas">📅 Asignar Fecha</button>
+                </div>`;
+        }
+    } else if (radioNo && radioNo.checked) {
+        if (tipoInc === 'parcial') {
+            const numActual = parseInt(cantActual, 10) || 0;
+            const entries = parseVencEntries(vencRaw, numActual || 1);
+            html += `
+                <div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-top: 4px;">
+                    <span style="background-color: #fef3c7; color: #b45309; border: 1px solid #f59e0b; padding: 3px 8px; border-radius: 4px; font-weight: 700; font-size: 11px;">
+                        ⚠️ Incumple Parcial (Cant: ${cantActual || '0'})
+                    </span>
+            `;
+            if (entries.length > 0) {
+                entries.forEach(entry => {
+                    const alert = getAlertInfo(entry.fecha);
+                    if (alert) {
+                        const cantLabel = (numActual > 1 || entries.length > 1) ? `<strong>(${entry.cant} unids)</strong> ` : '';
+                        html += `
+                            <span style="background-color: ${alert.bg}; color: ${alert.color}; border: 1px solid ${alert.border}; padding: 3px 8px; border-radius: 4px; font-weight: 700; font-size: 11px; display: inline-flex; align-items: center; gap: 4px;" title="${alert.title}">
+                                ${cantLabel}📅 ${alert.text}
+                            </span>
+                        `;
+                    }
+                });
+            } else if (row && row.getAttribute('data-aplica-venc') === '1' && numActual > 0) {
+                html += `
+                    <span style="background-color: #fee2e2; color: #b91c1c; border: 1px solid #ef4444; padding: 3px 8px; border-radius: 4px; font-weight: 700; font-size: 11px;">
+                        ⚠️ Falta fecha
+                    </span>
+                `;
+            }
+            html += `
+                    <button type="button" onclick="reabrirModalNo('${field}')" style="background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 4px; padding: 2px 6px; font-size: 10px; cursor: pointer; color: #475569;" title="Modificar reporte">✏️ Modificar</button>
+                </div>
+            `;
+        } else if (tipoInc === 'total') {
+            html += `
+                <div style="display: flex; gap: 6px; align-items: center; margin-top: 4px;">
+                    <span style="background-color: #fee2e2; color: #b91c1c; border: 1px solid #ef4444; padding: 3px 8px; border-radius: 4px; font-weight: 700; font-size: 11px;">
+                        ❌ Incumple Total (Sin existencias)
+                    </span>
+                    <button type="button" onclick="reabrirModalNo('${field}')" style="background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 4px; padding: 2px 6px; font-size: 10px; cursor: pointer; color: #475569;" title="Modificar reporte">✏️ Modificar</button>
+                </div>
+            `;
+        } else {
+            html += `
+                <div style="display: flex; gap: 6px; align-items: center; margin-top: 4px;">
+                    <span style="background-color: #fffbeb; color: #b45309; border: 1px solid #fde68a; padding: 3px 8px; border-radius: 4px; font-weight: 700; font-size: 11px;">
+                        ⚠️ Novedad sin detallar
+                    </span>
+                    <button type="button" onclick="reabrirModalNo('${field}')" style="background: #ea580c; color: white; border: none; border-radius: 4px; padding: 2px 8px; font-size: 11px; font-weight: 600; cursor: pointer;" title="Detallar novedad">✏️ Detallar Novedad</button>
+                </div>
+            `;
+        }
+    }
+
+    container.innerHTML = html;
+}
+
+function setFieldVencimiento(field, dateVal) {
+    const input = document.getElementById('vencimiento_' + field);
+    if (input) input.value = dateVal || '';
+    updateBadgeInfo(field);
+}
+
+function promptEditVenc(field, nombre, cantTotal) {
+    const row = document.querySelector(`.item-row-tr[data-field="${field}"]`);
+    if (!cantTotal && row) {
+        cantTotal = parseInt(row.getAttribute('data-cantidad'), 10) || 1;
+    }
+    cantTotal = parseInt(cantTotal, 10) || 1;
+
+    const currentVenc = document.getElementById('vencimiento_' + field)?.value || '';
+    let entries = parseVencEntries(currentVenc, cantTotal);
+    if (entries.length === 0) {
+        entries = [{ cant: cantTotal, fecha: '' }];
+    } else if (entries.length === 1 && cantTotal > 1 && entries[0].cant !== cantTotal) {
+        entries[0].cant = cantTotal;
+    }
+
+    let rowsHtml = '';
+    entries.forEach(ent => {
+        rowsHtml += renderVencRowHtml(ent.cant, ent.fecha, entries.length > 1, cantTotal, 'swal-venc');
+    });
+
+    Swal.fire({
+        title: 'Fechas de Vencimiento',
+        customClass: { popup: 'swal-venc-modal' },
+        allowOutsideClick: false,
+        backdrop: 'rgba(15, 23, 42, 0.65)',
+        html: `
+            <div style="text-align: left; font-size: 13px; color: #334155; margin-bottom: 12px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px;">
+                <strong style="color: #0f172a; font-size: 15px;">${nombre}</strong><br>
+                <span style="color: #64748b;">Cantidad total a verificar: <strong>${cantTotal} unidad(es)</strong></span>
+            </div>
+            ${cantTotal > 1 ? `
+            <div id="venc-balance-card" style="margin-bottom: 12px; padding: 8px 12px; border-radius: 8px; font-size: 12px; font-weight: 700; display: flex; justify-content: space-between; align-items: center; background: #f8fafc; border: 1px solid #cbd5e1;">
+                <span>Distribución de insumos:</span>
+                <span id="venc-balance-text">0 / ${cantTotal} unids</span>
+            </div>
+            ` : ''}
+            <div id="venc-rows-container" style="max-height: 280px; overflow-y: auto; text-align: left; padding: 2px;">
+                ${rowsHtml}
+            </div>
+            ${cantTotal > 1 ? `
+            <button type="button" id="btn-add-venc-row" style="width: 100%; padding: 8px; background: #f0fdf4; border: 1px dashed #22c55e; color: #15803d; border-radius: 6px; font-weight: 700; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 8px;">
+                ➕ Agregar otra fecha de vencimiento
+            </button>
+            ` : ''}
+        `,
+        showCancelButton: true,
+        confirmButtonText: 'Guardar Fechas',
+        cancelButtonText: 'Cancelar',
+        focusConfirm: false,
+        didOpen: () => {
+            const container = document.getElementById('venc-rows-container');
+            const btnAdd = document.getElementById('btn-add-venc-row');
+
+            function updateBalance() {
+                if (cantTotal <= 1) return;
+                let sum = 0;
+                container.querySelectorAll('.swal-venc-cant').forEach(inp => {
+                    sum += parseInt(inp.value, 10) || 0;
+                });
+                const balCard = document.getElementById('venc-balance-card');
+                const balText = document.getElementById('venc-balance-text');
+                if (balCard && balText) {
+                    if (sum === cantTotal) {
+                        balCard.style.background = '#f0fdf4';
+                        balCard.style.borderColor = '#86efac';
+                        balCard.style.color = '#15803d';
+                        balText.innerHTML = `✓ ${sum} de ${cantTotal} unids asignadas (Completo)`;
+                    } else if (sum < cantTotal) {
+                        balCard.style.background = '#fffbeb';
+                        balCard.style.borderColor = '#fde68a';
+                        balCard.style.color = '#b45309';
+                        balText.innerHTML = `⚠️ ${sum} de ${cantTotal} unids (Faltan ${cantTotal - sum})`;
                     } else {
-                        obsRow.style.display = 'none';
-                        obsInput.required = false;
-                        obsInput.value = '';
+                        balCard.style.background = '#fef2f2';
+                        balCard.style.borderColor = '#fecaca';
+                        balCard.style.color = '#b91c1c';
+                        balText.innerHTML = `❌ ${sum} de ${cantTotal} unids (Excede por ${sum - cantTotal})`;
                     }
                 }
             }
+
+            function attachEvents() {
+                container.querySelectorAll('.swal-venc-cant').forEach(inp => {
+                    inp.oninput = updateBalance;
+                });
+                container.querySelectorAll('.swal-venc-del-btn').forEach(btn => {
+                    btn.onclick = function() {
+                        this.closest('.swal-venc-row').remove();
+                        const rows = container.querySelectorAll('.swal-venc-row');
+                        if (rows.length === 1) {
+                            const dBtn = rows[0].querySelector('.swal-venc-del-btn');
+                            if (dBtn) dBtn.parentElement.remove();
+                        }
+                        updateBalance();
+                    };
+                });
+            }
+
+            if (btnAdd) {
+                btnAdd.onclick = function() {
+                    let currentSum = 0;
+                    container.querySelectorAll('.swal-venc-cant').forEach(inp => {
+                        currentSum += parseInt(inp.value, 10) || 0;
+                    });
+                    const remaining = Math.max(1, cantTotal - currentSum);
+
+                    const existingRows = container.querySelectorAll('.swal-venc-row');
+                    if (existingRows.length === 1 && !existingRows[0].querySelector('.swal-venc-del-btn')) {
+                        const delDiv = document.createElement('div');
+                        delDiv.style.cssText = 'flex: 0 0 32px;';
+                        delDiv.innerHTML = '<button type="button" class="swal-venc-del-btn" style="width: 32px; height: 32px; border-radius: 6px; border: 1px solid #fecaca; background: #fef2f2; color: #dc2626; font-size: 14px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;" title="Eliminar fecha">✕</button>';
+                        existingRows[0].appendChild(delDiv);
+                    }
+
+                    const div = document.createElement('div');
+                    div.innerHTML = renderVencRowHtml(remaining, '', true, cantTotal, 'swal-venc');
+                    container.appendChild(div.firstElementChild);
+                    attachEvents();
+                    updateBalance();
+                };
+            }
+
+            attachEvents();
+            updateBalance();
+        },
+        preConfirm: () => {
+            const rows = document.querySelectorAll('#venc-rows-container .swal-venc-row');
+            let sum = 0;
+            const resEntries = [];
+
+            for (let i = 0; i < rows.length; i++) {
+                const cantVal = parseInt(rows[i].querySelector('.swal-venc-cant').value, 10);
+                const fechaVal = rows[i].querySelector('.swal-venc-fecha').value;
+
+                if (!cantVal || cantVal < 1) {
+                    Swal.showValidationMessage(`La cantidad en la fila #${i+1} debe ser al menos 1.`);
+                    return false;
+                }
+                if (!fechaVal) {
+                    Swal.showValidationMessage(`Debe seleccionar la fecha de vencimiento en la fila #${i+1}.`);
+                    return false;
+                }
+                sum += cantVal;
+                resEntries.push({ cant: cantVal, fecha: fechaVal });
+            }
+
+            if (cantTotal > 1 && sum !== cantTotal) {
+                Swal.showValidationMessage(`La suma de cantidades (${sum}) debe coincidir con el total requerido (${cantTotal}).`);
+                return false;
+            }
+
+            return resEntries;
+        }
+    }).then(res => {
+        if (res.isConfirmed && res.value) {
+            setFieldVencimiento(field, JSON.stringify(res.value));
+            recalcBadges();
+            triggerAutosaveAvanzada();
+        } else {
+            const curVal = document.getElementById('vencimiento_' + field)?.value;
+            const entries = parseVencEntries(curVal, cantTotal);
+            if (entries.length === 0) {
+                const radioSi = document.getElementById('avanzada_' + field + '_si');
+                if (radioSi && radioSi.checked) {
+                    radioSi.checked = false;
+                    document.getElementById('cant_actual_' + field).value = '';
+                    updateBadgeInfo(field);
+                    recalcBadges();
+                    triggerAutosaveAvanzada();
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Fecha requerida',
+                        text: `El artículo "${nombre}" requiere fecha de vencimiento para registrarse como Cumple.`,
+                        toast: true,
+                        position: 'top-end',
+                        timer: 3500,
+                        showConfirmButton: false
+                    });
+                }
+            }
+        }
+    });
+}
+
+function handleRadioChange(radio) {
+    const field = radio.name;
+    const row = radio.closest('.item-row-tr');
+    if (!row) return;
+
+    const nombre = row.getAttribute('data-nombre');
+    const cantReq = parseInt(row.getAttribute('data-cantidad')) || 1;
+    const aplicaVenc = row.getAttribute('data-aplica-venc') === '1';
+
+    const obsRow = document.getElementById('obs_row_' + field);
+    const obsInput = document.getElementById('obs_' + field);
+
+    if (radio.value === 'SI') {
+        if (obsRow) obsRow.style.display = 'none';
+        if (obsInput) { obsInput.required = false; obsInput.value = ''; }
+        
+        document.getElementById('tipo_incumplimiento_' + field).value = '';
+        document.getElementById('cant_actual_' + field).value = cantReq;
+
+        if (aplicaVenc) {
+            const currentVenc = document.getElementById('vencimiento_' + field)?.value;
+            const entries = parseVencEntries(currentVenc, cantReq);
+
+            if (entries.length === 0) {
+                promptEditVenc(field, nombre, cantReq);
+            } else {
+                updateBadgeInfo(field);
+            }
+        } else {
+            updateBadgeInfo(field);
+        }
+    } else if (radio.value === 'NO') {
+        abrirModalIncumplimiento(field, nombre, cantReq, aplicaVenc);
+    } else { // NA
+        if (obsRow) obsRow.style.display = 'none';
+        if (obsInput) { obsInput.required = false; obsInput.value = ''; }
+        document.getElementById('tipo_incumplimiento_' + field).value = '';
+        document.getElementById('cant_actual_' + field).value = '';
+        updateBadgeInfo(field);
+    }
+
+    recalcBadges();
+    triggerAutosaveAvanzada();
+}
+
+function reabrirModalNo(field) {
+    const row = document.querySelector(`.item-row-tr[data-field="${field}"]`);
+    if (!row) return;
+    const nombre = row.getAttribute('data-nombre');
+    const cantReq = parseInt(row.getAttribute('data-cantidad')) || 1;
+    const aplicaVenc = row.getAttribute('data-aplica-venc') === '1';
+    abrirModalIncumplimiento(field, nombre, cantReq, aplicaVenc);
+}
+
+function abrirModalIncumplimiento(field, nombre, cantReq, aplicaVenc) {
+    const obsInput = document.getElementById('obs_' + field);
+    const currentObs = obsInput ? obsInput.value : '';
+    const currentCant = document.getElementById('cant_actual_' + field)?.value;
+    const currentTipo = document.getElementById('tipo_incumplimiento_' + field)?.value || (cantReq > 1 ? 'parcial' : 'total');
+    const currentVenc = document.getElementById('vencimiento_' + field)?.value;
+
+    const showParcial = cantReq > 1;
+
+    Swal.fire({
+        title: 'Reportar Novedad / Faltante',
+        customClass: { popup: 'swal-venc-modal' },
+        allowOutsideClick: false,
+        backdrop: 'rgba(15, 23, 42, 0.65)',
+        html: `
+            <div style="text-align: left; font-size: 13px; color: #334155; margin-bottom: 12px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px;">
+                <strong style="color: #0f172a; font-size: 15px;">${nombre}</strong><br>
+                <span style="color: #64748b;">Cantidad requerida: <strong>${cantReq} unidad(es)</strong></span>
+            </div>
+            <div class="incumple-btn-container" style="display: flex; gap: 10px; margin-bottom: 14px;">
+                ${showParcial ? `
+                <button type="button" id="btn-incumple-parcial" style="flex: 1; padding: 8px 12px; border-radius: 8px; border: 2px solid ${currentTipo === 'parcial' ? '#f59e0b' : '#cbd5e1'}; background: ${currentTipo === 'parcial' ? '#fffbeb' : '#ffffff'}; font-weight: 700; color: #b45309; font-size: 12px; cursor: pointer; transition: all 0.2s;">
+                    ⚠️ Falta una parte (Parcial)
+                </button>
+                ` : ''}
+                <button type="button" id="btn-incumple-total" style="flex: 1; padding: 8px 12px; border-radius: 8px; border: 2px solid ${currentTipo === 'total' || !showParcial ? '#ef4444' : '#cbd5e1'}; background: ${currentTipo === 'total' || !showParcial ? '#fef2f2' : '#ffffff'}; font-weight: 700; color: #b91c1c; font-size: 12px; cursor: pointer; transition: all 0.2s;">
+                    ❌ No hay nada (Total)
+                </button>
+            </div>
+
+            <!-- Sección Parcial -->
+            <div id="section-form-parcial" style="display: ${currentTipo === 'parcial' && showParcial ? 'block' : 'none'}; text-align: left; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; margin-bottom: 12px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+                    <label style="font-size: 12px; font-weight: 700; color: #1e293b;">Cantidad existente en botiquín:</label>
+                    <input type="number" id="input-cant-parcial" min="1" max="${cantReq - 1}" value="${currentCant && parseInt(currentCant) < cantReq ? currentCant : 1}" style="width: 70px; padding: 6px; border: 1px solid #cbd5e1; border-radius: 6px; font-weight: 700; text-align: center;">
+                </div>
+
+                ${aplicaVenc ? `
+                <div style="border-top: 1px dashed #cbd5e1; padding-top: 10px; margin-top: 10px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="font-size: 11px; font-weight: 700; color: #475569;">Vencimientos de las unidades existentes:</span>
+                        <span id="parcial-balance-text" style="font-size: 11px; font-weight: 700; color: #15803d;">0 unids</span>
+                    </div>
+                    <div id="parcial-venc-container" style="max-height: 180px; overflow-y: auto; padding: 2px;"></div>
+                    <button type="button" id="btn-add-parcial-row" style="width: 100%; padding: 6px; background: #ffffff; border: 1px dashed #cbd5e1; color: #0369a1; border-radius: 6px; font-weight: 700; font-size: 11px; cursor: pointer; margin-top: 6px; display: none;">
+                        ➕ Agregar otra fecha de vencimiento
+                    </button>
+                </div>
+                ` : ''}
+            </div>
+
+            <!-- Observación -->
+            <div style="text-align: left;">
+                <label style="display: block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 4px;">Motivo / Observación de novedad:</label>
+                <textarea id="input-modal-obs" rows="2" style="width: 100%; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px; font-size: 12px; box-sizing: border-box;" placeholder="Describa el motivo del faltante o estado...">${currentObs || ''}</textarea>
+            </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: 'Guardar Reporte',
+        cancelButtonText: 'Cancelar',
+        focusConfirm: false,
+        didOpen: () => {
+            const btnParcial = document.getElementById('btn-incumple-parcial');
+            const btnTotal = document.getElementById('btn-incumple-total');
+            const secParcial = document.getElementById('section-form-parcial');
+            const inputCantParcial = document.getElementById('input-cant-parcial');
+            const parcialVencContainer = document.getElementById('parcial-venc-container');
+            const btnAddParcial = document.getElementById('btn-add-parcial-row');
+
+            function getTargetCant() {
+                return parseInt(inputCantParcial ? inputCantParcial.value : 1, 10) || 1;
+            }
+
+            function updateParcialBalance() {
+                if (!aplicaVenc || !parcialVencContainer) return;
+                const target = getTargetCant();
+                let sum = 0;
+                parcialVencContainer.querySelectorAll('.parcial-venc-cant').forEach(inp => {
+                    sum += parseInt(inp.value, 10) || 0;
+                });
+                const balText = document.getElementById('parcial-balance-text');
+                if (balText) {
+                    if (sum === target) {
+                        balText.style.color = '#15803d';
+                        balText.innerHTML = `✓ ${sum} de ${target} unids`;
+                    } else if (sum < target) {
+                        balText.style.color = '#b45309';
+                        balText.innerHTML = `⚠️ ${sum} de ${target} unids (Faltan ${target - sum})`;
+                    } else {
+                        balText.style.color = '#b91c1c';
+                        balText.innerHTML = `❌ ${sum} de ${target} unids (Excede)`;
+                    }
+                }
+                if (btnAddParcial) {
+                    btnAddParcial.style.display = target > 1 ? 'block' : 'none';
+                }
+            }
+
+            function attachParcialEvents() {
+                if (!parcialVencContainer) return;
+                parcialVencContainer.querySelectorAll('.parcial-venc-cant').forEach(inp => {
+                    inp.oninput = updateParcialBalance;
+                });
+                parcialVencContainer.querySelectorAll('.parcial-venc-del-btn').forEach(btn => {
+                    btn.onclick = function() {
+                        this.closest('.parcial-venc-row').remove();
+                        const rows = parcialVencContainer.querySelectorAll('.parcial-venc-row');
+                        if (rows.length === 1) {
+                            const dBtn = rows[0].querySelector('.parcial-venc-del-btn');
+                            if (dBtn) dBtn.parentElement.remove();
+                        }
+                        updateParcialBalance();
+                    };
+                });
+            }
+
+            if (aplicaVenc && parcialVencContainer) {
+                const initTarget = getTargetCant();
+                let initialEntries = parseVencEntries(currentVenc, initTarget);
+                if (initialEntries.length === 0) {
+                    initialEntries = [{ cant: initTarget, fecha: '' }];
+                }
+                let pHtml = '';
+                initialEntries.forEach(ent => {
+                    pHtml += renderVencRowHtml(ent.cant, ent.fecha, initialEntries.length > 1, initTarget, 'parcial-venc');
+                });
+                parcialVencContainer.innerHTML = pHtml;
+                attachParcialEvents();
+                updateParcialBalance();
+
+                inputCantParcial.addEventListener('input', function() {
+                    const newTarget = getTargetCant();
+                    const rows = parcialVencContainer.querySelectorAll('.parcial-venc-row');
+                    if (rows.length === 1) {
+                        const singleCantInp = rows[0].querySelector('.parcial-venc-cant');
+                        if (singleCantInp) singleCantInp.value = newTarget;
+                    }
+                    updateParcialBalance();
+                });
+
+                if (btnAddParcial) {
+                    btnAddParcial.onclick = function() {
+                        const target = getTargetCant();
+                        let currentSum = 0;
+                        parcialVencContainer.querySelectorAll('.parcial-venc-cant').forEach(inp => {
+                            currentSum += parseInt(inp.value, 10) || 0;
+                        });
+                        const remaining = Math.max(1, target - currentSum);
+
+                        const existingRows = parcialVencContainer.querySelectorAll('.parcial-venc-row');
+                        if (existingRows.length === 1 && !existingRows[0].querySelector('.parcial-venc-del-btn')) {
+                            const delDiv = document.createElement('div');
+                            delDiv.style.cssText = 'flex: 0 0 32px;';
+                            delDiv.innerHTML = '<button type="button" class="parcial-venc-del-btn" style="width: 32px; height: 32px; border-radius: 6px; border: 1px solid #fecaca; background: #fef2f2; color: #dc2626; font-size: 14px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;" title="Eliminar fecha">✕</button>';
+                            existingRows[0].appendChild(delDiv);
+                        }
+
+                        const div = document.createElement('div');
+                        div.innerHTML = renderVencRowHtml(remaining, '', true, target, 'parcial-venc');
+                        parcialVencContainer.appendChild(div.firstElementChild);
+                        attachParcialEvents();
+                        updateParcialBalance();
+                    };
+                }
+            }
+
+            btnTotal.addEventListener('click', () => {
+                document.getElementById('tipo_incumplimiento_' + field).value = 'total';
+                document.getElementById('cant_actual_' + field).value = '0';
+                document.getElementById('vencimiento_' + field).value = '';
+                
+                if (obsInput) {
+                    obsInput.value = 'Incumple total: Sin existencias de ninguna cantidad.';
+                }
+                const obsRow = document.getElementById('obs_row_' + field);
+                if (obsRow) obsRow.style.display = 'block';
+                if (obsInput) obsInput.required = true;
+
+                updateBadgeInfo(field);
+                recalcBadges();
+                triggerAutosaveAvanzada();
+                Swal.close();
+            });
+
+            if (btnParcial) {
+                btnParcial.addEventListener('click', () => {
+                    btnParcial.style.borderColor = '#f59e0b';
+                    btnParcial.style.background = '#fffbeb';
+                    btnTotal.style.borderColor = '#cbd5e1';
+                    btnTotal.style.background = '#ffffff';
+                    secParcial.style.display = 'block';
+                    updateParcialBalance();
+                });
+            }
+        },
+        preConfirm: () => {
+            const secParcial = document.getElementById('section-form-parcial');
+            const isParcial = secParcial && secParcial.style.display !== 'none';
+            const obs = document.getElementById('input-modal-obs').value.trim();
+
+            if (!isParcial) {
+                return { tipo: 'total', cant: 0, venc: '', obs };
+            }
+
+            const cantInp = document.getElementById('input-cant-parcial');
+            const cant = parseInt(cantInp ? cantInp.value : 0, 10);
+            if (!cant || cant < 1 || cant >= cantReq) {
+                Swal.showValidationMessage(`La cantidad existente debe ser entre 1 y ${cantReq - 1}.`);
+                return false;
+            }
+
+            let vencResult = '';
+            if (aplicaVenc) {
+                const rows = document.querySelectorAll('#parcial-venc-container .parcial-venc-row');
+                let sum = 0;
+                const entries = [];
+
+                for (let i = 0; i < rows.length; i++) {
+                    const c = parseInt(rows[i].querySelector('.parcial-venc-cant').value, 10);
+                    const f = rows[i].querySelector('.parcial-venc-fecha').value;
+                    if (!c || c < 1) {
+                        Swal.showValidationMessage(`La cantidad en la fecha #${i+1} debe ser al menos 1.`);
+                        return false;
+                    }
+                    if (!f) {
+                        Swal.showValidationMessage(`Debe seleccionar la fecha de vencimiento #${i+1}.`);
+                        return false;
+                    }
+                    sum += c;
+                    entries.push({ cant: c, fecha: f });
+                }
+
+                if (cant > 1 && sum !== cant) {
+                    Swal.showValidationMessage(`La suma de cantidades en las fechas (${sum}) debe coincidir con la cantidad existente (${cant}).`);
+                    return false;
+                }
+                vencResult = JSON.stringify(entries);
+            }
+
+            return { cant, venc: vencResult, obs };
+        }
+    }).then(res => {
+        if (res.isConfirmed && res.value) {
+            const { cant, venc, obs } = res.value;
+            document.getElementById('tipo_incumplimiento_' + field).value = 'parcial';
+            document.getElementById('cant_actual_' + field).value = cant;
+            document.getElementById('vencimiento_' + field).value = venc;
+
+            let finalObs = `Incumple parcial: Cuenta con ${cant} de ${cantReq} unids.`;
+            if (obs) finalObs += ` (${obs})`;
+
+            if (obsInput) obsInput.value = finalObs;
+            updateBadgeInfo(field);
+            recalcBadges();
+            triggerAutosaveAvanzada();
+        } else {
+            const curTipo = document.getElementById('tipo_incumplimiento_' + field)?.value;
+            if (!curTipo) {
+                const radioNo = document.getElementById('avanzada_' + field + '_no');
+                if (radioNo && radioNo.checked) {
+                    radioNo.checked = false;
+                    document.getElementById('cant_actual_' + field).value = '';
+                    const obsRow = document.getElementById('obs_row_' + field);
+                    if (obsRow) obsRow.style.display = 'none';
+                    if (obsInput) { obsInput.required = false; obsInput.value = ''; }
+                    updateBadgeInfo(field);
+                    recalcBadges();
+                    triggerAutosaveAvanzada();
+                }
+            }
+        }
+    });
+}
+
+function handleRadioClick(radio) {
+    const field = radio.name;
+    const row = radio.closest('.item-row-tr');
+    if (!row) return;
+    const nombre = row.getAttribute('data-nombre');
+    const cantReq = parseInt(row.getAttribute('data-cantidad'), 10) || 1;
+    const aplicaVenc = row.getAttribute('data-aplica-venc') === '1';
+
+    if (radio.value === 'SI' && aplicaVenc) {
+        const curVal = document.getElementById('vencimiento_' + field)?.value;
+        const entries = parseVencEntries(curVal, cantReq);
+        if (entries.length === 0) {
+            promptEditVenc(field, nombre, cantReq);
+        }
+    } else if (radio.value === 'NO') {
+        const tipoInc = document.getElementById('tipo_incumplimiento_' + field)?.value;
+        if (!tipoInc) {
+            abrirModalIncumplimiento(field, nombre, cantReq, aplicaVenc);
+        }
+    }
+}
+
+function abrirVencimientoItem(field) {
+    const row = document.querySelector(`.item-row-tr[data-field="${field}"]`);
+    if (!row) return;
+    const nombre = row.getAttribute('data-nombre');
+    const cantReq = parseInt(row.getAttribute('data-cantidad'), 10) || 1;
+    const aplicaVenc = row.getAttribute('data-aplica-venc') === '1';
+    const radioSi = document.getElementById('avanzada_' + field + '_si');
+    const radioNo = document.getElementById('avanzada_' + field + '_no');
+
+    if (radioNo && radioNo.checked) {
+        abrirModalIncumplimiento(field, nombre, cantReq, aplicaVenc);
+    } else {
+        if (radioSi && !radioSi.checked) {
+            radioSi.checked = true;
+            document.getElementById('cant_actual_' + field).value = cantReq;
+            document.getElementById('tipo_incumplimiento_' + field).value = '';
+            const obsRow = document.getElementById('obs_row_' + field);
+            if (obsRow) obsRow.style.display = 'none';
+            const obsInput = document.getElementById('obs_' + field);
+            if (obsInput) { obsInput.required = false; obsInput.value = ''; }
+        }
+        promptEditVenc(field, nombre, cantReq);
+    }
+}
+
+// ── Entregas Pendientes Traslados Filter & Actions ─────
+function updatePendingTrasladosVisibility(selectedBotiquin) {
+    const panel = document.getElementById('panel-traslados-avanzada');
+    if (!panel) return;
+
+    if (!selectedBotiquin) {
+        panel.style.display = 'none';
+        return;
+    }
+
+    const normSel = selectedBotiquin.trim().toUpperCase();
+    let visibleCount = 0;
+
+    // Filter table rows
+    const tableRows = panel.querySelectorAll('.traslado-table-row');
+    tableRows.forEach(row => {
+        const dest = (row.getAttribute('data-destino') || '').trim().toUpperCase();
+        if (dest === normSel || dest === 'AVANZADA' || dest === 'BOTIQUIN' || dest.includes(normSel) || normSel.includes(dest)) {
+            row.style.display = '';
+            visibleCount++;
+        } else {
+            row.style.display = 'none';
+        }
+    });
+
+    // Filter mobile cards
+    const mobileCards = panel.querySelectorAll('.traslado-card-item');
+    mobileCards.forEach(card => {
+        const dest = (card.getAttribute('data-destino') || '').trim().toUpperCase();
+        if (dest === normSel || dest === 'AVANZADA' || dest === 'BOTIQUIN' || dest.includes(normSel) || normSel.includes(dest)) {
+            card.style.display = '';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+
+    const countSpan = document.getElementById('count-traslados');
+    if (countSpan) countSpan.textContent = visibleCount;
+
+    const labelSpan = document.getElementById('traslados-avanzada-label');
+    if (labelSpan) labelSpan.textContent = ` (${selectedBotiquin})`;
+
+    if (visibleCount > 0) {
+        panel.style.display = 'block';
+    } else {
+        panel.style.display = 'none';
+    }
+}
+
+function removerTrasladoUI(trId) {
+    const trRow = document.getElementById('row-traslado-' + trId);
+    const trCard = document.getElementById('card-traslado-' + trId);
+    if (trRow) {
+        trRow.style.transition = 'all 0.3s';
+        trRow.style.opacity = '0';
+        setTimeout(() => trRow.remove(), 300);
+    }
+    if (trCard) {
+        trCard.style.transition = 'all 0.3s';
+        trCard.style.opacity = '0';
+        setTimeout(() => trCard.remove(), 300);
+    }
+    setTimeout(() => {
+        const selBot = document.querySelector('input[name="botiquin"]');
+        updatePendingTrasladosVisibility(selBot ? selBot.value : '');
+    }, 350);
+}
+
+function aceptarTraslado(trId, nombre, cant, fechaVenc) {
+    const incomingCant = parseInt(cant, 10) || 1;
+    const incomingFecha = (fechaVenc || '').trim();
+
+    const normName = nombre.trim().toLowerCase();
+    let matchedRow = null;
+    document.querySelectorAll('.item-row-tr').forEach(row => {
+        const rowName = (row.getAttribute('data-nombre') || '').trim().toLowerCase();
+        if (!matchedRow && (rowName === normName || rowName.includes(normName) || normName.includes(rowName))) {
+            matchedRow = row;
+        }
+    });
+
+    if (!matchedRow) {
+        Swal.fire({
+            title: '¿Aceptar Ingreso al Check List?',
+            html: `¿Desea ingresar <strong>${nombre}</strong> (${incomingCant} unidades${incomingFecha ? ' - Vence: ' + incomingFecha : ''}) a este botiquín?`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, Aceptar',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#10b981'
+        }).then(res => {
+            if (!res.isConfirmed) return;
+            fetch(`/checklist/avanzada/aceptar_traslado/${trId}`, { method: 'POST' })
+            .then(r => r.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    removerTrasladoUI(trId);
+                    Swal.fire({ icon: 'success', title: '¡Ingreso Exitoso!', text: data.message, timer: 2500, showConfirmButton: false });
+                } else {
+                    Swal.fire('Error', data.message || 'No se pudo aceptar el traslado', 'error');
+                }
+            }).catch(() => Swal.fire('Error', 'Error al procesar el traslado.', 'error'));
+        });
+        return;
+    }
+
+    const field = matchedRow.getAttribute('data-field');
+    const cantReq = parseInt(matchedRow.getAttribute('data-cantidad'), 10) || 1;
+    const aplicaVenc = matchedRow.getAttribute('data-aplica-venc') === '1';
+
+    const vencRaw = document.getElementById('vencimiento_' + field)?.value || '';
+    const cantActualVal = parseInt(document.getElementById('cant_actual_' + field)?.value, 10);
+    const tipoInc = document.getElementById('tipo_incumplimiento_' + field)?.value || '';
+    const radioSi = document.getElementById('avanzada_' + field + '_si');
+    const radioNo = document.getElementById('avanzada_' + field + '_no');
+
+    let currentEntries = [];
+    if (aplicaVenc) {
+        currentEntries = parseVencEntries(vencRaw, isNaN(cantActualVal) ? cantReq : cantActualVal);
+    }
+
+    const isIncumpleTotal = (radioNo && radioNo.checked && tipoInc === 'total');
+    const hasPreviousStock = !isIncumpleTotal && (
+        (currentEntries.length > 0) ||
+        (radioSi && radioSi.checked) ||
+        (radioNo && radioNo.checked && tipoInc === 'parcial') ||
+        (!isNaN(cantActualVal) && cantActualVal > 0)
+    );
+
+    if (!hasPreviousStock || currentEntries.length === 0) {
+        ejecutarIngresoSinAlerta(trId, nombre, incomingCant, incomingFecha, field, cantReq, aplicaVenc);
+        return;
+    }
+
+    ejecutarIngresoConLotes(trId, nombre, incomingCant, incomingFecha, field, cantReq, aplicaVenc, currentEntries);
+}
+
+function ejecutarIngresoSinAlerta(trId, nombre, incomingCant, incomingFecha, field, cantReq, aplicaVenc) {
+    fetch(`/checklist/avanzada/aceptar_traslado/${trId}`, { method: 'POST' })
+    .then(r => r.json())
+    .then(data => {
+        if (data.status === 'success') {
+            removerTrasladoUI(trId);
+
+            if (aplicaVenc) {
+                const newEntries = [{ cant: incomingCant, fecha: incomingFecha }];
+                setFieldVencimiento(field, JSON.stringify(newEntries));
+            }
+
+            const radioSi = document.getElementById('avanzada_' + field + '_si');
+            const radioNo = document.getElementById('avanzada_' + field + '_no');
+            const cantInput = document.getElementById('cant_actual_' + field);
+            const tipoIncInput = document.getElementById('tipo_incumplimiento_' + field);
+            const obsRow = document.getElementById('obs_row_' + field);
+            const obsInput = document.getElementById('obs_' + field);
+
+            if (cantInput) cantInput.value = incomingCant;
+
+            if (incomingCant >= cantReq) {
+                if (radioSi) radioSi.checked = true;
+                if (tipoIncInput) tipoIncInput.value = '';
+                if (obsRow) obsRow.style.display = 'none';
+                if (obsInput) { obsInput.required = false; obsInput.value = ''; }
+            } else {
+                if (radioNo) radioNo.checked = true;
+                if (tipoIncInput) tipoIncInput.value = 'parcial';
+                if (obsRow) obsRow.style.display = '';
+                if (obsInput) { 
+                    obsInput.required = true; 
+                    obsInput.value = `Incumple parcial: ${incomingCant} de ${cantReq} requeridas tras reposición.`; 
+                }
+            }
+
+            updateBadgeInfo(field);
+            recalcBadges();
+            triggerAutosaveAvanzada();
+
+            Swal.fire({
+                icon: 'success',
+                title: '¡Reposición Ingresada!',
+                text: `${incomingCant} unid(s) de ${nombre} agregada(s) al checklist sin stock previo.`,
+                timer: 2800,
+                showConfirmButton: false
+            });
+        } else {
+            Swal.fire('Error', data.message || 'No se pudo ingresar el traslado.', 'error');
+        }
+    })
+    .catch(() => {
+        Swal.fire('Error', 'Ocurrió un error al procesar el traslado.', 'error');
+    });
+}
+
+function ejecutarIngresoConLotes(trId, nombre, incomingCant, incomingFecha, field, cantReq, aplicaVenc, currentEntries) {
+    let lotsHtml = '';
+    let totalCurrentUnits = 0;
+
+    currentEntries.forEach((ent, idx) => {
+        totalCurrentUnits += ent.cant;
+        const alert = ent.fecha ? getAlertInfo(ent.fecha) : null;
+        lotsHtml += `
+            <div class="swal-lote-card" data-idx="${idx}" style="background:#ffffff; border:1.5px solid #e2e8f0; border-radius:8px; padding:10px 12px; margin-bottom:8px; text-align:left; box-shadow:0 1px 2px rgba(0,0,0,0.03);">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-wrap:wrap; gap:4px;">
+                    <span style="font-size:12px; font-weight:700; color:#1e293b;">
+                        📅 Lote: ${ent.fecha || 'Sin fecha'}
+                    </span>
+                    ${alert ? `<span style="background-color:${alert.bg}; color:${alert.color}; border:1px solid ${alert.border}; padding:2px 6px; border-radius:4px; font-weight:700; font-size:10px;">${alert.text}</span>` : ''}
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center; font-size:12px; color:#475569; margin-bottom:8px;">
+                    <span>Stock actual en checklist:</span>
+                    <strong style="color:#0f172a; font-size:13px;">${ent.cant} unid(s)</strong>
+                </div>
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <label style="font-size:11px; font-weight:700; color:#dc2626; flex:none;">Cantidad que SALE:</label>
+                    <input type="number" class="lote-sale-input" data-idx="${idx}" min="0" max="${ent.cant}" value="0" 
+                           style="flex:1; padding:6px; border:1.5px solid #fca5a5; border-radius:6px; font-weight:700; font-size:13px; text-align:center; color:#b91c1c; box-sizing:border-box;">
+                    <button type="button" class="btn-sale-todo" data-idx="${idx}" data-max="${ent.cant}" 
+                            style="background:#fee2e2; border:1px solid #fca5a5; color:#991b1b; padding:6px 10px; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer;">
+                        Sale todo
+                    </button>
+                </div>
+                <div style="font-size:11px; color:#64748b; margin-top:5px; text-align:right;">
+                    Quedarán de este lote: <strong class="lote-quedan-txt" data-idx="${idx}" style="color:#0f172a;">${ent.cant}</strong> unids
+                </div>
+            </div>
+        `;
+    });
+
+    Swal.fire({
+        title: 'Reposición de Suministro',
+        customClass: { popup: 'swal-venc-modal' },
+        html: `
+            <div style="text-align: left; font-size: 13px; color: #334155; margin-bottom: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px;">
+                <strong style="color: #0f172a; font-size: 15px;">${nombre}</strong><br>
+                <span style="color: #64748b;">Requerido en Avanzada: <strong>${cantReq} unidad(es)</strong></span>
+            </div>
+
+            <div style="background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 8px; padding: 10px 12px; margin-bottom: 12px; text-align: left;">
+                <div style="font-size: 12px; font-weight: 700; color: #166534; margin-bottom: 4px;">📥 Entrando desde Inventario:</div>
+                <div style="font-size: 13px; color: #14532d; display: flex; justify-content: space-between; align-items: center;">
+                    <span>+<strong>${incomingCant}</strong> unidad(es) nueva(s)</span>
+                    <span style="font-size: 11px; background: white; padding: 2px 8px; border-radius: 4px; border: 1px solid #86efac;">
+                        📅 Vence: <strong>${incomingFecha || 'Sin fecha'}</strong>
+                    </span>
+                </div>
+            </div>
+
+            <div style="text-align: left; font-size: 12px; font-weight: 700; color: #334155; margin-bottom: 6px;">
+                Seleccione si alguna unidad previa SALE del botiquín:
+            </div>
+
+            <div id="lotes-previos-container" style="max-height: 220px; overflow-y: auto; padding: 2px;">
+                ${lotsHtml}
+            </div>
+
+            <div id="resumen-final-reposicion" style="margin-top: 10px; padding: 10px 12px; border-radius: 8px; font-size: 12px; font-weight: 700; background: #eff6ff; border: 1.5px solid #93c5fd; color: #1e40af; text-align: left;">
+                Calculando existencias finales...
+            </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: 'Confirmar y Actualizar',
+        cancelButtonText: 'Cancelar',
+        focusConfirm: false,
+        didOpen: () => {
+            const container = document.getElementById('lotes-previos-container');
+            const resCard = document.getElementById('resumen-final-reposicion');
+
+            function updateLoteModalCalcs() {
+                let totalSalen = 0;
+                let totalConservan = 0;
+
+                container.querySelectorAll('.lote-sale-input').forEach(inp => {
+                    const idx = inp.getAttribute('data-idx');
+                    const max = currentEntries[idx].cant;
+                    let salen = parseInt(inp.value, 10);
+                    if (isNaN(salen) || salen < 0) salen = 0;
+                    if (salen > max) salen = max;
+                    inp.value = salen;
+
+                    const quedan = max - salen;
+                    const quedanTxt = container.querySelector(`.lote-quedan-txt[data-idx="${idx}"]`);
+                    if (quedanTxt) quedanTxt.textContent = quedan;
+
+                    totalSalen += salen;
+                    totalConservan += quedan;
+                });
+
+                const totalFinal = totalConservan + incomingCant;
+
+                if (resCard) {
+                    let statusLabel = '';
+                    if (totalFinal >= cantReq) {
+                        statusLabel = `<span style="color:#15803d;">✓ Cumple norma (${totalFinal}/${cantReq})</span>`;
+                    } else if (totalFinal > 0) {
+                        statusLabel = `<span style="color:#b45309;">⚠️ Incumple Parcial (${totalFinal}/${cantReq})</span>`;
+                    } else {
+                        statusLabel = `<span style="color:#b91c1c;">❌ Incumple Total (0/${cantReq})</span>`;
+                    }
+
+                    resCard.innerHTML = `
+                        <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                            <span>Conservan previas: <strong>${totalConservan}</strong> | Salen: <strong style="color:#dc2626;">${totalSalen}</strong></span>
+                            <span>Entran nuevas: <strong style="color:#15803d;">+${incomingCant}</strong></span>
+                        </div>
+                        <div style="border-top:1px solid #bfdbfe; padding-top:4px; display:flex; justify-content:space-between; align-items:center;">
+                            <span>Total resultante en Avanzada: <strong>${totalFinal} unid(s)</strong></span>
+                            <strong>${statusLabel}</strong>
+                        </div>
+                    `;
+                }
+            }
+
+            container.querySelectorAll('.lote-sale-input').forEach(inp => {
+                inp.oninput = updateLoteModalCalcs;
+            });
+
+            container.querySelectorAll('.btn-sale-todo').forEach(btn => {
+                btn.onclick = function() {
+                    const idx = this.getAttribute('data-idx');
+                    const max = this.getAttribute('data-max');
+                    const inp = container.querySelector(`.lote-sale-input[data-idx="${idx}"]`);
+                    if (inp) {
+                        inp.value = max;
+                        updateLoteModalCalcs();
+                    }
+                };
+            });
+
+            updateLoteModalCalcs();
+        },
+        preConfirm: () => {
+            const remainingEntries = [];
+            let totalConservan = 0;
+
+            for (let i = 0; i < currentEntries.length; i++) {
+                const inp = document.querySelector(`.lote-sale-input[data-idx="${i}"]`);
+                let salen = parseInt(inp ? inp.value : 0, 10);
+                if (isNaN(salen) || salen < 0) salen = 0;
+                if (salen > currentEntries[i].cant) salen = currentEntries[i].cant;
+
+                const quedan = currentEntries[i].cant - salen;
+                if (quedan > 0) {
+                    remainingEntries.push({ cant: quedan, fecha: currentEntries[i].fecha });
+                    totalConservan += quedan;
+                }
+            }
+
+            const matchingLot = remainingEntries.find(e => e.fecha === incomingFecha);
+            if (matchingLot && incomingFecha) {
+                matchingLot.cant += incomingCant;
+            } else {
+                remainingEntries.push({ cant: incomingCant, fecha: incomingFecha });
+            }
+
+            const totalFinal = totalConservan + incomingCant;
+            return { remainingEntries, totalFinal };
+        }
+    }).then(res => {
+        if (!res.isConfirmed || !res.value) return;
+
+        fetch(`/checklist/avanzada/aceptar_traslado/${trId}`, { method: 'POST' })
+        .then(r => r.json())
+        .then(data => {
+            if (data.status === 'success') {
+                removerTrasladoUI(trId);
+
+                const finalEntries = res.value.remainingEntries;
+                const totalFinal = res.value.totalFinal;
+
+                setFieldVencimiento(field, JSON.stringify(finalEntries));
+
+                const radioSi = document.getElementById('avanzada_' + field + '_si');
+                const radioNo = document.getElementById('avanzada_' + field + '_no');
+                const cantInput = document.getElementById('cant_actual_' + field);
+                const tipoIncInput = document.getElementById('tipo_incumplimiento_' + field);
+                const obsRow = document.getElementById('obs_row_' + field);
+                const obsInput = document.getElementById('obs_' + field);
+
+                if (cantInput) cantInput.value = totalFinal;
+
+                if (totalFinal >= cantReq) {
+                    if (radioSi) radioSi.checked = true;
+                    if (tipoIncInput) tipoIncInput.value = '';
+                    if (obsRow) obsRow.style.display = 'none';
+                    if (obsInput) { obsInput.required = false; obsInput.value = ''; }
+                } else if (totalFinal > 0) {
+                    if (radioNo) radioNo.checked = true;
+                    if (tipoIncInput) tipoIncInput.value = 'parcial';
+                    if (obsRow) obsRow.style.display = '';
+                    if (obsInput) { 
+                        obsInput.required = true; 
+                        obsInput.value = `Incumple parcial: ${totalFinal} de ${cantReq} requeridas tras reposición.`; 
+                    }
+                } else {
+                    if (radioNo) radioNo.checked = true;
+                    if (tipoIncInput) tipoIncInput.value = 'total';
+                    if (obsRow) obsRow.style.display = '';
+                    if (obsInput) { 
+                        obsInput.required = true; 
+                        obsInput.value = `Incumple total: Sin existencias tras salida de lotes.`; 
+                    }
+                }
+
+                updateBadgeInfo(field);
+                recalcBadges();
+                triggerAutosaveAvanzada();
+
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Reposición Actualizada!',
+                    text: `Se actualizaron los lotes de ${nombre}. Stock actual: ${totalFinal} unidad(es).`,
+                    timer: 2800,
+                    showConfirmButton: false
+                });
+            } else {
+                Swal.fire('Error', data.message || 'No se pudo procesar la reposición.', 'error');
+            }
+        })
+        .catch(() => {
+            Swal.fire('Error', 'Ocurrió un error al procesar la reposición.', 'error');
+        });
+    });
+}
+
+// ── Reset & Apply Ultimo Datos ────────────────────────
+function resetFormItems() {
+    document.querySelectorAll('.item-row-tr').forEach(row => {
+        const field = row.getAttribute('data-field');
+        const vencInput = document.getElementById('vencimiento_' + field);
+        if (vencInput) vencInput.value = '';
+        const cantInput = document.getElementById('cant_actual_' + field);
+        if (cantInput) cantInput.value = '';
+        const tipoIncInput = document.getElementById('tipo_incumplimiento_' + field);
+        if (tipoIncInput) tipoIncInput.value = '';
+        const obsInput = document.getElementById('obs_' + field);
+        if (obsInput) {
+            obsInput.value = '';
+            obsInput.required = false;
+        }
+        const obsRow = document.getElementById('obs_row_' + field);
+        if (obsRow) obsRow.style.display = 'none';
+
+        ['si', 'no', 'na'].forEach(val => {
+            const radio = document.getElementById(`avanzada_${field}_${val}`);
+            if (radio) radio.checked = false;
+        });
+
+        updateBadgeInfo(field);
+    });
+
+    const banner = document.getElementById('banner-precargado-avanzada');
+    if (banner) banner.style.display = 'none';
+    recalcBadges();
+}
+
+function applyUltimoDatos(datos) {
+    if (!datos) return;
+    Object.entries(datos).forEach(([field, info]) => {
+        if (!info || typeof info !== 'object') return;
+        
+        const row = document.querySelector(`.item-row-tr[data-field="${field}"]`);
+        if (!row) return;
+
+        const cantReq = parseInt(row.getAttribute('data-cantidad'), 10) || 1;
+
+        if (info.valor) {
+            const radio = document.getElementById(`avanzada_${field}_${info.valor.toLowerCase()}`);
+            if (radio) radio.checked = true;
+        }
+
+        if (info.fecha_vencimiento) {
+            const vInp = document.getElementById('vencimiento_' + field);
+            if (vInp) {
+                let vVal = info.fecha_vencimiento;
+                if (typeof vVal === 'object') vVal = JSON.stringify(vVal);
+                vInp.value = vVal;
+            }
+        }
+
+        if (info.cant_actual) {
+            const cInp = document.getElementById('cant_actual_' + field);
+            if (cInp) cInp.value = info.cant_actual;
+        } else if (info.valor === 'SI') {
+            const cInp = document.getElementById('cant_actual_' + field);
+            if (cInp) cInp.value = cantReq;
+        }
+
+        if (info.tipo_incumplimiento) {
+            const tInp = document.getElementById('tipo_incumplimiento_' + field);
+            if (tInp) tInp.value = info.tipo_incumplimiento;
+        }
+
+        if (info.observacion) {
+            const oInp = document.getElementById('obs_' + field);
+            if (oInp) oInp.value = info.observacion;
+            const oRow = document.getElementById('obs_row_' + field);
+            if (oRow && info.valor === 'NO') {
+                oRow.style.display = 'block';
+                if (oInp) oInp.required = true;
+            }
+        }
+
+        updateBadgeInfo(field);
+    });
+    recalcBadges();
+}
+
+// ── Autosave Avanzada ────────────────────────────────
+let autosaveTimeout = null;
+function triggerAutosaveAvanzada() {
+    if (autosaveTimeout) clearTimeout(autosaveTimeout);
+    autosaveTimeout = setTimeout(saveAutosaveAvanzada, 400);
+}
+
+function saveAutosaveAvanzada() {
+    const hasExistingId = document.querySelector('input[type="hidden"][name="id"]');
+    if (hasExistingId) return;
+
+    const inBot = document.getElementById('botiquin');
+    const botiquin = inBot ? inBot.value.trim() : '';
+
+    const formData = {
+        botiquin: botiquin,
+        fecha: document.querySelector('input[name="fecha"]')?.value || '',
+        hora: document.querySelector('input[name="hora"]')?.value || '',
+        evento: document.querySelector('input[name="evento"]')?.value || '',
+        observaciones: document.querySelector('textarea[name="observaciones"]')?.value || '',
+        items: {},
+        integrantes: [],
+        timestamp: Date.now()
+    };
+
+    let hasContent = Boolean(botiquin || formData.evento || formData.observaciones);
+
+    document.querySelectorAll('.item-row-tr').forEach(row => {
+        const field = row.getAttribute('data-field');
+        const radioSi = document.getElementById(`avanzada_${field}_si`);
+        const radioNo = document.getElementById(`avanzada_${field}_no`);
+        const radioNa = document.getElementById(`avanzada_${field}_na`);
+        let val = '';
+        if (radioSi && radioSi.checked) val = 'SI';
+        else if (radioNo && radioNo.checked) val = 'NO';
+        else if (radioNa && radioNa.checked) val = 'NA';
+
+        const venc = document.getElementById('vencimiento_' + field)?.value || '';
+        const cant = document.getElementById('cant_actual_' + field)?.value || '';
+        const tipoInc = document.getElementById('tipo_incumplimiento_' + field)?.value || '';
+        const obs = document.getElementById('obs_' + field)?.value || '';
+
+        if (val || venc || cant || tipoInc || obs) {
+            hasContent = true;
+        }
+
+        formData.items[field] = { valor: val, venc, cant, tipoInc, obs };
+    });
+
+    document.querySelectorAll('#tbody-integrantes .integrante-row').forEach(row => {
+        const perfil = row.querySelector('.select-perfil')?.value || '';
+        const container = row.querySelector('.nombre-container');
+        const nombre = container ? (container.getAttribute('data-val') || container.querySelector('input, select')?.value || '') : '';
+        const doc = row.querySelector('.input-doc')?.value || '';
+        if (perfil || nombre || doc) {
+            formData.integrantes.push({ perfil, nombre, doc });
+            hasContent = true;
+        }
+    });
+
+    if (hasContent) {
+        try {
+            localStorage.setItem('autosave_avanzada_draft', JSON.stringify(formData));
+            if (botiquin) {
+                localStorage.setItem('autosave_avanzada_last_selected', botiquin);
+                localStorage.setItem('autosave_avanzada_' + botiquin, JSON.stringify(formData));
+            }
+        } catch(e) {}
+    }
+}
+
+function restoreFormDataAvanzada(data) {
+    if (!data) return;
+    if (data.botiquin) {
+        const inBot = document.getElementById('botiquin');
+        if (inBot) {
+            inBot.value = data.botiquin;
+            if (typeof updatePendingTrasladosVisibility === 'function') {
+                updatePendingTrasladosVisibility(data.botiquin);
+            }
+        }
+    }
+    if (data.fecha) {
+        const fInp = document.querySelector('input[name="fecha"]');
+        if (fInp) fInp.value = data.fecha;
+    }
+    if (data.hora) {
+        const hInp = document.querySelector('input[name="hora"]');
+        if (hInp) hInp.value = data.hora;
+    }
+    if (data.evento) {
+        const eInp = document.querySelector('input[name="evento"]');
+        if (eInp) eInp.value = data.evento;
+    }
+    if (data.observaciones) {
+        const oTxt = document.querySelector('textarea[name="observaciones"]');
+        if (oTxt) oTxt.value = data.observaciones;
+    }
+
+    if (data.items) {
+        Object.entries(data.items).forEach(([field, info]) => {
+            if (!info) return;
+            if (info.valor) {
+                const radio = document.getElementById(`avanzada_${field}_${info.valor.toLowerCase()}`);
+                if (radio) radio.checked = true;
+            }
+            if (info.venc) {
+                const vInp = document.getElementById('vencimiento_' + field);
+                if (vInp) vInp.value = info.venc;
+            }
+            if (info.cant !== undefined && info.cant !== '') {
+                const cInp = document.getElementById('cant_actual_' + field);
+                if (cInp) cInp.value = info.cant;
+            }
+            if (info.tipoInc) {
+                const tInp = document.getElementById('tipo_incumplimiento_' + field);
+                if (tInp) tInp.value = info.tipoInc;
+            }
+            if (info.obs) {
+                const oInp = document.getElementById('obs_' + field);
+                if (oInp) oInp.value = info.obs;
+            }
+            const oRow = document.getElementById('obs_row_' + field);
+            if (oRow) {
+                if (info.valor === 'NO') {
+                    oRow.style.display = 'block';
+                    const oInp = document.getElementById('obs_' + field);
+                    if (oInp) oInp.required = true;
+                } else {
+                    oRow.style.display = 'none';
+                    const oInp = document.getElementById('obs_' + field);
+                    if (oInp) oInp.required = false;
+                }
+            }
+            updateBadgeInfo(field);
         });
     }
-    document.querySelectorAll('input[type="radio"]').forEach(function(radio) {
-        radio.addEventListener('change', checkNo);
+
+    if (data.integrantes && data.integrantes.length > 0) {
+        const tbody = document.getElementById('tbody-integrantes');
+        if (tbody) {
+            tbody.innerHTML = '';
+            data.integrantes.forEach(mem => {
+                const tr = document.createElement('tr');
+                tr.className = 'integrante-row';
+                tr.innerHTML = `
+                    <td style="padding: 6px 14px; border: 1px solid #f1f5f9;">
+                        <select name="integrante_perfil[]" class="form-control select-perfil" required style="width: 100%; border: 1px solid #cbd5e1; border-radius: 5px; padding: 6px; font-size: 13px; box-sizing: border-box; background: white;">
+                            <option value="">— Cargo —</option>
+                            <option value="Enfermero" ${mem.perfil === 'Enfermero' ? 'selected' : ''}>Enfermero</option>
+                            <option value="APH" ${mem.perfil === 'APH' ? 'selected' : ''}>APH</option>
+                            <option value="Auxiliar en Enfermeria" ${mem.perfil === 'Auxiliar en Enfermeria' ? 'selected' : ''}>Auxiliar en Enfermeria</option>
+                            <option value="Socorrista" ${mem.perfil === 'Socorrista' ? 'selected' : ''}>Socorrista</option>
+                            <option value="Estudiante" ${mem.perfil === 'Estudiante' ? 'selected' : ''}>Estudiante</option>
+                        </select>
+                    </td>
+                    <td style="padding: 6px 14px; border: 1px solid #f1f5f9;">
+                        <div class="nombre-container" data-val="${mem.nombre || ''}"></div>
+                    </td>
+                    <td style="padding: 6px 14px; border: 1px solid #f1f5f9;"><input type="text" name="integrante_doc[]" class="form-control input-doc" placeholder="Cédula / ID" value="${mem.doc || ''}" style="width: 100%; border: 1px solid #cbd5e1; border-radius: 5px; padding: 6px; font-size: 13px; box-sizing: border-box;"></td>
+                    <td style="text-align: center; vertical-align: middle; padding: 6px 14px; border: 1px solid #f1f5f9;">
+                        <button type="button" class="btn-remove-integrante" style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 18px;" onclick="removeRow(this)">
+                            <i class="ph ph-trash"></i>
+                        </button>
+                    </td>`;
+                tbody.appendChild(tr);
+            });
+            tbody.querySelectorAll('.integrante-row').forEach(row => {
+                const selectPerfil = row.querySelector('.select-perfil');
+                if (selectPerfil && typeof window.updateNombreInput === 'function') {
+                    window.updateNombreInput(row);
+                    selectPerfil.addEventListener('change', () => window.updateNombreInput(row, true));
+                }
+            });
+        }
+    }
+
+    recalcBadges();
+}
+
+function limpiarBorradorAvanzada() {
+    Swal.fire({
+        title: '¿Limpiar checklist y empezar de cero?',
+        text: 'Se borrará el borrador guardado y se restablecerán todos los campos a su estado inicial.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc2626',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: 'Sí, limpiar todo',
+        cancelButtonText: 'Cancelar',
+        customClass: { popup: 'swal2-custom-popup' }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            localStorage.removeItem('autosave_avanzada_draft');
+            localStorage.removeItem('autosave_avanzada_last_selected');
+            const inBot = document.getElementById('botiquin');
+            if (inBot) {
+                if (inBot.value) {
+                    localStorage.removeItem('autosave_avanzada_' + inBot.value);
+                }
+                inBot.value = '';
+                if (typeof updatePendingTrasladosVisibility === 'function') {
+                    updatePendingTrasladosVisibility('');
+                }
+            }
+            
+            const fInp = document.querySelector('input[name="fecha"]');
+            if (fInp) fInp.value = new Date().toISOString().split('T')[0];
+            const hInp = document.querySelector('input[name="hora"]');
+            if (hInp) {
+                const now = new Date();
+                hInp.value = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+            }
+            const eInp = document.querySelector('input[name="evento"]');
+            if (eInp) eInp.value = '';
+            const oTxt = document.querySelector('textarea[name="observaciones"]');
+            if (oTxt) oTxt.value = '';
+
+            resetFormItems();
+
+            const tbody = document.getElementById('tbody-integrantes');
+            if (tbody) {
+                tbody.innerHTML = `
+                    <tr class="integrante-row">
+                        <td style="padding: 6px 14px; border: 1px solid #f1f5f9;">
+                            <select name="integrante_perfil[]" class="form-control select-perfil" required style="width: 100%; border: 1px solid #cbd5e1; border-radius: 5px; padding: 6px; font-size: 13px; box-sizing: border-box; background: white;">
+                                <option value="">— Cargo —</option>
+                                <option value="Enfermero">Enfermero</option>
+                                <option value="APH">APH</option>
+                                <option value="Auxiliar en Enfermeria">Auxiliar en Enfermeria</option>
+                                <option value="Socorrista">Socorrista</option>
+                                <option value="Estudiante">Estudiante</option>
+                            </select>
+                        </td>
+                        <td style="padding: 6px 14px; border: 1px solid #f1f5f9;">
+                            <div class="nombre-container" data-val=""></div>
+                        </td>
+                        <td style="padding: 6px 14px; border: 1px solid #f1f5f9;"><input type="text" name="integrante_doc[]" class="form-control input-doc" placeholder="Cédula / ID" style="width: 100%; border: 1px solid #cbd5e1; border-radius: 5px; padding: 6px; font-size: 13px; box-sizing: border-box;"></td>
+                        <td style="text-align: center; vertical-align: middle; padding: 6px 14px; border: 1px solid #f1f5f9;">
+                            <button type="button" class="btn-remove-integrante" style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 18px;" onclick="removeRow(this)">
+                                <i class="ph ph-trash"></i>
+                            </button>
+                        </td>
+                    </tr>`;
+                tbody.querySelectorAll('.integrante-row').forEach(row => {
+                    const selectPerfil = row.querySelector('.select-perfil');
+                    if (selectPerfil && typeof window.updateNombreInput === 'function') {
+                        window.updateNombreInput(row);
+                        selectPerfil.addEventListener('change', () => window.updateNombreInput(row, true));
+                    }
+                });
+            }
+
+            const banner = document.getElementById('banner-precargado-avanzada');
+            if (banner) banner.style.display = 'none';
+
+            recalcBadges();
+
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'success',
+                title: '🧹 Formulario restablecido desde cero',
+                showConfirmButton: false,
+                timer: 2500
+            });
+        }
     });
-    checkNo();
+}
 
-    function updateNombreInput(row) {
-        const perfilSelect = row.querySelector('.select-perfil');
+// ── DOMContentLoaded Initial Setup ────────────────────
+let isRestoringDraftAvanzada = false;
+
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.venc-badge-calc').forEach(span => {
+        const d = span.getAttribute('data-date');
+        const alert = getAlertInfo(d);
+        if (alert) {
+            span.innerHTML = `📅 ${alert.text}`;
+            span.style.cssText = `background-color: ${alert.bg}; color: ${alert.color}; border: 1px solid ${alert.border}; padding: 2px 6px; border-radius: 4px; font-weight: 700; font-size: 11px; display: inline-block;`;
+        }
+    });
+
+    document.querySelectorAll('.item-row-tr').forEach(row => {
+        const field = row.getAttribute('data-field');
+        updateBadgeInfo(field);
+    });
+
+    recalcBadges();
+    restaurarEstadoAcordeon();
+
+    // Query on botiquin change
+    const inBot = document.getElementById('botiquin');
+    if (inBot) {
+        updatePendingTrasladosVisibility(inBot.value);
+
+        function handleBotiquinChange() {
+            const bot = inBot.value.trim();
+            updatePendingTrasladosVisibility(bot);
+
+            const hasExistingId = document.querySelector('input[type="hidden"][name="id"]');
+            if (hasExistingId) return;
+            if (isRestoringDraftAvanzada) return;
+
+            resetFormItems();
+            if (!bot) {
+                const banner = document.getElementById('banner-precargado-avanzada');
+                if (banner) banner.style.display = 'none';
+                return;
+            }
+
+            fetch(`/api/checklist/ultimo_datos?tipo=avanzada&botiquin=${encodeURIComponent(bot)}`)
+            .then(r => r.json())
+            .then(res => {
+                if (res.status === 'success' && res.datos && Object.keys(res.datos).length > 0) {
+                    applyUltimoDatos(res.datos);
+                    const banner = document.getElementById('banner-precargado-avanzada');
+                    const nomSpan = document.getElementById('banner-avanzada-nom');
+                    if (banner) banner.style.display = 'flex';
+                    if (nomSpan) nomSpan.textContent = bot;
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        icon: 'success',
+                        title: `📅 Fechas de vencimiento previas cargadas de ${bot}`,
+                        showConfirmButton: false,
+                        timer: 3000
+                    });
+                } else {
+                    const banner = document.getElementById('banner-precargado-avanzada');
+                    if (banner) banner.style.display = 'none';
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        icon: 'info',
+                        title: `📋 Checklist iniciado para ${bot}`,
+                        showConfirmButton: false,
+                        timer: 2000
+                    });
+                }
+            })
+            .catch(() => {});
+        }
+
+        inBot.addEventListener('change', handleBotiquinChange);
+    }
+
+    // Attach autosave listeners to form
+    const mainForm = document.querySelector('.pwa-offline-form') || document.querySelector('form');
+    if (mainForm) {
+        mainForm.addEventListener('input', triggerAutosaveAvanzada);
+        mainForm.addEventListener('change', triggerAutosaveAvanzada);
+        mainForm.addEventListener('submit', function() {
+            const curBot = document.getElementById('botiquin')?.value.trim();
+            if (curBot) {
+                localStorage.removeItem('autosave_avanzada_' + curBot);
+            }
+            localStorage.removeItem('autosave_avanzada_draft');
+            localStorage.removeItem('autosave_avanzada_last_selected');
+        });
+    }
+
+    // Check & Restore draft if exists on new records
+    const hasExistingId = document.querySelector('input[type="hidden"][name="id"]');
+    if (!hasExistingId) {
+        let savedDraft = null;
+        try {
+            const rawDraft = localStorage.getItem('autosave_avanzada_draft');
+            if (rawDraft) {
+                savedDraft = JSON.parse(rawDraft);
+            } else {
+                const lastBot = localStorage.getItem('autosave_avanzada_last_selected');
+                if (lastBot) {
+                    const rawLegacy = localStorage.getItem('autosave_avanzada_' + lastBot);
+                    if (rawLegacy) {
+                        savedDraft = JSON.parse(rawLegacy);
+                        if (!savedDraft.botiquin) savedDraft.botiquin = lastBot;
+                    }
+                }
+            }
+        } catch(e) {}
+
+        const hasAnyDraftData = savedDraft && (
+            savedDraft.botiquin ||
+            savedDraft.evento ||
+            savedDraft.observaciones ||
+            (savedDraft.items && Object.values(savedDraft.items).some(it => it.valor || it.venc || it.cant || it.obs)) ||
+            (savedDraft.integrantes && savedDraft.integrantes.length > 0)
+        );
+
+        if (hasAnyDraftData) {
+            isRestoringDraftAvanzada = true;
+            restoreFormDataAvanzada(savedDraft);
+            isRestoringDraftAvanzada = false;
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'info',
+                title: '📋 Se restauró tu borrador en progreso',
+                showConfirmButton: false,
+                timer: 3500
+            });
+        }
+    }
+});
+</script>
+
+<!-- Integrantes Avanzada script -->
+<script>
+(function() {
+    const todosUsuarios = {{ todos_usuarios|tojson|safe if todos_usuarios else '[]' }};
+
+    function stripAccents(s) {
+        if (!s) return '';
+        return String(s).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+    }
+
+    function getUserPerfiles(u) {
+        if (Array.isArray(u.perfiles)) return u.perfiles;
+        let raw = u.perfil;
+        if (!raw) return [];
+        if (Array.isArray(raw)) return raw;
+        try {
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed)) return parsed;
+            if (parsed) return [String(parsed)];
+        } catch(e) {}
+        if (typeof raw === 'string') {
+            return raw.replace(/[\[\]"']/g, '').split(',').map(s => s.trim()).filter(Boolean);
+        }
+        return [];
+    }
+
+    function matchCargo(u, cargoBuscado) {
+        if (!cargoBuscado) return false;
+        const cbNorm = stripAccents(cargoBuscado);
+        const perfiles = getUserPerfiles(u);
+        if (!perfiles.length) return false;
+
+        return perfiles.some(p => {
+            const pNorm = stripAccents(p);
+            if (!pNorm) return false;
+
+            if (cbNorm === 'enfermero' || cbNorm === 'enfermera' || cbNorm === 'enfermeria') {
+                return pNorm.includes('enfermer') && !pNorm.includes('auxiliar');
+            }
+            if (cbNorm.includes('auxiliar')) {
+                return pNorm.includes('auxiliar');
+            }
+            if (cbNorm.includes('aph')) {
+                return pNorm.includes('aph');
+            }
+            if (cbNorm.includes('socorrista')) {
+                return pNorm.includes('socorrista');
+            }
+            if (cbNorm.includes('medic')) {
+                return pNorm.includes('medic');
+            }
+            if (cbNorm.includes('conductor')) {
+                return pNorm.includes('conductor');
+            }
+            return (cbNorm in pNorm) || (pNorm in cbNorm);
+        });
+    }
+
+    function updateNombreInput(row, clearVal = false) {
+        const selectPerfil = row.querySelector('.select-perfil');
         const container = row.querySelector('.nombre-container');
-        if (!perfilSelect || !container) return;
-        
-        const perfil = perfilSelect.value;
-        const currentVal = container.getAttribute('data-val') || '';
+        const docInput = row.querySelector('.input-doc');
+        if (!selectPerfil || !container) return;
 
-        container.innerHTML = ''; // Clear container
+        const perfil = selectPerfil.value;
+        let currentVal = clearVal ? '' : (container.getAttribute('data-val') || '');
+        if (clearVal) {
+            container.setAttribute('data-val', '');
+            if (docInput) docInput.value = '';
+        }
+
+        container.innerHTML = '';
+
+        if (!perfil) {
+            container.innerHTML = '<span style="color: #94a3b8; font-size: 12px; font-style: italic; padding: 6px 0; display: block;">— Seleccione primero un cargo —</span>';
+            return;
+        }
 
         if (perfil === 'Estudiante') {
             const input = document.createElement('input');
             input.type = 'text';
             input.name = 'integrante_nombre[]';
             input.className = 'form-control input-nombre';
+            input.autocomplete = 'off';
             input.required = true;
-            input.placeholder = 'Nombre completo';
-            input.style.cssText = 'width: 100%; border: 1px solid #cbd5e1; border-radius: 5px; padding: 6px; font-size: 13px; box-sizing: border-box;';
+            input.placeholder = 'Nombre completo del estudiante';
+            input.style.cssText = 'width: 100%; border: 1px solid #cbd5e1; border-radius: 5px; padding: 6px; font-size: 13px; box-sizing: border-box; background: white;';
             input.value = currentVal;
             input.addEventListener('input', function() {
                 container.setAttribute('data-val', this.value);
             });
             container.appendChild(input);
         } else {
-            const datalistId = 'dl_' + Math.random().toString(36).substring(2, 9);
-            
-            const input = document.createElement('input');
-            input.type = 'text';
-            input.name = 'integrante_nombre[]';
-            input.className = 'form-control input-nombre';
-            input.setAttribute('list', datalistId);
-            input.required = true;
-            input.placeholder = 'Seleccione o escriba un usuario';
-            input.style.cssText = 'width: 100%; border: 1px solid #cbd5e1; border-radius: 5px; padding: 6px; font-size: 13px; box-sizing: border-box; background: white;';
-            input.value = currentVal;
-            
-            const datalist = document.createElement('datalist');
-            datalist.id = datalistId;
+            const select = document.createElement('select');
+            select.name = 'integrante_nombre[]';
+            select.className = 'form-control select-nombre';
+            select.required = true;
+            select.style.cssText = 'width: 100%; border: 1px solid #cbd5e1; border-radius: 5px; padding: 6px; font-size: 13px; box-sizing: border-box; background: white;';
 
-            let docMap = {};
+            function renderUsersList(usersList) {
+                select.innerHTML = '';
+                const defaultOpt = document.createElement('option');
+                defaultOpt.value = '';
+                defaultOpt.textContent = '— Seleccione un integrante —';
+                select.appendChild(defaultOpt);
 
-            todosUsuarios.forEach(u => {
-                let match = false;
-                if (u.perfil) {
-                    try {
-                        let parsed = JSON.parse(u.perfil);
-                        if (Array.isArray(parsed)) {
-                            match = parsed.some(p => p.includes(perfil));
-                        } else {
-                            match = u.perfil.includes(perfil);
+                let docMap = {};
+                let foundCurrent = false;
+
+                usersList.forEach(u => {
+                    const opt = document.createElement('option');
+                    opt.value = u.nombre;
+                    opt.textContent = u.nombre;
+                    opt.setAttribute('data-doc', u.identificacion || '');
+                    if (u.nombre === currentVal) {
+                        opt.selected = true;
+                        foundCurrent = true;
+                        if (docInput && !docInput.value) {
+                            docInput.value = u.identificacion || '';
                         }
-                    } catch(e) {
-                        match = u.perfil.includes(perfil);
                     }
-                }
-                
-                if (match) {
-                    const option = document.createElement('option');
-                    option.value = u.nombre;
-                    datalist.appendChild(option);
-                    docMap[u.nombre] = u.identificacion;
-                }
-            });
+                    select.appendChild(opt);
+                    docMap[u.nombre] = u.identificacion || '';
+                });
 
-            input.addEventListener('input', function() {
-                container.setAttribute('data-val', this.value);
-                const docInput = row.querySelector('.input-doc');
-                if (docInput && docMap[this.value]) {
-                    docInput.value = docMap[this.value];
+                if (usersList.length === 0) {
+                    defaultOpt.textContent = '— No hay usuarios registrados como ' + perfil + ' —';
                 }
-            });
 
-            container.appendChild(input);
-            container.appendChild(datalist);
+                if (currentVal && !foundCurrent) {
+                    const optExtra = document.createElement('option');
+                    optExtra.value = currentVal;
+                    optExtra.textContent = currentVal + ' (registrado)';
+                    optExtra.selected = true;
+                    select.appendChild(optExtra);
+                }
+
+                select.onchange = function() {
+                    const val = this.value;
+                    container.setAttribute('data-val', val);
+                    if (docInput) {
+                        if (val && docMap[val]) {
+                            docInput.value = docMap[val];
+                        } else if (!val) {
+                            docInput.value = '';
+                        }
+                    }
+                };
+            }
+
+            // Población inmediata desde local/offline
+            const localMatches = todosUsuarios.filter(u => matchCargo(u, perfil));
+            renderUsersList(localMatches);
+
+            // Actualización asíncrona si hay conexión con el servidor
+            fetch(`/api/usuarios_por_cargo?cargo=${encodeURIComponent(perfil)}`)
+                .then(r => r.json())
+                .then(serverUsers => {
+                    if (Array.isArray(serverUsers) && serverUsers.length > 0) {
+                        renderUsersList(serverUsers);
+                    }
+                })
+                .catch(() => {});
+
+            container.appendChild(select);
         }
     }
 
-    // Initialize existing rows
+    window.updateNombreInput = updateNombreInput;
+
     document.querySelectorAll('.integrante-row').forEach(row => {
         const selectPerfil = row.querySelector('.select-perfil');
         if (selectPerfil) {
             updateNombreInput(row);
-            selectPerfil.addEventListener('change', () => updateNombreInput(row));
+            selectPerfil.addEventListener('change', () => updateNombreInput(row, true));
         }
     });
 
-    // Tripulación dinámica
+    window.validarYConfirmarFinalizacionAvanzada = function(e) {
+        const botiquin = document.getElementById('botiquin');
+        if (botiquin && !botiquin.value.trim()) {
+            e.preventDefault();
+            Swal.fire({
+                icon: 'warning',
+                title: 'Botiquín requerido',
+                text: 'Debe seleccionar el botiquín antes de finalizar.',
+                customClass: { popup: 'swal2-custom-popup' }
+            });
+            botiquin.focus();
+            return false;
+        }
+
+        const rows = document.querySelectorAll('.item-row-tr[data-aplica-venc="1"]');
+        const missingVenc = [];
+
+        rows.forEach(row => {
+            const field = row.getAttribute('data-field');
+            const nombre = row.getAttribute('data-nombre') || field;
+            const cantReq = parseInt(row.getAttribute('data-cantidad')) || 1;
+
+            const radioSi = document.getElementById('avanzada_' + field + '_si');
+            const radioNo = document.getElementById('avanzada_' + field + '_no');
+            const tipoInc = document.getElementById('tipo_incumplimiento_' + field)?.value || '';
+            const cantActual = parseInt(document.getElementById('cant_actual_' + field)?.value || 0, 10);
+            const vencVal = document.getElementById('vencimiento_' + field)?.value || '';
+
+            const entries = parseVencEntries(vencVal, cantReq);
+            const hasValidDate = entries.length > 0 && entries.some(ent => Boolean(ent.fecha));
+
+            if (radioSi && radioSi.checked && !hasValidDate) {
+                missingVenc.push({ field, nombre, cantReq, row, motivo: 'Marcado como Cumple sin fecha' });
+            } else if (radioNo && radioNo.checked && tipoInc === 'parcial' && cantActual > 0 && !hasValidDate) {
+                missingVenc.push({ field, nombre, cantReq, row, motivo: 'Incumple parcial con unidades sin fecha' });
+            }
+        });
+
+        if (missingVenc.length > 0) {
+            e.preventDefault();
+            const listaNombres = missingVenc.map(m => `• <strong>${m.nombre}</strong> (${m.motivo})`).join('<br>');
+            Swal.fire({
+                icon: 'error',
+                title: 'Fechas de Vencimiento Requeridas',
+                html: `
+                    <div style="text-align: left; font-size: 13px; line-height: 1.5; color: #334155;">
+                        <p>Los siguientes artículos tienen control de vencimiento obligatorio y no tienen fecha asignada:</p>
+                        <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; padding: 10px; margin: 10px 0; color: #991b1b; max-height: 160px; overflow-y: auto;">
+                            ${listaNombres}
+                        </div>
+                        <p style="font-weight: 600; color: #0f172a;">Por favor asigne las fechas para poder finalizar el checklist.</p>
+                    </div>
+                `,
+                confirmButtonText: 'Corregir ahora',
+                customClass: { popup: 'swal-venc-modal' }
+            }).then(() => {
+                const first = missingVenc[0];
+                if (first && first.row) {
+                    const details = first.row.closest('details');
+                    if (details) details.open = true;
+                    first.row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    first.row.style.transition = 'background-color 0.5s';
+                    first.row.style.backgroundColor = '#fee2e2';
+                    setTimeout(() => { first.row.style.backgroundColor = ''; }, 3000);
+                    setTimeout(() => { promptEditVenc(first.field, first.nombre, first.cantReq); }, 400);
+                }
+            });
+            return false;
+        }
+
+        return confirm('¿Está seguro de finalizar este registro? Una vez finalizado no podrá ser editado.');
+    };
+
     const tbody = document.getElementById('tbody-integrantes');
     const btnAdd = document.getElementById('btn-add-integrante');
 
@@ -395,10 +2527,9 @@
             `;
             tbody.appendChild(tr);
             
-            // Initialize new row
             const selectPerfil = tr.querySelector('.select-perfil');
             updateNombreInput(tr);
-            selectPerfil.addEventListener('change', () => updateNombreInput(tr));
+            selectPerfil.addEventListener('change', () => updateNombreInput(tr, true));
         });
     }
 
@@ -483,38 +2614,242 @@ function recalcBadges() {
     });
 }
 
-// ── Mostrar/ocultar obs al elegir NO ─────────────────
-function checkNo() {
-    document.querySelectorAll('input[type="radio"]').forEach(function(radio) {
-        if (radio.checked) {
-            const fieldName = radio.name;
-            const obsRow = document.getElementById('obs_row_' + fieldName);
-            const obsInput = document.getElementById('obs_' + fieldName);
-            if (obsRow && obsInput) {
-                if (radio.value === 'NO') {
-                    obsRow.style.display = 'block';
-                    obsInput.required = true;
-                } else {
-                    obsRow.style.display = 'none';
-                    obsInput.required = false;
-                    obsInput.value = '';
-                }
+function validarYConfirmarFinalizacionAvanzada(e) {
+    const selBotiquin = document.querySelector('select[name="botiquin"]');
+    if (selBotiquin && !selBotiquin.value.trim()) {
+        e.preventDefault();
+        Swal.fire({
+            icon: 'warning',
+            title: 'Botiquín requerido',
+            text: 'Debe seleccionar el botiquín antes de finalizar.',
+            customClass: { popup: 'swal2-custom-popup' }
+        });
+        selBotiquin.focus();
+        return false;
+    }
+
+    const inpEvento = document.querySelector('input[name="evento"]');
+    if (inpEvento && !inpEvento.value.trim()) {
+        e.preventDefault();
+        Swal.fire({
+            icon: 'warning',
+            title: 'Evento requerido',
+            text: 'Debe indicar el nombre o código del evento antes de finalizar.',
+            customClass: { popup: 'swal2-custom-popup' }
+        });
+        inpEvento.focus();
+        return false;
+    }
+
+    const inpFecha = document.querySelector('input[name="fecha"]');
+    if (inpFecha && !inpFecha.value.trim()) {
+        e.preventDefault();
+        Swal.fire({
+            icon: 'warning',
+            title: 'Fecha requerida',
+            text: 'Debe indicar la fecha antes de finalizar.',
+            customClass: { popup: 'swal2-custom-popup' }
+        });
+        inpFecha.focus();
+        return false;
+    }
+
+    const inpHora = document.querySelector('input[name="hora"]');
+    if (inpHora && !inpHora.value.trim()) {
+        e.preventDefault();
+        Swal.fire({
+            icon: 'warning',
+            title: 'Hora requerida',
+            text: 'Debe indicar la hora antes de finalizar.',
+            customClass: { popup: 'swal2-custom-popup' }
+        });
+        inpHora.focus();
+        return false;
+    }
+
+    const rowsInt = document.querySelectorAll('#tbody-integrantes .integrante-row');
+    let hasValidInt = false;
+    rowsInt.forEach(r => {
+        const cargo = r.querySelector('.select-perfil')?.value?.trim();
+        const nombreInput = r.querySelector('.input-nombre, .select-nombre');
+        const nombre = nombreInput ? nombreInput.value.trim() : '';
+        if (cargo && nombre) hasValidInt = true;
+    });
+    if (!hasValidInt) {
+        e.preventDefault();
+        Swal.fire({
+            icon: 'warning',
+            title: 'Tripulación requerida',
+            text: 'Debe ingresar al menos un integrante con cargo y nombre en la tripulación antes de finalizar.',
+            customClass: { popup: 'swal2-custom-popup' }
+        });
+        return false;
+    }
+
+    const allRows = document.querySelectorAll('.item-row-tr');
+    const unansweredItems = [];
+    const missingObs = [];
+    const missingVenc = [];
+
+    allRows.forEach(row => {
+        const field = row.getAttribute('data-field');
+        const nombre = row.getAttribute('data-nombre') || field;
+        const cantReq = parseInt(row.getAttribute('data-cantidad')) || 1;
+        const aplicaVenc = row.getAttribute('data-aplica-venc') === '1';
+
+        const radioChecked = row.querySelector(`input[name="${field}"]:checked`);
+        if (!radioChecked) {
+            unansweredItems.push({ field, nombre, row });
+            return;
+        }
+
+        const val = radioChecked.value;
+        if (val === 'NO') {
+            const obsVal = document.getElementById('obs_' + field)?.value?.trim() || '';
+            if (!obsVal) {
+                missingObs.push({ field, nombre, row });
+            }
+        }
+
+        if (aplicaVenc) {
+            const tipoInc = document.getElementById('tipo_incumplimiento_' + field)?.value || '';
+            const cantActual = parseInt(document.getElementById('cant_actual_' + field)?.value || 0, 10);
+            const vencVal = document.getElementById('vencimiento_' + field)?.value || '';
+            const entries = parseVencEntries(vencVal, cantReq);
+            const hasValidDate = entries.length > 0 && entries.some(ent => Boolean(ent.fecha));
+
+            if (val === 'SI' && !hasValidDate) {
+                missingVenc.push({ field, nombre, cantReq, row, motivo: 'Marcado como Cumple sin fecha de vencimiento' });
+            } else if (val === 'NO' && tipoInc === 'parcial' && cantActual > 0 && !hasValidDate) {
+                missingVenc.push({ field, nombre, cantReq, row, motivo: 'Incumple parcial con unidades sin fecha de vencimiento' });
             }
         }
     });
+
+    if (unansweredItems.length > 0) {
+        e.preventDefault();
+        const listaItems = unansweredItems.slice(0, 8).map(m => `• <strong>${m.nombre}</strong>`).join('<br>');
+        const extra = unansweredItems.length > 8 ? `<br><em>... y ${unansweredItems.length - 8} más.</em>` : '';
+        Swal.fire({
+            icon: 'warning',
+            title: 'Ítems Pendientes por Calificar',
+            html: `
+                <div style="text-align: left; font-size: 13px; line-height: 1.5; color: #334155;">
+                    <p>Faltan <strong>${unansweredItems.length}</strong> artículo(s) por responder. Para finalizar el checklist debe calificar cada uno como <em>Cumple</em>, <em>No Cumple</em> o <em>No Aplica</em>:</p>
+                    <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 6px; padding: 10px; margin: 10px 0; color: #92400e; max-height: 160px; overflow-y: auto;">
+                        ${listaItems}${extra}
+                    </div>
+                    <p style="font-weight: 600; color: #0f172a;">Por favor califique todos los ítems para poder finalizar.</p>
+                </div>
+            `,
+            confirmButtonText: 'Revisar ítems pendientes',
+            customClass: { popup: 'swal-venc-modal' }
+        }).then(() => {
+            const first = unansweredItems[0];
+            if (first && first.row) {
+                const details = first.row.closest('details');
+                if (details) details.open = true;
+                first.row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                first.row.style.transition = 'background-color 0.5s';
+                first.row.style.backgroundColor = '#fef3c7';
+                setTimeout(() => { first.row.style.backgroundColor = ''; }, 3000);
+            }
+        });
+        return false;
+    }
+
+    if (missingObs.length > 0) {
+        e.preventDefault();
+        const listaObs = missingObs.slice(0, 6).map(m => `• <strong>${m.nombre}</strong>`).join('<br>');
+        const extra = missingObs.length > 6 ? `<br><em>... y ${missingObs.length - 6} más.</em>` : '';
+        Swal.fire({
+            icon: 'warning',
+            title: 'Observaciones Requeridas',
+            html: `
+                <div style="text-align: left; font-size: 13px; line-height: 1.5; color: #334155;">
+                    <p>Los siguientes artículos marcados como <strong>No Cumple</strong> requieren describir el motivo u observación de novedad:</p>
+                    <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; padding: 10px; margin: 10px 0; color: #991b1b; max-height: 160px; overflow-y: auto;">
+                        ${listaObs}${extra}
+                    </div>
+                </div>
+            `,
+            confirmButtonText: 'Detallar novedad',
+            customClass: { popup: 'swal-venc-modal' }
+        }).then(() => {
+            const first = missingObs[0];
+            if (first && first.row) {
+                const details = first.row.closest('details');
+                if (details) details.open = true;
+                first.row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                const obsInp = document.getElementById('obs_' + first.field);
+                if (obsInp) {
+                    obsInp.focus();
+                    obsInp.style.boxShadow = '0 0 0 2px #ef4444';
+                    setTimeout(() => { obsInp.style.boxShadow = ''; }, 3000);
+                }
+            }
+        });
+        return false;
+    }
+
+    if (missingVenc.length > 0) {
+        e.preventDefault();
+        const listaNombres = missingVenc.map(m => `• <strong>${m.nombre}</strong> (${m.motivo})`).join('<br>');
+        Swal.fire({
+            icon: 'error',
+            title: 'Fechas de Vencimiento Requeridas',
+            html: `
+                <div style="text-align: left; font-size: 13px; line-height: 1.5; color: #334155;">
+                    <p>Los siguientes artículos tienen control de vencimiento obligatorio y no tienen fecha asignada:</p>
+                    <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; padding: 10px; margin: 10px 0; color: #991b1b; max-height: 160px; overflow-y: auto;">
+                        ${listaNombres}
+                    </div>
+                    <p style="font-weight: 600; color: #0f172a;">Por favor asigne las fechas para poder finalizar el checklist.</p>
+                </div>
+            `,
+            confirmButtonText: 'Corregir ahora',
+            customClass: { popup: 'swal-venc-modal' }
+        }).then(() => {
+            const first = missingVenc[0];
+            if (first && first.row) {
+                const details = first.row.closest('details');
+                if (details) details.open = true;
+                first.row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                first.row.style.transition = 'background-color 0.5s';
+                first.row.style.backgroundColor = '#fee2e2';
+                setTimeout(() => { first.row.style.backgroundColor = ''; }, 3000);
+                setTimeout(() => { promptEditVenc(first.field, first.nombre, first.cantReq); }, 400);
+            }
+        });
+        return false;
+    }
+
+    e.preventDefault();
+    const form = e.target.closest('form') || document.querySelector('.pwa-offline-form') || document.querySelector('form');
+    Swal.fire({
+        title: '¿Finalizar Checklist Avanzada?',
+        text: 'Una vez finalizado el checklist no podrá ser editado. ¿Está seguro de guardar y finalizar?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, Finalizar',
+        cancelButtonText: 'Continuar revisando',
+        confirmButtonColor: '#10b981',
+        cancelButtonColor: '#6b7280',
+        customClass: { popup: 'swal2-custom-popup' }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            let h = form.querySelector('input[type="hidden"][name="accion"]');
+            if (!h) {
+                h = document.createElement('input');
+                h.type = 'hidden';
+                h.name = 'accion';
+                form.appendChild(h);
+            }
+            h.value = 'finalizar';
+            form.submit();
+        }
+    });
+    return false;
 }
-
-function updateBadge(radio) {
-    checkNo();
-    recalcBadges();
-}
-
-document.querySelectorAll('input[type="radio"]').forEach(function(radio) {
-    radio.addEventListener('change', updateBadge);
-});
-
-checkNo();
-recalcBadges();
-restaurarEstadoAcordeon();
 </script>
 {% endblock %}
