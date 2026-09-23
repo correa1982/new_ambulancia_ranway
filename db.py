@@ -1405,13 +1405,17 @@ def init_db():
             except Exception:
                 pass
 
-    # ── Checklist tables: add finalizado column if missing ──────────────────────
+    # ── Checklist tables: add finalizado column if missing and ensure LONGTEXT ──
     for _cl_table in ("checklist_tam", "checklist_tab", "checklist_pasb", "checklist_pasm", "checklist_equipos", "checklist_avanzada", "reporte_gasto"):
         try:
             cursor = conn.execute(f"SHOW COLUMNS FROM {_cl_table}")
-            _cl_cols = [row["Field"] for row in cursor.fetchall()]
-            if "finalizado" not in _cl_cols:
+            _cl_fields = {row["Field"]: row.get("Type", "").lower() for row in cursor.fetchall()}
+            if "finalizado" not in _cl_fields:
                 conn.execute(f"ALTER TABLE {_cl_table} ADD COLUMN finalizado INTEGER DEFAULT 1")
+            if "datos_json" in _cl_fields and "longtext" not in _cl_fields["datos_json"]:
+                conn.execute(f"ALTER TABLE {_cl_table} MODIFY COLUMN datos_json LONGTEXT")
+            if "firma_registrador" in _cl_fields and "longtext" not in _cl_fields["firma_registrador"]:
+                conn.execute(f"ALTER TABLE {_cl_table} MODIFY COLUMN firma_registrador LONGTEXT")
         except Exception:
             pass
 

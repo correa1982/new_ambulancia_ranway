@@ -68,199 +68,250 @@ def register_routes(app):
             return redirect(url_for("dashboard"))
 
         if request.method == "POST":
-            data = request.form
             conn = get_db()
-            firma, perfil, rm = get_user_info(conn, session["usuario"]["identificacion"])
-            now_str = ahora().strftime("%Y-%m-%d %H:%M:%S")
+            try:
+                data = request.form
+                user_session = session.get("usuario", {})
+                user_ident = user_session.get("identificacion", "")
+                user_name = user_session.get("nombre", "")
+                firma, perfil, rm = get_user_info(conn, user_ident)
+                now_str = ahora().strftime("%Y-%m-%d %H:%M:%S")
 
-            accion = data.get("accion", "finalizar")
-            finalizado = 0 if accion == "borrador" else 1
+                accion = data.get("accion", "finalizar")
+                finalizado = 0 if accion == "borrador" else 1
 
-            # Validar variables obligatorias al finalizar
-            if finalizado == 1:
-                faltantes = []
-                fecha_val = data.get("fecha", "").strip()
-                hora_val = data.get("hora", "").strip()
-                if not fecha_val:
-                    faltantes.append("Fecha")
-                if not hora_val:
-                    faltantes.append("Hora")
-
-                if tipo in ("pasb", "pasm"):
-                    ubicacion_val = data.get("ubicacion", "").strip()
-                    pas_val = data.get("pasb_numero" if tipo == "pasb" else "pasm_numero", "").strip()
-                    estado_val = data.get("estado_operativo", "").strip()
-                    if not ubicacion_val:
-                        faltantes.append("Ubicación / Lugar")
-                    if not pas_val:
-                        faltantes.append("Número del PASB" if tipo == "pasb" else "Número del PASM")
-                    if not estado_val:
-                        faltantes.append("Estado del Puesto")
-                elif tipo in ("tam", "tab"):
-                    placa_val = data.get("placa", "").strip()
-                    if not placa_val:
-                        faltantes.append("Placa del Vehículo")
-                elif tipo == "avanzada":
-                    evento_val = data.get("evento", "").strip()
-                    botiquin_val = data.get("botiquin", "").strip()
-                    if not evento_val:
-                        faltantes.append("Evento")
-                    if not botiquin_val:
-                        faltantes.append("Botiquín")
-
-                if faltantes:
-                    conn.close()
-                    flash(f"Los siguientes campos son obligatorios para finalizar: {', '.join(faltantes)}.", "error")
-                    return redirect(request.referrer or url_for("form_checklist", tipo=tipo))
-
-            # Dynamic: collect all checklist_item responses into JSON
-            pasb_numero = data.get("pasb_numero", "")
-            pasm_numero = data.get("pasm_numero", "")
-            items_db = conn.execute(
-                "SELECT * FROM checklist_items WHERE tipo_checklist = ? AND activo = 1 ORDER BY categoria, orden ASC, id ASC",
-                (tipo,)
-            ).fetchall()
-
-            if finalizado == 1:
-                faltantes_venc = []
-                for item in items_db:
-                    if item.get("aplica_vencimiento") == 1:
-                        ident = item["identificador"]
-                        val = data.get(ident, "")
-                        fecha_venc_raw = data.get("vencimiento_" + ident, "")
-                        tipo_inc = data.get("tipo_incumplimiento_" + ident, "")
-                        cant_act = data.get("cant_actual_" + ident, "")
-
-                        has_venc = False
-                        if fecha_venc_raw:
-                            try:
-                                parsed_v = json.loads(fecha_venc_raw) if isinstance(fecha_venc_raw, str) else fecha_venc_raw
-                                if isinstance(parsed_v, list) and len(parsed_v) > 0:
-                                    has_venc = any(e.get("fecha") for e in parsed_v if isinstance(e, dict))
-                                elif isinstance(parsed_v, dict) and parsed_v.get("fecha"):
-                                    has_venc = True
-                                elif isinstance(parsed_v, str) and parsed_v.strip():
-                                    has_venc = True
-                            except Exception:
-                                has_venc = bool(str(fecha_venc_raw).strip())
-
-                        if val == "SI" and not has_venc:
-                            faltantes_venc.append(item["nombre"])
-                        elif val == "NO" and tipo_inc == "parcial":
-                            try:
-                                cant_num = int(cant_act)
-                            except Exception:
-                                cant_num = 0
-                            if cant_num > 0 and not has_venc:
-                                faltantes_venc.append(item["nombre"])
-
-                if faltantes_venc:
-                    conn.close()
-                    nombres_str = ", ".join(faltantes_venc[:4])
-                    if len(faltantes_venc) > 4:
-                        nombres_str += f" y {len(faltantes_venc) - 4} más"
-                    flash(f"Los siguientes artículos requieren fecha de vencimiento obligatoria: {nombres_str}.", "error")
-                    return redirect(request.referrer or url_for("form_checklist", tipo=tipo))
-            datos = {}
-            if tipo == "pasb" and pasb_numero:
-                datos["pasb_numero"] = {
-                    "nombre": "Número del PASB",
-                    "categoria": "identificacion",
-                    "valor": pasb_numero,
-                    "observacion": ""
-                }
-            if tipo == "pasm" and pasm_numero:
-                datos["pasm_numero"] = {
-                    "nombre": "Número del PASM",
-                    "categoria": "identificacion",
-                    "valor": pasm_numero,
-                    "observacion": ""
-                }
-            for item in items_db:
-                val = data.get(item["identificador"], "")
-                obs = data.get("obs_" + item["identificador"], "")
-                fecha_venc = data.get("vencimiento_" + item["identificador"], "")
-                if fecha_venc:
-                    try:
-                        fecha_venc_parsed = json.loads(fecha_venc)
-                        if isinstance(fecha_venc_parsed, (list, dict)):
-                            fecha_venc = fecha_venc_parsed
-                    except Exception:
-                        pass
-                cant_actual = data.get("cant_actual_" + item["identificador"], "")
-                tipo_incumplimiento = data.get("tipo_incumplimiento_" + item["identificador"], "")
-                datos[item["identificador"]] = {
-                    "nombre": item["nombre"],
-                    "categoria": item["categoria"],
-                    "cantidad": item.get("cantidad"),
-                    "aplica_vencimiento": item.get("aplica_vencimiento", 0),
-                    "valor": val,
-                    "observacion": obs,
-                    "fecha_vencimiento": fecha_venc,
-                    "cant_actual": cant_actual,
-                    "tipo_incumplimiento": tipo_incumplimiento
-                }
-            if tipo in ("avanzada", "tam", "tab", "pasm", "pasb"):
-                nombres = request.form.getlist("integrante_nombre[]")
-                identificaciones = request.form.getlist("integrante_doc[]")
-                perfiles = request.form.getlist("integrante_perfil[]")
+                # Integrantes de la tripulación
                 integrantes = []
-                for nom, ident, perf in zip(nombres, identificaciones, perfiles):
-                    if nom.strip():
-                        integrantes.append({
-                            "nombre": nom.strip(),
-                            "identificacion": ident.strip(),
-                            "perfil": perf.strip()
-                        })
-                datos["_integrantes"] = integrantes
+                if tipo in ("avanzada", "tam", "tab", "pasm", "pasb"):
+                    nombres = request.form.getlist("integrante_nombre[]")
+                    identificaciones = request.form.getlist("integrante_doc[]")
+                    perfiles = request.form.getlist("integrante_perfil[]")
+                    for nom, ident, perf in zip(nombres, identificaciones, perfiles):
+                        if nom.strip():
+                            integrantes.append({
+                                "nombre": nom.strip(),
+                                "identificacion": ident.strip(),
+                                "perfil": perf.strip()
+                            })
 
-            datos_json_str = json.dumps(datos, ensure_ascii=False)
+                # Validar variables obligatorias al finalizar
+                if finalizado == 1:
+                    faltantes = []
+                    fecha_val = data.get("fecha", "").strip()
+                    hora_val = data.get("hora", "").strip()
+                    if not fecha_val:
+                        faltantes.append("Fecha")
+                    if not hora_val:
+                        faltantes.append("Hora")
 
-            table = cfg["table"]
-            record_id = data.get("id") or request.args.get("id")
+                    if tipo in ("pasb", "pasm"):
+                        ubicacion_val = data.get("ubicacion", "").strip()
+                        pas_val = data.get("pasb_numero" if tipo == "pasb" else "pasm_numero", "").strip()
+                        estado_val = data.get("estado_operativo", "").strip()
+                        if not ubicacion_val:
+                            faltantes.append("Ubicación / Lugar")
+                        if not pas_val:
+                            faltantes.append("Número del PASB" if tipo == "pasb" else "Número del PASM")
+                        if not estado_val:
+                            faltantes.append("Estado del Puesto")
+                    elif tipo in ("tam", "tab"):
+                        placa_val = data.get("placa", "").strip()
+                        if not placa_val:
+                            faltantes.append("Placa del Vehículo")
+                    elif tipo == "avanzada":
+                        evento_val = data.get("evento", "").strip()
+                        botiquin_val = data.get("botiquin", "").strip()
+                        if not evento_val:
+                            faltantes.append("Evento")
+                        if not botiquin_val:
+                            faltantes.append("Botiquín")
 
-            if record_id:
+                    if tipo in ("tam", "tab", "pasm", "pasb", "avanzada") and not integrantes:
+                        faltantes.append("Al menos un integrante en la tripulación")
+
+                    if faltantes:
+                        flash(f"Los siguientes campos son obligatorios para finalizar: {', '.join(faltantes)}.", "error")
+                        return redirect(request.referrer or url_for("form_checklist", tipo=tipo))
+
+                # Dynamic: collect all checklist_item responses into JSON
+                pasb_numero = data.get("pasb_numero", "")
+                pasm_numero = data.get("pasm_numero", "")
+                items_db = conn.execute(
+                    "SELECT * FROM checklist_items WHERE tipo_checklist = ? AND activo = 1 ORDER BY categoria, orden ASC, id ASC",
+                    (tipo,)
+                ).fetchall()
+
+                if finalizado == 1:
+                    faltantes_items = []
+                    faltantes_obs = []
+                    faltantes_venc = []
+
+                    for item in items_db:
+                        ident = item["identificador"]
+                        val = data.get(ident, "").strip()
+                        obs = data.get("obs_" + ident, "").strip()
+
+                        # 1. Ítems pendientes por responder (ni SI, ni NO, ni NA)
+                        if val not in ("SI", "NO", "NA"):
+                            faltantes_items.append(item["nombre"])
+
+                        # 2. Ítem en NO sin observación
+                        if val == "NO" and not obs:
+                            faltantes_obs.append(item["nombre"])
+
+                        # 3. Control de vencimientos
+                        if item.get("aplica_vencimiento") == 1:
+                            fecha_venc_raw = data.get("vencimiento_" + ident, "")
+                            tipo_inc = data.get("tipo_incumplimiento_" + ident, "")
+                            cant_act = data.get("cant_actual_" + ident, "")
+
+                            has_venc = False
+                            if fecha_venc_raw:
+                                try:
+                                    parsed_v = json.loads(fecha_venc_raw) if isinstance(fecha_venc_raw, str) else fecha_venc_raw
+                                    if isinstance(parsed_v, list) and len(parsed_v) > 0:
+                                        has_venc = any(e.get("fecha") for e in parsed_v if isinstance(e, dict))
+                                    elif isinstance(parsed_v, dict) and parsed_v.get("fecha"):
+                                        has_venc = True
+                                    elif isinstance(parsed_v, str) and parsed_v.strip():
+                                        has_venc = True
+                                except Exception:
+                                    has_venc = bool(str(fecha_venc_raw).strip())
+
+                            if val == "SI" and not has_venc:
+                                faltantes_venc.append(item["nombre"])
+                            elif val == "NO" and tipo_inc == "parcial":
+                                try:
+                                    cant_num = int(cant_act)
+                                except Exception:
+                                    cant_num = 0
+                                if cant_num > 0 and not has_venc:
+                                    faltantes_venc.append(item["nombre"])
+
+                    if faltantes_items:
+                        nombres_str = ", ".join(faltantes_items[:4])
+                        if len(faltantes_items) > 4:
+                            nombres_str += f" y {len(faltantes_items) - 4} más"
+                        flash(f"Debe responder todos los ítems antes de finalizar. Pendientes por calificar: {nombres_str}.", "error")
+                        return redirect(request.referrer or url_for("form_checklist", tipo=tipo))
+
+                    if faltantes_obs:
+                        nombres_str = ", ".join(faltantes_obs[:4])
+                        if len(faltantes_obs) > 4:
+                            nombres_str += f" y {len(faltantes_obs) - 4} más"
+                        flash(f"Los artículos marcados como 'No Cumple' requieren observación obligatoria: {nombres_str}.", "error")
+                        return redirect(request.referrer or url_for("form_checklist", tipo=tipo))
+
+                    if faltantes_venc:
+                        nombres_str = ", ".join(faltantes_venc[:4])
+                        if len(faltantes_venc) > 4:
+                            nombres_str += f" y {len(faltantes_venc) - 4} más"
+                        flash(f"Los siguientes artículos requieren fecha de vencimiento obligatoria: {nombres_str}.", "error")
+                        return redirect(request.referrer or url_for("form_checklist", tipo=tipo))
+
+                datos = {}
+                if tipo == "pasb" and pasb_numero:
+                    datos["pasb_numero"] = {
+                        "nombre": "Número del PASB",
+                        "categoria": "identificacion",
+                        "valor": pasb_numero,
+                        "observacion": ""
+                    }
+                if tipo == "pasm" and pasm_numero:
+                    datos["pasm_numero"] = {
+                        "nombre": "Número del PASM",
+                        "categoria": "identificacion",
+                        "valor": pasm_numero,
+                        "observacion": ""
+                    }
+                for item in items_db:
+                    val = data.get(item["identificador"], "")
+                    obs = data.get("obs_" + item["identificador"], "")
+                    fecha_venc = data.get("vencimiento_" + item["identificador"], "")
+                    if fecha_venc:
+                        try:
+                            fecha_venc_parsed = json.loads(fecha_venc)
+                            if isinstance(fecha_venc_parsed, (list, dict)):
+                                fecha_venc = fecha_venc_parsed
+                        except Exception:
+                            pass
+                    cant_actual = data.get("cant_actual_" + item["identificador"], "")
+                    tipo_incumplimiento = data.get("tipo_incumplimiento_" + item["identificador"], "")
+                    datos[item["identificador"]] = {
+                        "nombre": item["nombre"],
+                        "categoria": item["categoria"],
+                        "cantidad": item.get("cantidad"),
+                        "aplica_vencimiento": item.get("aplica_vencimiento", 0),
+                        "valor": val,
+                        "observacion": obs,
+                        "fecha_vencimiento": fecha_venc,
+                        "cant_actual": cant_actual,
+                        "tipo_incumplimiento": tipo_incumplimiento
+                    }
+                if tipo in ("avanzada", "tam", "tab", "pasm", "pasb"):
+                    datos["_integrantes"] = integrantes
+
+                datos_json_str = json.dumps(datos, ensure_ascii=False)
+
+                table = cfg["table"]
+                record_id = data.get("id") or request.args.get("id")
+
+                if record_id:
+                    try:
+                        record_id = int(record_id)
+                    except (ValueError, Exception):
+                        record_id = None
+
+                special_values = {
+                    "registrado_por": user_name,
+                    "registrado_por_identificacion": user_ident,
+                    "perfil_registrador": perfil,
+                    "firma_registrador": firma,
+                    "fecha_registro": now_str,
+                    "datos_json": datos_json_str,
+                    "finalizado": finalizado,
+                }
+                cols = CHECKLIST_COLS[tipo]
+                values = [special_values.get(c, data.get(c, "")) for c in cols]
+
+                if record_id:
+                    values.append(record_id)
+                    set_clause = ", ".join(f"{c} = ?" for c in cols)
+                    conn.execute(f"UPDATE {table} SET {set_clause} WHERE id = ?", tuple(values))
+                else:
+                    placeholders = ", ".join(["?"] * len(cols))
+                    cursor = conn.execute(
+                        f"INSERT INTO {table} ({', '.join(cols)}) VALUES ({placeholders})",
+                        tuple(values)
+                    )
+                    record_id = cursor.lastrowid
+
+                conn.commit()
+
+                if request.form.get("_offline_sync") == "1":
+                    return jsonify({"status": "success", "id": record_id})
+
+                if finalizado == 1:
+                    flash(f"{cfg['titulo']} finalizado y guardado correctamente.", "success")
+                    return redirect(url_for("registros_checklist", tipo=tipo))
+                else:
+                    flash(f"Borrador de {cfg['titulo']} guardado correctamente.", "success")
+                    return redirect(url_for("form_checklist", tipo=tipo, id=record_id))
+
+            except Exception as e:
+                import logging
+                logging.getLogger("ambulancia").error("Error al procesar checklist tipo %s: %s", tipo, e, exc_info=True)
                 try:
-                    record_id = int(record_id)
-                except (ValueError, Exception):
-                    record_id = None
-
-            special_values = {
-                "registrado_por": session["usuario"]["nombre"],
-                "registrado_por_identificacion": session["usuario"]["identificacion"],
-                "perfil_registrador": perfil,
-                "firma_registrador": firma,
-                "fecha_registro": now_str,
-                "datos_json": datos_json_str,
-                "finalizado": finalizado,
-            }
-            cols = CHECKLIST_COLS[tipo]
-            values = [special_values.get(c, data.get(c, "")) for c in cols]
-
-            if record_id:
-                values.append(record_id)
-                set_clause = ", ".join(f"{c} = ?" for c in cols)
-                conn.execute(f"UPDATE {table} SET {set_clause} WHERE id = ?", tuple(values))
-            else:
-                placeholders = ", ".join(["?"] * len(cols))
-                cursor = conn.execute(
-                    f"INSERT INTO {table} ({', '.join(cols)}) VALUES ({placeholders})",
-                    tuple(values)
-                )
-                record_id = cursor.lastrowid
-
-            conn.commit()
-            conn.close()
-
-            if request.form.get("_offline_sync") == "1":
-                return jsonify({"status": "success", "id": record_id})
-
-            if finalizado == 1:
-                flash(f"{cfg['titulo']} finalizado y guardado correctamente.", "success")
-                return redirect(url_for("registros_checklist", tipo=tipo))
-            else:
-                flash(f"Borrador de {cfg['titulo']} guardado correctamente.", "success")
-                return redirect(url_for("form_checklist", tipo=tipo, id=record_id))
+                    conn.conn.rollback()
+                except Exception:
+                    pass
+                flash(f"Ocurrió un inconveniente al guardar el checklist: {str(e)}. Sus datos permanecen seguros, por favor verifique e intente nuevamente.", "error")
+                return redirect(request.referrer or url_for("form_checklist", tipo=tipo))
+            finally:
+                try:
+                    conn.close()
+                except Exception:
+                    pass
 
         # GET: load dynamic items for all checklists
         checklist_items_by_cat = {}

@@ -461,6 +461,9 @@
     <a href="{{ url_for('registros_checklist', tipo='pasm') }}" style="margin:0; box-sizing: border-box; height: 44px; font-family: inherit; background: linear-gradient(135deg,#f59e0b,#d97706); color:white; text-decoration:none; border:none; padding:0 24px; border-radius:10px; font-weight:600; font-size:14px; display:inline-flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(245,158,11,0.2);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(245,158,11,0.3)'" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 6px -1px rgba(245,158,11,0.2)'">
         <i class="ph ph-folder-open" style="font-size:18px;"></i> Ver Registros
     </a>
+    <button type="button" onclick="limpiarBorradorPasm()" style="margin:0; box-sizing: border-box; height: 44px; font-family: inherit; background:linear-gradient(135deg,#ef4444,#dc2626); color:white; border:none; padding:0 24px; border-radius:10px; font-weight:600; font-size:14px; display:inline-flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(239,68,68,0.3);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(239,68,68,0.4)'" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 6px -1px rgba(239,68,68,0.3)'">
+        <i class="ph ph-trash" style="font-size:18px;"></i> Limpiar
+    </button>
     <button type="submit" name="accion" value="borrador" style="margin:0; box-sizing: border-box; height: 44px; font-family: inherit; background:linear-gradient(135deg,#1e6fbf,#185999); color:white; border:none; padding:0 24px; border-radius:10px; font-weight:600; font-size:14px; display:inline-flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(30,111,191,0.3);" formnovalidate onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(30,111,191,0.4)'" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 6px -1px rgba(30,111,191,0.3)'">
         <i class="ph ph-floppy-disk" style="font-size:18px;"></i> Guardar Borrador
     </button>
@@ -1798,30 +1801,34 @@ function resetFormItems() {
 }
 
 let autosaveTimeout = null;
+let isRestoringDraftPasm = false;
+
 function triggerAutosavePasm() {
+    if (isRestoringDraftPasm) return;
     if (autosaveTimeout) clearTimeout(autosaveTimeout);
     autosaveTimeout = setTimeout(saveAutosavePasm, 400);
 }
 
 function saveAutosavePasm() {
-    const selPasm = document.querySelector('select[name="pasm_numero"]');
-    const num = selPasm ? selPasm.value : '';
     const hasExistingId = document.querySelector('input[type="hidden"][name="id"]');
-    if (hasExistingId) return; // Do not use local draft when editing a DB record
-    if (!num) return;
+    if (hasExistingId) return;
 
-    const storageKey = 'autosave_pasm_' + num;
-    localStorage.setItem('autosave_pasm_last_selected', num);
+    const selPasm = document.querySelector('select[name="pasm_numero"]');
+    const num = selPasm ? selPasm.value.trim() : '';
 
     const formData = {
+        pasm_numero: num,
         fecha: document.querySelector('input[name="fecha"]')?.value || '',
         hora: document.querySelector('input[name="hora"]')?.value || '',
         ubicacion: document.querySelector('input[name="ubicacion"]')?.value || '',
         estado_operativo: document.querySelector('select[name="estado_operativo"]')?.value || '',
         observaciones: document.querySelector('textarea[name="observaciones"]')?.value || '',
         items: {},
-        integrantes: []
+        integrantes: [],
+        timestamp: Date.now()
     };
+
+    let hasContent = Boolean(num || formData.ubicacion || formData.observaciones || formData.estado_operativo);
 
     // Save items state
     document.querySelectorAll('.item-row-tr').forEach(row => {
@@ -1839,6 +1846,10 @@ function saveAutosavePasm() {
         const tipoInc = document.getElementById('tipo_incumplimiento_' + field)?.value || '';
         const obs = document.getElementById('obs_' + field)?.value || '';
 
+        if (val || venc || cant || tipoInc || obs) {
+            hasContent = true;
+        }
+
         formData.items[field] = { valor: val, venc, cant, tipoInc, obs };
     });
 
@@ -1849,16 +1860,27 @@ function saveAutosavePasm() {
         const doc = row.querySelector('.integrante-doc')?.value || '';
         if (perfil || nombre || doc) {
             formData.integrantes.push({ perfil, nombre, doc });
+            hasContent = true;
         }
     });
 
-    try {
-        localStorage.setItem(storageKey, JSON.stringify(formData));
-    } catch(e) {}
+    if (hasContent) {
+        try {
+            localStorage.setItem('autosave_pasm_draft', JSON.stringify(formData));
+            if (num) {
+                localStorage.setItem('autosave_pasm_last_selected', num);
+                localStorage.setItem('autosave_pasm_' + num, JSON.stringify(formData));
+            }
+        } catch(e) {}
+    }
 }
 
 function restoreFormDataPasm(data) {
     if (!data) return;
+    if (data.pasm_numero) {
+        const selPasm = document.querySelector('select[name="pasm_numero"]');
+        if (selPasm) selPasm.value = data.pasm_numero;
+    }
     if (data.fecha) {
         const fInp = document.querySelector('input[name="fecha"]');
         if (fInp) fInp.value = data.fecha;
@@ -1882,6 +1904,7 @@ function restoreFormDataPasm(data) {
 
     if (data.items) {
         Object.entries(data.items).forEach(([field, info]) => {
+            if (!info) return;
             if (info.valor) {
                 const radio = document.getElementById(`pasm_${field}_${info.valor.toLowerCase()}`);
                 if (radio) radio.checked = true;
@@ -1890,7 +1913,7 @@ function restoreFormDataPasm(data) {
                 const vInp = document.getElementById('vencimiento_' + field);
                 if (vInp) vInp.value = info.venc;
             }
-            if (info.cant) {
+            if (info.cant !== undefined && info.cant !== '') {
                 const cInp = document.getElementById('cant_actual_' + field);
                 if (cInp) cInp.value = info.cant;
             }
@@ -1901,8 +1924,18 @@ function restoreFormDataPasm(data) {
             if (info.obs) {
                 const oInp = document.getElementById('obs_' + field);
                 if (oInp) oInp.value = info.obs;
-                const oRow = document.getElementById('obs_row_' + field);
-                if (oRow && info.valor === 'NO') oRow.style.display = 'block';
+            }
+            const oRow = document.getElementById('obs_row_' + field);
+            if (oRow) {
+                if (info.valor === 'NO') {
+                    oRow.style.display = 'block';
+                    const oInp = document.getElementById('obs_' + field);
+                    if (oInp) oInp.required = true;
+                } else {
+                    oRow.style.display = 'none';
+                    const oInp = document.getElementById('obs_' + field);
+                    if (oInp) oInp.required = false;
+                }
             }
             updateBadgeInfo(field);
         });
@@ -1923,6 +1956,65 @@ function restoreFormDataPasm(data) {
             });
         }
     }
+}
+
+function limpiarBorradorPasm() {
+    Swal.fire({
+        title: '¿Limpiar checklist y empezar de cero?',
+        text: 'Se borrará el borrador guardado y se restablecerán todos los campos a su estado inicial.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc2626',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: 'Sí, limpiar todo',
+        cancelButtonText: 'Cancelar',
+        customClass: { popup: 'swal2-custom-popup' }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            localStorage.removeItem('autosave_pasm_draft');
+            localStorage.removeItem('autosave_pasm_last_selected');
+            const selPasm = document.querySelector('select[name="pasm_numero"]');
+            if (selPasm) {
+                if (selPasm.value) {
+                    localStorage.removeItem('autosave_pasm_' + selPasm.value);
+                }
+                selPasm.value = '';
+            }
+            
+            const fInp = document.querySelector('input[name="fecha"]');
+            if (fInp) fInp.value = new Date().toISOString().split('T')[0];
+            const hInp = document.querySelector('input[name="hora"]');
+            if (hInp) {
+                const now = new Date();
+                hInp.value = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+            }
+            const uInp = document.querySelector('input[name="ubicacion"]');
+            if (uInp) uInp.value = '';
+            const eSel = document.querySelector('select[name="estado_operativo"]');
+            if (eSel) eSel.value = '';
+            const oTxt = document.querySelector('textarea[name="observaciones"]');
+            if (oTxt) oTxt.value = '';
+
+            resetFormItems();
+
+            const tbody = document.getElementById('tbody-integrantes-tam');
+            if (tbody) {
+                tbody.innerHTML = `<tr class="integrante-row">${makeRowTam('', '', '')}</tr>`;
+                tbody.querySelectorAll('.integrante-cargo').forEach(function(sel) {
+                    sel.addEventListener('change', function() { onCargoCambioTam(this); });
+                });
+            }
+
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'success',
+                title: '🧹 Formulario restablecido desde cero',
+                showConfirmButton: false,
+                timer: 2500
+            });
+        }
+    });
 }
 
 function applyUltimoDatos(datos) {
@@ -2072,6 +2164,68 @@ document.querySelectorAll('#tbody-integrantes-tam .integrante-cargo').forEach(fu
     sel.addEventListener('change', function() { onCargoCambioTam(this); });
 });
 
+// ── DOMContentLoaded Initial Setup ────────────────────
+document.addEventListener('DOMContentLoaded', function() {
+    // Attach autosave listeners to form
+    const mainForm = document.querySelector('.pwa-offline-form') || document.querySelector('form');
+    if (mainForm) {
+        mainForm.addEventListener('input', triggerAutosavePasm);
+        mainForm.addEventListener('change', triggerAutosavePasm);
+        mainForm.addEventListener('submit', function() {
+            const curPasm = document.querySelector('select[name="pasm_numero"]')?.value.trim();
+            if (curPasm) {
+                localStorage.removeItem('autosave_pasm_' + curPasm);
+            }
+            localStorage.removeItem('autosave_pasm_draft');
+            localStorage.removeItem('autosave_pasm_last_selected');
+        });
+    }
+
+    // Check & Restore draft if exists on new records
+    const hasExistingId = document.querySelector('input[type="hidden"][name="id"]');
+    if (!hasExistingId) {
+        let savedDraft = null;
+        try {
+            const rawDraft = localStorage.getItem('autosave_pasm_draft');
+            if (rawDraft) {
+                savedDraft = JSON.parse(rawDraft);
+            } else {
+                const lastNum = localStorage.getItem('autosave_pasm_last_selected');
+                if (lastNum) {
+                    const rawLegacy = localStorage.getItem('autosave_pasm_' + lastNum);
+                    if (rawLegacy) {
+                        savedDraft = JSON.parse(rawLegacy);
+                        if (!savedDraft.pasm_numero) savedDraft.pasm_numero = lastNum;
+                    }
+                }
+            }
+        } catch(e) {}
+
+        const hasAnyDraftData = savedDraft && (
+            savedDraft.pasm_numero ||
+            savedDraft.ubicacion ||
+            savedDraft.estado_operativo ||
+            savedDraft.observaciones ||
+            (savedDraft.items && Object.values(savedDraft.items).some(it => it.valor || it.venc || it.cant || it.obs)) ||
+            (savedDraft.integrantes && savedDraft.integrantes.length > 0)
+        );
+
+        if (hasAnyDraftData) {
+            isRestoringDraftPasm = true;
+            restoreFormDataPasm(savedDraft);
+            isRestoringDraftPasm = false;
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'info',
+                title: '📋 Se restauró tu borrador en progreso',
+                showConfirmButton: false,
+                timer: 3500
+            });
+        }
+    }
+});
+
 function validarYConfirmarFinalizacionPasm(e) {
     const selPas = document.querySelector('select[name="pasm_numero"]');
     if (selPas && !selPas.value.trim()) {
@@ -2086,29 +2240,181 @@ function validarYConfirmarFinalizacionPasm(e) {
         return false;
     }
 
-    const rows = document.querySelectorAll('.item-row-tr[data-aplica-venc="1"]');
+    const inpUbicacion = document.querySelector('input[name="ubicacion"]');
+    if (inpUbicacion && !inpUbicacion.value.trim()) {
+        e.preventDefault();
+        Swal.fire({
+            icon: 'warning',
+            title: 'Ubicación requerida',
+            text: 'Debe indicar la ubicación o lugar antes de finalizar.',
+            customClass: { popup: 'swal2-custom-popup' }
+        });
+        inpUbicacion.focus();
+        return false;
+    }
+
+    const selEstado = document.querySelector('select[name="estado_operativo"]');
+    if (selEstado && !selEstado.value.trim()) {
+        e.preventDefault();
+        Swal.fire({
+            icon: 'warning',
+            title: 'Estado del puesto requerido',
+            text: 'Debe seleccionar el estado operativo del puesto antes de finalizar.',
+            customClass: { popup: 'swal2-custom-popup' }
+        });
+        selEstado.focus();
+        return false;
+    }
+
+    const inpFecha = document.querySelector('input[name="fecha"]');
+    if (inpFecha && !inpFecha.value.trim()) {
+        e.preventDefault();
+        Swal.fire({
+            icon: 'warning',
+            title: 'Fecha requerida',
+            text: 'Debe indicar la fecha antes de finalizar.',
+            customClass: { popup: 'swal2-custom-popup' }
+        });
+        inpFecha.focus();
+        return false;
+    }
+
+    const inpHora = document.querySelector('input[name="hora"]');
+    if (inpHora && !inpHora.value.trim()) {
+        e.preventDefault();
+        Swal.fire({
+            icon: 'warning',
+            title: 'Hora requerida',
+            text: 'Debe indicar la hora antes de finalizar.',
+            customClass: { popup: 'swal2-custom-popup' }
+        });
+        inpHora.focus();
+        return false;
+    }
+
+    const rowsInt = document.querySelectorAll('#tbody-integrantes-tam .integrante-row, #tbody-integrantes-pasm .integrante-row');
+    let hasValidInt = false;
+    rowsInt.forEach(r => {
+        const cargo = r.querySelector('.integrante-cargo')?.value?.trim();
+        const nombre = r.querySelector('.integrante-nombre')?.value?.trim();
+        if (cargo && nombre) hasValidInt = true;
+    });
+    if (!hasValidInt) {
+        e.preventDefault();
+        Swal.fire({
+            icon: 'warning',
+            title: 'Tripulación requerida',
+            text: 'Debe ingresar al menos un integrante con cargo y nombre en la tripulación antes de finalizar.',
+            customClass: { popup: 'swal2-custom-popup' }
+        });
+        return false;
+    }
+
+    const allRows = document.querySelectorAll('.item-row-tr');
+    const unansweredItems = [];
+    const missingObs = [];
     const missingVenc = [];
 
-    rows.forEach(row => {
+    allRows.forEach(row => {
         const field = row.getAttribute('data-field');
         const nombre = row.getAttribute('data-nombre') || field;
         const cantReq = parseInt(row.getAttribute('data-cantidad')) || 1;
+        const aplicaVenc = row.getAttribute('data-aplica-venc') === '1';
 
-        const radioSi = document.getElementById('pasm_' + field + '_si');
-        const radioNo = document.getElementById('pasm_' + field + '_no');
-        const tipoInc = document.getElementById('tipo_incumplimiento_' + field)?.value || '';
-        const cantActual = parseInt(document.getElementById('cant_actual_' + field)?.value || 0, 10);
-        const vencVal = document.getElementById('vencimiento_' + field)?.value || '';
+        const radioChecked = row.querySelector(`input[name="${field}"]:checked`);
+        if (!radioChecked) {
+            unansweredItems.push({ field, nombre, row });
+            return;
+        }
 
-        const entries = parseVencEntries(vencVal, cantReq);
-        const hasValidDate = entries.length > 0 && entries.some(ent => Boolean(ent.fecha));
+        const val = radioChecked.value;
+        if (val === 'NO') {
+            const obsVal = document.getElementById('obs_' + field)?.value?.trim() || '';
+            if (!obsVal) {
+                missingObs.push({ field, nombre, row });
+            }
+        }
 
-        if (radioSi && radioSi.checked && !hasValidDate) {
-            missingVenc.push({ field, nombre, cantReq, row, motivo: 'Marcado como Cumple sin fecha' });
-        } else if (radioNo && radioNo.checked && tipoInc === 'parcial' && cantActual > 0 && !hasValidDate) {
-            missingVenc.push({ field, nombre, cantReq, row, motivo: 'Incumple parcial con unidades sin fecha' });
+        if (aplicaVenc) {
+            const tipoInc = document.getElementById('tipo_incumplimiento_' + field)?.value || '';
+            const cantActual = parseInt(document.getElementById('cant_actual_' + field)?.value || 0, 10);
+            const vencVal = document.getElementById('vencimiento_' + field)?.value || '';
+            const entries = parseVencEntries(vencVal, cantReq);
+            const hasValidDate = entries.length > 0 && entries.some(ent => Boolean(ent.fecha));
+
+            if (val === 'SI' && !hasValidDate) {
+                missingVenc.push({ field, nombre, cantReq, row, motivo: 'Marcado como Cumple sin fecha de vencimiento' });
+            } else if (val === 'NO' && tipoInc === 'parcial' && cantActual > 0 && !hasValidDate) {
+                missingVenc.push({ field, nombre, cantReq, row, motivo: 'Incumple parcial con unidades sin fecha de vencimiento' });
+            }
         }
     });
+
+    if (unansweredItems.length > 0) {
+        e.preventDefault();
+        const listaItems = unansweredItems.slice(0, 8).map(m => `• <strong>${m.nombre}</strong>`).join('<br>');
+        const extra = unansweredItems.length > 8 ? `<br><em>... y ${unansweredItems.length - 8} más.</em>` : '';
+        Swal.fire({
+            icon: 'warning',
+            title: 'Ítems Pendientes por Calificar',
+            html: `
+                <div style="text-align: left; font-size: 13px; line-height: 1.5; color: #334155;">
+                    <p>Faltan <strong>${unansweredItems.length}</strong> artículo(s) por responder. Para finalizar el checklist debe calificar cada uno como <em>Cumple</em>, <em>No Cumple</em> o <em>No Aplica</em>:</p>
+                    <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 6px; padding: 10px; margin: 10px 0; color: #92400e; max-height: 160px; overflow-y: auto;">
+                        ${listaItems}${extra}
+                    </div>
+                    <p style="font-weight: 600; color: #0f172a;">Por favor califique todos los ítems para poder finalizar.</p>
+                </div>
+            `,
+            confirmButtonText: 'Revisar ítems pendientes',
+            customClass: { popup: 'swal-venc-modal' }
+        }).then(() => {
+            const first = unansweredItems[0];
+            if (first && first.row) {
+                const details = first.row.closest('details');
+                if (details) details.open = true;
+                first.row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                first.row.style.transition = 'background-color 0.5s';
+                first.row.style.backgroundColor = '#fef3c7';
+                setTimeout(() => { first.row.style.backgroundColor = ''; }, 3000);
+            }
+        });
+        return false;
+    }
+
+    if (missingObs.length > 0) {
+        e.preventDefault();
+        const listaObs = missingObs.slice(0, 6).map(m => `• <strong>${m.nombre}</strong>`).join('<br>');
+        const extra = missingObs.length > 6 ? `<br><em>... y ${missingObs.length - 6} más.</em>` : '';
+        Swal.fire({
+            icon: 'warning',
+            title: 'Observaciones Requeridas',
+            html: `
+                <div style="text-align: left; font-size: 13px; line-height: 1.5; color: #334155;">
+                    <p>Los siguientes artículos marcados como <strong>No Cumple</strong> requieren describir el motivo u observación de novedad:</p>
+                    <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; padding: 10px; margin: 10px 0; color: #991b1b; max-height: 160px; overflow-y: auto;">
+                        ${listaObs}${extra}
+                    </div>
+                </div>
+            `,
+            confirmButtonText: 'Detallar novedad',
+            customClass: { popup: 'swal-venc-modal' }
+        }).then(() => {
+            const first = missingObs[0];
+            if (first && first.row) {
+                const details = first.row.closest('details');
+                if (details) details.open = true;
+                first.row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                const obsInp = document.getElementById('obs_' + first.field);
+                if (obsInp) {
+                    obsInp.focus();
+                    obsInp.style.boxShadow = '0 0 0 2px #ef4444';
+                    setTimeout(() => { obsInp.style.boxShadow = ''; }, 3000);
+                }
+            }
+        });
+        return false;
+    }
 
     if (missingVenc.length > 0) {
         e.preventDefault();
@@ -2142,7 +2448,32 @@ function validarYConfirmarFinalizacionPasm(e) {
         return false;
     }
 
-    return confirm('¿Está seguro de finalizar este registro? Una vez finalizado no podrá ser editado.');
+    e.preventDefault();
+    const form = e.target.closest('form') || document.querySelector('.pwa-offline-form') || document.querySelector('form');
+    Swal.fire({
+        title: '¿Finalizar Checklist PASM?',
+        text: 'Una vez finalizado el checklist no podrá ser editado. ¿Está seguro de guardar y finalizar?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, Finalizar',
+        cancelButtonText: 'Continuar revisando',
+        confirmButtonColor: '#10b981',
+        cancelButtonColor: '#6b7280',
+        customClass: { popup: 'swal2-custom-popup' }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            let h = form.querySelector('input[type="hidden"][name="accion"]');
+            if (!h) {
+                h = document.createElement('input');
+                h.type = 'hidden';
+                h.name = 'accion';
+                form.appendChild(h);
+            }
+            h.value = 'finalizar';
+            form.submit();
+        }
+    });
+    return false;
 }
 </script>
 {% endblock %}
