@@ -3,7 +3,7 @@ import uuid
 from flask import render_template, request, redirect, url_for, session, flash, current_app, send_from_directory, jsonify
 from werkzeug.utils import secure_filename
 from db import get_db
-from utils import login_required, ahora, get_user_info
+from utils import login_required, ahora, get_user_info, validar_upload_documento
 
 def get_categorias(conn):
     rows = conn.execute("SELECT * FROM archivador_categorias ORDER BY activo DESC, nombre ASC").fetchall()
@@ -107,6 +107,13 @@ def register_routes(app):
             files = request.files.getlist("archivo")
 
             files = [f for f in files if f and f.filename]
+            archivos_invalidos = [f.filename for f in files if not validar_upload_documento(f)]
+            if archivos_invalidos:
+                msg = "Tipo de archivo no permitido o demasiado grande: " + ", ".join(archivos_invalidos)
+                if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+                    return jsonify({"success": False, "message": msg, "redirect": url_for("archivador_nuevo")}), 400
+                flash(msg, "error")
+                return redirect(url_for("archivador_nuevo"))
 
             if not nombre_formulario or not files:
                 msg = "Debes ingresar un nombre de formulario y seleccionar al menos un archivo."
@@ -225,6 +232,13 @@ def register_routes(app):
             archivo_nombre = archivo["archivo_nombre"]
 
             if file and file.filename:
+                if not validar_upload_documento(file):
+                    msg = "Tipo de archivo no permitido o demasiado grande: " + file.filename
+                    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+                        return jsonify({"success": False, "message": msg, "redirect": url_for("archivador_editar", id=id)}), 400
+                    flash(msg, "error")
+                    return redirect(url_for("archivador_editar", id=id))
+
                 old_path = os.path.join(current_app.root_path, archivo["archivo_url"].lstrip('/'))
                 if os.path.exists(old_path):
                     os.remove(old_path)

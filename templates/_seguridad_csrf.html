@@ -1,0 +1,62 @@
+<meta name="csrf-token" content="{{ csrf_token() }}">
+<script>
+(function () {
+    var token = (function () {
+        var m = document.querySelector('meta[name="csrf-token"]');
+        return m ? m.getAttribute('content') : '';
+    })();
+
+    // Inyecta el token oculto en formularios POST en los que el token falte
+    function inyectarTokensEnFormularios() {
+        if (!token) return;
+        document.querySelectorAll('form').forEach(function (f) {
+            var metodo = (f.getAttribute('method') || 'GET').toUpperCase();
+            if (metodo === 'POST' && !f.querySelector('input[name="csrf_token"]')) {
+                var h = document.createElement('input');
+                h.type = 'hidden';
+                h.name = 'csrf_token';
+                h.value = token;
+                f.appendChild(h);
+            }
+        });
+    }
+
+    // Cabecera X-CSRFToken en fetch() para peticiones no-GET
+    if (window.fetch) {
+        var _fetch = window.fetch;
+        window.fetch = function () {
+            var args = Array.prototype.slice.call(arguments);
+            var opts = args[1] = args[1] || {};
+            if (opts.method && opts.method.toUpperCase() !== 'GET') {
+                if (opts.headers instanceof Headers) {
+                    opts.headers.set('X-CSRFToken', token);
+                } else {
+                    opts.headers = opts.headers || {};
+                    opts.headers['X-CSRFToken'] = token;
+                }
+            }
+            return _fetch.apply(this, args);
+        };
+    }
+
+    // Cabecera X-CSRFToken en XMLHttpRequest para peticiones no-GET
+    var _open = XMLHttpRequest.prototype.open;
+    var _send = XMLHttpRequest.prototype.send;
+    XMLHttpRequest.prototype.open = function () {
+        this._csrf_method = (String(arguments[0]) || 'GET').toUpperCase();
+        return _open.apply(this, arguments);
+    };
+    XMLHttpRequest.prototype.send = function () {
+        if (this._csrf_method && this._csrf_method !== 'GET') {
+            this.setRequestHeader('X-CSRFToken', token);
+        }
+        return _send.apply(this, arguments);
+    };
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', inyectarTokensEnFormularios);
+    } else {
+        inyectarTokensEnFormularios();
+    }
+})();
+</script>

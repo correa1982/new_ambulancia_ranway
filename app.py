@@ -30,6 +30,42 @@ if not _secret_key:
     _secret_key = os.urandom(24)
 app.secret_key = _secret_key
 
+# ── Proteccion CSRF (double-submit cookie) ─────────────────────
+# La cookie csrftoken es independiente de la sesion de Flask para que los
+# registros offline del PWA repliquen correctamente mientras el dispositivo
+# conserve la cookie del navegador.
+from security import (
+    ensure_csrf_token as _ensure_csrf_token,
+    set_csrf_cookie_if_needed as _set_csrf_cookie_if_needed,
+    validate_csrf as _validate_csrf,
+    csrf_token as _csrf_token,
+)
+
+
+@app.before_request
+def _csrf_ensure_token():
+    try:
+        _ensure_csrf_token()
+    except Exception:
+        app.logger.exception("No se pudo emitir el token CSRF")
+
+
+@app.before_request
+def _csrf_validate_request():
+    _validate_csrf()
+
+
+@app.after_request
+def _csrf_set_cookie(response):
+    try:
+        return _set_csrf_cookie_if_needed(response)
+    except Exception:
+        app.logger.exception("No se pudo fijar la cookie CSRF")
+        return response
+
+
+app.jinja_env.globals["csrf_token"] = _csrf_token
+
 _en_produccion = bool(os.getenv("RAILWAY_ENVIRONMENT"))
 app.config.update(
     SESSION_COOKIE_HTTPONLY=True,
@@ -269,6 +305,19 @@ def format_habilitacion_filter(value):
     
     parts = [p.strip() for p in str(value).split(" | ")]
     return Markup("<br>").join(parts)
+
+
+import re
+_SIG_DATA_URL_RE = re.compile(r"^data:image/(png|jpeg|jpg|gif);base64,[A-Za-z0-9+/]+={0,2}$", re.IGNORECASE)
+
+@app.template_filter('firma_src')
+def firma_src_filter(value):
+    if not value or not isinstance(value, str):
+        return ""
+    value = value.strip()
+    if _SIG_DATA_URL_RE.match(value):
+        return value
+    return ""
 
 
 @app.after_request

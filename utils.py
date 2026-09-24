@@ -120,6 +120,94 @@ def get_user_info(conn, identificacion):
         return u["firma"], active_perfil, u["registro_medico"]
     return "", "", ""
 
+ALLOWED_IMAGE_EXTENSIONS = {"png", "jpg", "jpeg", "gif", "webp"}
+ALLOWED_DOCUMENT_EXTENSIONS = {
+    "pdf", "png", "jpg", "jpeg", "gif", "webp", "bmp",
+    "doc", "docx", "xls", "xlsx", "ppt", "pptx",
+    "txt", "csv", "odt", "ods", "rtf", "zip",
+}
+
+
+def validar_upload_imagen(file_obj, max_size_mb=5):
+    """Valida que el archivo sea una imagen (extensión + firma/magic bytes) permitida.
+    Devuelve la extensión minúscula validada, o None si no es válido."""
+    if file_obj is None:
+        return None
+    filename = (file_obj.filename or "").strip()
+    if not filename or "." not in filename:
+        return None
+    ext = filename.rsplit(".", 1)[1].lower()
+    if ext not in ALLOWED_IMAGE_EXTENSIONS:
+        return None
+
+    header = file_obj.stream.read(16)
+    file_obj.stream.seek(0)
+    magic_ok = (
+        (ext == "jpeg" or ext == "jpg") and header[:3] == b"\xff\xd8\xff" or
+        ext == "png" and header[:8] == b"\x89PNG\r\n\x1a\n" or
+        ext == "gif" and header[:6] in (b"GIF87a", b"GIF89a") or
+        ext == "webp" and header[:4] == b"RIFF" and header[8:12] == b"WEBP"
+    )
+    if not magic_ok:
+        return None
+
+    file_obj.stream.seek(0, os.SEEK_END)
+    size = file_obj.stream.tell()
+    file_obj.stream.seek(0)
+    if size > max_size_mb * 1024 * 1024:
+        return None
+    return ext
+
+
+def validar_upload_documento(file_obj, max_size_mb=25):
+    """Valida uploads de documentos/papelería (archivador) por extensión permitida y tamaño."""
+    if file_obj is None:
+        return False
+    filename = (file_obj.filename or "").strip()
+    if not filename or "." not in filename:
+        return False
+    ext = filename.rsplit(".", 1)[1].lower()
+    if ext not in ALLOWED_DOCUMENT_EXTENSIONS:
+        return False
+
+    file_obj.stream.seek(0, os.SEEK_END)
+    size = file_obj.stream.tell()
+    file_obj.stream.seek(0)
+    if size > max_size_mb * 1024 * 1024:
+        return False
+    return True
+
+
+def validar_upload_excel(file_obj, max_size_mb=10):
+    """Valida que el archivo sea un Excel (.xls/.xlsx) por extensión y firma.
+    Devuelve la extensión minúscula validada o None."""
+    if file_obj is None:
+        return None
+    filename = (file_obj.filename or "").strip()
+    if not filename or "." not in filename:
+        return None
+    ext = filename.rsplit(".", 1)[1].lower()
+    if ext not in ("xls", "xlsx", "csv"):
+        return None
+
+    header = file_obj.stream.read(8)
+    file_obj.stream.seek(0)
+    magic_ok = (
+        ext == "xls" and header[:4] == b"\xd0\xcf\x11\xe0" or
+        ext == "xlsx" and header[:2] == b"PK" or
+        ext == "csv"
+    )
+    if not magic_ok:
+        return None
+
+    file_obj.stream.seek(0, os.SEEK_END)
+    size = file_obj.stream.tell()
+    file_obj.stream.seek(0)
+    if size > max_size_mb * 1024 * 1024:
+        return None
+    return ext
+
+
 def send_recovery_email(to_email, temp_password):
     host = os.getenv("SMTP_HOST")
     port = int(os.getenv("SMTP_PORT", 587))

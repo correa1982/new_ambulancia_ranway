@@ -1,6 +1,6 @@
 import io
 from flask import render_template, request, session, redirect, url_for, flash, send_file, jsonify
-from utils import login_required
+from utils import login_required, validar_upload_excel
 from db import get_db
 import openpyxl
 
@@ -98,8 +98,8 @@ def register_routes(app):
             flash("No se seleccionó ningún archivo", "error")
             return redirect(url_for("personal_operativo_panel"))
             
-        if not file.filename.endswith('.xlsx'):
-            flash("El archivo debe ser un Excel (.xlsx)", "error")
+        if not validar_upload_excel(file):
+            flash("El archivo debe ser un Excel (.xlsx/.xls)", "error")
             return redirect(url_for("personal_operativo_panel"))
             
         try:
