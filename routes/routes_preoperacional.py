@@ -3,7 +3,7 @@ import os
 from datetime import datetime, date
 from flask import render_template, request, redirect, url_for, session, flash, jsonify
 from db import get_db
-from utils import login_required, admin_required, calcular_edad, get_user_info, ahora, hoy
+from utils import login_required, admin_required, calcular_edad, get_user_info, ahora, hoy, validar_upload_imagen
 # _load_config imported lazily inside functions to avoid circular import
 from itsdangerous import URLSafeSerializer, BadSignature
 def register_routes(app):
@@ -65,6 +65,9 @@ def register_routes(app):
             
             for file in files:
                 if file and file.filename != '':
+                    if not validar_upload_imagen(file):
+                        flash("La evidencia debe ser una imagen PNG, JPG, GIF o WEBP de máximo 5 MB.", "error")
+                        return redirect(url_for("preoperacional"))
                     filename = secure_filename(file.filename)
                     unique_filename = f"{uuid.uuid4().hex}_{filename}"
                     file_path = os.path.join(upload_folder, unique_filename)

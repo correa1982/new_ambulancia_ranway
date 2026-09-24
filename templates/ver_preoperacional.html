@@ -333,7 +333,7 @@ tr { page-break-inside: avoid; break-inside: avoid; }
 {% if record.firma_registrador %}
 <div class="firma-box">
 <div class="signature-container">
-        <img src="{{ record.firma_registrador }}" alt="Firma">
+        <img src="{{ record.firma_registrador|firma_src }}" alt="Firma">
     </div>
     <div class="firma-name">{{ record.registrado_por }}</div>
     <div class="firma-meta">
