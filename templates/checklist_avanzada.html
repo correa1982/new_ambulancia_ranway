@@ -167,6 +167,16 @@
     padding: 0 0 8px 0 !important;
 }
 
+.venc-badge-trigger {
+    transition: all 0.15s ease-in-out;
+}
+.venc-badge-trigger:hover {
+    background: #bae6fd !important;
+    border-color: #0284c7 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(3, 105, 161, 0.2);
+}
+
 @media (max-width: 650px) {
     .cl-header { flex-direction: column; align-items: flex-start; gap: 8px; }
     .row.row-4 { display: grid; grid-template-columns: 1fr; gap: 10px; }
@@ -493,18 +503,18 @@
                             <span style="font-size: 11px; color: #64748b; font-weight: normal;">(Cant req: {{ item.cantidad }})</span>
                         {% endif %}
                         {% if aplica_venc %}
-                            <span title="Control de Vencimiento Requerido" style="font-size: 10px; background: #e0f2fe; color: #0369a1; padding: 2px 6px; border-radius: 4px; font-weight: 700;">📅 Vencimiento</span>
+                            <span class="venc-badge-trigger" onclick="abrirVencimientoItem('{{ field }}')" title="Clic para gestionar fecha de vencimiento" style="font-size: 10px; background: #e0f2fe; color: #0369a1; padding: 2px 6px; border-radius: 4px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 3px; border: 1px solid #bae6fd;">📅 Vencimiento</span>
                         {% endif %}
                     </div>
                     <div id="badge_info_{{ field }}" style="margin-top: 5px;"></div>
                 </div>
                 <div class="radio-trio" style="margin-top: 2px;">
                     <div class="ri-si">
-                        <input type="radio" name="{{ field }}" id="avanzada_{{ field }}_si" value="SI" onchange="handleRadioChange(this)" {% if val_exist == 'SI' %}checked{% endif %}>
+                        <input type="radio" name="{{ field }}" id="avanzada_{{ field }}_si" value="SI" onchange="handleRadioChange(this)" onclick="handleRadioClick(this)" {% if val_exist == 'SI' %}checked{% endif %}>
                         <label for="avanzada_{{ field }}_si">Cumple</label>
                     </div>
                     <div class="ri-no">
-                        <input type="radio" name="{{ field }}" id="avanzada_{{ field }}_no" value="NO" onchange="handleRadioChange(this)" {% if val_exist == 'NO' %}checked{% endif %}>
+                        <input type="radio" name="{{ field }}" id="avanzada_{{ field }}_no" value="NO" onchange="handleRadioChange(this)" onclick="handleRadioClick(this)" {% if val_exist == 'NO' %}checked{% endif %}>
                         <label for="avanzada_{{ field }}_no">No Cumple</label>
                     </div>
                     <div class="ri-na">
@@ -545,10 +555,13 @@
     <a href="{{ url_for('registros_checklist', tipo='avanzada') }}" style="margin:0; box-sizing: border-box; height: 44px; font-family: inherit; background: linear-gradient(135deg,#f59e0b,#d97706); color:white; text-decoration:none; border:none; padding:0 24px; border-radius:10px; font-weight:600; font-size:14px; display:inline-flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(245,158,11,0.2);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(245,158,11,0.3)'" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 6px -1px rgba(245,158,11,0.2)'">
         <i class="ph ph-folder-open" style="font-size:18px;"></i> Ver Registros
     </a>
+    <button type="button" onclick="limpiarBorradorAvanzada()" style="margin:0; box-sizing: border-box; height: 44px; font-family: inherit; background:linear-gradient(135deg,#ef4444,#dc2626); color:white; border:none; padding:0 24px; border-radius:10px; font-weight:600; font-size:14px; display:inline-flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(239,68,68,0.3);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(239,68,68,0.4)'" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 6px -1px rgba(239,68,68,0.3)'">
+        <i class="ph ph-trash" style="font-size:18px;"></i> Limpiar
+    </button>
     <button type="submit" name="accion" value="borrador" style="margin:0; box-sizing: border-box; height: 44px; font-family: inherit; background:linear-gradient(135deg,#1e6fbf,#185999); color:white; border:none; padding:0 24px; border-radius:10px; font-weight:600; font-size:14px; display:inline-flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(30,111,191,0.3);" formnovalidate onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(30,111,191,0.4)'" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 6px -1px rgba(30,111,191,0.3)'">
         <i class="ph ph-floppy-disk" style="font-size:18px;"></i> Guardar Borrador
     </button>
-    <button type="submit" name="accion" value="finalizar" style="margin:0; box-sizing: border-box; height: 44px; font-family: inherit; background:linear-gradient(135deg,#10b981,#059669); color:white; border:none; padding:0 24px; border-radius:10px; font-weight:600; font-size:14px; display:inline-flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(16,185,129,0.2);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(16,185,129,0.3)'" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 6px -1px rgba(16,185,129,0.2)'" onclick="return confirm('¿Está seguro de finalizar este registro? Una vez finalizado no podrá ser editado.');">
+    <button type="submit" name="accion" value="finalizar" style="margin:0; box-sizing: border-box; height: 44px; font-family: inherit; background:linear-gradient(135deg,#10b981,#059669); color:white; border:none; padding:0 24px; border-radius:10px; font-weight:600; font-size:14px; display:inline-flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(16,185,129,0.2);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(16,185,129,0.3)'" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 6px -1px rgba(16,185,129,0.2)'" onclick="return validarYConfirmarFinalizacionAvanzada(event);">
         <i class="ph ph-check-circle" style="font-size:18px;"></i> Finalizar Check List Avanzada
     </button>
 </div>
@@ -688,6 +701,14 @@ function updateBadgeInfo(field) {
             html += `
                 <button type="button" onclick="promptEditVenc('${field}', '${fieldNombre.replace(/'/g, "\\'")}', ${cantReq})" style="background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 4px; padding: 2px 6px; font-size: 11px; cursor: pointer; color: #475569;" title="Modificar fechas">✏️ Modificar</button>
             </div>`;
+        } else if (row && row.getAttribute('data-aplica-venc') === '1') {
+            html += `
+                <div style="display: flex; gap: 6px; align-items: center; margin-top: 4px;">
+                    <span style="background-color: #fee2e2; color: #b91c1c; border: 1px solid #ef4444; padding: 3px 8px; border-radius: 4px; font-weight: 700; font-size: 11px; display: inline-flex; align-items: center; gap: 4px;">
+                        ⚠️ Requiere fecha de vencimiento
+                    </span>
+                    <button type="button" onclick="promptEditVenc('${field}', '${fieldNombre.replace(/'/g, "\\'")}', ${cantReq})" style="background: #2563eb; color: white; border: none; border-radius: 4px; padding: 2px 8px; font-size: 11px; font-weight: 600; cursor: pointer;" title="Ingresar fechas">📅 Asignar Fecha</button>
+                </div>`;
         }
     } else if (radioNo && radioNo.checked) {
         if (tipoInc === 'parcial') {
@@ -711,6 +732,12 @@ function updateBadgeInfo(field) {
                         `;
                     }
                 });
+            } else if (row && row.getAttribute('data-aplica-venc') === '1' && numActual > 0) {
+                html += `
+                    <span style="background-color: #fee2e2; color: #b91c1c; border: 1px solid #ef4444; padding: 3px 8px; border-radius: 4px; font-weight: 700; font-size: 11px;">
+                        ⚠️ Falta fecha
+                    </span>
+                `;
             }
             html += `
                     <button type="button" onclick="reabrirModalNo('${field}')" style="background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 4px; padding: 2px 6px; font-size: 10px; cursor: pointer; color: #475569;" title="Modificar reporte">✏️ Modificar</button>
@@ -723,6 +750,15 @@ function updateBadgeInfo(field) {
                         ❌ Incumple Total (Sin existencias)
                     </span>
                     <button type="button" onclick="reabrirModalNo('${field}')" style="background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 4px; padding: 2px 6px; font-size: 10px; cursor: pointer; color: #475569;" title="Modificar reporte">✏️ Modificar</button>
+                </div>
+            `;
+        } else {
+            html += `
+                <div style="display: flex; gap: 6px; align-items: center; margin-top: 4px;">
+                    <span style="background-color: #fffbeb; color: #b45309; border: 1px solid #fde68a; padding: 3px 8px; border-radius: 4px; font-weight: 700; font-size: 11px;">
+                        ⚠️ Novedad sin detallar
+                    </span>
+                    <button type="button" onclick="reabrirModalNo('${field}')" style="background: #ea580c; color: white; border: none; border-radius: 4px; padding: 2px 8px; font-size: 11px; font-weight: 600; cursor: pointer;" title="Detallar novedad">✏️ Detallar Novedad</button>
                 </div>
             `;
         }
@@ -760,6 +796,8 @@ function promptEditVenc(field, nombre, cantTotal) {
     Swal.fire({
         title: 'Fechas de Vencimiento',
         customClass: { popup: 'swal-venc-modal' },
+        allowOutsideClick: false,
+        backdrop: 'rgba(15, 23, 42, 0.65)',
         html: `
             <div style="text-align: left; font-size: 13px; color: #334155; margin-bottom: 12px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px;">
                 <strong style="color: #0f172a; font-size: 15px;">${nombre}</strong><br>
@@ -891,7 +929,30 @@ function promptEditVenc(field, nombre, cantTotal) {
     }).then(res => {
         if (res.isConfirmed && res.value) {
             setFieldVencimiento(field, JSON.stringify(res.value));
+            recalcBadges();
             triggerAutosaveAvanzada();
+        } else {
+            const curVal = document.getElementById('vencimiento_' + field)?.value;
+            const entries = parseVencEntries(curVal, cantTotal);
+            if (entries.length === 0) {
+                const radioSi = document.getElementById('avanzada_' + field + '_si');
+                if (radioSi && radioSi.checked) {
+                    radioSi.checked = false;
+                    document.getElementById('cant_actual_' + field).value = '';
+                    updateBadgeInfo(field);
+                    recalcBadges();
+                    triggerAutosaveAvanzada();
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Fecha requerida',
+                        text: `El artículo "${nombre}" requiere fecha de vencimiento para registrarse como Cumple.`,
+                        toast: true,
+                        position: 'top-end',
+                        timer: 3500,
+                        showConfirmButton: false
+                    });
+                }
+            }
         }
     });
 }
@@ -962,6 +1023,8 @@ function abrirModalIncumplimiento(field, nombre, cantReq, aplicaVenc) {
     Swal.fire({
         title: 'Reportar Novedad / Faltante',
         customClass: { popup: 'swal-venc-modal' },
+        allowOutsideClick: false,
+        backdrop: 'rgba(15, 23, 42, 0.65)',
         html: `
             <div style="text-align: left; font-size: 13px; color: #334155; margin-bottom: 12px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px;">
                 <strong style="color: #0f172a; font-size: 15px;">${nombre}</strong><br>
@@ -1203,8 +1266,70 @@ function abrirModalIncumplimiento(field, nombre, cantReq, aplicaVenc) {
             updateBadgeInfo(field);
             recalcBadges();
             triggerAutosaveAvanzada();
+        } else {
+            const curTipo = document.getElementById('tipo_incumplimiento_' + field)?.value;
+            if (!curTipo) {
+                const radioNo = document.getElementById('avanzada_' + field + '_no');
+                if (radioNo && radioNo.checked) {
+                    radioNo.checked = false;
+                    document.getElementById('cant_actual_' + field).value = '';
+                    const obsRow = document.getElementById('obs_row_' + field);
+                    if (obsRow) obsRow.style.display = 'none';
+                    if (obsInput) { obsInput.required = false; obsInput.value = ''; }
+                    updateBadgeInfo(field);
+                    recalcBadges();
+                    triggerAutosaveAvanzada();
+                }
+            }
         }
     });
+}
+
+function handleRadioClick(radio) {
+    const field = radio.name;
+    const row = radio.closest('.item-row-tr');
+    if (!row) return;
+    const nombre = row.getAttribute('data-nombre');
+    const cantReq = parseInt(row.getAttribute('data-cantidad'), 10) || 1;
+    const aplicaVenc = row.getAttribute('data-aplica-venc') === '1';
+
+    if (radio.value === 'SI' && aplicaVenc) {
+        const curVal = document.getElementById('vencimiento_' + field)?.value;
+        const entries = parseVencEntries(curVal, cantReq);
+        if (entries.length === 0) {
+            promptEditVenc(field, nombre, cantReq);
+        }
+    } else if (radio.value === 'NO') {
+        const tipoInc = document.getElementById('tipo_incumplimiento_' + field)?.value;
+        if (!tipoInc) {
+            abrirModalIncumplimiento(field, nombre, cantReq, aplicaVenc);
+        }
+    }
+}
+
+function abrirVencimientoItem(field) {
+    const row = document.querySelector(`.item-row-tr[data-field="${field}"]`);
+    if (!row) return;
+    const nombre = row.getAttribute('data-nombre');
+    const cantReq = parseInt(row.getAttribute('data-cantidad'), 10) || 1;
+    const aplicaVenc = row.getAttribute('data-aplica-venc') === '1';
+    const radioSi = document.getElementById('avanzada_' + field + '_si');
+    const radioNo = document.getElementById('avanzada_' + field + '_no');
+
+    if (radioNo && radioNo.checked) {
+        abrirModalIncumplimiento(field, nombre, cantReq, aplicaVenc);
+    } else {
+        if (radioSi && !radioSi.checked) {
+            radioSi.checked = true;
+            document.getElementById('cant_actual_' + field).value = cantReq;
+            document.getElementById('tipo_incumplimiento_' + field).value = '';
+            const obsRow = document.getElementById('obs_row_' + field);
+            if (obsRow) obsRow.style.display = 'none';
+            const obsInput = document.getElementById('obs_' + field);
+            if (obsInput) { obsInput.required = false; obsInput.value = ''; }
+        }
+        promptEditVenc(field, nombre, cantReq);
+    }
 }
 
 // ── Entregas Pendientes Traslados Filter & Actions ─────
@@ -1722,23 +1847,24 @@ function triggerAutosaveAvanzada() {
 }
 
 function saveAutosaveAvanzada() {
-    const inBot = document.getElementById('botiquin');
-    const botiquin = inBot ? inBot.value.trim() : '';
     const hasExistingId = document.querySelector('input[type="hidden"][name="id"]');
     if (hasExistingId) return;
-    if (!botiquin) return;
 
-    const storageKey = 'autosave_avanzada_' + botiquin;
-    localStorage.setItem('autosave_avanzada_last_selected', botiquin);
+    const inBot = document.getElementById('botiquin');
+    const botiquin = inBot ? inBot.value.trim() : '';
 
     const formData = {
+        botiquin: botiquin,
         fecha: document.querySelector('input[name="fecha"]')?.value || '',
         hora: document.querySelector('input[name="hora"]')?.value || '',
         evento: document.querySelector('input[name="evento"]')?.value || '',
         observaciones: document.querySelector('textarea[name="observaciones"]')?.value || '',
         items: {},
-        integrantes: []
+        integrantes: [],
+        timestamp: Date.now()
     };
+
+    let hasContent = Boolean(botiquin || formData.evento || formData.observaciones);
 
     document.querySelectorAll('.item-row-tr').forEach(row => {
         const field = row.getAttribute('data-field');
@@ -1755,26 +1881,46 @@ function saveAutosaveAvanzada() {
         const tipoInc = document.getElementById('tipo_incumplimiento_' + field)?.value || '';
         const obs = document.getElementById('obs_' + field)?.value || '';
 
+        if (val || venc || cant || tipoInc || obs) {
+            hasContent = true;
+        }
+
         formData.items[field] = { valor: val, venc, cant, tipoInc, obs };
     });
 
     document.querySelectorAll('#tbody-integrantes .integrante-row').forEach(row => {
         const perfil = row.querySelector('.select-perfil')?.value || '';
         const container = row.querySelector('.nombre-container');
-        const nombre = container ? container.getAttribute('data-val') : '';
+        const nombre = container ? (container.getAttribute('data-val') || container.querySelector('input, select')?.value || '') : '';
         const doc = row.querySelector('.input-doc')?.value || '';
         if (perfil || nombre || doc) {
             formData.integrantes.push({ perfil, nombre, doc });
+            hasContent = true;
         }
     });
 
-    try {
-        localStorage.setItem(storageKey, JSON.stringify(formData));
-    } catch(e) {}
+    if (hasContent) {
+        try {
+            localStorage.setItem('autosave_avanzada_draft', JSON.stringify(formData));
+            if (botiquin) {
+                localStorage.setItem('autosave_avanzada_last_selected', botiquin);
+                localStorage.setItem('autosave_avanzada_' + botiquin, JSON.stringify(formData));
+            }
+        } catch(e) {}
+    }
 }
 
 function restoreFormDataAvanzada(data) {
     if (!data) return;
+    if (data.botiquin) {
+        const inBot = document.getElementById('botiquin');
+        if (inBot) {
+            inBot.value = data.botiquin;
+            if (typeof updatePendingTrasladosVisibility === 'function') {
+                updatePendingTrasladosVisibility(data.botiquin);
+            }
+        }
+    }
     if (data.fecha) {
         const fInp = document.querySelector('input[name="fecha"]');
         if (fInp) fInp.value = data.fecha;
@@ -1794,6 +1940,7 @@ function restoreFormDataAvanzada(data) {
 
     if (data.items) {
         Object.entries(data.items).forEach(([field, info]) => {
+            if (!info) return;
             if (info.valor) {
                 const radio = document.getElementById(`avanzada_${field}_${info.valor.toLowerCase()}`);
                 if (radio) radio.checked = true;
@@ -1802,7 +1949,7 @@ function restoreFormDataAvanzada(data) {
                 const vInp = document.getElementById('vencimiento_' + field);
                 if (vInp) vInp.value = info.venc;
             }
-            if (info.cant) {
+            if (info.cant !== undefined && info.cant !== '') {
                 const cInp = document.getElementById('cant_actual_' + field);
                 if (cInp) cInp.value = info.cant;
             }
@@ -1813,16 +1960,158 @@ function restoreFormDataAvanzada(data) {
             if (info.obs) {
                 const oInp = document.getElementById('obs_' + field);
                 if (oInp) oInp.value = info.obs;
-                const oRow = document.getElementById('obs_row_' + field);
-                if (oRow && info.valor === 'NO') oRow.style.display = 'block';
+            }
+            const oRow = document.getElementById('obs_row_' + field);
+            if (oRow) {
+                if (info.valor === 'NO') {
+                    oRow.style.display = 'block';
+                    const oInp = document.getElementById('obs_' + field);
+                    if (oInp) oInp.required = true;
+                } else {
+                    oRow.style.display = 'none';
+                    const oInp = document.getElementById('obs_' + field);
+                    if (oInp) oInp.required = false;
+                }
             }
             updateBadgeInfo(field);
         });
     }
+
+    if (data.integrantes && data.integrantes.length > 0) {
+        const tbody = document.getElementById('tbody-integrantes');
+        if (tbody) {
+            tbody.innerHTML = '';
+            data.integrantes.forEach(mem => {
+                const tr = document.createElement('tr');
+                tr.className = 'integrante-row';
+                tr.innerHTML = `
+                    <td style="padding: 6px 14px; border: 1px solid #f1f5f9;">
+                        <select name="integrante_perfil[]" class="form-control select-perfil" required style="width: 100%; border: 1px solid #cbd5e1; border-radius: 5px; padding: 6px; font-size: 13px; box-sizing: border-box; background: white;">
+                            <option value="">— Cargo —</option>
+                            <option value="Enfermero" ${mem.perfil === 'Enfermero' ? 'selected' : ''}>Enfermero</option>
+                            <option value="APH" ${mem.perfil === 'APH' ? 'selected' : ''}>APH</option>
+                            <option value="Auxiliar en Enfermeria" ${mem.perfil === 'Auxiliar en Enfermeria' ? 'selected' : ''}>Auxiliar en Enfermeria</option>
+                            <option value="Socorrista" ${mem.perfil === 'Socorrista' ? 'selected' : ''}>Socorrista</option>
+                            <option value="Estudiante" ${mem.perfil === 'Estudiante' ? 'selected' : ''}>Estudiante</option>
+                        </select>
+                    </td>
+                    <td style="padding: 6px 14px; border: 1px solid #f1f5f9;">
+                        <div class="nombre-container" data-val="${mem.nombre || ''}"></div>
+                    </td>
+                    <td style="padding: 6px 14px; border: 1px solid #f1f5f9;"><input type="text" name="integrante_doc[]" class="form-control input-doc" placeholder="Cédula / ID" value="${mem.doc || ''}" style="width: 100%; border: 1px solid #cbd5e1; border-radius: 5px; padding: 6px; font-size: 13px; box-sizing: border-box;"></td>
+                    <td style="text-align: center; vertical-align: middle; padding: 6px 14px; border: 1px solid #f1f5f9;">
+                        <button type="button" class="btn-remove-integrante" style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 18px;" onclick="removeRow(this)">
+                            <i class="ph ph-trash"></i>
+                        </button>
+                    </td>`;
+                tbody.appendChild(tr);
+            });
+            tbody.querySelectorAll('.integrante-row').forEach(row => {
+                const selectPerfil = row.querySelector('.select-perfil');
+                if (selectPerfil && typeof window.updateNombreInput === 'function') {
+                    window.updateNombreInput(row);
+                    selectPerfil.addEventListener('change', () => window.updateNombreInput(row, true));
+                }
+            });
+        }
+    }
+
     recalcBadges();
 }
 
+function limpiarBorradorAvanzada() {
+    Swal.fire({
+        title: '¿Limpiar checklist y empezar de cero?',
+        text: 'Se borrará el borrador guardado y se restablecerán todos los campos a su estado inicial.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc2626',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: 'Sí, limpiar todo',
+        cancelButtonText: 'Cancelar',
+        customClass: { popup: 'swal2-custom-popup' }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            localStorage.removeItem('autosave_avanzada_draft');
+            localStorage.removeItem('autosave_avanzada_last_selected');
+            const inBot = document.getElementById('botiquin');
+            if (inBot) {
+                if (inBot.value) {
+                    localStorage.removeItem('autosave_avanzada_' + inBot.value);
+                }
+                inBot.value = '';
+                if (typeof updatePendingTrasladosVisibility === 'function') {
+                    updatePendingTrasladosVisibility('');
+                }
+            }
+            
+            const fInp = document.querySelector('input[name="fecha"]');
+            if (fInp) fInp.value = new Date().toISOString().split('T')[0];
+            const hInp = document.querySelector('input[name="hora"]');
+            if (hInp) {
+                const now = new Date();
+                hInp.value = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+            }
+            const eInp = document.querySelector('input[name="evento"]');
+            if (eInp) eInp.value = '';
+            const oTxt = document.querySelector('textarea[name="observaciones"]');
+            if (oTxt) oTxt.value = '';
+
+            resetFormItems();
+
+            const tbody = document.getElementById('tbody-integrantes');
+            if (tbody) {
+                tbody.innerHTML = `
+                    <tr class="integrante-row">
+                        <td style="padding: 6px 14px; border: 1px solid #f1f5f9;">
+                            <select name="integrante_perfil[]" class="form-control select-perfil" required style="width: 100%; border: 1px solid #cbd5e1; border-radius: 5px; padding: 6px; font-size: 13px; box-sizing: border-box; background: white;">
+                                <option value="">— Cargo —</option>
+                                <option value="Enfermero">Enfermero</option>
+                                <option value="APH">APH</option>
+                                <option value="Auxiliar en Enfermeria">Auxiliar en Enfermeria</option>
+                                <option value="Socorrista">Socorrista</option>
+                                <option value="Estudiante">Estudiante</option>
+                            </select>
+                        </td>
+                        <td style="padding: 6px 14px; border: 1px solid #f1f5f9;">
+                            <div class="nombre-container" data-val=""></div>
+                        </td>
+                        <td style="padding: 6px 14px; border: 1px solid #f1f5f9;"><input type="text" name="integrante_doc[]" class="form-control input-doc" placeholder="Cédula / ID" style="width: 100%; border: 1px solid #cbd5e1; border-radius: 5px; padding: 6px; font-size: 13px; box-sizing: border-box;"></td>
+                        <td style="text-align: center; vertical-align: middle; padding: 6px 14px; border: 1px solid #f1f5f9;">
+                            <button type="button" class="btn-remove-integrante" style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 18px;" onclick="removeRow(this)">
+                                <i class="ph ph-trash"></i>
+                            </button>
+                        </td>
+                    </tr>`;
+                tbody.querySelectorAll('.integrante-row').forEach(row => {
+                    const selectPerfil = row.querySelector('.select-perfil');
+                    if (selectPerfil && typeof window.updateNombreInput === 'function') {
+                        window.updateNombreInput(row);
+                        selectPerfil.addEventListener('change', () => window.updateNombreInput(row, true));
+                    }
+                });
+            }
+
+            const banner = document.getElementById('banner-precargado-avanzada');
+            if (banner) banner.style.display = 'none';
+
+            recalcBadges();
+
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'success',
+                title: '🧹 Formulario restablecido desde cero',
+                showConfirmButton: false,
+                timer: 2500
+            });
+        }
+    });
+}
+
 // ── DOMContentLoaded Initial Setup ────────────────────
+let isRestoringDraftAvanzada = false;
+
 document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.venc-badge-calc').forEach(span => {
         const d = span.getAttribute('data-date');
@@ -1852,6 +2141,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const hasExistingId = document.querySelector('input[type="hidden"][name="id"]');
             if (hasExistingId) return;
+            if (isRestoringDraftAvanzada) return;
 
             resetFormItems();
             if (!bot) {
@@ -1906,19 +2196,51 @@ document.addEventListener('DOMContentLoaded', function() {
             if (curBot) {
                 localStorage.removeItem('autosave_avanzada_' + curBot);
             }
+            localStorage.removeItem('autosave_avanzada_draft');
             localStorage.removeItem('autosave_avanzada_last_selected');
         });
     }
 
+    // Check & Restore draft if exists on new records
     const hasExistingId = document.querySelector('input[type="hidden"][name="id"]');
-    if (!hasExistingId && inBot && !inBot.value) {
-        const lastSelected = localStorage.getItem('autosave_avanzada_last_selected');
-        if (lastSelected) {
-            const opt = Array.from(inBot.options).find(o => o.value === lastSelected);
-            if (opt) {
-                inBot.value = lastSelected;
-                inBot.dispatchEvent(new Event('change'));
+    if (!hasExistingId) {
+        let savedDraft = null;
+        try {
+            const rawDraft = localStorage.getItem('autosave_avanzada_draft');
+            if (rawDraft) {
+                savedDraft = JSON.parse(rawDraft);
+            } else {
+                const lastBot = localStorage.getItem('autosave_avanzada_last_selected');
+                if (lastBot) {
+                    const rawLegacy = localStorage.getItem('autosave_avanzada_' + lastBot);
+                    if (rawLegacy) {
+                        savedDraft = JSON.parse(rawLegacy);
+                        if (!savedDraft.botiquin) savedDraft.botiquin = lastBot;
+                    }
+                }
             }
+        } catch(e) {}
+
+        const hasAnyDraftData = savedDraft && (
+            savedDraft.botiquin ||
+            savedDraft.evento ||
+            savedDraft.observaciones ||
+            (savedDraft.items && Object.values(savedDraft.items).some(it => it.valor || it.venc || it.cant || it.obs)) ||
+            (savedDraft.integrantes && savedDraft.integrantes.length > 0)
+        );
+
+        if (hasAnyDraftData) {
+            isRestoringDraftAvanzada = true;
+            restoreFormDataAvanzada(savedDraft);
+            isRestoringDraftAvanzada = false;
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'info',
+                title: '📋 Se restauró tu borrador en progreso',
+                showConfirmButton: false,
+                timer: 3500
+            });
         }
     }
 });
@@ -1929,15 +2251,57 @@ document.addEventListener('DOMContentLoaded', function() {
 (function() {
     const todosUsuarios = {{ todos_usuarios|tojson|safe if todos_usuarios else '[]' }};
 
-    function matchCargo(perfilUsuario, cargoBuscado) {
-        if (!perfilUsuario) return false;
-        const pu = perfilUsuario.toLowerCase();
-        const cb = cargoBuscado.toLowerCase();
-        if (cb.includes('enfermer') && pu.includes('enfermer')) return true;
-        if (cb.includes('aph') && pu.includes('aph')) return true;
-        if (cb.includes('auxiliar') && pu.includes('auxiliar')) return true;
-        if (cb.includes('socorrista') && pu.includes('socorrista')) return true;
-        return pu.includes(cb);
+    function stripAccents(s) {
+        if (!s) return '';
+        return String(s).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+    }
+
+    function getUserPerfiles(u) {
+        if (Array.isArray(u.perfiles)) return u.perfiles;
+        let raw = u.perfil;
+        if (!raw) return [];
+        if (Array.isArray(raw)) return raw;
+        try {
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed)) return parsed;
+            if (parsed) return [String(parsed)];
+        } catch(e) {}
+        if (typeof raw === 'string') {
+            return raw.replace(/[\[\]"']/g, '').split(',').map(s => s.trim()).filter(Boolean);
+        }
+        return [];
+    }
+
+    function matchCargo(u, cargoBuscado) {
+        if (!cargoBuscado) return false;
+        const cbNorm = stripAccents(cargoBuscado);
+        const perfiles = getUserPerfiles(u);
+        if (!perfiles.length) return false;
+
+        return perfiles.some(p => {
+            const pNorm = stripAccents(p);
+            if (!pNorm) return false;
+
+            if (cbNorm === 'enfermero' || cbNorm === 'enfermera' || cbNorm === 'enfermeria') {
+                return pNorm.includes('enfermer') && !pNorm.includes('auxiliar');
+            }
+            if (cbNorm.includes('auxiliar')) {
+                return pNorm.includes('auxiliar');
+            }
+            if (cbNorm.includes('aph')) {
+                return pNorm.includes('aph');
+            }
+            if (cbNorm.includes('socorrista')) {
+                return pNorm.includes('socorrista');
+            }
+            if (cbNorm.includes('medic')) {
+                return pNorm.includes('medic');
+            }
+            if (cbNorm.includes('conductor')) {
+                return pNorm.includes('conductor');
+            }
+            return (cbNorm in pNorm) || (pNorm in cbNorm);
+        });
     }
 
     function updateNombreInput(row, clearVal = false) {
@@ -1981,18 +2345,17 @@ document.addEventListener('DOMContentLoaded', function() {
             select.required = true;
             select.style.cssText = 'width: 100%; border: 1px solid #cbd5e1; border-radius: 5px; padding: 6px; font-size: 13px; box-sizing: border-box; background: white;';
 
-            const defaultOpt = document.createElement('option');
-            defaultOpt.value = '';
-            defaultOpt.textContent = '— Seleccione un integrante —';
-            select.appendChild(defaultOpt);
+            function renderUsersList(usersList) {
+                select.innerHTML = '';
+                const defaultOpt = document.createElement('option');
+                defaultOpt.value = '';
+                defaultOpt.textContent = '— Seleccione un integrante —';
+                select.appendChild(defaultOpt);
 
-            let docMap = {};
-            let matchCount = 0;
-            let foundCurrent = false;
+                let docMap = {};
+                let foundCurrent = false;
 
-            todosUsuarios.forEach(u => {
-                if (matchCargo(u.perfil, perfil)) {
-                    matchCount++;
+                usersList.forEach(u => {
                     const opt = document.createElement('option');
                     opt.value = u.nombre;
                     opt.textContent = u.nombre;
@@ -2006,36 +2369,52 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                     select.appendChild(opt);
                     docMap[u.nombre] = u.identificacion || '';
+                });
+
+                if (usersList.length === 0) {
+                    defaultOpt.textContent = '— No hay usuarios registrados como ' + perfil + ' —';
                 }
-            });
 
-            if (matchCount === 0) {
-                defaultOpt.textContent = '— No hay usuarios registrados como ' + perfil + ' —';
-            }
+                if (currentVal && !foundCurrent) {
+                    const optExtra = document.createElement('option');
+                    optExtra.value = currentVal;
+                    optExtra.textContent = currentVal + ' (registrado)';
+                    optExtra.selected = true;
+                    select.appendChild(optExtra);
+                }
 
-            if (currentVal && !foundCurrent) {
-                const optExtra = document.createElement('option');
-                optExtra.value = currentVal;
-                optExtra.textContent = currentVal + ' (registrado)';
-                optExtra.selected = true;
-                select.appendChild(optExtra);
-            }
-
-            select.addEventListener('change', function() {
-                const val = this.value;
-                container.setAttribute('data-val', val);
-                if (docInput) {
-                    if (val && docMap[val]) {
-                        docInput.value = docMap[val];
-                    } else if (!val) {
-                        docInput.value = '';
+                select.onchange = function() {
+                    const val = this.value;
+                    container.setAttribute('data-val', val);
+                    if (docInput) {
+                        if (val && docMap[val]) {
+                            docInput.value = docMap[val];
+                        } else if (!val) {
+                            docInput.value = '';
+                        }
                     }
-                }
-            });
+                };
+            }
+
+            // Población inmediata desde local/offline
+            const localMatches = todosUsuarios.filter(u => matchCargo(u, perfil));
+            renderUsersList(localMatches);
+
+            // Actualización asíncrona si hay conexión con el servidor
+            fetch(`/api/usuarios_por_cargo?cargo=${encodeURIComponent(perfil)}`)
+                .then(r => r.json())
+                .then(serverUsers => {
+                    if (Array.isArray(serverUsers) && serverUsers.length > 0) {
+                        renderUsersList(serverUsers);
+                    }
+                })
+                .catch(() => {});
 
             container.appendChild(select);
         }
     }
+
+    window.updateNombreInput = updateNombreInput;
 
     document.querySelectorAll('.integrante-row').forEach(row => {
         const selectPerfil = row.querySelector('.select-perfil');
@@ -2044,6 +2423,79 @@ document.addEventListener('DOMContentLoaded', function() {
             selectPerfil.addEventListener('change', () => updateNombreInput(row, true));
         }
     });
+
+    window.validarYConfirmarFinalizacionAvanzada = function(e) {
+        const botiquin = document.getElementById('botiquin');
+        if (botiquin && !botiquin.value.trim()) {
+            e.preventDefault();
+            Swal.fire({
+                icon: 'warning',
+                title: 'Botiquín requerido',
+                text: 'Debe seleccionar el botiquín antes de finalizar.',
+                customClass: { popup: 'swal2-custom-popup' }
+            });
+            botiquin.focus();
+            return false;
+        }
+
+        const rows = document.querySelectorAll('.item-row-tr[data-aplica-venc="1"]');
+        const missingVenc = [];
+
+        rows.forEach(row => {
+            const field = row.getAttribute('data-field');
+            const nombre = row.getAttribute('data-nombre') || field;
+            const cantReq = parseInt(row.getAttribute('data-cantidad')) || 1;
+
+            const radioSi = document.getElementById('avanzada_' + field + '_si');
+            const radioNo = document.getElementById('avanzada_' + field + '_no');
+            const tipoInc = document.getElementById('tipo_incumplimiento_' + field)?.value || '';
+            const cantActual = parseInt(document.getElementById('cant_actual_' + field)?.value || 0, 10);
+            const vencVal = document.getElementById('vencimiento_' + field)?.value || '';
+
+            const entries = parseVencEntries(vencVal, cantReq);
+            const hasValidDate = entries.length > 0 && entries.some(ent => Boolean(ent.fecha));
+
+            if (radioSi && radioSi.checked && !hasValidDate) {
+                missingVenc.push({ field, nombre, cantReq, row, motivo: 'Marcado como Cumple sin fecha' });
+            } else if (radioNo && radioNo.checked && tipoInc === 'parcial' && cantActual > 0 && !hasValidDate) {
+                missingVenc.push({ field, nombre, cantReq, row, motivo: 'Incumple parcial con unidades sin fecha' });
+            }
+        });
+
+        if (missingVenc.length > 0) {
+            e.preventDefault();
+            const listaNombres = missingVenc.map(m => `• <strong>${m.nombre}</strong> (${m.motivo})`).join('<br>');
+            Swal.fire({
+                icon: 'error',
+                title: 'Fechas de Vencimiento Requeridas',
+                html: `
+                    <div style="text-align: left; font-size: 13px; line-height: 1.5; color: #334155;">
+                        <p>Los siguientes artículos tienen control de vencimiento obligatorio y no tienen fecha asignada:</p>
+                        <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; padding: 10px; margin: 10px 0; color: #991b1b; max-height: 160px; overflow-y: auto;">
+                            ${listaNombres}
+                        </div>
+                        <p style="font-weight: 600; color: #0f172a;">Por favor asigne las fechas para poder finalizar el checklist.</p>
+                    </div>
+                `,
+                confirmButtonText: 'Corregir ahora',
+                customClass: { popup: 'swal-venc-modal' }
+            }).then(() => {
+                const first = missingVenc[0];
+                if (first && first.row) {
+                    const details = first.row.closest('details');
+                    if (details) details.open = true;
+                    first.row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    first.row.style.transition = 'background-color 0.5s';
+                    first.row.style.backgroundColor = '#fee2e2';
+                    setTimeout(() => { first.row.style.backgroundColor = ''; }, 3000);
+                    setTimeout(() => { promptEditVenc(first.field, first.nombre, first.cantReq); }, 400);
+                }
+            });
+            return false;
+        }
+
+        return confirm('¿Está seguro de finalizar este registro? Una vez finalizado no podrá ser editado.');
+    };
 
     const tbody = document.getElementById('tbody-integrantes');
     const btnAdd = document.getElementById('btn-add-integrante');
@@ -2160,6 +2612,244 @@ function recalcBadges() {
         if (answered === total && total > 0) badge.classList.add('complete');
         else if (answered > 0) badge.classList.add('partial');
     });
+}
+
+function validarYConfirmarFinalizacionAvanzada(e) {
+    const selBotiquin = document.querySelector('select[name="botiquin"]');
+    if (selBotiquin && !selBotiquin.value.trim()) {
+        e.preventDefault();
+        Swal.fire({
+            icon: 'warning',
+            title: 'Botiquín requerido',
+            text: 'Debe seleccionar el botiquín antes de finalizar.',
+            customClass: { popup: 'swal2-custom-popup' }
+        });
+        selBotiquin.focus();
+        return false;
+    }
+
+    const inpEvento = document.querySelector('input[name="evento"]');
+    if (inpEvento && !inpEvento.value.trim()) {
+        e.preventDefault();
+        Swal.fire({
+            icon: 'warning',
+            title: 'Evento requerido',
+            text: 'Debe indicar el nombre o código del evento antes de finalizar.',
+            customClass: { popup: 'swal2-custom-popup' }
+        });
+        inpEvento.focus();
+        return false;
+    }
+
+    const inpFecha = document.querySelector('input[name="fecha"]');
+    if (inpFecha && !inpFecha.value.trim()) {
+        e.preventDefault();
+        Swal.fire({
+            icon: 'warning',
+            title: 'Fecha requerida',
+            text: 'Debe indicar la fecha antes de finalizar.',
+            customClass: { popup: 'swal2-custom-popup' }
+        });
+        inpFecha.focus();
+        return false;
+    }
+
+    const inpHora = document.querySelector('input[name="hora"]');
+    if (inpHora && !inpHora.value.trim()) {
+        e.preventDefault();
+        Swal.fire({
+            icon: 'warning',
+            title: 'Hora requerida',
+            text: 'Debe indicar la hora antes de finalizar.',
+            customClass: { popup: 'swal2-custom-popup' }
+        });
+        inpHora.focus();
+        return false;
+    }
+
+    const rowsInt = document.querySelectorAll('#tbody-integrantes .integrante-row');
+    let hasValidInt = false;
+    rowsInt.forEach(r => {
+        const cargo = r.querySelector('.select-perfil')?.value?.trim();
+        const nombreInput = r.querySelector('.input-nombre, .select-nombre');
+        const nombre = nombreInput ? nombreInput.value.trim() : '';
+        if (cargo && nombre) hasValidInt = true;
+    });
+    if (!hasValidInt) {
+        e.preventDefault();
+        Swal.fire({
+            icon: 'warning',
+            title: 'Tripulación requerida',
+            text: 'Debe ingresar al menos un integrante con cargo y nombre en la tripulación antes de finalizar.',
+            customClass: { popup: 'swal2-custom-popup' }
+        });
+        return false;
+    }
+
+    const allRows = document.querySelectorAll('.item-row-tr');
+    const unansweredItems = [];
+    const missingObs = [];
+    const missingVenc = [];
+
+    allRows.forEach(row => {
+        const field = row.getAttribute('data-field');
+        const nombre = row.getAttribute('data-nombre') || field;
+        const cantReq = parseInt(row.getAttribute('data-cantidad')) || 1;
+        const aplicaVenc = row.getAttribute('data-aplica-venc') === '1';
+
+        const radioChecked = row.querySelector(`input[name="${field}"]:checked`);
+        if (!radioChecked) {
+            unansweredItems.push({ field, nombre, row });
+            return;
+        }
+
+        const val = radioChecked.value;
+        if (val === 'NO') {
+            const obsVal = document.getElementById('obs_' + field)?.value?.trim() || '';
+            if (!obsVal) {
+                missingObs.push({ field, nombre, row });
+            }
+        }
+
+        if (aplicaVenc) {
+            const tipoInc = document.getElementById('tipo_incumplimiento_' + field)?.value || '';
+            const cantActual = parseInt(document.getElementById('cant_actual_' + field)?.value || 0, 10);
+            const vencVal = document.getElementById('vencimiento_' + field)?.value || '';
+            const entries = parseVencEntries(vencVal, cantReq);
+            const hasValidDate = entries.length > 0 && entries.some(ent => Boolean(ent.fecha));
+
+            if (val === 'SI' && !hasValidDate) {
+                missingVenc.push({ field, nombre, cantReq, row, motivo: 'Marcado como Cumple sin fecha de vencimiento' });
+            } else if (val === 'NO' && tipoInc === 'parcial' && cantActual > 0 && !hasValidDate) {
+                missingVenc.push({ field, nombre, cantReq, row, motivo: 'Incumple parcial con unidades sin fecha de vencimiento' });
+            }
+        }
+    });
+
+    if (unansweredItems.length > 0) {
+        e.preventDefault();
+        const listaItems = unansweredItems.slice(0, 8).map(m => `• <strong>${m.nombre}</strong>`).join('<br>');
+        const extra = unansweredItems.length > 8 ? `<br><em>... y ${unansweredItems.length - 8} más.</em>` : '';
+        Swal.fire({
+            icon: 'warning',
+            title: 'Ítems Pendientes por Calificar',
+            html: `
+                <div style="text-align: left; font-size: 13px; line-height: 1.5; color: #334155;">
+                    <p>Faltan <strong>${unansweredItems.length}</strong> artículo(s) por responder. Para finalizar el checklist debe calificar cada uno como <em>Cumple</em>, <em>No Cumple</em> o <em>No Aplica</em>:</p>
+                    <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 6px; padding: 10px; margin: 10px 0; color: #92400e; max-height: 160px; overflow-y: auto;">
+                        ${listaItems}${extra}
+                    </div>
+                    <p style="font-weight: 600; color: #0f172a;">Por favor califique todos los ítems para poder finalizar.</p>
+                </div>
+            `,
+            confirmButtonText: 'Revisar ítems pendientes',
+            customClass: { popup: 'swal-venc-modal' }
+        }).then(() => {
+            const first = unansweredItems[0];
+            if (first && first.row) {
+                const details = first.row.closest('details');
+                if (details) details.open = true;
+                first.row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                first.row.style.transition = 'background-color 0.5s';
+                first.row.style.backgroundColor = '#fef3c7';
+                setTimeout(() => { first.row.style.backgroundColor = ''; }, 3000);
+            }
+        });
+        return false;
+    }
+
+    if (missingObs.length > 0) {
+        e.preventDefault();
+        const listaObs = missingObs.slice(0, 6).map(m => `• <strong>${m.nombre}</strong>`).join('<br>');
+        const extra = missingObs.length > 6 ? `<br><em>... y ${missingObs.length - 6} más.</em>` : '';
+        Swal.fire({
+            icon: 'warning',
+            title: 'Observaciones Requeridas',
+            html: `
+                <div style="text-align: left; font-size: 13px; line-height: 1.5; color: #334155;">
+                    <p>Los siguientes artículos marcados como <strong>No Cumple</strong> requieren describir el motivo u observación de novedad:</p>
+                    <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; padding: 10px; margin: 10px 0; color: #991b1b; max-height: 160px; overflow-y: auto;">
+                        ${listaObs}${extra}
+                    </div>
+                </div>
+            `,
+            confirmButtonText: 'Detallar novedad',
+            customClass: { popup: 'swal-venc-modal' }
+        }).then(() => {
+            const first = missingObs[0];
+            if (first && first.row) {
+                const details = first.row.closest('details');
+                if (details) details.open = true;
+                first.row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                const obsInp = document.getElementById('obs_' + first.field);
+                if (obsInp) {
+                    obsInp.focus();
+                    obsInp.style.boxShadow = '0 0 0 2px #ef4444';
+                    setTimeout(() => { obsInp.style.boxShadow = ''; }, 3000);
+                }
+            }
+        });
+        return false;
+    }
+
+    if (missingVenc.length > 0) {
+        e.preventDefault();
+        const listaNombres = missingVenc.map(m => `• <strong>${m.nombre}</strong> (${m.motivo})`).join('<br>');
+        Swal.fire({
+            icon: 'error',
+            title: 'Fechas de Vencimiento Requeridas',
+            html: `
+                <div style="text-align: left; font-size: 13px; line-height: 1.5; color: #334155;">
+                    <p>Los siguientes artículos tienen control de vencimiento obligatorio y no tienen fecha asignada:</p>
+                    <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; padding: 10px; margin: 10px 0; color: #991b1b; max-height: 160px; overflow-y: auto;">
+                        ${listaNombres}
+                    </div>
+                    <p style="font-weight: 600; color: #0f172a;">Por favor asigne las fechas para poder finalizar el checklist.</p>
+                </div>
+            `,
+            confirmButtonText: 'Corregir ahora',
+            customClass: { popup: 'swal-venc-modal' }
+        }).then(() => {
+            const first = missingVenc[0];
+            if (first && first.row) {
+                const details = first.row.closest('details');
+                if (details) details.open = true;
+                first.row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                first.row.style.transition = 'background-color 0.5s';
+                first.row.style.backgroundColor = '#fee2e2';
+                setTimeout(() => { first.row.style.backgroundColor = ''; }, 3000);
+                setTimeout(() => { promptEditVenc(first.field, first.nombre, first.cantReq); }, 400);
+            }
+        });
+        return false;
+    }
+
+    e.preventDefault();
+    const form = e.target.closest('form') || document.querySelector('.pwa-offline-form') || document.querySelector('form');
+    Swal.fire({
+        title: '¿Finalizar Checklist Avanzada?',
+        text: 'Una vez finalizado el checklist no podrá ser editado. ¿Está seguro de guardar y finalizar?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, Finalizar',
+        cancelButtonText: 'Continuar revisando',
+        confirmButtonColor: '#10b981',
+        cancelButtonColor: '#6b7280',
+        customClass: { popup: 'swal2-custom-popup' }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            let h = form.querySelector('input[type="hidden"][name="accion"]');
+            if (!h) {
+                h = document.createElement('input');
+                h.type = 'hidden';
+                h.name = 'accion';
+                form.appendChild(h);
+            }
+            h.value = 'finalizar';
+            form.submit();
+        }
+    });
+    return false;
 }
 </script>
 {% endblock %}

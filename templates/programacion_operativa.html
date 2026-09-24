@@ -1124,7 +1124,7 @@
         // Ejecutar toggle para ajustar layout
         toggleForm();
         
-        const integrantesJson = '{{ integrantes_a_editar|safe }}';
+        const integrantesJson = {{ integrantes_a_editar|tojson }};
         if (integrantesJson) {
             const integrantes = JSON.parse(integrantesJson);
             
