@@ -67,7 +67,7 @@ def register_routes(app):
                 if file and file.filename != '':
                     if not validar_upload_imagen(file):
                         flash("La evidencia debe ser una imagen PNG, JPG, GIF o WEBP de máximo 5 MB.", "error")
-                        return redirect(url_for("preoperacional"))
+                        return redirect(url_for("form_preoperacional"))
                     filename = secure_filename(file.filename)
                     unique_filename = f"{uuid.uuid4().hex}_{filename}"
                     file_path = os.path.join(upload_folder, unique_filename)
