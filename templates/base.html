@@ -108,6 +108,12 @@
             padding: 0;
         }
 
+        html,
+        body {
+            max-width: 100%;
+            overflow-x: clip;
+        }
+
         body {
             font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
             background: var(--bg);
@@ -761,8 +767,11 @@
             }
 
             .container {
-                margin: 12px;
-                padding: 18px 16px;
+                margin: 10px auto;
+                width: calc(100% - 16px);
+                max-width: calc(100% - 16px);
+                padding: 16px 12px;
+                box-sizing: border-box;
             }
 
             .navbar {

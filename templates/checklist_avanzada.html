@@ -89,8 +89,21 @@
 .check-table tbody td { padding: 0; border: 1px solid #f1f5f9; }
 .check-row { display: flex; align-items: center; padding: 8px 14px; gap: 12px; transition: background 0.1s; flex-wrap: wrap; }
 .check-row:hover { background: #f0f7ff; }
-.item-name { flex: 1; font-size: 13px; font-weight: 500; color: #374151; min-width: 150px; }
-.radio-trio { display: flex; gap: 4px; }
+.item-info-col { flex: 1; min-width: 0; width: 100%; }
+.item-title-row { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; width: 100%; min-width: 0; }
+.item-name {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: #1e293b;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    white-space: normal;
+    line-height: 1.4;
+    min-width: 0;
+}
+.item-meta-row { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.item-cant-req { font-size: 11px; color: #64748b; font-weight: normal; white-space: nowrap; }
+.radio-trio { display: flex; gap: 4px; flex-shrink: 0; }
 .radio-trio input[type="radio"] { display: none; }
 .radio-trio label { padding: 4px 11px; border-radius: 5px; font-size: 11px; font-weight: 700; cursor: pointer; border: 1.5px solid; transition: all 0.12s; margin: 0; user-select: none; }
 .ri-si label { border-color: #bbf7d0; color: #166534; background: #f0fdf4; }
@@ -194,13 +207,43 @@
     .check-table thead { display: none; }
     .check-table, .check-table tbody, .check-table tr, .check-table td { display: block; width: 100%; box-sizing: border-box; }
     .check-table tbody tr { border: 1px solid #e2e8f0; margin-bottom: 8px; border-radius: 8px; overflow: hidden; background: #fff; padding-bottom: 0; }
-    .check-table tbody td { border: none !important; padding: 0 !important; }
-    .check-row { display: flex; flex-direction: column; align-items: stretch !important; gap: 10px; padding: 12px; }
-    .item-name { margin-bottom: 2px; width: 100%; text-align: left; font-weight: 700; color: #1e293b; font-size: 14px; }
+    .check-table tbody td { border: none !important; padding: 0 !important; width: 100%; box-sizing: border-box; }
+    .check-row { display: flex; flex-direction: column; align-items: stretch !important; gap: 10px; padding: 12px; width: 100%; box-sizing: border-box; }
+    .item-info-col { width: 100% !important; min-width: 0 !important; flex: none !important; }
+    .item-title-row {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 4px !important;
+        width: 100% !important;
+        min-width: 0 !important;
+    }
+    .item-name {
+        display: block !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        text-align: left;
+        font-weight: 700;
+        color: #0f172a;
+        font-size: 14px;
+        line-height: 1.35;
+        word-break: break-word !important;
+        overflow-wrap: anywhere !important;
+        white-space: normal !important;
+        margin-bottom: 2px;
+    }
+    .item-meta-row {
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+        flex-wrap: wrap !important;
+        width: 100% !important;
+    }
     .radio-trio { display: flex; flex-direction: row; justify-content: space-between; width: 100%; gap: 6px; }
     .radio-trio > div { flex: 1; text-align: center; }
     .radio-trio label { display: block; width: 100%; padding: 10px 0; font-size: 13px; border-radius: 6px; text-align: center; box-sizing: border-box; min-height: 40px; line-height: 20px; }
-    .obs-item-row { padding: 0 12px 12px 12px; margin-bottom: 0; }
+    .obs-item-row { padding: 0 12px 12px 12px; margin-bottom: 0; width: 100%; box-sizing: border-box; }
     
     .submit-row { flex-direction: column-reverse !important; width: 100% !important; }
     .submit-row a, .submit-row button { width: 100% !important; justify-content: center !important; height: 44px !important; }
@@ -496,15 +539,17 @@
             <input type="hidden" name="cant_actual_{{ field }}" id="cant_actual_{{ field }}" value="{{ cant_actual_exist }}">
             <input type="hidden" name="tipo_incumplimiento_{{ field }}" id="tipo_incumplimiento_{{ field }}" value="{{ tipo_inc_exist }}">
             <div class="check-row" style="align-items: flex-start;">
-                <div style="flex: 1;">
-                    <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-                        <span class="item-name" style="flex: none;">{{ item.nombre }}</span>
-                        {% if item.cantidad is not none %}
-                            <span style="font-size: 11px; color: #64748b; font-weight: normal;">(Cant req: {{ item.cantidad }})</span>
-                        {% endif %}
-                        {% if aplica_venc %}
-                            <span class="venc-badge-trigger" onclick="abrirVencimientoItem('{{ field }}')" title="Clic para gestionar fecha de vencimiento" style="font-size: 10px; background: #e0f2fe; color: #0369a1; padding: 2px 6px; border-radius: 4px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 3px; border: 1px solid #bae6fd;">📅 Vencimiento</span>
-                        {% endif %}
+                <div class="item-info-col" style="flex: 1; min-width: 0; width: 100%;">
+                    <div class="item-title-row">
+                        <span class="item-name">{{ item.nombre }}</span>
+                        <div class="item-meta-row">
+                            {% if item.cantidad is not none %}
+                                <span class="item-cant-req">(Cant req: {{ item.cantidad }})</span>
+                            {% endif %}
+                            {% if aplica_venc %}
+                                <span class="venc-badge-trigger" onclick="abrirVencimientoItem('{{ field }}')" title="Clic para gestionar fecha de vencimiento" style="font-size: 10px; background: #e0f2fe; color: #0369a1; padding: 2px 6px; border-radius: 4px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 3px; border: 1px solid #bae6fd;">📅 Vencimiento</span>
+                            {% endif %}
+                        </div>
                     </div>
                     <div id="badge_info_{{ field }}" style="margin-top: 5px;"></div>
                 </div>
@@ -739,8 +784,11 @@ function updateBadgeInfo(field) {
                     </span>
                 `;
             }
+            const editFn = (row && row.getAttribute('data-aplica-venc') === '1')
+                ? `promptEditVenc('${field}', '${fieldNombre.replace(/'/g, "\\'")}', ${cantReq})`
+                : `reabrirModalNo('${field}')`;
             html += `
-                    <button type="button" onclick="reabrirModalNo('${field}')" style="background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 4px; padding: 2px 6px; font-size: 10px; cursor: pointer; color: #475569;" title="Modificar reporte">✏️ Modificar</button>
+                    <button type="button" onclick="${editFn}" style="background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 4px; padding: 2px 6px; font-size: 10px; cursor: pointer; color: #475569;" title="Modificar reporte">✏️ Modificar</button>
                 </div>
             `;
         } else if (tipoInc === 'total') {
@@ -839,12 +887,17 @@ function promptEditVenc(field, nombre, cantTotal) {
                         balCard.style.background = '#f0fdf4';
                         balCard.style.borderColor = '#86efac';
                         balCard.style.color = '#15803d';
-                        balText.innerHTML = `✓ ${sum} de ${cantTotal} unids asignadas (Completo)`;
-                    } else if (sum < cantTotal) {
+                        balText.innerHTML = `✓ ${sum} de ${cantTotal} unids asignadas (Completo - Marcará Cumple)`;
+                    } else if (sum < cantTotal && sum > 0) {
                         balCard.style.background = '#fffbeb';
                         balCard.style.borderColor = '#fde68a';
                         balCard.style.color = '#b45309';
-                        balText.innerHTML = `⚠️ ${sum} de ${cantTotal} unids (Faltan ${cantTotal - sum})`;
+                        balText.innerHTML = `⚠️ ${sum} de ${cantTotal} unids (Incompleto - Marcará Incumple Parcial, faltan ${cantTotal - sum})`;
+                    } else if (sum === 0) {
+                        balCard.style.background = '#f8fafc';
+                        balCard.style.borderColor = '#cbd5e1';
+                        balCard.style.color = '#64748b';
+                        balText.innerHTML = `0 de ${cantTotal} unids`;
                     } else {
                         balCard.style.background = '#fef2f2';
                         balCard.style.borderColor = '#fecaca';
@@ -919,8 +972,12 @@ function promptEditVenc(field, nombre, cantTotal) {
                 resEntries.push({ cant: cantVal, fecha: fechaVal });
             }
 
-            if (cantTotal > 1 && sum !== cantTotal) {
-                Swal.showValidationMessage(`La suma de cantidades (${sum}) debe coincidir con el total requerido (${cantTotal}).`);
+            if (sum > cantTotal) {
+                Swal.showValidationMessage(`La suma de cantidades (${sum}) no puede superar el total requerido (${cantTotal}).`);
+                return false;
+            }
+            if (sum < 1) {
+                Swal.showValidationMessage(`Debe registrar al menos 1 unidad con fecha de vencimiento.`);
                 return false;
             }
 
@@ -928,7 +985,63 @@ function promptEditVenc(field, nombre, cantTotal) {
         }
     }).then(res => {
         if (res.isConfirmed && res.value) {
-            setFieldVencimiento(field, JSON.stringify(res.value));
+            const resEntries = res.value;
+            let sum = 0;
+            resEntries.forEach(e => { sum += parseInt(e.cant, 10) || 0; });
+            
+            setFieldVencimiento(field, JSON.stringify(resEntries));
+
+            if (sum === cantTotal) {
+                const radioSi = document.getElementById('avanzada_' + field + '_si');
+                if (radioSi) radioSi.checked = true;
+                document.getElementById('cant_actual_' + field).value = cantTotal;
+                document.getElementById('tipo_incumplimiento_' + field).value = '';
+                
+                const obsRow = document.getElementById('obs_row_' + field);
+                if (obsRow) obsRow.style.display = 'none';
+                const obsInput = document.getElementById('obs_' + field);
+                if (obsInput) {
+                    obsInput.required = false;
+                    obsInput.value = '';
+                }
+                
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Completo: Cumple',
+                    text: `Se verificaron las ${cantTotal} unidades. Marcado como Cumple.`,
+                    toast: true,
+                    position: 'top-end',
+                    timer: 2500,
+                    showConfirmButton: false
+                });
+            } else if (sum < cantTotal && sum > 0) {
+                const radioNo = document.getElementById('avanzada_' + field + '_no');
+                if (radioNo) radioNo.checked = true;
+                document.getElementById('cant_actual_' + field).value = sum;
+                document.getElementById('tipo_incumplimiento_' + field).value = 'parcial';
+                
+                const obsRow = document.getElementById('obs_row_' + field);
+                if (obsRow) obsRow.style.display = 'block';
+                const obsInput = document.getElementById('obs_' + field);
+                if (obsInput) {
+                    obsInput.required = true;
+                    if (!obsInput.value.trim()) {
+                        obsInput.value = `Faltan ${cantTotal - sum} unidad(es) de ${cantTotal} requeridas.`;
+                    }
+                }
+                
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Incompleto: Incumple Parcial',
+                    text: `Se registraron ${sum} de ${cantTotal} unidades. Marcado como No Cumple (Parcial).`,
+                    toast: true,
+                    position: 'top-end',
+                    timer: 3000,
+                    showConfirmButton: false
+                });
+            }
+
+            updateBadgeInfo(field);
             recalcBadges();
             triggerAutosaveAvanzada();
         } else {
@@ -979,8 +1092,10 @@ function handleRadioChange(radio) {
         if (aplicaVenc) {
             const currentVenc = document.getElementById('vencimiento_' + field)?.value;
             const entries = parseVencEntries(currentVenc, cantReq);
+            let sumVenc = 0;
+            entries.forEach(e => { sumVenc += parseInt(e.cant, 10) || 0; });
 
-            if (entries.length === 0) {
+            if (entries.length === 0 || (cantReq > 1 && sumVenc < cantReq)) {
                 promptEditVenc(field, nombre, cantReq);
             } else {
                 updateBadgeInfo(field);
@@ -1312,24 +1427,7 @@ function abrirVencimientoItem(field) {
     if (!row) return;
     const nombre = row.getAttribute('data-nombre');
     const cantReq = parseInt(row.getAttribute('data-cantidad'), 10) || 1;
-    const aplicaVenc = row.getAttribute('data-aplica-venc') === '1';
-    const radioSi = document.getElementById('avanzada_' + field + '_si');
-    const radioNo = document.getElementById('avanzada_' + field + '_no');
-
-    if (radioNo && radioNo.checked) {
-        abrirModalIncumplimiento(field, nombre, cantReq, aplicaVenc);
-    } else {
-        if (radioSi && !radioSi.checked) {
-            radioSi.checked = true;
-            document.getElementById('cant_actual_' + field).value = cantReq;
-            document.getElementById('tipo_incumplimiento_' + field).value = '';
-            const obsRow = document.getElementById('obs_row_' + field);
-            if (obsRow) obsRow.style.display = 'none';
-            const obsInput = document.getElementById('obs_' + field);
-            if (obsInput) { obsInput.required = false; obsInput.value = ''; }
-        }
-        promptEditVenc(field, nombre, cantReq);
-    }
+    promptEditVenc(field, nombre, cantReq);
 }
 
 // ── Entregas Pendientes Traslados Filter & Actions ─────
