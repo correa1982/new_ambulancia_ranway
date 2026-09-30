@@ -1,0 +1,331 @@
+{% extends "base.html" %}
+{% block title %}Reporte de Gasto #{{ record.id }} – {{ record.nombre_evento }}{% endblock %}
+{% block content %}
+
+<!-- html2pdf.js para descarga en PDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<style>
+.detail-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    padding-bottom: 14px;
+    border-bottom: 2px solid #fee2e2;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 38px;
+    padding: 0 16px;
+    border-radius: 7px;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    border: none;
+    transition: opacity 0.2s;
+}
+.action-btn-back { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
+.action-btn-primary { background: #dc2626; color: white; }
+.action-btn:hover { opacity: 0.9; }
+
+/* Documento imprimible */
+#gasto-doc {
+    background: white;
+    padding: 24px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.doc-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 3px solid #dc2626;
+    padding-bottom: 16px;
+    margin-bottom: 20px;
+}
+.doc-logo img { max-height: 100px; max-width: 260px; object-fit: contain; }
+.doc-inst { text-align: right; }
+.doc-inst .inst-name { font-size: 15px; font-weight: 800; color: #1e3a5f; }
+.doc-inst .inst-sub { font-size: 11px; color: #64748b; margin-top: 2px; }
+
+.doc-title-band {
+    background: linear-gradient(135deg, #dc2626, #991b1b);
+    color: white;
+    border-radius: 8px;
+    padding: 14px 20px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.doc-title-band .dt-main { font-size: 16px; font-weight: 800; }
+.doc-title-band .dt-num { font-size: 12px; font-weight: 600; opacity: 0.9; }
+
+/* Tabla formal de datos */
+.formal-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+    font-size: 12px;
+}
+.formal-table td {
+    padding: 8px 12px;
+    border: 1px solid #cbd5e1;
+}
+.formal-table .lbl {
+    background: #f8fafc;
+    font-weight: 700;
+    color: #475569;
+    width: 22%;
+    text-transform: uppercase;
+    font-size: 10.5px;
+    letter-spacing: 0.5px;
+}
+.formal-table .val {
+    color: #0f172a;
+    font-weight: 600;
+}
+
+/* Tabla de artículos */
+.result-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+    font-size: 12px;
+}
+.result-table th {
+    background: linear-gradient(135deg, #fee2e2, #fecaca);
+    color: #991b1b;
+    font-size: 10px;
+    text-transform: uppercase;
+    padding: 9px 12px;
+    border: 1px solid #e2e8f0;
+    text-align: left;
+    font-weight: 800;
+}
+.result-table td {
+    padding: 8px 12px;
+    border: 1px solid #f1f5f9;
+}
+.result-table tr:hover td { background: #fff5f5; }
+
+.badge-cant {
+    background: #fee2e2;
+    color: #991b1b;
+    font-weight: 800;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    display: inline-block;
+}
+
+.firma-box {
+    text-align: center;
+    margin-top: 25px;
+    padding: 16px;
+    border-top: 2px solid #e2e8f0;
+}
+.firma-box img { max-height: 75px; margin-bottom: 6px; }
+.firma-box .firma-name { font-weight: 700; font-size: 13px; color: #1e3a5f; }
+.firma-box .firma-meta { font-size: 11px; color: #64748b; }
+
+@media print {
+    .no-print { display: none !important; }
+    body { background: white !important; }
+    #gasto-doc { border: none !important; padding: 0 !important; }
+}
+</style>
+
+<div class="detail-header no-print">
+    <h1 style="margin:0; font-size:20px; color:#0f172a;">
+        🧾 Reporte de Gasto #{{ record.id }} – {{ record.nombre_evento }}
+    </h1>
+    <div style="display:flex; gap:8px;">
+        <a href="{{ url_for('registros_reporte_gasto') }}" class="action-btn action-btn-back">
+            ← Volver a Registros
+        </a>
+        <button onclick="descargarPDF()" id="btn-pdf" class="action-btn action-btn-primary">
+            📥 Descargar PDF
+        </button>
+    </div>
+</div>
+
+<div id="gasto-doc">
+
+    <!-- ── Encabezado institucional ── -->
+    <div class="doc-header">
+        <div class="doc-logo">
+            {% if cfg.get('logo') %}
+            <img src="{{ cfg.logo }}" alt="Logo" crossorigin="anonymous">
+            {% else %}
+            <div style="font-weight:bold; color:#64748b;">Institución</div>
+            {% endif %}
+        </div>
+        <div class="doc-inst">
+            <div class="inst-name">{{ cfg.get('nombre_institucion','Institución sin configurar') }}</div>
+            {% if cfg.get('nit') %}
+            <div class="inst-sub">NIT: {{ cfg.nit }}</div>
+            {% endif %}
+            {% if cfg.get('habilitacion') %}
+            <div class="inst-sub">{{ cfg.habilitacion|format_habilitacion }}</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- ── Franja de título ── -->
+    <div class="doc-title-band">
+        <div>
+            <div class="dt-main">Reporte de Gasto de Insumos y Medicamentos</div>
+            <div class="dt-num">Registro N° {{ record.id }} · Creado: {{ record.fecha_registro }}</div>
+        </div>
+        <div style="text-align:right;">
+            <span style="background:rgba(255,255,255,0.2); padding:4px 10px; border-radius:6px; font-weight:700; font-size:12px;">
+                {{ record.tipo_origen }} – {{ record.identificador_origen }}
+            </span>
+        </div>
+    </div>
+
+    <!-- ── Tabla formal de datos generales ── -->
+    <table class="formal-table">
+        <tbody>
+            <tr>
+                <td class="lbl">Fecha del Gasto</td>
+                <td class="val">{{ record.fecha }}</td>
+                <td class="lbl">Nombre del Evento</td>
+                <td class="val" style="color:#b91c1c; font-size:13px;">{{ record.nombre_evento }}</td>
+            </tr>
+            <tr>
+                <td class="lbl">Tipo de Origen</td>
+                <td class="val">
+                    {% if record.tipo_origen == 'PASM' %}Puesto Asistencial Medicalizado (PASM)
+                    {% elif record.tipo_origen == 'PASB' %}Puesto Asistencial Básico (PASB)
+                    {% elif record.tipo_origen == 'TAM' %}Ambulancia Medicalizada (TAM)
+                    {% elif record.tipo_origen == 'TAB' %}Ambulancia Básica (TAB)
+                    {% else %}{{ record.tipo_origen }}{% endif %}
+                </td>
+                <td class="lbl">Unidad / Móvil</td>
+                <td class="val" style="font-size:13px; color:#1e40af;"><strong>{{ record.identificador_origen }}</strong></td>
+            </tr>
+            <tr>
+                <td class="lbl">Registrado por</td>
+                <td class="val">{{ record.registrado_por }}</td>
+                <td class="lbl">Fecha de Registro</td>
+                <td class="val">{{ record.fecha_registro }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- ── Detalle de Artículos Utilizados ── -->
+    <div style="margin: 20px 0 10px; font-size: 13px; font-weight: 800; color: #991b1b; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #fee2e2; padding-bottom: 6px;">
+        💊 Artículos e Insumos Gastados ({{ articulos|length }})
+    </div>
+
+    <table class="result-table">
+        <thead>
+            <tr>
+                <th style="width: 5%; text-align:center;">#</th>
+                <th style="width: 45%;">Artículo Utilizado</th>
+                <th style="width: 20%;">Categoría</th>
+                <th style="width: 15%; text-align:center;">Cantidad Gastada</th>
+                <th style="width: 15%;">Detalle / Novedad</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% set total_unidades = namespace(val=0) %}
+            {% for item in articulos %}
+            {% set total_unidades.val = total_unidades.val + item.cantidad %}
+            <tr>
+                <td style="text-align:center; color:#94a3b8; font-weight:700;">{{ loop.index }}</td>
+                <td><strong>{{ item.nombre }}</strong></td>
+                <td><span style="color:#64748b; font-size:11px;">{{ item.categoria or 'General' }}</span></td>
+                <td style="text-align:center;">
+                    <span class="badge-cant">{{ item.cantidad }} unids</span>
+                </td>
+                <td style="color:#475569; font-size:11px;">{{ item.observacion or '—' }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="5" style="text-align:center; color:#94a3b8; padding:15px;">No hay artículos registrados.</td>
+            </tr>
+            {% endfor %}
+            <tr style="background:#f8fafc; font-weight:700;">
+                <td colspan="3" style="text-align:right; text-transform:uppercase; font-size:11px; color:#475569;">Total Unidades Gastadas:</td>
+                <td style="text-align:center; color:#b91c1c; font-size:13px;">{{ total_unidades.val }} unids</td>
+                <td></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- ── Observaciones Generales ── -->
+    {% if record.observaciones %}
+    <div style="background:#fff5f5; border:1px solid #fecaca; border-radius:8px; padding:12px 16px; margin:20px 0; font-size:12px;">
+        <strong style="color:#991b1b;">Observaciones Generales:</strong>
+        <p style="margin:4px 0 0; color:#475569;">{{ record.observaciones }}</p>
+    </div>
+    {% endif %}
+
+    <!-- ── Firma del Registrador ── -->
+    <div class="firma-box">
+        {% if record.firma_registrador %}
+        <img src="{{ record.firma_registrador }}" alt="Firma">
+        {% endif %}
+        <div class="firma-name">{{ record.registrado_por }}</div>
+        <div class="firma-meta">{{ record.perfil_registrador or 'Personal Operativo' }} · CC: {{ record.registrado_por_identificacion }}</div>
+    </div>
+
+</div>
+
+<script>
+function descargarPDF() {
+    const btn = document.getElementById('btn-pdf');
+    btn.textContent = '⏳ Generando...';
+    btn.disabled = true;
+
+    const opt = {
+        margin: [6, 6, 6, 6],
+        filename: "Reporte_Gasto_{{ record.id }}_{{ record.tipo_origen }}_{{ record.identificador_origen|replace(' ','_') }}.pdf",
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 3, useCORS: true, allowTaint: true, logging: false },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak: { mode: ['css', 'legacy'] }
+    };
+
+    const doc = document.getElementById('gasto-doc');
+    
+    const tempContainer = document.createElement('div');
+    tempContainer.style.position = 'absolute';
+    tempContainer.style.left = '-9999px';
+    tempContainer.style.top = window.scrollY + 'px';
+    tempContainer.style.width = '800px';
+    tempContainer.style.background = 'white';
+
+    const clone = doc.cloneNode(true);
+    tempContainer.appendChild(clone);
+    document.body.appendChild(tempContainer);
+
+    html2pdf().set(opt).from(clone).save()
+        .then(() => {
+            document.body.removeChild(tempContainer);
+            btn.textContent = '📥 Descargar PDF';
+            btn.disabled = false;
+        })
+        .catch(e => {
+            console.error(e);
+            document.body.removeChild(tempContainer);
+            btn.textContent = '📥 Descargar PDF';
+            btn.disabled = false;
+        });
+}
+</script>
+
+{% endblock %}

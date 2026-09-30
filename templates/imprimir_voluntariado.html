@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Registro Voluntariado #{{ registro.id }}</title>
+    <style>
+        /* ── Tamaño media carta vertical ── */
+        @page {
+            size: 140mm 216mm portrait;
+            margin: 10mm 12mm 12mm 12mm;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 10px;
+            margin: 0 auto;
+            padding: 16px 20px;
+            color: #000;
+            width: 140mm;
+            min-height: 216mm;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        .contenido { position: relative; }
+
+        /* ── Encabezado institucional ── */
+        .inst-header { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+        .inst-header td { border: 1px solid #333; padding: 6px; vertical-align: middle; }
+        .logo { max-height: 52px; max-width: 80px; }
+        .titulo-doc {
+            font-size: 10px; font-weight: bold; text-transform: uppercase;
+            text-align: center; line-height: 1.4;
+        }
+        .header-meta { font-size: 8px; text-align: left; line-height: 1.6; }
+
+        /* ── Secciones ── */
+        .sec-title {
+            font-size: 9px; font-weight: bold;
+            background: #e8e8e8; border: 1px solid #333;
+            padding: 3px 6px; text-align: center;
+            margin-top: 8px; margin-bottom: 0;
+            text-transform: uppercase; letter-spacing: .03em;
+        }
+
+        /* ── Tabla de datos ── */
+        .data-table { width: 100%; border-collapse: collapse; }
+        .data-table th, .data-table td { border: 1px solid #444; padding: 4px 6px; }
+        .data-table th {
+            background: #f2f2f2; font-size: 8.5px; font-weight: bold;
+            width: 28%; color: #1a5276; text-align: left;
+        }
+        .data-table td { font-size: 9px; }
+        .text-center { text-align: center !important; }
+
+        /* ── Firmas ── */
+        .firma-wrap { width: 100%; display: table; margin-top: 18px; }
+        .firma-col {
+            display: table-cell; width: 50%; text-align: center;
+            padding: 10px 8px 6px;
+            vertical-align: bottom;
+            position: relative;
+        }
+        /* Marca de agua fija centrada para el documento */
+        .document-watermark {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 260px;
+            height: 260px;
+            opacity: 0.08;
+            pointer-events: none;
+            z-index: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .document-watermark img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        /* Marca de agua como <img> para que se imprima siempre */
+        .firma-marca {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80px; height: 80px;
+            opacity: 0.18;
+            pointer-events: none;
+            object-fit: contain;
+            z-index: 1;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+        .firma-img   { max-height: 55px; max-width: 110px; display: block; margin: 0 auto 2px; position: relative; z-index: 2; }
+        .firma-line  { border-top: 1px solid #333; padding-top: 4px; margin-top: 4px; position: relative; z-index: 2; }
+        .firma-line strong { font-size: 8px; display: block; }
+        .firma-line span   { font-size: 8px; color: #333; display: block; }
+        .firma-pending { color: #aaa; font-style: italic; font-size: 8px; height: 55px;
+                         display: flex; align-items: flex-end; justify-content: center;
+                         position: relative; z-index: 2; }
+
+        /* ── Botón no-imprimible ── */
+        .no-print { margin-bottom: 14px; }
+        @media print {
+            .no-print { display: none !important; }
+            body { padding: 0; }
+            img { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            .document-watermark {
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                width: 260px;
+                height: 260px;
+                opacity: 0.08 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            .firma-marca {
+                opacity: 0.18 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+        }
+    </style>
+</head>
+<body onload="window.print()">
+
+    <!-- Resolver variables de logo y marca de agua -->
+    {% set logo_path = (cfg.get('logo') if cfg else None) or (cfg.get('logo_url') if cfg else None) or (institucion.logo if institucion is defined else None) %}
+    {% set tiene_marca = (cfg.get('marca_agua') if cfg else None) or (institucion.marca_agua if institucion is defined else None) %}
+    {% set nombre_inst = (cfg.get('nombre_institucion') if cfg else None) or (institucion.nombre_institucion if institucion is defined else 'CORPORACIÓN SOCORRISTAS GRUPO DE APOYO') %}
+
+    <div class="no-print">
+        <button onclick="window.close()"
+                style="padding:8px 16px;background:#6c757d;color:white;border:none;border-radius:6px;cursor:pointer;font-size:12px;">
+            ← Cerrar y Volver
+        </button>
+    </div>
+
+    <!-- Marca de agua central del documento -->
+    {% if tiene_marca %}
+    <div class="document-watermark">
+        <img src="{{ tiene_marca }}" alt="">
+    </div>
+    {% endif %}
+
+    <div class="contenido">
+
+        {# ── Encabezado institucional ── #}
+        <table class="inst-header">
+            <tr>
+                <td style="width:18%; text-align:center;">
+                    {% if logo_path %}
+                        <img src="{{ logo_path }}" class="logo" alt="Logo">
+                    {% else %}
+                        <span style="font-size:8px;color:#888;">Sin Logo</span>
+                    {% endif %}
+                </td>
+                <td style="width:58%;" class="titulo-doc">
+                    FORMATO DE REGISTRO MENSUAL<br>DE HORAS DE VOLUNTARIADO<br>
+                    <span style="font-size:8.5px;font-weight:normal;">
+                        {{ nombre_inst }}
+                    </span>
+                </td>
+                <td style="width:24%;" class="header-meta">
+                    <strong>Ref. Normativa:</strong><br>
+                    • Ley 1575 de 2012<br>
+                    • Ley 1523 de 2012<br>
+                    <strong>Fecha:</strong>
+                    {{ registro.fecha_registro.split(' ')[0] if registro.fecha_registro else '' }}
+                </td>
+            </tr>
+        </table>
+
+        {# ── Detalles del registro ── #}
+        <div class="sec-title">Detalles del Registro</div>
+        <table class="data-table">
+            <tr>
+                <th>Fecha</th>
+                <td>{{ registro.fecha }}</td>
+                <th>Disponibilidad</th>
+                <td>{{ registro.disponibilidad }}{% if registro.disponibilidad == 'OTRO' %} ({{ registro.disponibilidad_otro }}){% endif %}</td>
+            </tr>
+            <tr>
+                <th>Hora Inicio</th>
+                <td>{{ registro.hora_inicio }}</td>
+                <th>Hora Fin</th>
+                <td>{{ registro.hora_fin }}</td>
+            </tr>
+            <tr>
+                <th>Total Horas</th>
+                <td colspan="3" class="text-center" style="font-weight:bold;font-size:11px;">{{ registro.total_horas }}</td>
+            </tr>
+            <tr>
+                <th>Actividad Realizada</th>
+                <td colspan="3">{{ registro.actividad_realizada }}</td>
+            </tr>
+        </table>
+
+        {# ── Observaciones ── #}
+        <div class="sec-title">Observaciones</div>
+        <table class="data-table">
+            <tr>
+                <td style="padding:6px 8px;">{{ registro.observaciones if registro.observaciones else 'Ninguna' }}</td>
+            </tr>
+        </table>
+
+        {# ── Firmas ── #}
+        {% set tiene_marca = cfg and cfg.marca_agua %}
+        <div class="firma-wrap">
+
+            {# Firma del voluntario (registrador) #}
+            <div class="firma-col">
+                {% if tiene_marca %}<img src="{{ cfg.marca_agua }}" class="firma-marca" alt="">{% endif %}
+                {% if firma_registrador %}
+                    <img src="{{ firma_registrador }}" class="firma-img" alt="Firma Voluntario">
+                {% else %}
+                    <div style="height:55px;"></div>
+                {% endif %}
+                <div class="firma-line">
+                    <strong>VOLUNTARIO RESPONSABLE</strong>
+                    <span>{{ registro.registrado_por }}</span>
+                    {% if registro.registrado_por_identificacion %}
+                    <span>CC: {{ registro.registrado_por_identificacion }}</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            {# Firma del avalador #}
+            <div class="firma-col">
+                {% if tiene_marca %}<img src="{{ cfg.marca_agua }}" class="firma-marca" alt="">{% endif %}
+                {% if registro.estado == 'Avalado' and firma_avalador %}
+                    <img src="{{ firma_avalador }}" class="firma-img" alt="Firma Avalador">
+                {% elif registro.estado != 'Avalado' %}
+                    <div class="firma-pending">(Pendiente de Aval)</div>
+                {% else %}
+                    <div style="height:55px;"></div>
+                {% endif %}
+                <div class="firma-line">
+                    <strong>VoBo. ADMIN. VOLUNTARIADO</strong>
+                    {% if registro.estado == 'Avalado' %}
+                        <span>{{ registro.avalado_por }}</span>
+                        {% if registro.avalado_por_identificacion %}
+                        <span>CC: {{ registro.avalado_por_identificacion }}</span>
+                        {% endif %}
+                    {% else %}
+                        <span>&nbsp;</span><span>&nbsp;</span>
+                    {% endif %}
+                </div>
+            </div>
+
+        </div>{# /firma-wrap #}
+
+    </div>{# /contenido #}
+
+</body>
+</html>
+
+

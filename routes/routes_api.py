@@ -213,9 +213,29 @@ def register_routes(app, CIE10_DATA):
                 if not isinstance(perfiles, list):
                     perfiles = [str(perfiles)]
             except (Exception,):
-                perfiles = []
+                perfiles = [str(r["perfil"])] if r.get("perfil") else []
+
             for p in perfiles:
-                if cargo_norm in strip_accents(str(p)):
+                p_norm = strip_accents(str(p))
+                if not p_norm:
+                    continue
+                match = False
+                if cargo_norm in ("enfermero", "enfermera", "enfermeria"):
+                    match = ("enfermer" in p_norm) and ("auxiliar" not in p_norm)
+                elif "auxiliar" in cargo_norm:
+                    match = "auxiliar" in p_norm
+                elif "aph" in cargo_norm:
+                    match = "aph" in p_norm
+                elif "socorrista" in cargo_norm:
+                    match = "socorrista" in p_norm
+                elif "medic" in cargo_norm:
+                    match = "medic" in p_norm
+                elif "conductor" in cargo_norm:
+                    match = "conductor" in p_norm
+                else:
+                    match = (cargo_norm in p_norm) or (p_norm in cargo_norm)
+
+                if match:
                     result.append({
                         "nombre": r["nombre"],
                         "identificacion": r["identificacion"]

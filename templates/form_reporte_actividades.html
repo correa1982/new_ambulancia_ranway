@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+{% block title %}Reporte de Actividades{% endblock %}
+{% block content %}
+<div class="container mt-4 mb-5">
+    {% if es_admin_vol %}
+    <div style="display: flex; justify-content: flex-end; margin-bottom: 12px;">
+        <a href="{{ url_for('estadisticas_reporte') }}"
+           style="display:inline-flex; align-items:center; gap:7px; background:linear-gradient(135deg,#0d6efd,#0a58ca); color:white; border:none; border-radius:10px; padding:9px 20px; font-weight:700; font-size:14px; text-decoration:none; box-shadow:0 3px 10px rgba(13,110,253,0.35); transition:all 0.2s;"
+           onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(13,110,253,0.45)';"
+           onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 3px 10px rgba(13,110,253,0.35)';">
+            <i class="ph ph-chart-bar" style="font-size:16px;"></i> Ver Estadísticas y Registros
+        </a>
+    </div>
+    {% endif %}
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">
+                <i class="ph ph-clipboard-text"></i> REPORTE DE ACTIVIDADES - CORPORACIÓN SOCORRISTAS GRUPO DE APOYO
+            </h4>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-info" role="alert">
+                <p class="mb-0 text-justify">
+                    <strong>Nota Importante:</strong> El siguiente formulario es implementado para el reporte oportuno de las actividades realizadas en cada uno de los eventos prestados por la institución, generando así una estadística oportuna y veraz para el manejo de la información. <br><br>
+                    Es de suma importancia su buen diligenciamiento para el oportuno manejo de la información.
+                </p>
+            </div>
+            
+            <form id="form-reporte" action="{{ url_for('form_reporte_actividades') }}" method="POST">
+                
+                <h5 class="text-primary mt-4 border-bottom pb-2">Información del Evento (OBLIGATORIA)</h5>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="nombre_evento" class="form-label fw-bold">Nombre del Evento <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="nombre_evento" name="nombre_evento" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="fecha_evento" class="form-label fw-bold">Fecha del Evento <span class="text-danger">*</span></label>
+                        <input type="date" class="form-control" id="fecha_evento" name="fecha_evento" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="lugar_evento" class="form-label fw-bold">Lugar del Evento (N° Comuna) <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="lugar_evento" name="lugar_evento" required>
+                    </div>
+                </div>
+
+                <div class="row g-3 mt-2">
+                    <div class="col-md-4">
+                        <label for="hora_inicio" class="form-label fw-bold">Hora de Inicio <span class="text-danger">*</span></label>
+                        <input type="time" class="form-control" id="hora_inicio" name="hora_inicio" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="hora_fin" class="form-label fw-bold">Hora de Finalización <span class="text-danger">*</span></label>
+                        <input type="time" class="form-control" id="hora_fin" name="hora_fin" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="tipo_servicio" class="form-label fw-bold">Tipo de Servicio Prestado <span class="text-danger">*</span></label>
+                        <select class="form-select" id="tipo_servicio" name="tipo_servicio" required>
+                            <option value="" disabled selected>Seleccione una opción...</option>
+                            <option value="EVENTO">EVENTO</option>
+                            <option value="DISPONIBILIDAD DE AMBULANCIA">DISPONIBILIDAD DE AMBULANCIA</option>
+                            <option value="DISPONIBILIDAD DE ACTIVIDAD DE SOCORRO">DISPONIBILIDAD DE ACTIVIDAD DE SOCORRO</option>
+                            <option value="CAPACITACIÓN">CAPACITACIÓN</option>
+                            <option value="SERVICIO SOCIAL Y HUMANITARIO">SERVICIO SOCIAL Y HUMANITARIO</option>
+                        </select>
+                    </div>
+                </div>
+
+                <h5 class="text-primary mt-5 border-bottom pb-2">Recursos Disponibles en el Servicio</h5>
+                <div class="alert alert-secondary" role="alert" style="font-size: 0.9rem;">
+                    <strong>Instrucciones:</strong> Diligenciar la cantidad por cada uno de los recursos. 
+                    <br><em>Nota:</em> Especificar en la casilla de observaciones las ocasiones en las cuales el recurso enviado haya personal adicional a lo habitual.
+                    <br><em>Ejemplo:</em> Una ambulancia básica acompañada de dos tripulantes adicionales.
+                </div>
+                
+                <div class="row g-3">
+                    <div class="col-md-3 col-6">
+                        <label for="ambulancia_tab" class="form-label">Ambulancia TAB</label>
+                        <input type="number" class="form-control" id="ambulancia_tab" name="ambulancia_tab" min="0" placeholder="0">
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <label for="ambulancia_tam" class="form-label">Ambulancia TAM</label>
+                        <input type="number" class="form-control" id="ambulancia_tam" name="ambulancia_tam" min="0" placeholder="0">
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <label for="pasm" class="form-label">PASM</label>
+                        <input type="number" class="form-control" id="pasm" name="pasm" min="0" placeholder="0">
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <label for="pasb" class="form-label">PASB</label>
+                        <input type="number" class="form-control" id="pasb" name="pasb" min="0" placeholder="0">
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <label for="equipos_intervencion" class="form-label">Equipos de Intervención</label>
+                        <input type="number" class="form-control" id="equipos_intervencion" name="equipos_intervencion" min="0" placeholder="0">
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <label for="moto_aph" class="form-label">Moto APH</label>
+                        <input type="number" class="form-control" id="moto_aph" name="moto_aph" min="0" placeholder="0">
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <label for="unidad_rescate" class="form-label">Unidad de Rescate</label>
+                        <input type="number" class="form-control" id="unidad_rescate" name="unidad_rescate" min="0" placeholder="0">
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <label for="unidad_logistica" class="form-label">Unidad Logística</label>
+                        <input type="number" class="form-control" id="unidad_logistica" name="unidad_logistica" min="0" placeholder="0">
+                    </div>
+                </div>
+
+                <h5 class="text-primary mt-5 border-bottom pb-2">Información Operativa</h5>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label for="total_personal" class="form-label fw-bold">Total Personal en Servicio <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" id="total_personal" name="total_personal" min="0" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="pacientes_atendidos" class="form-label fw-bold">Pacientes Atendidos <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" id="pacientes_atendidos" name="pacientes_atendidos" min="0" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="pacientes_trasladados" class="form-label fw-bold">Pacientes Trasladados <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" id="pacientes_trasladados" name="pacientes_trasladados" min="0" required>
+                    </div>
+                </div>
+
+                <div class="row g-3 mt-2">
+                    <div class="col-12">
+                        <label for="observaciones" class="form-label fw-bold">Observaciones o Novedades Presentadas (NO OBLIGATORIO)</label>
+                        <textarea class="form-control" id="observaciones" name="observaciones" rows="4" placeholder="Escriba aquí sus observaciones..."></textarea>
+                    </div>
+                </div>
+
+                <div class="mt-4 p-3 bg-light rounded text-center">
+                    <p class="mb-2 fw-bold text-muted">Responsable del Registro</p>
+                    <p class="mb-0" style="font-size: 1.1rem;">
+                        <i class="ph ph-user-circle"></i> <strong>{{ session.usuario.nombre }}</strong>
+                    </p>
+                    <p class="mb-0 text-muted" style="font-size: 0.9rem;">Al enviar este formulario, su firma electrónica quedará registrada como responsable de la información aquí suministrada.</p>
+                </div>
+
+                <div class="mt-4 d-grid gap-2 d-md-flex justify-content-md-end">
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-secondary me-md-2">
+                        <i class="ph ph-x-circle"></i> Cancelar
+                    </a>
+                    <button type="button" class="btn btn-primary" onclick="confirmarEnvio()">
+                        <i class="ph ph-floppy-disk"></i> Enviar Reporte
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function confirmarEnvio() {
+    Swal.fire({
+        title: '¿Confirmar Datos?',
+        text: '¿Confirma que los datos ingresados son correctos?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Sí, enviar',
+        cancelButtonText: 'Cancelar',
+        customClass: {
+            confirmButton: 'btn btn-primary px-4',
+            cancelButton: 'btn btn-secondary px-4 me-2'
+        },
+        buttonsStyling: false
+    }).then((result) => {
+        if (result.isConfirmed) {
+            document.getElementById('form-reporte').submit();
+        }
+    })
+}
+</script>
+{% endblock %}

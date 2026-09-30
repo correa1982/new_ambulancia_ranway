@@ -39,7 +39,7 @@
 
 /* Header */
 .doc-header { display: flex; align-items: center; justify-content: space-between; border-bottom: 3px solid #1e6fbf; padding-bottom: 18px; margin-bottom: 24px; }
-.doc-logo img { max-height: 120px; max-width: 250px; object-fit: contain; }
+.doc-logo img { max-height: 120px; max-width: 280px; object-fit: contain; image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges; }
 tr { page-break-inside: avoid; break-inside: avoid; }
 .doc-section-title, .cat-title { page-break-after: avoid; break-after: avoid; page-break-inside: avoid; break-inside: avoid; }
 .doc-logo-placeholder { width: 100px; height: 60px; background: #f1f5f9; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #94a3b8; font-size: 11px; }
@@ -93,10 +93,10 @@ tr { page-break-inside: avoid; break-inside: avoid; }
     body { background: white; font-size: 9px; line-height: 1.1; }
     #checklist-doc { padding: 0 !important; margin: 0 !important; }
     
-    .doc-header { margin-bottom: 5px; padding-bottom: 3px; border-bottom-width: 1px; }
-    .doc-logo img { max-height: 45px; max-width: 120px; }
-    .doc-inst .inst-name { font-size: 10px; }
-    .doc-inst .inst-sub { font-size: 8px; }
+    .doc-header { margin-bottom: 8px; padding-bottom: 6px; border-bottom-width: 1.5px; }
+    .doc-logo img { max-height: 80px; max-width: 220px; object-fit: contain; image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges; }
+    .doc-inst .inst-name { font-size: 13px; font-weight: 800; }
+    .doc-inst .inst-sub { font-size: 9px; }
     
     .doc-title-band { padding: 4px 8px; margin-bottom: 5px; border-radius: 4px; }
     .doc-title-band .dt-main { font-size: 11px; }
@@ -123,10 +123,10 @@ tr { page-break-inside: avoid; break-inside: avoid; }
 .pdf-mode .no-print { display: none !important; }
 .pdf-mode { background: white !important; font-size: 9px !important; line-height: 1.1 !important; }
 .pdf-mode #checklist-doc { padding: 10px !important; margin: 0 !important; }
-.pdf-mode .doc-header { margin-bottom: 2px !important; padding-bottom: 2px !important; border-bottom-width: 1px !important; }
-.pdf-mode .doc-logo img { max-height: 40px !important; max-width: 120px !important; }
-.pdf-mode .doc-inst .inst-name { font-size: 9px !important; }
-.pdf-mode .doc-inst .inst-sub { font-size: 7px !important; }
+.pdf-mode .doc-header { margin-bottom: 6px !important; padding-bottom: 6px !important; border-bottom-width: 1.5px !important; }
+.pdf-mode .doc-logo img { max-height: 80px !important; max-width: 220px !important; object-fit: contain !important; image-rendering: -webkit-optimize-contrast !important; image-rendering: crisp-edges !important; }
+.pdf-mode .doc-inst .inst-name { font-size: 13px !important; font-weight: 800 !important; }
+.pdf-mode .doc-inst .inst-sub { font-size: 9px !important; }
 .pdf-mode .doc-title-band { padding: 2px 4px !important; margin-bottom: 2px !important; border-radius: 2px !important; }
 .pdf-mode .doc-title-band .dt-main { font-size: 10px !important; }
 .pdf-mode .doc-title-band .dt-num { font-size: 8px !important; }
@@ -147,10 +147,74 @@ tr { page-break-inside: avoid; break-inside: avoid; }
 .pdf-mode .doc-section { margin-top: 2px !important; }
 
 
-@media (max-width: 700px) {
-    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-    .table-wrap table { min-width: 600px; }
-    #checklist-doc { padding: 12px !important; }
+@media (max-width: 768px) {
+    .detail-header {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 12px !important;
+    }
+    .detail-header > div {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 8px !important;
+        width: 100% !important;
+    }
+    .detail-header .action-btn {
+        flex: 1 1 auto !important;
+        text-align: center !important;
+    }
+    .doc-header {
+        flex-direction: column !important;
+        align-items: center !important;
+        text-align: center !important;
+        gap: 12px !important;
+    }
+    .doc-inst {
+        text-align: center !important;
+    }
+    .doc-title-band {
+        flex-direction: column !important;
+        text-align: center !important;
+        padding: 12px !important;
+        gap: 6px !important;
+    }
+    .table-wrap {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        margin-bottom: 15px;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+        background: #ffffff;
+    }
+    .table-wrap table {
+        min-width: 580px;
+    }
+    .formal-table td {
+        padding: 6px 8px !important;
+        font-size: 11px !important;
+    }
+    .formal-table .lbl {
+        font-size: 9.5px !important;
+        width: 30% !important;
+    }
+    #checklist-doc {
+        padding: 14px 10px !important;
+    }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+    /* Tablet optimizations (iPad, Android tablets) */
+    .table-wrap {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    .col-split-table th, .col-split-table td {
+        font-size: 10.5px !important;
+        padding: 6px 6px !important;
+    }
+    #checklist-doc {
+        padding: 18px 14px !important;
+    }
 }
 
 
@@ -194,7 +258,7 @@ tr { page-break-inside: avoid; break-inside: avoid; }
 </style>
 
 <div class="detail-header">
-    <h1 style="margin:0; padding:0; border:none; font-size:20px;">📋 {{ titulo }} #{{ record.id }}</h1>
+    <h1 style="margin:0; padding:0; border:none; font-size:20px;">📋 {{ titulo }}{% if tipo == 'pasb' and (record.pasb_numero or (datos.pasb_numero and datos.pasb_numero.valor)) %} — {{ record.pasb_numero or datos.pasb_numero.valor }}{% elif tipo == 'pasm' and (record.pasm_numero or (datos.pasm_numero and datos.pasm_numero.valor)) %} — {{ record.pasm_numero or datos.pasm_numero.valor }}{% elif tipo in ('tam', 'tab') and record.placa %} — Placa {{ record.placa }}{% elif tipo == 'avanzada' and record.botiquin %} — {{ record.botiquin }}{% if record.evento %} ({{ record.evento }}){% endif %}{% endif %} #{{ record.id }}</h1>
     <div style="display:flex; gap:8px; align-items:stretch;" class="no-print">
         <a href="javascript:history.back()" class="action-btn action-btn-back">← Volver a Registros</a>
         {% if session.usuario.rol != 'usuario' %}
@@ -228,7 +292,7 @@ tr { page-break-inside: avoid; break-inside: avoid; }
     <!-- ── Título ── -->
     <div class="doc-title-band">
         <div>
-            <div class="dt-main">{{ titulo }}</div>
+            <div class="dt-main">{{ titulo }}{% if tipo == 'pasb' and (record.pasb_numero or (datos.pasb_numero and datos.pasb_numero.valor)) %} — {{ record.pasb_numero or datos.pasb_numero.valor }}{% elif tipo == 'pasm' and (record.pasm_numero or (datos.pasm_numero and datos.pasm_numero.valor)) %} — {{ record.pasm_numero or datos.pasm_numero.valor }}{% elif tipo in ('tam', 'tab') and record.placa %} — PLACA {{ record.placa }}{% elif tipo == 'avanzada' and record.botiquin %} — {{ record.botiquin|upper }}{% endif %}</div>
             <div class="dt-num">Registro N° {{ record.id }} · Creado: {{ record.fecha_registro or '—' }}</div>
         </div>
     </div>
@@ -245,14 +309,16 @@ tr { page-break-inside: avoid; break-inside: avoid; }
     {% if tipo in ('tam', 'tab') %}
     <tr>
       <td class="lbl">Placa del Vehículo</td>
-      <td class="val" colspan="3">{{ record.placa or '—' }}</td>
+      <td class="val" style="font-weight: 700; color: #1e40af;">{{ record.placa or '—' }}</td>
+      <td class="lbl">Turno</td>
+      <td class="val">{{ record.turno or '—' }}</td>
     </tr>
     {% elif tipo == 'avanzada' %}
     <tr>
+      <td class="lbl">Botiquín</td>
+      <td class="val" style="font-weight: 700; color: #1e40af;">{{ record.botiquin or '—' }}</td>
       <td class="lbl">Evento</td>
       <td class="val">{{ record.evento or '—' }}</td>
-      <td class="lbl">Botiquín</td>
-      <td class="val">{{ record.botiquin or '—' }}</td>
     </tr>
     {% elif tipo == 'equipos' %}
     <tr>
@@ -266,14 +332,54 @@ tr { page-break-inside: avoid; break-inside: avoid; }
       <td class="lbl">Documento</td>
       <td class="val">{{ record.tipo_documento or '' }} {{ record.identificacion or '—' }}</td>
     </tr>
+    {% elif tipo == 'pasb' %}
+    <tr>
+      <td class="lbl">Número del PASB</td>
+      <td class="val" style="font-weight: 700; color: #1e40af;">{{ record.pasb_numero or (datos.pasb_numero.valor if datos.pasb_numero is mapping else '') or '—' }}</td>
+      <td class="lbl">Ubicación / Lugar</td>
+      <td class="val">{{ record.ubicacion or '—' }}</td>
+    </tr>
+    <tr>
+      <td class="lbl">Estado Operativo</td>
+      <td class="val" colspan="3">
+        {% if record.estado_operativo == 'Operativo' %}
+          <span style="color: #059669; font-weight: 700;">🟢 Operativo</span>
+        {% elif record.estado_operativo == 'Operativo con novedades' %}
+          <span style="color: #d97706; font-weight: 700;">🟡 Operativo con novedades</span>
+        {% elif record.estado_operativo == 'No operativo' %}
+          <span style="color: #dc2626; font-weight: 700;">🔴 No operativo</span>
+        {% else %}
+          {{ record.estado_operativo or '—' }}
+        {% endif %}
+      </td>
+    </tr>
+    {% elif tipo == 'pasm' %}
+    <tr>
+      <td class="lbl">Número del PASM</td>
+      <td class="val" style="font-weight: 700; color: #1e40af;">{{ record.pasm_numero or (datos.pasm_numero.valor if datos.pasm_numero is mapping else '') or '—' }}</td>
+      <td class="lbl">Ubicación / Lugar</td>
+      <td class="val">{{ record.ubicacion or '—' }}</td>
+    </tr>
+    <tr>
+      <td class="lbl">Estado Operativo</td>
+      <td class="val" colspan="3">
+        {% if record.estado_operativo == 'Operativo' %}
+          <span style="color: #059669; font-weight: 700;">🟢 Operativo</span>
+        {% elif record.estado_operativo == 'Operativo con novedades' %}
+          <span style="color: #d97706; font-weight: 700;">🟡 Operativo con novedades</span>
+        {% elif record.estado_operativo == 'No operativo' %}
+          <span style="color: #dc2626; font-weight: 700;">🔴 No operativo</span>
+        {% else %}
+          {{ record.estado_operativo or '—' }}
+        {% endif %}
+      </td>
+    </tr>
     {% else %}
     <tr>
       <td class="lbl">Ubicación / Lugar</td>
-      <td class="val"{% if tipo in ('pasm', 'pasb') %} colspan="3"{% endif %}>{{ record.ubicacion or '—' }}</td>
-      {% if tipo not in ('pasm', 'pasb') %}
+      <td class="val">{{ record.ubicacion or '—' }}</td>
       <td class="lbl">Personal APH</td>
       <td class="val">{{ record.personal_aph or '—' }}</td>
-      {% endif %}
     </tr>
     <tr>
       <td class="lbl">Estado Operativo</td>
@@ -292,7 +398,7 @@ tr { page-break-inside: avoid; break-inside: avoid; }
 
 {% if tipo in ('avanzada', 'tam', 'tab', 'pasm', 'pasb') and datos.get('_integrantes') %}
 <div class="doc-section">
-    <div class="cat-title">👥 {% if tipo == 'avanzada' %}Integrantes de la Avanzada{% else %}Integrantes de la Tripulación{% endif %}</div>
+    <div class="cat-title">👥 {% if tipo == 'avanzada' %}Integrantes de la Avanzada{% elif tipo == 'pasb' %}Integrantes del PASB{% elif tipo == 'pasm' %}Integrantes del PASM{% else %}Integrantes de la Tripulación{% endif %}</div>
     <div class="table-wrap">
     <table class="result-table">
         <thead>
@@ -411,6 +517,36 @@ tr { page-break-inside: avoid; break-inside: avoid; }
                 {# Render left item #}
                 <td>
                     <strong>{{ left_info.nombre }}</strong>{% if left_info.get('cantidad') is not none %} <span style="font-size: 11px; color: #64748b; font-weight: normal;">(Cant: {{ left_info.cantidad }})</span>{% endif %}
+                    {% if left_info.get('vencimiento_entries') %}
+                        <div style="margin-top: 2px; display: flex; flex-direction: column; gap: 2px;">
+                            {% for vent in left_info.vencimiento_entries %}
+                                <div>
+                                    <span class="venc-badge-cl" data-date="{{ vent.fecha }}" data-cant="{{ vent.cant }}" style="font-size: 8.5px; padding: 1px 5px; border-radius: 3px; font-weight: 700; display: inline-block;">
+                                        {% if left_info.get('cantidad', 1) > 1 or left_info.vencimiento_entries|length > 1 %}<strong>({{ vent.cant }} unids)</strong> {% endif %}📅 {{ vent.fecha }}
+                                    </span>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% elif left_info.get('fecha_vencimiento') %}
+                        <div style="margin-top: 2px;">
+                            <span class="venc-badge-cl" data-date="{{ left_info.fecha_vencimiento }}" style="font-size: 8.5px; padding: 1px 5px; border-radius: 3px; font-weight: 700; display: inline-block;">
+                                📅 {{ left_info.fecha_vencimiento }}
+                            </span>
+                        </div>
+                    {% endif %}
+                    {% if left_info.valor == 'NO' and left_info.get('tipo_incumplimiento') %}
+                        <div style="margin-top: 2px;">
+                            {% if left_info.tipo_incumplimiento == 'parcial' %}
+                                <span style="background: #fef3c7; color: #b45309; border: 1px solid #f59e0b; padding: 1px 5px; border-radius: 3px; font-size: 8px; font-weight: 700; display: inline-block;">
+                                    ⚠️ Incumple Parcial (Cant: {{ left_info.get('cant_actual', '0') }})
+                                </span>
+                            {% elif left_info.tipo_incumplimiento == 'total' %}
+                                <span style="background: #fee2e2; color: #b91c1c; border: 1px solid #ef4444; padding: 1px 5px; border-radius: 3px; font-size: 8px; font-weight: 700; display: inline-block;">
+                                    ❌ Incumple Total (0 existencias)
+                                </span>
+                            {% endif %}
+                        </div>
+                    {% endif %}
                 </td>
                 <td style="text-align: center;">
                     {% if left_info.valor == 'SI' %}
@@ -439,6 +575,36 @@ tr { page-break-inside: avoid; break-inside: avoid; }
                     {% set right_info = datos[right_field] %}
                     <td style="border-left: 2px solid #cbd5e1; padding-left: 10px;">
                         <strong>{{ right_info.nombre }}</strong>{% if right_info.get('cantidad') is not none %} <span style="font-size: 11px; color: #64748b; font-weight: normal;">(Cant: {{ right_info.cantidad }})</span>{% endif %}
+                        {% if right_info.get('vencimiento_entries') %}
+                            <div style="margin-top: 2px; display: flex; flex-direction: column; gap: 2px;">
+                                {% for vent in right_info.vencimiento_entries %}
+                                    <div>
+                                        <span class="venc-badge-cl" data-date="{{ vent.fecha }}" data-cant="{{ vent.cant }}" style="font-size: 8.5px; padding: 1px 5px; border-radius: 3px; font-weight: 700; display: inline-block;">
+                                            {% if right_info.get('cantidad', 1) > 1 or right_info.vencimiento_entries|length > 1 %}<strong>({{ vent.cant }} unids)</strong> {% endif %}📅 {{ vent.fecha }}
+                                        </span>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% elif right_info.get('fecha_vencimiento') %}
+                            <div style="margin-top: 2px;">
+                                <span class="venc-badge-cl" data-date="{{ right_info.fecha_vencimiento }}" style="font-size: 8.5px; padding: 1px 5px; border-radius: 3px; font-weight: 700; display: inline-block;">
+                                    📅 {{ right_info.fecha_vencimiento }}
+                                </span>
+                            </div>
+                        {% endif %}
+                        {% if right_info.valor == 'NO' and right_info.get('tipo_incumplimiento') %}
+                            <div style="margin-top: 2px;">
+                                {% if right_info.tipo_incumplimiento == 'parcial' %}
+                                    <span style="background: #fef3c7; color: #b45309; border: 1px solid #f59e0b; padding: 1px 5px; border-radius: 3px; font-size: 8px; font-weight: 700; display: inline-block;">
+                                        ⚠️ Incumple Parcial (Cant: {{ right_info.get('cant_actual', '0') }})
+                                    </span>
+                                {% elif right_info.tipo_incumplimiento == 'total' %}
+                                    <span style="background: #fee2e2; color: #b91c1c; border: 1px solid #ef4444; padding: 1px 5px; border-radius: 3px; font-size: 8px; font-weight: 700; display: inline-block;">
+                                        ❌ Incumple Total (0 existencias)
+                                    </span>
+                                {% endif %}
+                            </div>
+                        {% endif %}
                     </td>
                     <td style="text-align: center;">
                         {% if right_info.valor == 'SI' %}
@@ -501,6 +667,36 @@ tr { page-break-inside: avoid; break-inside: avoid; }
             <tr>
                 <td>
                     <strong>{{ info.nombre }}</strong>{% if info.get('cantidad') is not none %} <span style="font-size: 11px; color: #64748b; font-weight: normal;">(Cant: {{ info.cantidad }})</span>{% endif %}
+                    {% if info.get('vencimiento_entries') %}
+                        <div style="margin-top: 2px; display: flex; flex-direction: column; gap: 2px;">
+                            {% for vent in info.vencimiento_entries %}
+                                <div>
+                                    <span class="venc-badge-cl" data-date="{{ vent.fecha }}" data-cant="{{ vent.cant }}" style="font-size: 8.5px; padding: 1px 5px; border-radius: 3px; font-weight: 700; display: inline-block;">
+                                        {% if info.get('cantidad', 1) > 1 or info.vencimiento_entries|length > 1 %}<strong>({{ vent.cant }} unids)</strong> {% endif %}📅 {{ vent.fecha }}
+                                    </span>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% elif info.get('fecha_vencimiento') %}
+                        <div style="margin-top: 2px;">
+                            <span class="venc-badge-cl" data-date="{{ info.fecha_vencimiento }}" style="font-size: 8.5px; padding: 1px 5px; border-radius: 3px; font-weight: 700; display: inline-block;">
+                                📅 {{ info.fecha_vencimiento }}
+                            </span>
+                        </div>
+                    {% endif %}
+                    {% if info.valor == 'NO' and info.get('tipo_incumplimiento') %}
+                        <div style="margin-top: 2px;">
+                            {% if info.tipo_incumplimiento == 'parcial' %}
+                                <span style="background: #fef3c7; color: #b45309; border: 1px solid #f59e0b; padding: 1px 5px; border-radius: 3px; font-size: 8px; font-weight: 700; display: inline-block;">
+                                    ⚠️ Incumple Parcial (Cant: {{ info.get('cant_actual', '0') }})
+                                </span>
+                            {% elif info.tipo_incumplimiento == 'total' %}
+                                <span style="background: #fee2e2; color: #b91c1c; border: 1px solid #ef4444; padding: 1px 5px; border-radius: 3px; font-size: 8px; font-weight: 700; display: inline-block;">
+                                    ❌ Incumple Total (0 existencias)
+                                </span>
+                            {% endif %}
+                        </div>
+                    {% endif %}
                 </td>
                 <td style="text-align: center;">
                     {% if info.valor == 'SI' %}
@@ -613,10 +809,10 @@ function descargarPDF() {
     btn.disabled = true;
 
     const opt = {
-        margin: [8, 8, 8, 8],
-        filename: "{{ tipo|upper }}_{{ record.id }}_{{ cfg.get('nombre_institucion','APH')|replace(' ','_') }}.pdf",
-        image: { type: 'jpeg', quality: 0.95 },
-        html2canvas: { scale: 2, useCORS: true, allowTaint: true, logging: false },
+        margin: [6, 6, 6, 6],
+        filename: "{% if tipo == 'pasb' and (record.pasb_numero or (datos.pasb_numero and datos.pasb_numero.valor)) %}PASB_{{ record.pasb_numero or datos.pasb_numero.valor }}_{{ record.id }}.pdf{% elif tipo == 'pasm' and (record.pasm_numero or (datos.pasm_numero and datos.pasm_numero.valor)) %}PASM_{{ record.pasm_numero or datos.pasm_numero.valor }}_{{ record.id }}.pdf{% elif tipo == 'tam' and (record.placa or (datos.placa and datos.placa.valor)) %}TAM_{{ record.placa or datos.placa.valor }}_{{ record.id }}.pdf{% elif tipo == 'tab' and (record.placa or (datos.placa and datos.placa.valor)) %}TAB_{{ record.placa or datos.placa.valor }}_{{ record.id }}.pdf{% elif tipo == 'avanzada' and (record.botiquin or (datos.botiquin and datos.botiquin.valor)) %}AVANZADA_{{ (record.botiquin or datos.botiquin.valor)|replace(' ','_') }}_{{ record.id }}.pdf{% else %}{{ tipo|upper }}_{{ record.id }}_{{ cfg.get('nombre_institucion','APH')|replace(' ','_') }}.pdf{% endif %}",
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 3, useCORS: true, allowTaint: true, logging: false },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
         pagebreak: { mode: ['css', 'legacy'] }
     };
@@ -649,5 +845,53 @@ function descargarPDF() {
 }
 </script>
 {% endif %}
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const threeMonths = new Date();
+    threeMonths.setDate(today.getDate() + 90);
+    const sixMonths = new Date();
+    sixMonths.setDate(today.getDate() + 180);
+
+    document.querySelectorAll('.venc-badge-cl').forEach(el => {
+        const dateStr = el.getAttribute('data-date');
+        const cantStr = el.getAttribute('data-cant');
+        if (!dateStr) return;
+        const parts = dateStr.split('-');
+        if (parts.length !== 3) return;
+        const expDate = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+
+        let cantPrefix = cantStr ? `<strong>(${cantStr} unids)</strong> ` : '';
+
+        if (expDate <= today) {
+            el.style.backgroundColor = '#f5f5f4';
+            el.style.color = '#78350f';
+            el.style.border = '1px solid #b45309';
+            el.innerHTML = `${cantPrefix}📅 ${dateStr}`;
+            el.title = '¡Vencido! (' + dateStr + ')';
+        } else if (expDate <= threeMonths) {
+            el.style.backgroundColor = '#fee2e2';
+            el.style.color = '#dc2626';
+            el.style.border = '1px solid #f87171';
+            el.innerHTML = `${cantPrefix}📅 ${dateStr}`;
+            el.title = 'Vence en menos de 3 meses (' + dateStr + ')';
+        } else if (expDate <= sixMonths) {
+            el.style.backgroundColor = '#fef9c3';
+            el.style.color = '#ca8a04';
+            el.style.border = '1px solid #facc15';
+            el.innerHTML = `${cantPrefix}📅 ${dateStr}`;
+            el.title = 'Vence de 3 a 6 meses (' + dateStr + ')';
+        } else {
+            el.style.backgroundColor = '#dcfce7';
+            el.style.color = '#166534';
+            el.style.border = '1px solid #4ade80';
+            el.innerHTML = `${cantPrefix}📅 ${dateStr}`;
+            el.title = 'Vigente por más de 6 meses (' + dateStr + ')';
+        }
+    });
+});
+</script>
 
 {% endblock %}

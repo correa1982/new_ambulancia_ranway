@@ -66,7 +66,7 @@
         <th>Fecha</th><th>Hora</th><th>Evento</th><th>Botiquín</th><th>Estado</th>
         <th>Registrado por</th><th>Fecha Registro</th><th style="text-align:center;">Detalle</th>
     {% elif tipo in ['pasb','pasm'] %}
-        <th>Fecha</th><th>Hora</th><th>Ubicación</th><th>Estado Puesto</th><th>Estado Form.</th>
+        <th>Fecha</th><th>Hora</th><th>{% if tipo == 'pasb' %}PASB{% else %}PASM{% endif %}</th><th>Ubicación</th><th>Estado Puesto</th><th>Estado Form.</th>
         <th>Registrado por</th><th>Fecha Registro</th><th style="text-align:center;">Detalle</th>
     {% elif tipo == 'equipos' %}
         <th>Fecha</th><th>Hora</th><th>Grupo Equipos</th><th>Estado</th>
@@ -238,6 +238,7 @@
     {% elif tipo in ['pasb','pasm'] %}
         <td>{{ item.fecha }}</td>
         <td>{{ item.hora or '—' }}</td>
+        <td><strong style="color:#1e40af;">{{ (item.pasb_numero if tipo == 'pasb' else item.pasm_numero) or '—' }}</strong></td>
         <td style="max-width:130px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ item.ubicacion or '—' }}</td>
         <td>
             {% if item.estado_operativo == 'Operativo' %}

@@ -8,39 +8,266 @@
     .inv-header {
         display: flex;
         flex-direction: column;
-        gap: 15px;
-        margin-bottom: 20px;
+        gap: 18px;
+        margin-bottom: 24px;
+    }
+    .inv-top-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+    .inv-title-box {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
     }
     .inv-title {
-        font-size: 24px;
+        font-size: 26px;
+        font-weight: 800;
         color: #1e3a5f;
         margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        letter-spacing: -0.5px;
     }
+    .inv-subtitle {
+        font-size: 13px;
+        color: #64748b;
+        font-weight: 500;
+        margin: 0;
+    }
+
+    /* ── Estilos para Botón Desplegable de Alertas ── */
+    .btn-warning-alert {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        color: white;
+        box-shadow: 0 3px 10px rgba(245, 158, 11, 0.35);
+    }
+    .btn-warning-alert:hover {
+        background: linear-gradient(135deg, #d97706, #b45309);
+        color: white;
+    }
+    .alert-badge-count {
+        background: white;
+        color: #d97706;
+        border-radius: 20px;
+        padding: 2px 8px;
+        font-size: 11px;
+        font-weight: 800;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+    .alert-dropdown-menu {
+        min-width: 280px;
+        right: 0;
+        left: auto;
+    }
+    .alert-item-badge {
+        border-radius: 12px;
+        padding: 2px 8px;
+        font-size: 11px;
+        font-weight: 800;
+        margin-left: 8px;
+        white-space: nowrap;
+    }
+    .badge-warning { color: #d97706; background: #fef3c7; border: 1px solid #fde68a; }
+    .badge-orange  { color: #ea580c; background: #ffedd5; border: 1px solid #fed7aa; }
+    .badge-danger  { color: #dc2626; background: #fee2e2; border: 1px solid #fecaca; }
+
+    .item-warn .item-icon { background: #fef3c7; color: #d97706; }
+    .dropdown-item-btn.item-warn:hover { background: #fffbeb; }
+
+    .item-orange .item-icon { background: #ffedd5; color: #ea580c; }
+    .dropdown-item-btn.item-orange:hover { background: #fff7ed; }
+
+    .item-danger .item-icon { background: #fee2e2; color: #dc2626; }
+    .dropdown-item-btn.item-danger:hover { background: #fef2f2; }
+
+    /* ── Barra de Acciones y Botones ── */
     .inv-actions {
         display: flex;
         gap: 10px;
         flex-wrap: wrap;
+        align-items: center;
     }
     .inv-btn {
         background: #3b82f6;
         color: white;
         border: none;
-        padding: 8px 16px;
-        border-radius: 6px;
+        padding: 9px 18px;
+        border-radius: 10px;
         cursor: pointer;
-        font-weight: bold;
-        transition: background 0.2s;
+        font-weight: 700;
+        font-size: 13.5px;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+        user-select: none;
+        white-space: nowrap;
+        text-decoration: none;
+        box-sizing: border-box;
+    }
+    .inv-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        color: white;
+    }
+    .inv-btn:active {
+        transform: translateY(0);
+    }
+
+    .btn-green {
+        background: linear-gradient(135deg, #10b981, #059669);
+        box-shadow: 0 3px 10px rgba(16, 185, 129, 0.3);
+    }
+    .btn-green:hover {
+        background: linear-gradient(135deg, #059669, #047857);
+    }
+
+    .btn-red {
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+        box-shadow: 0 3px 10px rgba(239, 68, 68, 0.3);
+    }
+    .btn-red:hover {
+        background: linear-gradient(135deg, #dc2626, #b91c1c);
+    }
+
+    .btn-purple {
+        background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+        box-shadow: 0 3px 10px rgba(139, 92, 246, 0.3);
+    }
+    .btn-purple:hover {
+        background: linear-gradient(135deg, #7c3aed, #6d28d9);
+    }
+
+    .btn-indigo {
+        background: linear-gradient(135deg, #6366f1, #4f46e5);
+        box-shadow: 0 3px 10px rgba(99, 102, 241, 0.3);
+    }
+    .btn-indigo:hover {
+        background: linear-gradient(135deg, #4f46e5, #4338ca);
+    }
+
+    .btn-amber {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        color: #ffffff;
+        box-shadow: 0 3px 10px rgba(245, 158, 11, 0.3);
+    }
+    .btn-amber:hover {
+        background: linear-gradient(135deg, #d97706, #b45309);
+        color: #ffffff;
+    }
+
+    .btn-slate {
+        background: linear-gradient(135deg, #334155, #1e293b);
+        box-shadow: 0 3px 10px rgba(30, 41, 59, 0.25);
+    }
+    .btn-slate:hover {
+        background: linear-gradient(135deg, #1e293b, #0f172a);
+    }
+
+    /* ── Menús Desplegables Modernos (Ingreso / Egreso) ── */
+    .inv-dropdown {
+        position: relative;
+        display: inline-block;
+    }
+    .inv-dropdown-toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .dropdown-arrow {
+        font-size: 10px;
+        transition: transform 0.25s ease;
+        display: inline-block;
+    }
+    .inv-dropdown.open .dropdown-arrow {
+        transform: rotate(180deg);
+    }
+    .inv-dropdown-menu {
+        display: none;
+        position: absolute;
+        top: calc(100% + 6px);
+        left: 0;
+        z-index: 1050;
+        min-width: 230px;
+        background: #ffffff;
+        border-radius: 12px;
+        padding: 6px;
+        box-shadow: 0 12px 30px -4px rgba(0, 0, 0, 0.2), 0 6px 12px -4px rgba(0, 0, 0, 0.1);
+        border: 1px solid #e2e8f0;
+        animation: invDropdownFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .inv-dropdown.open .inv-dropdown-menu {
+        display: block;
+    }
+    @keyframes invDropdownFadeIn {
+        from { opacity: 0; transform: translateY(-8px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .dropdown-item-btn {
+        width: 100%;
         display: flex;
         align-items: center;
-        gap: 6px;
+        gap: 12px;
+        padding: 10px 14px;
+        background: transparent;
+        border: none;
+        border-radius: 9px;
+        cursor: pointer;
+        text-align: left;
+        transition: all 0.18s ease;
+        font-family: inherit;
+        box-sizing: border-box;
     }
-    .inv-btn:hover { background: #2563eb; }
-    .btn-green { background: #10b981; }
-    .btn-green:hover { background: #059669; }
-    .btn-red { background: #ef4444; }
-    .btn-red:hover { background: #dc2626; }
-    .btn-purple { background: #8b5cf6; }
-    .btn-purple:hover { background: #7c3aed; }
+    .dropdown-item-btn:hover {
+        background: #f1f5f9;
+        transform: translateX(3px);
+    }
+    .dropdown-item-btn .item-icon {
+        font-size: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 34px;
+        height: 34px;
+        border-radius: 9px;
+        flex-shrink: 0;
+    }
+    .item-green .item-icon {
+        background: #ecfdf5;
+        color: #059669;
+    }
+    .dropdown-item-btn.item-green:hover {
+        background: #f0fdf4;
+    }
+    .item-red .item-icon {
+        background: #fef2f2;
+        color: #dc2626;
+    }
+    .dropdown-item-btn.item-red:hover {
+        background: #fef2f2;
+    }
+    .dropdown-item-btn .item-details {
+        display: flex;
+        flex-direction: column;
+    }
+    .dropdown-item-btn .item-title {
+        font-size: 13.5px;
+        font-weight: 700;
+        color: #1e293b;
+        line-height: 1.2;
+    }
+    .dropdown-item-btn .item-desc {
+        font-size: 11px;
+        color: #64748b;
+        line-height: 1.2;
+        margin-top: 2px;
+    }
 
     .inv-table {
         width: 100%;
@@ -129,13 +356,36 @@
         min-height: 300px;
     }
     @media (max-width: 768px) {
+        .inv-top-bar {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 14px;
+        }
+        .inv-title {
+            font-size: 22px;
+        }
+
         .inv-actions {
             flex-direction: column;
             width: 100%;
+            gap: 8px;
         }
-        .inv-actions .inv-btn {
+        .inv-dropdown {
+            width: 100%;
+        }
+        .inv-actions .inv-btn,
+        .inv-dropdown .inv-btn {
             width: 100%;
             justify-content: center;
+            padding: 12px 16px;
+            font-size: 14px;
+        }
+        .inv-dropdown-menu {
+            position: static;
+            width: 100%;
+            box-sizing: border-box;
+            margin-top: 6px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
         }
         .filters-container {
             flex-direction: column !important;
@@ -166,37 +416,128 @@
 </style>
 
 <div class="inv-header">
-    <h1 class="inv-title">📦 Módulo de Inventarios</h1>
+    <div class="inv-top-bar">
+        <div class="inv-title-box">
+            <h1 class="inv-title">📦 Módulo de Inventarios</h1>
+            <p class="inv-subtitle">Control de stock, semaforización de vencimientos y trazabilidad</p>
+        </div>
+
+        {# ── Botón único compacto de Alertas ── #}
+        {% set n_alertas = alertas|length if alertas else 0 %}
+        {% set n_proximos = proximos_vencer|length if proximos_vencer else 0 %}
+        {% set n_vencidos = vencidos|length if vencidos else 0 %}
+        {% set total_alertas = n_alertas + n_proximos + n_vencidos %}
+
+        <div class="inv-dropdown" id="dropdownAlertas">
+            <button type="button" class="inv-btn btn-warning-alert inv-dropdown-toggle" onclick="toggleInvDropdown('dropdownAlertas', event)">
+                <span>🔔 Alertas</span>
+                {% if total_alertas > 0 %}
+                    <span class="alert-badge-count">{{ total_alertas }}</span>
+                {% endif %}
+                <span class="dropdown-arrow">▼</span>
+            </button>
+            <div class="inv-dropdown-menu alert-dropdown-menu">
+                <button type="button" class="dropdown-item-btn item-warn" onclick="handleDropdownAction('dropdownAlertas', function(){ openAlertModal('modalStockMinimo'); })">
+                    <span class="item-icon">⚠️</span>
+                    <div class="item-details" style="flex: 1;">
+                        <span class="item-title">Stock Mínimo</span>
+                        <span class="item-desc">Artículos bajo existencia mínima</span>
+                    </div>
+                    <span class="alert-item-badge badge-warning">{{ n_alertas }}</span>
+                </button>
+                <button type="button" class="dropdown-item-btn item-orange" onclick="handleDropdownAction('dropdownAlertas', function(){ openAlertModal('modalProximosVencer'); })">
+                    <span class="item-icon">⏳</span>
+                    <div class="item-details" style="flex: 1;">
+                        <span class="item-title">Próximos a Vencer</span>
+                        <span class="item-desc">≤ 30 días (Bodega y Unidades)</span>
+                    </div>
+                    <span class="alert-item-badge badge-orange">{{ n_proximos }}</span>
+                </button>
+                <button type="button" class="dropdown-item-btn item-danger" onclick="handleDropdownAction('dropdownAlertas', function(){ openAlertModal('modalVencidos'); })">
+                    <span class="item-icon">🚫</span>
+                    <div class="item-details" style="flex: 1;">
+                        <span class="item-title">Vencidos</span>
+                        <span class="item-desc">Caducados (Bodega y Unidades)</span>
+                    </div>
+                    <span class="alert-item-badge badge-danger">{{ n_vencidos }}</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    {# ── Barra de acciones agrupada ── #}
     <div class="inv-actions">
-        <button class="inv-btn btn-green" onclick="openScanner('ingreso')">📸 QR Ingreso</button>
-        <button class="inv-btn btn-red" onclick="openScanner('egreso')">📸 QR Egreso</button>
-        <button class="inv-btn btn-green" onclick="openManualUpdate('ingreso')">➕ Ingreso Manual</button>
-        <button class="inv-btn btn-red" onclick="openManualUpdate('egreso')">➖ Egreso Manual</button>
-        <button class="inv-btn btn-purple" onclick="openScanner('nuevo')">✨ Nuevo Producto</button>
-        <button class="inv-btn btn-purple" style="background: #6366f1;" onclick="openCatalogModal()">📋 ITEMS</button>
+        <!-- Menú Desplegable: Ingreso -->
+        <div class="inv-dropdown" id="dropdownIngreso">
+            <button type="button" class="inv-btn btn-green inv-dropdown-toggle" onclick="toggleInvDropdown('dropdownIngreso', event)">
+                <span>📥 Ingreso</span>
+                <span class="dropdown-arrow">▼</span>
+            </button>
+            <div class="inv-dropdown-menu">
+                <button type="button" class="dropdown-item-btn item-green" onclick="handleDropdownAction('dropdownIngreso', function(){ openScanner('ingreso'); })">
+                    <span class="item-icon">📸</span>
+                    <div class="item-details">
+                        <span class="item-title">QR Ingreso</span>
+                        <span class="item-desc">Escanear código con cámara o lector</span>
+                    </div>
+                </button>
+                <button type="button" class="dropdown-item-btn item-green" onclick="handleDropdownAction('dropdownIngreso', function(){ openManualUpdate('ingreso'); })">
+                    <span class="item-icon">➕</span>
+                    <div class="item-details">
+                        <span class="item-title">Ingreso Manual</span>
+                        <span class="item-desc">Cargar existencias manualmente</span>
+                    </div>
+                </button>
+            </div>
+        </div>
+
+        <!-- Menú Desplegable: Egreso -->
+        <div class="inv-dropdown" id="dropdownEgreso">
+            <button type="button" class="inv-btn btn-red inv-dropdown-toggle" onclick="toggleInvDropdown('dropdownEgreso', event)">
+                <span>📤 Egreso</span>
+                <span class="dropdown-arrow">▼</span>
+            </button>
+            <div class="inv-dropdown-menu">
+                <button type="button" class="dropdown-item-btn item-red" onclick="handleDropdownAction('dropdownEgreso', function(){ openScanner('egreso'); })">
+                    <span class="item-icon">📸</span>
+                    <div class="item-details">
+                        <span class="item-title">QR Egreso</span>
+                        <span class="item-desc">Escanear código para salida</span>
+                    </div>
+                </button>
+                <button type="button" class="dropdown-item-btn item-red" onclick="handleDropdownAction('dropdownEgreso', function(){ openManualUpdate('egreso'); })">
+                    <span class="item-icon">➖</span>
+                    <div class="item-details">
+                        <span class="item-title">Egreso Manual</span>
+                        <span class="item-desc">Descargar existencias manualmente</span>
+                    </div>
+                </button>
+            </div>
+        </div>
+
+        <!-- Botones Adicionales -->
+        <button type="button" class="inv-btn btn-purple" onclick="openScanner('nuevo')">
+            <span>✨ Nuevo Producto</span>
+        </button>
+        <button type="button" class="inv-btn btn-indigo" onclick="openCatalogModal()">
+            <span>📋 ITEMS</span>
+        </button>
         {% if is_superadmin %}
-        <button class="inv-btn" style="background: #eab308; color: #1e293b;" onclick="openMinStockModal()">⚠️ Parametrizar Existencias Mínimas</button>
+        <button type="button" class="inv-btn btn-amber" onclick="openMinStockModal()">
+            <span>⚠️ Parametrizar Existencias Mínimas</span>
+        </button>
         {% endif %}
-        <a href="{{ url_for('inventarios.inventarios_movimientos') }}" class="inv-btn" style="background: #334155; text-decoration: none;">📋 Consultar Movimientos</a>
+        <a href="{{ url_for('inventarios.inventarios_movimientos') }}" class="inv-btn btn-slate" style="text-decoration: none;">
+            <span>📋 Consultar Movimientos</span>
+        </a>
     </div>
 </div>
 
-{% if alertas %}
-<div id="alertas-stock" style="background-color: #fef2f2; border: 1px solid #ef4444; color: #b91c1c; padding: 15px; margin-bottom: 20px; border-radius: 8px; position: relative;">
-    <h3 style="margin-top: 0; margin-bottom: 10px; font-size: 16px;">⚠️ Alertas de Stock Mínimo</h3>
-    <ul style="margin: 0; padding-left: 20px; font-size: 14px;">
-        {% for alerta in alertas %}
-        <li><strong>{{ alerta.nombre }}</strong>: Stock total es {{ alerta.cantidad }} (Mínimo permitido: {{ alerta.minimo }})</li>
-        {% endfor %}
-    </ul>
-</div>
-<script>
-    setTimeout(function() {
-        var alertDiv = document.getElementById('alertas-stock');
-        if(alertDiv) { alertDiv.style.display = 'none'; }
-    }, 10000);
-</script>
-{% endif %}
+{# Datos ocultos para los modales de alertas - pasados desde el backend #}
+<div id="data-alertas" style="display:none;"></div>
+<div id="data-proximos" style="display:none;"></div>
+<div id="data-vencidos" style="display:none;"></div>
+
 
 <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
     <div class="filters-container" style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
@@ -282,7 +623,650 @@
 </table>
 </div>
 
-<!-- Modal para Agregar/Editar Producto -->
+{# ══════════════════════════════════════════════════════
+   ESTILOS RESPONSIVE PARA BOTONES Y MODALES DE ALERTAS
+══════════════════════════════════════════════════════ #}
+<style>
+/* ── Contenedor de botones ── */
+.alert-btns {
+    margin-top: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+}
+.alert-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 11px 20px;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+.alert-btn-badge {
+    border-radius: 20px;
+    padding: 2px 8px;
+    font-size: 11px;
+    font-weight: 800;
+    background: white;
+}
+@media (max-width: 768px) {
+    .alert-btns { flex-direction: column; gap: 8px; }
+    .alert-btn  { width: 100%; justify-content: center; font-size: 13px; padding: 12px 16px; }
+}
+
+/* ── Modal overlay ── */
+.alert-modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    background: rgba(0,0,0,0.55);
+    overflow-y: auto;
+    padding: 16px;
+    box-sizing: border-box;
+}
+/* ── Modal container ── */
+.alert-modal-box {
+    background: #fff;
+    margin: 0 auto 40px;
+    border-radius: 14px;
+    width: 100%;
+    max-width: 600px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    overflow: hidden;
+}
+@media (min-width: 769px) {
+    .alert-modal-overlay { padding: 40px 16px; }
+    .alert-modal-box     { margin-top: 20px; }
+}
+/* ── Modal header ── */
+.alert-modal-head {
+    padding: 16px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.alert-modal-head h2 { margin: 0; color: white; font-size: 16px; }
+@media (min-width: 769px) {
+    .alert-modal-head h2 { font-size: 18px; }
+}
+.alert-modal-close {
+    background: rgba(255,255,255,0.25);
+    border: none;
+    color: white;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+}
+/* ── Modal body ── */
+.alert-modal-body {
+    padding: 16px;
+    max-height: 65vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+/* ── Tabla dentro del modal (desktop) ── */
+.alert-modal-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.alert-modal-table th, .alert-modal-table td { padding: 9px 10px; border-bottom: 1px solid #f3f4f6; }
+.alert-modal-table th { font-size: 11px; text-transform: uppercase; font-weight: 700; text-align: left; }
+@media (max-width: 600px) {
+    /* En móvil, ocultar la tabla y mostrar mini-cards */
+    .alert-tbl-wrap { display: none !important; }
+    .alert-cards    { display: block !important; }
+}
+@media (min-width: 601px) {
+    .alert-tbl-wrap { display: block; }
+    .alert-cards    { display: none !important; }
+}
+/* ── Mini-cards dentro del modal (móvil) ── */
+.alert-item-card {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 10px;
+    border-left: 4px solid #cbd5e1;
+}
+.alert-item-card.warn  { border-left-color: #f59e0b; }
+.alert-item-card.orange { border-left-color: #f97316; }
+.alert-item-card.danger { border-left-color: #ef4444; }
+.alert-item-card .ac-name  { font-weight: 700; font-size: 13px; margin-bottom: 6px; }
+.alert-item-card .ac-meta  { font-size: 11px; color: #6b7280; display: flex; flex-wrap: wrap; gap: 8px; }
+.alert-item-card .ac-meta span { display: inline-flex; align-items: center; gap: 3px; }
+.alert-item-card .ac-meta strong { color: #374151; }
+/* ── Badges de Ubicación Operativa ── */
+.badge-location {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+.badge-bodega {
+    background: #e0f2fe;
+    color: #0369a1;
+    border: 1px solid #bae6fd;
+}
+.badge-pasb {
+    background: #fef3c7;
+    color: #92400e;
+    border: 1px solid #fde68a;
+}
+.badge-pasm {
+    background: #ffedd5;
+    color: #9a3412;
+    border: 1px solid #fed7aa;
+}
+.badge-avanzada {
+    background: #f3e8ff;
+    color: #6b21a8;
+    border: 1px solid #e9d5ff;
+}
+.badge-tam {
+    background: #ecfdf5;
+    color: #065f46;
+    border: 1px solid #a7f3d0;
+}
+.badge-tab {
+    background: #e0e7ff;
+    color: #3730a3;
+    border: 1px solid #c7d2fe;
+}
+
+/* ── Filtros por ubicación en modales ── */
+.modal-location-filters {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding: 4px 0 10px 0;
+    margin-bottom: 12px;
+    border-bottom: 1px solid #f1f5f9;
+    -webkit-overflow-scrolling: touch;
+}
+.loc-filter-btn {
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    color: #475569;
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 11.5px;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.18s;
+}
+.loc-filter-btn:hover {
+    background: #e2e8f0;
+    color: #1e293b;
+}
+.loc-filter-btn.active {
+    background: #1e3a5f;
+    color: white;
+    border-color: #1e3a5f;
+    box-shadow: 0 2px 5px rgba(30,58,95,0.25);
+}
+
+/* ── Modal footer ── */
+.alert-modal-foot {
+    padding: 12px 20px;
+    border-top: 1px solid #f3f4f6;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+</style>
+
+
+{# ══════════════════════════════════════════════════════
+   MODAL: STOCK MÍNIMO
+══════════════════════════════════════════════════════ #}
+<div id="modalStockMinimo" class="alert-modal-overlay">
+    <div class="alert-modal-box">
+        <div class="alert-modal-head" style="background:linear-gradient(135deg,#f59e0b,#d97706);">
+            <h2>⚠️ Alertas de Stock Mínimo</h2>
+            <button class="alert-modal-close" onclick="closeAlertModal('modalStockMinimo')">×</button>
+        </div>
+        <div class="alert-modal-body">
+            {% if alertas %}
+
+            {# Desktop: tabla #}
+            <div class="alert-tbl-wrap">
+                <table class="alert-modal-table">
+                    <thead style="background:#fef3c7; color:#92400e;">
+                        <tr>
+                            <th>Artículo</th>
+                            <th style="text-align:center;">Stock</th>
+                            <th style="text-align:center;">Mínimo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for a in alertas %}
+                        <tr>
+                            <td style="font-weight:600;">{{ a.nombre }}</td>
+                            <td style="text-align:center; color:#ef4444; font-weight:700;">{{ a.cantidad }}</td>
+                            <td style="text-align:center; color:#6b7280;">{{ a.minimo }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {# Móvil: cards #}
+            <div class="alert-cards">
+                {% for a in alertas %}
+                <div class="alert-item-card warn">
+                    <div class="ac-name">{{ a.nombre }}</div>
+                    <div class="ac-meta">
+                        <span>📦 Stock: <strong style="color:#ef4444;">{{ a.cantidad }}</strong></span>
+                        <span>⚠️ Mínimo: <strong>{{ a.minimo }}</strong></span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            {% else %}
+            <div style="text-align:center; color:#6b7280; padding:30px;">✅ No hay artículos por debajo del stock mínimo.</div>
+            {% endif %}
+        </div>
+        <div class="alert-modal-foot">
+            <button onclick="closeAlertModal('modalStockMinimo')" style="background:#6b7280; color:white; border:none; border-radius:8px; padding:9px 22px; font-weight:700; cursor:pointer; font-size:14px;">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+{# ══════════════════════════════════════════════════════
+   MODAL: PRÓXIMOS A VENCER
+══════════════════════════════════════════════════════ #}
+<div id="modalProximosVencer" class="alert-modal-overlay">
+    <div class="alert-modal-box" style="max-width:780px;">
+        <div class="alert-modal-head" style="background:linear-gradient(135deg,#f97316,#ea580c);">
+            <h2>⏳ Próximos a Vencer (≤ 30 días)</h2>
+            <button class="alert-modal-close" onclick="closeAlertModal('modalProximosVencer')">×</button>
+        </div>
+        <div class="alert-modal-body">
+            {% if proximos_vencer %}
+            <div class="modal-location-filters">
+                <button type="button" class="loc-filter-btn active" onclick="filterModalByLocation('modalProximosVencer', 'todos', this)">Todos ({{ proximos_vencer|length }})</button>
+                <button type="button" class="loc-filter-btn" onclick="filterModalByLocation('modalProximosVencer', 'bodega', this)">Bodega Central</button>
+                <button type="button" class="loc-filter-btn" onclick="filterModalByLocation('modalProximosVencer', 'pasb', this)">PASB</button>
+                <button type="button" class="loc-filter-btn" onclick="filterModalByLocation('modalProximosVencer', 'pasm', this)">PASM</button>
+                <button type="button" class="loc-filter-btn" onclick="filterModalByLocation('modalProximosVencer', 'avanzada', this)">Botiquines Avanzada</button>
+                <button type="button" class="loc-filter-btn" onclick="filterModalByLocation('modalProximosVencer', 'ambulancias', this)">Ambulancias</button>
+            </div>
+
+            <div class="filter-empty-msg" style="display:none; text-align:center; color:#64748b; padding:25px; font-size:13px;">
+                🔍 No hay artículos próximos a vencer para la ubicación seleccionada.
+            </div>
+
+            {# Desktop: tabla #}
+            <div class="alert-tbl-wrap">
+                <table class="alert-modal-table">
+                    <thead style="background:#fff7ed; color:#9a3412;">
+                        <tr>
+                            <th>Artículo</th>
+                            <th>Ubicación / Sitio</th>
+                            <th>Lote</th>
+                            <th style="text-align:center;">Vence</th>
+                            <th style="text-align:center;">Días</th>
+                            <th style="text-align:center;">Cant.</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in proximos_vencer %}
+                        <tr class="alert-row-item" data-origen="{{ p.origen }}" style="{% if p.dias <= 7 %}background:#fff7ed;{% endif %}">
+                            <td style="font-weight:600;">{{ p.nombre }}</td>
+                            <td>
+                                <span class="badge-location {{ p.ubicacion_badge_class }}">
+                                    {% if p.origen == 'bodega' %}🏢{% elif p.origen in ['pasb', 'pasm'] %}⛺{% elif p.origen == 'avanzada' %}🧰{% else %}🚑{% endif %}
+                                    {{ p.ubicacion_detalle }}
+                                </span>
+                            </td>
+                            <td style="color:#6b7280; font-size:12px;">{{ p.lote or 'N/A' }}</td>
+                            <td style="text-align:center;">{{ p.fecha_vencimiento }}</td>
+                            <td style="text-align:center; font-weight:700; {% if p.dias <= 7 %}color:#dc2626;{% else %}color:#ea580c;{% endif %}">{{ p.dias }}d</td>
+                            <td style="text-align:center; font-weight:700;">{{ p.cantidad }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {# Móvil: cards #}
+            <div class="alert-cards">
+                {% for p in proximos_vencer %}
+                <div class="alert-item-card orange alert-card-item" data-origen="{{ p.origen }}">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:6px; margin-bottom:6px;">
+                        <div class="ac-name" style="margin-bottom:0;">{{ p.nombre }}</div>
+                        <span class="badge-location {{ p.ubicacion_badge_class }}">
+                            {% if p.origen == 'bodega' %}🏢{% elif p.origen in ['pasb', 'pasm'] %}⛺{% elif p.origen == 'avanzada' %}🧰{% else %}🚑{% endif %}
+                            {{ p.ubicacion_detalle }}
+                        </span>
+                    </div>
+                    <div class="ac-meta">
+                        <span>📅 Vence: <strong>{{ p.fecha_vencimiento }}</strong></span>
+                        <span style="{% if p.dias <= 7 %}color:#dc2626;{% else %}color:#ea580c;{% endif %}; font-weight:700;">⏰ {{ p.dias }} día(s)</span>
+                        {% if p.lote %}<span>🏷️ Lote: <strong>{{ p.lote }}</strong></span>{% endif %}
+                        <span>📦 Cant: <strong>{{ p.cantidad }}</strong></span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            {% else %}
+            <div style="text-align:center; color:#6b7280; padding:30px;">✅ No hay artículos próximos a vencer en los próximos 30 días.</div>
+            {% endif %}
+        </div>
+        <div class="alert-modal-foot">
+            <button onclick="closeAlertModal('modalProximosVencer')" style="background:#6b7280; color:white; border:none; border-radius:8px; padding:9px 22px; font-weight:700; cursor:pointer; font-size:14px;">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+{# ══════════════════════════════════════════════════════
+   MODAL: VENCIDOS
+══════════════════════════════════════════════════════ #}
+<div id="modalVencidos" class="alert-modal-overlay">
+    <div class="alert-modal-box" style="max-width:800px;">
+        <div class="alert-modal-head" style="background:linear-gradient(135deg,#ef4444,#dc2626);">
+            <h2>🚫 Artículos Vencidos</h2>
+            <button class="alert-modal-close" onclick="closeAlertModal('modalVencidos')">×</button>
+        </div>
+        <div class="alert-modal-body">
+            {% if vencidos %}
+            <div class="modal-location-filters">
+                <button type="button" class="loc-filter-btn active" onclick="filterModalByLocation('modalVencidos', 'todos', this)">Todos ({{ vencidos|length }})</button>
+                <button type="button" class="loc-filter-btn" onclick="filterModalByLocation('modalVencidos', 'bodega', this)">Bodega Central</button>
+                <button type="button" class="loc-filter-btn" onclick="filterModalByLocation('modalVencidos', 'pasb', this)">PASB</button>
+                <button type="button" class="loc-filter-btn" onclick="filterModalByLocation('modalVencidos', 'pasm', this)">PASM</button>
+                <button type="button" class="loc-filter-btn" onclick="filterModalByLocation('modalVencidos', 'avanzada', this)">Botiquines Avanzada</button>
+                <button type="button" class="loc-filter-btn" onclick="filterModalByLocation('modalVencidos', 'ambulancias', this)">Ambulancias</button>
+            </div>
+
+            <div class="filter-empty-msg" style="display:none; text-align:center; color:#64748b; padding:25px; font-size:13px;">
+                🔍 No hay artículos vencidos para la ubicación seleccionada.
+            </div>
+
+            <p style="font-size:13px; color:#6b7280; margin:0 0 14px;">
+                Puede descartar artículos vencidos tanto de <strong>Bodega Central</strong> como de <strong>Puestos y Ambulancias</strong>. Al descartar un insumo de una unidad, su fecha de vencimiento quedará vacía en el próximo checklist para ser verificada.
+            </p>
+
+            {# Desktop: tabla #}
+            <div class="alert-tbl-wrap">
+                <table class="alert-modal-table" id="tablaVencidos">
+                    <thead style="background:#fef2f2; color:#991b1b;">
+                        <tr>
+                            <th>Artículo</th>
+                            <th>Ubicación / Sitio</th>
+                            <th>Lote</th>
+                            <th style="text-align:center;">Venció</th>
+                            <th style="text-align:center;">Cant.</th>
+                            <th style="text-align:center;">Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for v in vencidos %}
+                        {% set row_id = v.id if (v.origen == 'bodega' and v.id) else 'unit-' ~ loop.index %}
+                        <tr id="fila-vencido-{{ row_id }}" class="alert-row-item" data-origen="{{ v.origen }}">
+                            <td style="font-weight:600;">{{ v.nombre }}</td>
+                            <td>
+                                <span class="badge-location {{ v.ubicacion_badge_class }}">
+                                    {% if v.origen == 'bodega' %}🏢{% elif v.origen in ['pasb', 'pasm'] %}⛺{% elif v.origen == 'avanzada' %}🧰{% else %}🚑{% endif %}
+                                    {{ v.ubicacion_detalle }}
+                                </span>
+                            </td>
+                            <td style="color:#6b7280; font-size:12px;">{{ v.lote or 'N/A' }}</td>
+                            <td style="text-align:center; color:#dc2626; font-weight:600;">{{ v.fecha_vencimiento }}</td>
+                            <td style="text-align:center; font-weight:700;" id="cant-vencido-{{ row_id }}">{{ v.cantidad }}</td>
+                            <td style="text-align:center;">
+                                {% if v.origen == 'bodega' and v.id %}
+                                    <button type="button"
+                                            onclick="descartarItemVencido({ origen: 'bodega', itemId: {{ v.id }}, nombre: '{{ v.nombre|replace("'","\\'")|replace('"','\\"') }}', rowId: '{{ row_id }}' })"
+                                            class="btn-descarte-{{ row_id }}"
+                                            style="background:#ef4444; color:white; border:none; border-radius:6px; padding:5px 12px; font-size:12px; font-weight:700; cursor:pointer;">
+                                        🗑️ Descartar
+                                    </button>
+                                {% else %}
+                                    <button type="button"
+                                            onclick="descartarItemVencido({ origen: '{{ v.origen }}', checklistId: {{ v.checklist_id }}, fieldKey: '{{ v.field_key }}', nombre: '{{ v.nombre|replace("'","\\'")|replace('"','\\"') }}', fechaVencimiento: '{{ v.fecha_vencimiento }}', ubicacion: '{{ v.ubicacion_detalle|replace("'","\\'")|replace('"','\\"') }}', rowId: '{{ row_id }}' })"
+                                            class="btn-descarte-{{ row_id }}"
+                                            style="background:#dc2626; color:white; border:none; border-radius:6px; padding:5px 12px; font-size:12px; font-weight:700; cursor:pointer;"
+                                            title="Descartar de {{ v.ubicacion_detalle }}. Quedará vacío en el próximo checklist.">
+                                        🗑️ Descartar
+                                    </button>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {# Móvil: cards #}
+            <div class="alert-cards">
+                {% for v in vencidos %}
+                {% set row_id = v.id if (v.origen == 'bodega' and v.id) else 'unit-' ~ loop.index %}
+                <div class="alert-item-card danger alert-card-item" id="card-vencido-{{ row_id }}" data-origen="{{ v.origen }}">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:6px; margin-bottom:6px;">
+                        <div class="ac-name" style="margin-bottom:0;">{{ v.nombre }}</div>
+                        <span class="badge-location {{ v.ubicacion_badge_class }}">
+                            {% if v.origen == 'bodega' %}🏢{% elif v.origen in ['pasb', 'pasm'] %}⛺{% elif v.origen == 'avanzada' %}🧰{% else %}🚑{% endif %}
+                            {{ v.ubicacion_detalle }}
+                        </span>
+                    </div>
+                    <div class="ac-meta" style="margin-bottom:10px;">
+                        <span>📅 Venció: <strong style="color:#dc2626;">{{ v.fecha_vencimiento }}</strong></span>
+                        {% if v.lote %}<span>🏷️ Lote: <strong>{{ v.lote }}</strong></span>{% endif %}
+                        <span>📦 Cant: <strong id="cant-vencido-{{ row_id }}">{{ v.cantidad }}</strong></span>
+                    </div>
+                    {% if v.origen == 'bodega' and v.id %}
+                    <button type="button"
+                            onclick="descartarItemVencido({ origen: 'bodega', itemId: {{ v.id }}, nombre: '{{ v.nombre|replace("'","\\'")|replace('"','\\"') }}', rowId: '{{ row_id }}' })"
+                            class="btn-descarte-{{ row_id }}"
+                            style="width:100%; background:#ef4444; color:white; border:none; border-radius:8px; padding:9px; font-size:13px; font-weight:700; cursor:pointer;">
+                        🗑️ Descartar de Bodega Central
+                    </button>
+                    {% else %}
+                    <button type="button"
+                            onclick="descartarItemVencido({ origen: '{{ v.origen }}', checklistId: {{ v.checklist_id }}, fieldKey: '{{ v.field_key }}', nombre: '{{ v.nombre|replace("'","\\'")|replace('"','\\"') }}', fechaVencimiento: '{{ v.fecha_vencimiento }}', ubicacion: '{{ v.ubicacion_detalle|replace("'","\\'")|replace('"','\\"') }}', rowId: '{{ row_id }}' })"
+                            class="btn-descarte-{{ row_id }}"
+                            style="width:100%; background:#dc2626; color:white; border:none; border-radius:8px; padding:9px; font-size:13px; font-weight:700; cursor:pointer;">
+                        🗑️ Descartar de {{ v.ubicacion_detalle }}
+                    </button>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+
+            {% else %}
+            <div style="text-align:center; color:#6b7280; padding:30px;">✅ No hay artículos vencidos con stock activo.</div>
+            {% endif %}
+        </div>
+        <div class="alert-modal-foot">
+            <button onclick="closeAlertModal('modalVencidos')" style="background:#6b7280; color:white; border:none; border-radius:8px; padding:9px 22px; font-weight:700; cursor:pointer; font-size:14px;">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+<script>
+/* ── Dropdowns de Ingreso y Egreso ── */
+function toggleInvDropdown(id, event) {
+    if (event) {
+        event.stopPropagation();
+    }
+    const current = document.getElementById(id);
+    if (!current) return;
+    const isOpen = current.classList.contains('open');
+    document.querySelectorAll('.inv-dropdown').forEach(function(d) {
+        d.classList.remove('open');
+    });
+    if (!isOpen) {
+        current.classList.add('open');
+    }
+}
+
+function handleDropdownAction(dropdownId, actionFn) {
+    const el = document.getElementById(dropdownId);
+    if (el) el.classList.remove('open');
+    if (typeof actionFn === 'function') {
+        actionFn();
+    }
+}
+
+// Cerrar dropdowns al hacer clic fuera
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('.inv-dropdown')) {
+        document.querySelectorAll('.inv-dropdown').forEach(function(d) {
+            d.classList.remove('open');
+        });
+    }
+});
+
+/* ── Abrir/cerrar modales de alerta ── */
+function openAlertModal(id) {
+    document.getElementById(id).style.display = 'block';
+    document.body.style.overflow = 'hidden';
+}
+function closeAlertModal(id) {
+    document.getElementById(id).style.display = 'none';
+    document.body.style.overflow = '';
+}
+['modalStockMinimo','modalProximosVencer','modalVencidos'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) {
+        el.addEventListener('click', function(e) {
+            if (e.target === el) closeAlertModal(id);
+        });
+    }
+});
+
+/* ── Filtro interactivo por ubicación en modales de alerta ── */
+function filterModalByLocation(modalId, locationType, btn) {
+    const modal = document.getElementById(modalId);
+    if (!modal) return;
+    
+    // Actualizar clase activa en botones
+    modal.querySelectorAll('.loc-filter-btn').forEach(function(b) {
+        b.classList.remove('active');
+    });
+    if (btn) btn.classList.add('active');
+    
+    const rows = modal.querySelectorAll('.alert-row-item');
+    const cards = modal.querySelectorAll('.alert-card-item');
+    
+    const matches = function(type) {
+        if (locationType === 'todos') return true;
+        if (locationType === 'ambulancias') return type === 'tam' || type === 'tab';
+        return type === locationType;
+    };
+    
+    let visibleCount = 0;
+    rows.forEach(function(r) {
+        const itemType = r.getAttribute('data-origen');
+        if (matches(itemType)) {
+            r.style.display = '';
+            visibleCount++;
+        } else {
+            r.style.display = 'none';
+        }
+    });
+    cards.forEach(function(c) {
+        const itemType = c.getAttribute('data-origen');
+        if (matches(itemType)) {
+            c.style.display = '';
+        } else {
+            c.style.display = 'none';
+        }
+    });
+    
+    const emptyMsg = modal.querySelector('.filter-empty-msg');
+    if (emptyMsg) {
+        emptyMsg.style.display = (visibleCount === 0 && (rows.length > 0 || cards.length > 0)) ? 'block' : 'none';
+    }
+}
+
+/* ── Descarte de vencidos (Bodega Central y Unidades Operativas) ── */
+function descartarItemVencido(opts) {
+    const isBodega = opts.origen === 'bodega';
+    const confirmMsg = isBodega 
+        ? '¿Confirmar descarte de "' + opts.nombre + '" en Bodega Central?\nSe registrará egreso por vencimiento y el stock quedará en 0.'
+        : '¿Confirmar descarte de "' + opts.nombre + '" en ' + opts.ubicacion + '?\nEl artículo quedará con fecha vacía en el próximo checklist de esta unidad para que sea verificada e ingresada la nueva fecha.';
+
+    if (!confirm(confirmMsg)) return;
+
+    // Deshabilitar botones de la fila y la tarjeta móvil
+    document.querySelectorAll('.btn-descarte-' + opts.rowId).forEach(function(b) {
+        b.disabled = true;
+        b.textContent = 'Procesando...';
+    });
+
+    const fd = new FormData();
+    fd.append('origen', opts.origen);
+    if (isBodega) {
+        fd.append('item_id', opts.itemId);
+    } else {
+        fd.append('checklist_id', opts.checklistId);
+        fd.append('field_key', opts.fieldKey);
+        fd.append('fecha_vencimiento', opts.fechaVencimiento || '');
+        fd.append('nombre', opts.nombre);
+    }
+
+    fetch('{{ url_for("inventarios.inventarios_descarte") }}', {
+        method: 'POST',
+        body: fd,
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        if (data.status === 'success') {
+            // Actualizar cantidad visual
+            document.querySelectorAll('#cant-vencido-' + opts.rowId).forEach(function(el) { el.textContent = '0'; });
+            // Tachar fila desktop
+            const fila = document.getElementById('fila-vencido-' + opts.rowId);
+            if (fila) { fila.style.opacity = '0.4'; fila.style.textDecoration = 'line-through'; }
+            // Tachar card móvil
+            const card = document.getElementById('card-vencido-' + opts.rowId);
+            if (card) { card.style.opacity = '0.4'; }
+            // Actualizar botones
+            document.querySelectorAll('.btn-descarte-' + opts.rowId).forEach(function(b) {
+                b.textContent = '✅ Descartado';
+                b.style.background = '#10b981';
+            });
+            setTimeout(function() { location.reload(); }, 1800);
+        } else {
+            alert('Error: ' + data.message);
+            document.querySelectorAll('.btn-descarte-' + opts.rowId).forEach(function(b) {
+                b.disabled = false;
+                b.textContent = '🗑️ Descartar';
+            });
+        }
+    })
+    .catch(function() {
+        alert('Error de conexión. Intente de nuevo.');
+        document.querySelectorAll('.btn-descarte-' + opts.rowId).forEach(function(b) {
+            b.disabled = false;
+            b.textContent = '🗑️ Descartar';
+        });
+    });
+}
+
+function descartarVencido(itemId, nombre) {
+    descartarItemVencido({ origen: 'bodega', itemId: itemId, nombre: nombre, rowId: itemId });
+}
+</script>
+
+
 <div id="invModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
@@ -708,16 +1692,54 @@
                     <label style="font-size: 13px; margin-bottom: 3px;">Destino</label>
                     <select id="scannerDestino" style="padding: 6px; font-size: 13px;">
                         <option value="" disabled selected>-- Seleccione Destino --</option>
-                        <option value="Movil 1">Móvil 1</option>
-                        <option value="Movil 2">Móvil 2</option>
-                        <option value="Movil 3">Móvil 3</option>
-                        <option value="Movil 4">Móvil 4</option>
-                        <option value="Movil 5">Móvil 5</option>
-                        <option value="Movil 6">Móvil 6</option>
-                        <option value="Unidad de Rescate">Unidad de Rescate</option>
-                        <option value="PASM">PASM</option>
-                        <option value="PASB">PASB</option>
-                        <option value="Botiquines Avanzada">Botiquines Avanzada</option>
+                        <optgroup label="Móviles / Vehículos">
+                            {% if vehiculos %}
+                                {% for v in vehiculos %}
+                                    {% if v.placa %}
+                                    <option value="{{ v.placa }}">{{ v.placa }}{% if v.tipo_ambulancia %} ({{ v.tipo_ambulancia }}{% if v.movil %} - {{ v.movil }}{% endif %}){% elif v.tipo %} ({{ v.tipo }}{% if v.movil %} - {{ v.movil }}{% endif %}){% elif v.movil %} ({{ v.movil }}){% endif %}</option>
+                                    {% endif %}
+                                {% endfor %}
+                            {% endif %}
+                        </optgroup>
+                        <optgroup label="Puestos de Atención Básica (PASB)">
+                            <option value="PASB">PASB General</option>
+                            {% if pasb_opciones %}
+                                {% for op in pasb_opciones %}
+                                <option value="{{ op }}">{{ op }}</option>
+                                {% endfor %}
+                            {% else %}
+                                <option value="PASB-1">PASB-1</option>
+                                <option value="PASB-2">PASB-2</option>
+                                <option value="PASB-3">PASB-3</option>
+                                <option value="PASB-4">PASB-4</option>
+                            {% endif %}
+                        </optgroup>
+                        <optgroup label="Puestos de Atención Medicalizada (PASM)">
+                            <option value="PASM">PASM General</option>
+                            {% if pasm_opciones %}
+                                {% for op in pasm_opciones %}
+                                <option value="{{ op }}">{{ op }}</option>
+                                {% endfor %}
+                            {% else %}
+                                <option value="PASM-1">PASM-1</option>
+                                <option value="PASM-2">PASM-2</option>
+                                <option value="PASM-3">PASM-3</option>
+                                <option value="PASM-4">PASM-4</option>
+                            {% endif %}
+                        </optgroup>
+                        <optgroup label="Botiquines de Atención Médica Avanzada">
+                            <option value="Botiquines Avanzada">Botiquines Avanzada General</option>
+                            {% if botiquines_opciones %}
+                                {% for op in botiquines_opciones %}
+                                <option value="{{ op }}">{{ op }}</option>
+                                {% endfor %}
+                            {% else %}
+                                <option value="Botiquín 1">Botiquín 1</option>
+                                <option value="Botiquín 2">Botiquín 2</option>
+                                <option value="Botiquín 3">Botiquín 3</option>
+                                <option value="Botiquín 4">Botiquín 4</option>
+                            {% endif %}
+                        </optgroup>
                     </select>
                 </div>
             </div>
@@ -828,16 +1850,54 @@
                     <label>Destino</label>
                     <select name="destino" id="manualDestino">
                         <option value="" disabled selected>-- Seleccione Destino --</option>
-                        <option value="Movil 1">Móvil 1</option>
-                        <option value="Movil 2">Móvil 2</option>
-                        <option value="Movil 3">Móvil 3</option>
-                        <option value="Movil 4">Móvil 4</option>
-                        <option value="Movil 5">Móvil 5</option>
-                        <option value="Movil 6">Móvil 6</option>
-                        <option value="Unidad de Rescate">Unidad de Rescate</option>
-                        <option value="PASM">PASM</option>
-                        <option value="PASB">PASB</option>
-                        <option value="Botiquines Avanzada">Botiquines Avanzada</option>
+                        <optgroup label="Móviles / Vehículos">
+                            {% if vehiculos %}
+                                {% for v in vehiculos %}
+                                    {% if v.placa %}
+                                    <option value="{{ v.placa }}">{{ v.placa }}{% if v.tipo_ambulancia %} ({{ v.tipo_ambulancia }}{% if v.movil %} - {{ v.movil }}{% endif %}){% elif v.tipo %} ({{ v.tipo }}{% if v.movil %} - {{ v.movil }}{% endif %}){% elif v.movil %} ({{ v.movil }}){% endif %}</option>
+                                    {% endif %}
+                                {% endfor %}
+                            {% endif %}
+                        </optgroup>
+                        <optgroup label="Puestos de Atención Básica (PASB)">
+                            <option value="PASB">PASB General</option>
+                            {% if pasb_opciones %}
+                                {% for op in pasb_opciones %}
+                                <option value="{{ op }}">{{ op }}</option>
+                                {% endfor %}
+                            {% else %}
+                                <option value="PASB-1">PASB-1</option>
+                                <option value="PASB-2">PASB-2</option>
+                                <option value="PASB-3">PASB-3</option>
+                                <option value="PASB-4">PASB-4</option>
+                            {% endif %}
+                        </optgroup>
+                        <optgroup label="Puestos de Atención Medicalizada (PASM)">
+                            <option value="PASM">PASM General</option>
+                            {% if pasm_opciones %}
+                                {% for op in pasm_opciones %}
+                                <option value="{{ op }}">{{ op }}</option>
+                                {% endfor %}
+                            {% else %}
+                                <option value="PASM-1">PASM-1</option>
+                                <option value="PASM-2">PASM-2</option>
+                                <option value="PASM-3">PASM-3</option>
+                                <option value="PASM-4">PASM-4</option>
+                            {% endif %}
+                        </optgroup>
+                        <optgroup label="Botiquines de Atención Médica Avanzada">
+                            <option value="Botiquines Avanzada">Botiquines Avanzada General</option>
+                            {% if botiquines_opciones %}
+                                {% for op in botiquines_opciones %}
+                                <option value="{{ op }}">{{ op }}</option>
+                                {% endfor %}
+                            {% else %}
+                                <option value="Botiquín 1">Botiquín 1</option>
+                                <option value="Botiquín 2">Botiquín 2</option>
+                                <option value="Botiquín 3">Botiquín 3</option>
+                                <option value="Botiquín 4">Botiquín 4</option>
+                            {% endif %}
+                        </optgroup>
                     </select>
                 </div>
             </div>
@@ -1164,22 +2224,29 @@
             if (tipo_egreso === 'Reposicion') {
                 destino = document.getElementById('scannerDestino').value;
                 if (!destino) {
+                    const swalDestinoOptions = {};
+                    const destSelect = document.getElementById('scannerDestino') || document.getElementById('manualDestino');
+                    if (destSelect) {
+                        Array.from(destSelect.children).forEach(child => {
+                            if (child.tagName === 'OPTGROUP') {
+                                const groupObj = {};
+                                Array.from(child.children).forEach(opt => {
+                                    if (opt.value) groupObj[opt.value] = opt.text;
+                                });
+                                if (Object.keys(groupObj).length > 0) {
+                                    swalDestinoOptions[child.label] = groupObj;
+                                }
+                            } else if (child.tagName === 'OPTION' && child.value) {
+                                swalDestinoOptions[child.value] = child.text;
+                            }
+                        });
+                    }
+
                     Swal.fire({
                         title: 'Destino Requerido',
                         text: 'Seleccione el destino de la reposición:',
                         input: 'select',
-                        inputOptions: {
-                            'Movil 1': 'Móvil 1',
-                            'Movil 2': 'Móvil 2',
-                            'Movil 3': 'Móvil 3',
-                            'Movil 4': 'Móvil 4',
-                            'Movil 5': 'Móvil 5',
-                            'Movil 6': 'Móvil 6',
-                            'Unidad de Rescate': 'Unidad de Rescate',
-                            'PASM': 'PASM',
-                            'PASB': 'PASB',
-                            'Botiquines Avanzada': 'Botiquines Avanzada'
-                        },
+                        inputOptions: swalDestinoOptions,
                         inputPlaceholder: '-- Seleccione Destino --',
                         showCancelButton: true,
                         confirmButtonText: 'Continuar',

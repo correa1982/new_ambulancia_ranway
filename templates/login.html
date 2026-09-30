@@ -3,9 +3,20 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Acceso al Sistema – HC Prehospitalario</title>
+<title>Acceso al Sistema – Gestion Institucional y Operativa</title>
 <link rel="icon" type="image/png" href="{{ url_for('static', filename='icon-192.png') }}">
-<meta name="description" content="Sistema de Historia Clínica para atención prehospitalaria y ambulancias.">
+<!-- PWA & Apple iOS -->
+<link rel="manifest" href="/static/manifest.json">
+<meta name="theme-color" content="#1e6fbf">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="S G A">
+<link rel="apple-touch-icon" href="{{ url_for('static', filename='icon-192.png') }}">
+<link rel="apple-touch-icon" sizes="192x192" href="{{ url_for('static', filename='icon-192.png') }}">
+<link rel="apple-touch-icon" sizes="512x512" href="{{ url_for('static', filename='icon-512.png') }}">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11" integrity="sha384-nLoOnA/BDh8A/jxqtckg4DumuCGOBYUnNJLZdQz/zfYNp3wcjGSoWTAzgko06G/2" crossorigin="anonymous"></script>
+<meta name="description" content="S G A - Gestion Institucional y Operativa.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -205,6 +216,12 @@
         📄 Consultar valor para la cuenta de cobro
     </a>
 
+    <div id="pwa-install-box-login" style="display: none; margin-bottom: 20px;">
+        <button id="btn-instalar-login" type="button" style="width: 100%; background: linear-gradient(135deg, #f59e0b, #d97706); color: white; border: none; padding: 12px; border-radius: 10px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.35); font-family: inherit; transition: transform 0.15s, opacity 0.15s;">
+            📲 Instalar Aplicación Móvil
+        </button>
+    </div>
+
     <div class="login-footer">
         <strong>¿Olvidó su contraseña?</strong><br>
         <a href="{{ url_for('recuperar_contrasena') }}" style="color: #0ea5e9; text-decoration: none; font-weight: 600;">Recuperar contraseña</a><br><br>
@@ -219,6 +236,92 @@ document.getElementById('login-form').addEventListener('submit', function() {
     btn.disabled = true;
     setTimeout(() => { btn.disabled = false; btn.innerHTML = '🔑 Ingresar al Sistema'; }, 4000);
 });
+
+// PWA Installation & Service Worker in Login
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js?v=60', { scope: '/' }).catch(() => {});
+}
+
+(function() {
+    let deferredPrompt = null;
+    const installBox = document.getElementById('pwa-install-box-login');
+    const installBtn = document.getElementById('btn-instalar-login');
+
+    const isIosDevice = () => {
+        const ua = window.navigator.userAgent.toLowerCase();
+        return /iphone|ipad|ipod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    };
+
+    const isStandaloneMode = () => {
+        return ('standalone' in window.navigator && window.navigator.standalone) ||
+               window.matchMedia('(display-mode: standalone)').matches;
+    };
+
+    function mostrarGuiaInstalacionIos() {
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                title: 'Instalar en iPhone / iPad',
+                html: `
+                    <div style="text-align: left; font-size: 13.5px; line-height: 1.55; color: #334155;">
+                        <p style="margin-bottom: 12px; font-weight: 500;">Para instalar <strong>S G A</strong> en tu pantalla de inicio y usarla a pantalla completa (incluso sin internet):</p>
+                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; margin-bottom: 10px; display: flex; align-items: center; gap: 12px;">
+                            <span style="background: #1e6fbf; color: white; border-radius: 50%; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0; font-size: 13px;">1</span>
+                            <span>Abre esta página en <strong>Safari</strong> y toca el botón <strong>Compartir</strong> <span style="font-size: 18px; color: #007aff; vertical-align: middle;">⎋</span> (el cuadro con la flecha hacia arriba).</span>
+                        </div>
+                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; margin-bottom: 10px; display: flex; align-items: center; gap: 12px;">
+                            <span style="background: #1e6fbf; color: white; border-radius: 50%; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0; font-size: 13px;">2</span>
+                            <span>Desliza hacia abajo en el menú y selecciona <strong>"Agregar a la pantalla de inicio"</strong> <span style="font-size: 18px; vertical-align: middle;">➕</span>.</span>
+                        </div>
+                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; display: flex; align-items: center; gap: 12px;">
+                            <span style="background: #1e6fbf; color: white; border-radius: 50%; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0; font-size: 13px;">3</span>
+                            <span>Toca <strong>"Agregar"</strong> en la esquina superior derecha y la app quedará instalada.</span>
+                        </div>
+                        <p style="margin-top: 12px; font-size: 12px; color: #64748b; font-style: italic;">
+                            💡 Si estás dentro de WhatsApp u otra aplicación, toca los tres puntos y selecciona "Abrir en Safari".
+                        </p>
+                    </div>
+                `,
+                icon: 'info',
+                confirmButtonText: '¡Entendido!',
+                confirmButtonColor: '#1e6fbf'
+            });
+        } else {
+            alert("Para instalar en iPhone: Abre en Safari, pulsa el botón Compartir (cuadrado con flecha hacia arriba) y selecciona 'Agregar a la pantalla de inicio'.");
+        }
+    }
+
+    if (installBox && installBtn) {
+        if (isIosDevice() && !isStandaloneMode()) {
+            installBox.style.display = 'block';
+            installBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                mostrarGuiaInstalacionIos();
+            });
+        }
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            installBox.style.display = 'block';
+        });
+
+        installBtn.addEventListener('click', async (e) => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    installBox.style.display = 'none';
+                }
+                deferredPrompt = null;
+            }
+        });
+    }
+
+    window.addEventListener('appinstalled', () => {
+        if (installBox) installBox.style.display = 'none';
+        deferredPrompt = null;
+    });
+})();
 </script>
 </body>
 </html>

@@ -24,7 +24,7 @@ def register_routes(app):
             
             # Dynamic: collect all checklist_item responses into JSON
             items_db = conn.execute(
-                "SELECT * FROM checklist_items WHERE tipo_checklist = 'preoperacional' AND activo = 1 ORDER BY categoria, id"
+                "SELECT * FROM checklist_items WHERE tipo_checklist = 'preoperacional' AND activo = 1 ORDER BY categoria, orden ASC, id ASC"
             ).fetchall()
             
             datos = {}
@@ -224,7 +224,7 @@ def register_routes(app):
         
         # Fetch active items and group by category
         items_db = conn.execute(
-            "SELECT * FROM checklist_items WHERE tipo_checklist = 'preoperacional' AND activo = 1 ORDER BY categoria, id"
+            "SELECT * FROM checklist_items WHERE tipo_checklist = 'preoperacional' AND activo = 1 ORDER BY categoria, orden ASC, id ASC"
         ).fetchall()
         items_por_cat = {}
         for item in items_db:

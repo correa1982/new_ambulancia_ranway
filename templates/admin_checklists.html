@@ -194,23 +194,23 @@
         <span class="tab-label">Preoperacional</span>
     </a>
     <a href="{{ url_for('admin_checklists', tipo='tam') }}" class="tab-btn {{ 'active' if tipo == 'tam' }}">
-        <div class="tab-icon-wrapper"><i class="ph ph-first-aid-kit"></i></div>
+        <div class="tab-icon-wrapper"><i class="ph ph-ambulance"></i></div>
         <span class="tab-label">Check List TAM</span>
     </a>
     <a href="{{ url_for('admin_checklists', tipo='tab') }}" class="tab-btn {{ 'active' if tipo == 'tab' }}">
-        <div class="tab-icon-wrapper"><i class="ph ph-stethoscope"></i></div>
+        <div class="tab-icon-wrapper"><i class="ph ph-ambulance"></i></div>
         <span class="tab-label">Check List TAB</span>
     </a>
     <a href="{{ url_for('admin_checklists', tipo='avanzada') }}" class="tab-btn {{ 'active' if tipo == 'avanzada' }}">
-        <div class="tab-icon-wrapper"><i class="ph ph-shield-plus"></i></div>
+        <div class="tab-icon-wrapper"><i class="ph ph-first-aid-kit"></i></div>
         <span class="tab-label">Check List Avanzada</span>
     </a>
     <a href="{{ url_for('admin_checklists', tipo='pasb') }}" class="tab-btn {{ 'active' if tipo == 'pasb' }}">
-        <div class="tab-icon-wrapper"><i class="ph ph-toolbox"></i></div>
+        <div class="tab-icon-wrapper"><i class="ph ph-hospital"></i></div>
         <span class="tab-label">Check List PASB</span>
     </a>
     <a href="{{ url_for('admin_checklists', tipo='pasm') }}" class="tab-btn {{ 'active' if tipo == 'pasm' }}">
-        <div class="tab-icon-wrapper"><i class="ph ph-backpack"></i></div>
+        <div class="tab-icon-wrapper"><i class="ph ph-hospital"></i></div>
         <span class="tab-label">Check List PASM</span>
     </a>
     <a href="{{ url_for('admin_checklists', tipo='equipos') }}" class="tab-btn {{ 'active' if tipo == 'equipos' }}">
@@ -234,7 +234,7 @@
         <span class="tab-label">SOAT</span>
     </a>
     <a href="{{ url_for('admin_checklists', tipo='archivador') }}" class="tab-btn {{ 'active' if tipo == 'archivador' }}">
-        <div class="tab-icon-wrapper"><i class="ph ph-archive"></i></div>
+        <div class="tab-icon-wrapper"><i class="ph ph-scan"></i></div>
         <span class="tab-label">Archivador</span>
     </a>
 </div>
@@ -751,6 +751,80 @@
     {% endif %}
 </div>
 
+{% if tipo in ('pasb', 'pasm', 'avanzada') %}
+<!-- ══════════ GESTIÓN DE OPCIONES (PUESTOS O BOTIQUINES) ══════════ -->
+{% set es_avanzada = (tipo == 'avanzada') %}
+{% set entidad_label = 'Botiquines' if es_avanzada else 'Puestos' %}
+{% set entidad_singular = 'Botiquín' if es_avanzada else 'Puesto' %}
+<div class="add-form" style="margin-bottom: 24px; border-color: #38bdf8; background: #f0f9ff;">
+    <h3 style="color: #0369a1; display: flex; align-items: center; gap: 6px;">
+        {% if es_avanzada %}
+        <i class="ph ph-first-aid"></i> 🧰 Gestión de Botiquines para AVANZADA (Opciones del Checklist)
+        {% else %}
+        <i class="ph ph-hospital"></i> 🏕️ Gestión de Puestos para {{ tipo|upper }} (Opciones del Checklist)
+        {% endif %}
+    </h3>
+    
+    <form method="POST" action="{{ url_for('admin_pas_opcion_agregar') }}" style="margin-bottom: 16px;" id="form-add-pas-opcion">
+        <input type="hidden" name="tipo" value="{{ tipo }}">
+        <div class="add-row">
+            <div class="field" style="flex: 2;">
+                <label style="color: #0369a1;">Nuevo {{ entidad_singular }} / Nombre de {{ entidad_singular if es_avanzada else tipo|upper }}</label>
+                <input type="text" name="nombre" required placeholder="{% if es_avanzada %}Ej. Botiquín 1, Botiquín A o Botiquín Trauma{% else %}Ej. {{ tipo|upper }}-5 o {{ tipo|upper }}-1 (Tarima Principal){% endif %}">
+            </div>
+            <div>
+                <button type="submit" class="btn-add" style="background: #0284c7; color: white;">➕ Añadir {{ entidad_singular }}</button>
+            </div>
+        </div>
+    </form>
+    
+    {% if pas_opciones %}
+    <div class="table-responsive" style="margin-bottom: 0;">
+    <table class="items-table" style="margin-bottom: 0;">
+        <thead><tr>
+            <th style="width: 50px;">#</th>
+            <th>Nombre / Identificador del {{ entidad_singular }}</th>
+            <th style="width: 120px;">Estado</th>
+            <th style="width: 180px;">Acciones</th>
+        </tr></thead>
+        <tbody>
+        {% for op in pas_opciones %}
+        <tr style="{{ 'opacity: 0.6;' if not op.activo }}">
+            <td style="color: #94a3b8; font-weight: 600;">{{ loop.index }}</td>
+            <td style="font-weight: 600;">
+                <form method="POST" action="{{ url_for('admin_pas_opcion_editar', opcion_id=op.id) }}" style="display:flex; gap:6px; align-items: center;">
+                    <input type="text" name="nombre" value="{{ op.nombre }}" style="padding:5px 8px; border:1.5px solid #cbd5e1; border-radius:5px; font-size:12px; width:100%;" required>
+                    <button type="submit" style="background:#0284c7; color:white; border:none; border-radius:4px; padding:5px 10px; font-size:11px; cursor:pointer; font-weight: 600; white-space: nowrap;">💾 Guardar</button>
+                </form>
+            </td>
+            <td>
+                {% if op.activo %}
+                <span class="status-active">✓ Activo</span>
+                {% else %}
+                <span class="status-inactive">✗ Inactivo</span>
+                {% endif %}
+            </td>
+            <td style="text-align: center;">
+                <div style="display: flex; gap: 4px; justify-content: center; align-items: center;">
+                    <a href="{{ url_for('admin_pas_opcion_toggle', opcion_id=op.id) }}" class="action-btn btn-toggle" style="padding: 4px 8px;">
+                        {{ '⏸ Desactivar' if op.activo else '▶ Activar' }}
+                    </a>
+                    <a href="{{ url_for('admin_pas_opcion_eliminar', opcion_id=op.id) }}" class="action-btn btn-delete" style="padding: 4px 8px;" onclick="return confirm('¿Eliminar el {{ entidad_singular.lower() }} «{{ op.nombre }}»?')">
+                        🗑 Eliminar
+                    </a>
+                </div>
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    </div>
+    {% else %}
+    <div style="font-size:13px; color:#0369a1;">No hay {{ entidad_label.lower() }} configurados para {{ 'AVANZADA' if es_avanzada else tipo|upper }}.</div>
+    {% endif %}
+</div>
+{% endif %}
+
 <!-- Formulario para agregar -->
 <div class="add-form">
     <h3>➕ Agregar nuevo ítem al checklist {{ tipo|upper }}</h3>
@@ -775,10 +849,22 @@
                 <label>Nombre del ítem</label>
                 <input type="text" name="nombre" id="input-nombre-item" required placeholder="Ej. Adrenalina / Epinefrina">
             </div>
+            <div class="field" style="flex: 1.5; min-width: 180px;">
+                <label>Ubicación / Posición</label>
+                <select name="posicion" id="select-posicion-item" style="padding: 8px 12px; border: 1.5px solid #cbd5e1; border-radius: 7px; font-size: 13px; font-family: inherit; width: 100%;">
+                    <option value="final">Al final (por defecto)</option>
+                </select>
+            </div>
             {% if tipo in ('tam', 'tab', 'pasm', 'pasb', 'avanzada') %}
             <div class="field" style="flex: 1; min-width: 100px;">
                 <label>Cantidad</label>
                 <input type="number" name="cantidad" id="input-cantidad-item" required min="0" value="1" placeholder="Ej. 5">
+            </div>
+            <div class="field" style="flex: 0 0 auto; display: flex; flex-direction: column; justify-content: flex-end; padding-bottom: 8px;">
+                <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px; font-weight: 600; color: #1e3a5f; user-select: none;">
+                    <input type="checkbox" name="aplica_vencimiento" value="1" style="width: 18px; height: 18px; accent-color: #10b981; cursor: pointer;">
+                    📅 Aplica Vencimiento
+                </label>
             </div>
             {% endif %}
             <div>
@@ -817,10 +903,11 @@
 <div class="table-responsive">
 <table class="items-table">
 <thead><tr>
-    <th>#</th>
+    <th style="width: 70px; text-align: center;">#</th>
     <th>Nombre del Ítem</th>
     {% if tipo in ('tam', 'tab', 'pasm', 'pasb', 'avanzada') %}
     <th>Cantidad</th>
+    <th>Vencimiento</th>
     {% endif %}
     <th>Identificador</th>
     <th>Estado</th>
@@ -829,10 +916,38 @@
 <tbody>
 {% for item in items_por_cat[cat] %}
 <tr style="{{ 'opacity: 0.5;' if not item.activo }}">
-    <td style="color: #94a3b8; font-weight: 600;">{{ loop.index }}</td>
+    <td style="color: #64748b; font-weight: 700; text-align: center; white-space: nowrap; width: 70px;">
+        <div style="display: inline-flex; align-items: center; justify-content: center; gap: 4px;">
+            <span>{{ loop.index }}</span>
+            <div style="display: inline-flex; flex-direction: column; gap: 2px;">
+                {% if not loop.first %}
+                <a href="{{ url_for('admin_checklist_mover', item_id=item.id, direccion='arriba') }}" 
+                   title="Subir ítem en la lista" 
+                   style="text-decoration: none; font-size: 9px; line-height: 1; padding: 2px 4px; background: #f1f5f9; border-radius: 3px; color: #475569; border: 1px solid #cbd5e1; transition: all 0.15s ease;"
+                   onmouseover="this.style.background='#dbeafe'; this.style.color='#1e40af';"
+                   onmouseout="this.style.background='#f1f5f9'; this.style.color='#475569';">▲</a>
+                {% endif %}
+                {% if not loop.last %}
+                <a href="{{ url_for('admin_checklist_mover', item_id=item.id, direccion='abajo') }}" 
+                   title="Bajar ítem en la lista" 
+                   style="text-decoration: none; font-size: 9px; line-height: 1; padding: 2px 4px; background: #f1f5f9; border-radius: 3px; color: #475569; border: 1px solid #cbd5e1; transition: all 0.15s ease;"
+                   onmouseover="this.style.background='#dbeafe'; this.style.color='#1e40af';"
+                   onmouseout="this.style.background='#f1f5f9'; this.style.color='#475569';">▼</a>
+                {% endif %}
+            </div>
+        </div>
+    </td>
     <td style="font-weight: 600;">{{ item.nombre }}</td>
     {% if tipo in ('tam', 'tab', 'pasm', 'pasb', 'avanzada') %}
     <td style="font-weight: 600;">{{ item.cantidad if item.cantidad is not none else '—' }}</td>
+    <td style="text-align: center;">
+        <a href="{{ url_for('admin_checklist_toggle_vencimiento', item_id=item.id) }}" 
+           class="action-btn" 
+           title="Clic para cambiar si requiere fecha de vencimiento"
+           style="text-decoration: none; padding: 4px 10px; font-size: 11px; border-radius: 20px; font-weight: 700; border: 1px solid; {{ 'background: #dcfce7; color: #166534; border-color: #86efac;' if item.aplica_vencimiento else 'background: #f1f5f9; color: #64748b; border-color: #cbd5e1;' }}">
+            {{ '📅 Requiere Fecha' if item.aplica_vencimiento else '— No Aplica' }}
+        </a>
+    </td>
     {% endif %}
     <td><code style="font-size: 11px; background: #f1f5f9; padding: 2px 6px; border-radius: 4px; color: #64748b;">{{ item.identificador }}</code></td>
     <td>
@@ -843,13 +958,25 @@
         {% endif %}
     </td>
     <td style="text-align: center;">
-        <a href="{{ url_for('admin_checklist_toggle', item_id=item.id) }}" class="action-btn btn-toggle">
-            {{ '⏸ Desactivar' if item.activo else '▶ Activar' }}
-        </a>
-        <a href="{{ url_for('admin_checklist_eliminar', item_id=item.id) }}" class="action-btn btn-delete"
-           onclick="return confirm('¿Eliminar permanentemente «{{ item.nombre }}»?')">
-            🗑 Eliminar
-        </a>
+        <div style="display: flex; gap: 4px; justify-content: center; align-items: center; flex-wrap: wrap;">
+            <button type="button" class="action-btn" style="border-color: #bfdbfe; color: #1e3a5f; background: #eff6ff; padding: 4px 8px;"
+                    data-id="{{ item.id }}" 
+                    data-nombre="{{ item.nombre }}" 
+                    data-cantidad="{{ item.cantidad if item.cantidad is not none else '' }}" 
+                    data-tipo="{{ tipo }}"
+                    data-categoria="{{ item.categoria }}"
+                    data-orden="{{ loop.index }}"
+                    onclick="openEditItemModal(this.dataset.id, this.dataset.nombre, this.dataset.cantidad, this.dataset.tipo, this.dataset.categoria, this.dataset.orden)">
+                ✏️ Editar
+            </button>
+            <a href="{{ url_for('admin_checklist_toggle', item_id=item.id) }}" class="action-btn btn-toggle" style="padding: 4px 8px;">
+                {{ '⏸ Desactivar' if item.activo else '▶ Activar' }}
+            </a>
+            <a href="{{ url_for('admin_checklist_eliminar', item_id=item.id) }}" class="action-btn btn-delete" style="padding: 4px 8px;"
+               onclick="return confirm('¿Eliminar permanentemente «{{ item.nombre }}»?')">
+                🗑 Eliminar
+            </a>
+        </div>
     </td>
 </tr>
 {% endfor %}
@@ -1072,6 +1199,120 @@
             }
         });
     }
+
+    // --- Mapa de ítems por categoría para asignación de ubicación/orden ---
+    const itemsPorCategoria = {
+        {% if items_por_cat %}
+            {% for c_name, c_items in items_por_cat.items() %}
+                {{ c_name|tojson }}: [
+                    {% for it in c_items %}
+                        { id: {{ it.id }}, nombre: {{ it.nombre|tojson }}, orden: {{ loop.index }} },
+                    {% endfor %}
+                ],
+            {% endfor %}
+        {% endif %}
+    };
+
+    function actualizarSelectPosicion(categoria) {
+        const selectPos = document.getElementById('select-posicion-item');
+        if (!selectPos) return;
+        selectPos.innerHTML = '';
+
+        const list = itemsPorCategoria[categoria] || [];
+        const total = list.length;
+
+        // Opción por defecto: Al final
+        const optFinal = document.createElement('option');
+        optFinal.value = 'final';
+        optFinal.textContent = `Al final (Posición ${total + 1})`;
+        optFinal.selected = true;
+        selectPos.appendChild(optFinal);
+
+        // Opciones para cada posición
+        list.forEach((item, index) => {
+            const pos = index + 1;
+            const opt = document.createElement('option');
+            opt.value = pos;
+            const nomCorto = item.nombre.length > 28 ? item.nombre.substring(0, 28) + '...' : item.nombre;
+            opt.textContent = `${pos}. Antes de: ${nomCorto}`;
+            selectPos.appendChild(opt);
+        });
+    }
+
+    const selectCategoria = document.getElementById('select-categoria');
+    if (selectCategoria) {
+        selectCategoria.addEventListener('change', function() {
+            actualizarSelectPosicion(this.value);
+        });
+        if (selectCategoria.value) {
+            actualizarSelectPosicion(selectCategoria.value);
+        }
+    }
+
+    // --- Modal Edit Checklist Item JS ---
+    function openEditItemModal(id, nombre, cantidad, tipo, categoria, ordenActual) {
+        const modal = document.getElementById('modal-editar-item');
+        const form = document.getElementById('form-editar-item');
+        form.action = `/admin/checklists/editar/${id}`;
+        document.getElementById('edit-item-nombre').value = nombre;
+        
+        const fieldCant = document.getElementById('edit-item-field-cantidad');
+        const inputCant = document.getElementById('edit-item-cantidad');
+        if (['tam', 'tab', 'pasm', 'pasb', 'avanzada'].includes(tipo)) {
+            fieldCant.style.display = 'block';
+            inputCant.value = cantidad !== '' ? cantidad : '1';
+        } else {
+            fieldCant.style.display = 'none';
+            inputCant.value = '';
+        }
+
+        // Llenar selector de posición en el modal de edición
+        const selectEditPos = document.getElementById('edit-item-posicion');
+        if (selectEditPos) {
+            selectEditPos.innerHTML = '';
+            const list = itemsPorCategoria[categoria] || [];
+            const currentPos = parseInt(ordenActual, 10) || 1;
+            list.forEach((item, index) => {
+                const pos = index + 1;
+                const opt = document.createElement('option');
+                opt.value = pos;
+                const nomCorto = item.nombre.length > 30 ? item.nombre.substring(0, 30) + '...' : item.nombre;
+                if (pos === currentPos) {
+                    opt.textContent = `Posición ${pos} (Actual: ${nomCorto})`;
+                    opt.selected = true;
+                } else {
+                    opt.textContent = `Posición ${pos} (En lugar de: ${nomCorto})`;
+                }
+                selectEditPos.appendChild(opt);
+            });
+            if (list.length === 0) {
+                const opt = document.createElement('option');
+                opt.value = '1';
+                opt.textContent = 'Posición 1';
+                selectEditPos.appendChild(opt);
+            }
+        }
+        
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeEditItemModal() {
+        const modal = document.getElementById('modal-editar-item');
+        if (modal) {
+            modal.style.display = 'none';
+            document.body.style.overflow = '';
+        }
+    }
+
+    const modalEditarItem = document.getElementById('modal-editar-item');
+    if (modalEditarItem) {
+        modalEditarItem.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeEditItemModal();
+            }
+        });
+    }
 </script>
 
 <!-- Modal de Edición de Vehículo -->
@@ -1148,6 +1389,37 @@
             <div style="padding: 16px 24px; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; gap: 10px; background: #f8fafc;">
                 <button type="button" onclick="closeEditModal()" style="padding: 8px 16px; border: 1.5px solid #cbd5e1; border-radius: 6px; font-size: 13px; font-weight: 600; color: #475569; background: white; cursor: pointer; font-family: inherit;">Cancelar</button>
                 <button type="submit" style="padding: 8px 16px; border: none; border-radius: 6px; font-size: 13px; font-weight: 700; color: white; background: linear-gradient(135deg, #f59e0b, #d97706); cursor: pointer; font-family: inherit;">Guardar Cambios</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal de Edición de Ítem de Checklist -->
+<div id="modal-editar-item" class="modal-overlay" style="display: none; position: fixed; inset: 0; z-index: 9999; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); align-items: center; justify-content: center; padding: 20px;">
+    <div class="modal-content" style="background: white; border-radius: 16px; max-width: 480px; width: 100%; box-shadow: 0 25px 60px rgba(0,0,0,0.3); overflow: hidden; display: flex; flex-direction: column;">
+        <div style="padding: 20px 24px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; background: #f0fdf4;">
+            <h3 style="margin: 0; color: #166534; font-size: 16px; display: flex; align-items: center; gap: 8px;">✏️ Editar Ítem del Checklist</h3>
+            <button type="button" onclick="closeEditItemModal()" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #64748b;">&times;</button>
+        </div>
+        <form id="form-editar-item" method="POST" action="">
+            <div style="padding: 24px; display: flex; flex-direction: column; gap: 16px;">
+                <div>
+                    <label style="font-size: 12px; font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">Nombre del Ítem <span style="color:#ef4444">*</span></label>
+                    <input type="text" name="nombre" id="edit-item-nombre" required style="width: 100%; padding: 8px 12px; border: 1.5px solid #cbd5e1; border-radius: 7px; font-size: 13px; font-family: inherit; box-sizing: border-box;">
+                </div>
+                <div id="edit-item-field-cantidad">
+                    <label style="font-size: 12px; font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">Cantidad Requerida</label>
+                    <input type="number" name="cantidad" id="edit-item-cantidad" min="0" style="width: 100%; padding: 8px 12px; border: 1.5px solid #cbd5e1; border-radius: 7px; font-size: 13px; font-family: inherit; box-sizing: border-box;">
+                </div>
+                <div id="edit-item-field-posicion">
+                    <label style="font-size: 12px; font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">Ubicación / Posición en la categoría</label>
+                    <select name="posicion" id="edit-item-posicion" style="width: 100%; padding: 8px 12px; border: 1.5px solid #cbd5e1; border-radius: 7px; font-size: 13px; font-family: inherit; box-sizing: border-box;">
+                    </select>
+                </div>
+            </div>
+            <div style="padding: 16px 24px; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; gap: 10px; background: #f8fafc;">
+                <button type="button" onclick="closeEditItemModal()" style="padding: 8px 16px; border: 1.5px solid #cbd5e1; border-radius: 6px; font-size: 13px; font-weight: 600; color: #475569; background: white; cursor: pointer; font-family: inherit;">Cancelar</button>
+                <button type="submit" style="padding: 8px 16px; border: none; border-radius: 6px; font-size: 13px; font-weight: 700; color: white; background: linear-gradient(135deg, #10b981, #059669); cursor: pointer; font-family: inherit;">Guardar Cambios</button>
             </div>
         </form>
     </div>
