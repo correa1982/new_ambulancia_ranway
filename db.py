@@ -62,27 +62,47 @@ class ConnectionPool:
             
         return pymysql.connect(**connect_kwargs)
 
-    def acquire(self):
+    def _discard(self, conn):
         try:
-            conn = self._queue.get_nowait()
+            conn.close()
+        except Exception:
+            pass
+        with self._lock:
+            self._size -= 1
+
+    def acquire(self):
+        # Reutilizar conexiones libres, descartando las muertas
+        while True:
             try:
-                conn.ping()
+                conn = self._queue.get_nowait()
+            except queue.Empty:
+                break
+            try:
+                conn.ping(reconnect=True)
                 return conn
             except Exception:
-                pass
-        except queue.Empty:
-            pass
+                self._discard(conn)
 
+        # Crear una nueva si hay espacio
         with self._lock:
-            if self._size < self._max:
+            can_create = self._size < self._max
+            if can_create:
                 self._size += 1
+        if can_create:
+            try:
                 return self._connect()
+            except Exception:
+                with self._lock:
+                    self._size -= 1
+                raise
 
-        conn = self._queue.get()
+        # Pool lleno: esperar con limite en vez de para siempre
+        conn = self._queue.get(timeout=15)
         try:
-            conn.ping()
+            conn.ping(reconnect=True)
         except Exception:
-            conn = self._connect()
+            self._discard(conn)
+            return self.acquire()
         return conn
 
     def release(self, conn):
