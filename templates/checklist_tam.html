@@ -691,8 +691,8 @@ function renderVencRowHtml(cant, fecha, canDelete, maxCant, prefix = 'swal-venc'
                 <input type="number" class="${prefix}-cant" min="1" max="${maxCant}" value="${cant}" style="width: 100%; padding: 6px 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; font-weight: 700; text-align: center; box-sizing: border-box;" ${maxCant === 1 ? 'readonly' : ''}>
             </div>
             <div class="row-col-fecha" style="flex: 1; min-width: 120px; text-align: left;">
-                <label style="display: block; font-size: 11px; font-weight: 700; color: #475569; margin-bottom: 2px;">Fecha de Vencimiento</label>
-                <input type="date" class="${prefix}-fecha" value="${fecha}" style="width: 100%; padding: 6px 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; box-sizing: border-box;">
+                <label style="display: block; font-size: 11px; font-weight: 700; color: #475569; margin-bottom: 2px;">Fecha Vencimiento <span style="color: #ef4444; font-size: 10px;">*Requerida</span></label>
+                <input type="date" class="${prefix}-fecha" value="${fecha}" required style="width: 100%; padding: 6px 8px; border: 1px solid ${fecha ? '#cbd5e1' : '#3b82f6'}; border-radius: 6px; font-size: 13px; box-sizing: border-box;">
             </div>
             ${canDelete ? `
             <div class="row-col-del" style="flex: 0 0 32px;">
@@ -822,8 +822,6 @@ function promptEditVenc(field, nombre, cantTotal) {
     let entries = parseVencEntries(currentVenc, cantTotal);
     if (entries.length === 0) {
         entries = [{ cant: cantTotal, fecha: '' }];
-    } else if (entries.length === 1 && cantTotal > 1 && entries[0].cant !== cantTotal) {
-        entries[0].cant = cantTotal;
     }
 
     let rowsHtml = '';
@@ -855,6 +853,9 @@ function promptEditVenc(field, nombre, cantTotal) {
                 ➕ Agregar otra fecha de vencimiento
             </button>
             ` : ''}
+            <div style="margin-top: 10px; font-size: 11px; color: #64748b; text-align: left; background: #f8fafc; padding: 6px 10px; border-radius: 6px;">
+                💡 <em>Nota: Si asigna todas las unidades se marcará <strong>Cumple (SI)</strong>. Si faltan unidades o solo hay una parte, se marcará <strong>Incumple Parcial (NO)</strong>. Si no tiene ninguna existencia, cancele y elija "NO" en la lista.</em>
+            </div>
         `,
         showCancelButton: true,
         confirmButtonText: 'Guardar Fechas',
@@ -900,6 +901,11 @@ function promptEditVenc(field, nombre, cantTotal) {
             function attachEvents() {
                 container.querySelectorAll('.swal-venc-cant').forEach(inp => {
                     inp.oninput = updateBalance;
+                });
+                container.querySelectorAll('.swal-venc-fecha').forEach(inp => {
+                    inp.onchange = function() {
+                        if (this.value) this.style.borderColor = '#cbd5e1';
+                    };
                 });
                 container.querySelectorAll('.swal-venc-del-btn').forEach(btn => {
                     btn.onclick = function() {
@@ -948,16 +954,22 @@ function promptEditVenc(field, nombre, cantTotal) {
 
             for (let i = 0; i < rows.length; i++) {
                 const cantVal = parseInt(rows[i].querySelector('.swal-venc-cant').value, 10);
-                const fechaVal = rows[i].querySelector('.swal-venc-fecha').value;
+                const fechaInp = rows[i].querySelector('.swal-venc-fecha');
+                const fechaVal = fechaInp ? fechaInp.value : '';
 
                 if (!cantVal || cantVal < 1) {
                     Swal.showValidationMessage(`La cantidad en la fila #${i+1} debe ser al menos 1.`);
                     return false;
                 }
                 if (!fechaVal) {
-                    Swal.showValidationMessage(`Debe seleccionar la fecha de vencimiento en la fila #${i+1}.`);
+                    if (fechaInp) {
+                        fechaInp.style.borderColor = '#ef4444';
+                        fechaInp.focus();
+                    }
+                    Swal.showValidationMessage(`Por favor seleccione la fecha de vencimiento en la fila #${i+1}.`);
                     return false;
                 }
+
                 sum += cantVal;
                 resEntries.push({ cant: cantVal, fecha: fechaVal });
             }
@@ -998,7 +1010,7 @@ function promptEditVenc(field, nombre, cantTotal) {
                 Swal.fire({
                     icon: 'success',
                     title: 'Completo: Cumple',
-                    text: `Se verificaron las ${cantTotal} unidades. Marcado como Cumple.`,
+                    text: `Se verificaron las ${cantTotal} unidades con fecha. Marcado como Cumple (SI).`,
                     toast: true,
                     position: 'top-end',
                     timer: 2500,
@@ -1015,7 +1027,7 @@ function promptEditVenc(field, nombre, cantTotal) {
                 const obsInput = document.getElementById('obs_' + field);
                 if (obsInput) {
                     obsInput.required = true;
-                    if (!obsInput.value.trim()) {
+                    if (!obsInput.value.trim() || obsInput.value.startsWith('Faltan ')) {
                         obsInput.value = `Faltan ${cantTotal - sum} unidad(es) de ${cantTotal} requeridas.`;
                     }
                 }
@@ -1023,7 +1035,7 @@ function promptEditVenc(field, nombre, cantTotal) {
                 Swal.fire({
                     icon: 'warning',
                     title: 'Incompleto: Incumple Parcial',
-                    text: `Se registraron ${sum} de ${cantTotal} unidades. Marcado como No Cumple (Parcial).`,
+                    text: `Se registraron ${sum} de ${cantTotal} unidades con fecha. Marcado como No Cumple (Parcial).`,
                     toast: true,
                     position: 'top-end',
                     timer: 3000,
