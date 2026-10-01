@@ -611,6 +611,8 @@ def init_db():
             cantidad INT NOT NULL,
             fecha_vencimiento DATE NULL,
             destino VARCHAR(50) DEFAULT 'PASB',
+            categoria VARCHAR(100) NULL,
+            item_identificador VARCHAR(100) NULL,
             estado VARCHAR(50) DEFAULT 'pendiente',
             registrado_por VARCHAR(255),
             fecha_salida DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -619,6 +621,12 @@ def init_db():
             checklist_id INT NULL
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
     """)
+
+    for col, col_type in [("categoria", "VARCHAR(100) NULL"), ("item_identificador", "VARCHAR(100) NULL")]:
+        try:
+            conn.execute(f"ALTER TABLE checklist_pasb_traslados ADD COLUMN {col} {col_type}")
+        except Exception:
+            pass
     
     conn.execute("""
         CREATE TABLE IF NOT EXISTS checklist_categorias (

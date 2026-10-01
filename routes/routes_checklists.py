@@ -606,13 +606,31 @@ def register_routes(app):
             
         now_str = ahora().strftime("%Y-%m-%d %H:%M:%S")
         user_name = session["usuario"]["nombre"]
-        conn.execute(
-            "UPDATE checklist_pasb_traslados SET estado = 'aceptado', aceptado_por = ?, fecha_aceptado = ? WHERE id = ?",
-            (user_name, now_str, traslado_id)
-        )
+
+        payload = request.get_json(silent=True) or request.form or {}
+        categoria_sel = payload.get("categoria") or None
+        field_sel = payload.get("field") or None
+
+        try:
+            conn.execute(
+                """UPDATE checklist_pasb_traslados 
+                   SET estado = 'aceptado', aceptado_por = ?, fecha_aceptado = ?, 
+                       categoria = COALESCE(?, categoria), item_identificador = COALESCE(?, item_identificador) 
+                   WHERE id = ?""",
+                (user_name, now_str, categoria_sel, field_sel, traslado_id)
+            )
+        except Exception:
+            conn.execute(
+                "UPDATE checklist_pasb_traslados SET estado = 'aceptado', aceptado_por = ?, fecha_aceptado = ? WHERE id = ?",
+                (user_name, now_str, traslado_id)
+            )
         conn.commit()
         
         tr_dict = dict(traslado)
+        if categoria_sel:
+            tr_dict["categoria"] = categoria_sel
+        if field_sel:
+            tr_dict["item_identificador"] = field_sel
         if tr_dict.get("fecha_vencimiento") and hasattr(tr_dict["fecha_vencimiento"], "strftime"):
             tr_dict["fecha_vencimiento"] = tr_dict["fecha_vencimiento"].strftime("%Y-%m-%d")
         elif tr_dict.get("fecha_vencimiento"):

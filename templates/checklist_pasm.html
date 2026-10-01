@@ -90,15 +90,54 @@
 /* SweetAlert Responsive Styles for Mobile & Tablets */
 .swal2-popup.swal-venc-modal {
     width: 95% !important;
-    max-width: 540px !important;
+    max-width: 520px !important;
     padding: 18px 14px !important;
     border-radius: 14px !important;
     box-sizing: border-box !important;
+    max-height: 92vh !important;
 }
 .swal2-popup.swal-venc-modal .swal2-title {
-    font-size: 18px !important;
+    font-size: 17px !important;
     color: #0f172a !important;
     padding: 0 0 8px 0 !important;
+    line-height: 1.3 !important;
+}
+.swal2-popup.swal-venc-modal .swal2-html-container {
+    max-height: calc(92vh - 120px) !important;
+    overflow-y: auto !important;
+    margin: 8px 0 !important;
+    padding: 0 2px !important;
+    box-sizing: border-box !important;
+}
+.swal-cat-option-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 9px;
+    cursor: pointer;
+    background: #ffffff;
+    text-align: left;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+    width: 100%;
+}
+.swal-cat-option-card:hover {
+    border-color: #10b981 !important;
+    background: #f0fdf4 !important;
+}
+.swal-cat-option-card:has(input[type="radio"]:checked),
+.swal-cat-option-card.selected {
+    border-color: #10b981 !important;
+    background: #ecfdf5 !important;
+    box-shadow: 0 2px 6px rgba(16, 185, 129, 0.15) !important;
+}
+.swal-lote-card .lote-action-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .venc-badge-trigger {
@@ -174,9 +213,35 @@
     .swal2-popup.swal-venc-modal {
         width: 96% !important;
         padding: 14px 10px !important;
+        max-height: 94vh !important;
     }
     .swal2-popup.swal-venc-modal .swal2-title {
         font-size: 16px !important;
+    }
+    .swal-cat-option-card {
+        padding: 9px 10px !important;
+        gap: 8px !important;
+    }
+    .swal-cat-option-card .cat-title {
+        font-size: 12.5px !important;
+    }
+    .swal-cat-option-card .cat-sub {
+        font-size: 11px !important;
+    }
+    .swal-lote-card .lote-action-row {
+        flex-wrap: wrap !important;
+        gap: 6px !important;
+    }
+    .swal-lote-card .lote-action-row label {
+        width: 100% !important;
+        margin-bottom: 2px !important;
+    }
+    .swal-lote-card .lote-action-row input {
+        flex: 1 1 80px !important;
+        min-width: 60px !important;
+    }
+    .swal-lote-card .lote-action-row button {
+        flex: 0 0 auto !important;
     }
     .swal-venc-row, .parcial-venc-row {
         flex-wrap: wrap !important;
@@ -357,7 +422,7 @@
                     <td style="padding: 8px 12px; text-align: center; color: #64748b; font-weight: 600;">{{ tr.destino }}</td>
                     <td style="padding: 8px 12px; text-align: center;">
                         <button type="button" 
-                                onclick="aceptarTraslado('{{ tr.id }}', '{{ tr.nombre|escape }}', '{{ tr.cantidad }}', '{{ tr.fecha_vencimiento or '' }}')" 
+                                onclick="aceptarTraslado('{{ tr.id }}', '{{ tr.nombre|escape }}', '{{ tr.cantidad }}', '{{ tr.fecha_vencimiento or '' }}', '{{ tr.categoria or '' }}')" 
                                 style="background: #10b981; color: white; border: none; padding: 6px 12px; border-radius: 5px; font-weight: 600; font-size: 11px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 2px 4px rgba(16,185,129,0.2);">
                             ✓ Aceptar e Ingresar
                         </button>
@@ -393,7 +458,7 @@
                 </div>
             </div>
             <button type="button" 
-                    onclick="aceptarTraslado('{{ tr.id }}', '{{ tr.nombre|escape }}', '{{ tr.cantidad }}', '{{ tr.fecha_vencimiento or '' }}')" 
+                    onclick="aceptarTraslado('{{ tr.id }}', '{{ tr.nombre|escape }}', '{{ tr.cantidad }}', '{{ tr.fecha_vencimiento or '' }}', '{{ tr.categoria or '' }}')" 
                     style="width: 100%; margin-top: 4px; background: #10b981; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-weight: 700; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 2px 4px rgba(16,185,129,0.25);">
                 ✓ Aceptar e Ingresar
             </button>
@@ -427,7 +492,7 @@
     {% set cant_actual_exist = datos[field].get('cant_actual', '') if (datos and field in datos) else '' %}
     {% set tipo_inc_exist = datos[field].get('tipo_incumplimiento', '') if (datos and field in datos) else '' %}
     {% set aplica_venc = item.get('aplica_vencimiento') or (1 if venc_exist else 0) %}
-    <tr class="item-row-tr" data-field="{{ field }}" data-nombre="{{ item.nombre }}" data-cantidad="{{ item.cantidad or 1 }}" data-aplica-venc="{{ 1 if aplica_venc else 0 }}">
+    <tr class="item-row-tr" data-field="{{ field }}" data-nombre="{{ item.nombre }}" data-cantidad="{{ item.cantidad or 1 }}" data-aplica-venc="{{ 1 if aplica_venc else 0 }}" data-categoria="{{ cat }}" data-categoria-label="{{ info[0] }}">
         <td style="vertical-align: middle;">
             <input type="hidden" name="vencimiento_{{ field }}" id="vencimiento_{{ field }}" value="{{ venc_exist|forceescape }}">
             <input type="hidden" name="cant_actual_{{ field }}" id="cant_actual_{{ field }}" value="{{ cant_actual_exist }}">
@@ -1418,24 +1483,41 @@ function removerTrasladoUI(trId) {
     }, 350);
 }
 
-function aceptarTraslado(trId, nombre, cant, fechaVenc) {
+function aceptarTraslado(trId, nombre, cant, fechaVenc, targetCategoria) {
     const incomingCant = parseInt(cant, 10) || 1;
     const incomingFecha = (fechaVenc || '').trim();
 
-    // Match with item in checklist
-    const normName = nombre.trim().toLowerCase();
-    let matchedRow = null;
-    document.querySelectorAll('.item-row-tr').forEach(row => {
-        const rowName = (row.getAttribute('data-nombre') || '').trim().toLowerCase();
-        if (!matchedRow && (rowName === normName || rowName.includes(normName) || normName.includes(rowName))) {
-            matchedRow = row;
+    function cleanItemStr(s) {
+        return (s || '')
+            .toLowerCase()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .replace(/\s+/g, ' ')
+            .trim();
+    }
+
+    const normName = cleanItemStr(nombre);
+    const normTargetCat = cleanItemStr(targetCategoria);
+
+    // Find all matching rows in the checklist
+    const allRows = Array.from(document.querySelectorAll('.item-row-tr'));
+    const matchedRows = [];
+
+    // Pass 1: Match target category if specified
+    allRows.forEach(row => {
+        const rowName = cleanItemStr(row.getAttribute('data-nombre'));
+        const rowCat = cleanItemStr(row.getAttribute('data-categoria'));
+        const isNameMatch = (rowName === normName || rowName.includes(normName) || normName.includes(rowName));
+        if (isNameMatch) {
+            matchedRows.push(row);
         }
     });
 
-    if (!matchedRow) {
+    if (matchedRows.length === 0) {
         // Fallback if item is not found in checklist items
         Swal.fire({
             title: '¿Aceptar Ingreso al Check List?',
+            customClass: { popup: 'swal-venc-modal' },
             html: `¿Desea ingresar <strong>${nombre}</strong> (${incomingCant} unidades${incomingFecha ? ' - Vence: ' + incomingFecha : ''}) a este PASM?`,
             icon: 'question',
             showCancelButton: true,
@@ -1444,23 +1526,135 @@ function aceptarTraslado(trId, nombre, cant, fechaVenc) {
             confirmButtonColor: '#10b981'
         }).then(res => {
             if (!res.isConfirmed) return;
-            fetch(`/checklist/pasm/aceptar_traslado/${trId}`, { method: 'POST' })
+            fetch(`/checklist/pasm/aceptar_traslado/${trId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ categoria: targetCategoria || '' })
+            })
             .then(r => r.json())
             .then(data => {
                 if (data.status === 'success') {
                     removerTrasladoUI(trId);
-                    Swal.fire({ icon: 'success', title: '¡Ingreso Exitoso!', text: data.message, timer: 2500, showConfirmButton: false });
+                    Swal.fire({ icon: 'success', title: '¡Ingreso Exitoso!', text: data.message, timer: 2500, showConfirmButton: false, customClass: { popup: 'swal-venc-modal' } });
                 } else {
-                    Swal.fire('Error', data.message || 'No se pudo aceptar el traslado', 'error');
+                    Swal.fire({ icon: 'error', title: 'Error', text: data.message || 'No se pudo aceptar el traslado', customClass: { popup: 'swal-venc-modal' } });
                 }
-            }).catch(() => Swal.fire('Error', 'Error al procesar el traslado.', 'error'));
+            }).catch(() => Swal.fire({ icon: 'error', title: 'Error', text: 'Error al procesar el traslado.', customClass: { popup: 'swal-venc-modal' } }));
         });
         return;
     }
 
+    // If an exact category was already assigned and matches one of the rows
+    if (normTargetCat) {
+        const exactCatMatch = matchedRows.find(r => cleanItemStr(r.getAttribute('data-categoria')) === normTargetCat);
+        if (exactCatMatch) {
+            procesarIngresoEnFila(trId, nombre, incomingCant, incomingFecha, exactCatMatch);
+            return;
+        }
+    }
+
+    // If only ONE row matched in the entire checklist
+    if (matchedRows.length === 1) {
+        const singleRow = matchedRows[0];
+        const catLabel = singleRow.getAttribute('data-categoria-label') || singleRow.getAttribute('data-categoria') || 'General';
+        
+        Swal.fire({
+            title: 'Confirmar Ubicación',
+            customClass: { popup: 'swal-venc-modal' },
+            html: `
+                <div style="text-align: left; font-size: 13px; color: #334155; line-height: 1.4;">
+                    Se ingresará <strong>${nombre}</strong> (+${incomingCant} unid${incomingFecha ? ' · Vence: ' + incomingFecha : ''}) en:
+                    <div style="margin-top: 10px; padding: 10px 12px; background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 8px; box-sizing: border-box;">
+                        <span style="font-weight: 800; color: #166534; font-size: 13.5px; display: block; word-break: break-word;">📁 ${catLabel}</span>
+                        <span style="font-size: 12px; color: #4b5563; display: block; margin-top: 3px; word-break: break-word;">Ítem: <strong>${singleRow.getAttribute('data-nombre')}</strong></span>
+                    </div>
+                </div>
+            `,
+            icon: 'info',
+            showCancelButton: true,
+            confirmButtonText: '✓ Continuar e Ingresar',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#10b981'
+        }).then(res => {
+            if (res.isConfirmed) {
+                procesarIngresoEnFila(trId, nombre, incomingCant, incomingFecha, singleRow);
+            }
+        });
+        return;
+    }
+
+    // MULTIPLE ROWS MATCHED: Present a modal to pick which category to restock!
+    let catOptionsHtml = '';
+    matchedRows.forEach((row, idx) => {
+        const catKey = row.getAttribute('data-categoria') || '';
+        const catLabel = row.getAttribute('data-categoria-label') || catKey;
+        const rowNom = row.getAttribute('data-nombre') || nombre;
+        const reqCant = row.getAttribute('data-cantidad') || '1';
+        const checked = idx === 0 ? 'checked' : '';
+
+        catOptionsHtml += `
+            <label class="swal-cat-option-card ${idx === 0 ? 'selected' : ''}">
+                <input type="radio" name="swal_selected_categoria" value="${idx}" ${checked} style="margin-top: 3px; transform: scale(1.15); cursor: pointer; flex-shrink: 0; accent-color: #10b981;">
+                <div style="flex: 1; min-width: 0;">
+                    <div class="cat-title" style="font-weight: 700; color: #1e293b; font-size: 13px; line-height: 1.35; word-break: break-word;">📁 ${catLabel}</div>
+                    <div class="cat-sub" style="font-size: 11px; color: #64748b; margin-top: 2px; line-height: 1.35; word-break: break-word;">
+                        Ítem: <strong style="color: #334155;">${rowNom}</strong> · Requiere: <strong>${reqCant} unid(s)</strong>
+                    </div>
+                </div>
+            </label>
+        `;
+    });
+
+    Swal.fire({
+        title: 'Seleccionar Categoría de Destino',
+        customClass: { popup: 'swal-venc-modal' },
+        html: `
+            <div style="text-align: left; font-size: 13px; color: #334155; margin-bottom: 12px; line-height: 1.4;">
+                El artículo <strong>${nombre}</strong> se encuentra en más de una categoría de este checklist. Seleccione dónde desea ubicar la reposición:
+            </div>
+            <div id="swal-cat-container-pasm" style="max-height: 270px; overflow-y: auto; padding: 2px;">
+                ${catOptionsHtml}
+            </div>
+        `,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Confirmar Ubicación',
+        cancelButtonText: 'Cancelar',
+        confirmButtonColor: '#10b981',
+        didOpen: () => {
+            const container = document.getElementById('swal-cat-container-pasm');
+            if (!container) return;
+            const labels = container.querySelectorAll('.swal-cat-option-card');
+            labels.forEach(lbl => {
+                lbl.onclick = function() {
+                    const radio = this.querySelector('input[type="radio"]');
+                    if (radio) radio.checked = true;
+                    labels.forEach(l => l.classList.remove('selected'));
+                    this.classList.add('selected');
+                };
+            });
+        },
+        preConfirm: () => {
+            const selected = document.querySelector('input[name="swal_selected_categoria"]:checked');
+            if (!selected) {
+                Swal.showValidationMessage('Debe seleccionar una categoría de destino');
+                return false;
+            }
+            return parseInt(selected.value, 10);
+        }
+    }).then(res => {
+        if (!res.isConfirmed || res.value === undefined) return;
+        const selectedRow = matchedRows[res.value];
+        procesarIngresoEnFila(trId, nombre, incomingCant, incomingFecha, selectedRow);
+    });
+}
+
+function procesarIngresoEnFila(trId, nombre, incomingCant, incomingFecha, matchedRow) {
     const field = matchedRow.getAttribute('data-field');
     const cantReq = parseInt(matchedRow.getAttribute('data-cantidad'), 10) || 1;
     const aplicaVenc = matchedRow.getAttribute('data-aplica-venc') === '1';
+    const rowCat = matchedRow.getAttribute('data-categoria') || '';
+    const rowCatLabel = matchedRow.getAttribute('data-categoria-label') || rowCat;
 
     const vencRaw = document.getElementById('vencimiento_' + field)?.value || '';
     const cantActualVal = parseInt(document.getElementById('cant_actual_' + field)?.value, 10);
@@ -1485,16 +1679,33 @@ function aceptarTraslado(trId, nombre, cant, fechaVenc) {
 
     // Scenario A: NO prior stock -> Accept directly without alert
     if (!hasPreviousStock || currentEntries.length === 0) {
-        ejecutarIngresoSinAlerta(trId, nombre, incomingCant, incomingFecha, field, cantReq, aplicaVenc);
+        ejecutarIngresoSinAlerta(trId, nombre, incomingCant, incomingFecha, field, cantReq, aplicaVenc, rowCat, rowCatLabel);
         return;
     }
 
     // Scenario B: Has prior stock and lots -> Show interactive modal to indicate which lots exit
-    ejecutarIngresoConLotes(trId, nombre, incomingCant, incomingFecha, field, cantReq, aplicaVenc, currentEntries);
+    ejecutarIngresoConLotes(trId, nombre, incomingCant, incomingFecha, field, cantReq, aplicaVenc, currentEntries, rowCat, rowCatLabel);
 }
 
-function ejecutarIngresoSinAlerta(trId, nombre, incomingCant, incomingFecha, field, cantReq, aplicaVenc) {
-    fetch(`/checklist/pasm/aceptar_traslado/${trId}`, { method: 'POST' })
+function enfocarFilaActualizada(field) {
+    const row = document.querySelector(`.item-row-tr[data-field="${field}"]`);
+    if (row) {
+        row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        row.style.transition = 'background-color 0.5s ease';
+        const origBg = row.style.backgroundColor || '';
+        row.style.backgroundColor = '#dcfce7';
+        setTimeout(() => {
+            row.style.backgroundColor = origBg;
+        }, 2500);
+    }
+}
+
+function ejecutarIngresoSinAlerta(trId, nombre, incomingCant, incomingFecha, field, cantReq, aplicaVenc, categoria, categoriaLabel) {
+    fetch(`/checklist/pasm/aceptar_traslado/${trId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ categoria: categoria || '', field: field })
+    })
     .then(r => r.json())
     .then(data => {
         if (data.status === 'success') {
@@ -1530,12 +1741,13 @@ function ejecutarIngresoSinAlerta(trId, nombre, incomingCant, incomingFecha, fie
             }
 
             updateBadgeInfo(field);
+            enfocarFilaActualizada(field);
             if (typeof triggerAutosavePasm === 'function') triggerAutosavePasm();
 
             Swal.fire({
                 icon: 'success',
                 title: '¡Reposición Ingresada!',
-                text: `${incomingCant} unid(s) de ${nombre} agregada(s) al checklist sin stock previo.`,
+                html: `${incomingCant} unid(s) de <strong>${nombre}</strong> agregada(s) a <strong>${categoriaLabel || 'Checklist'}</strong>.`,
                 timer: 2800,
                 showConfirmButton: false
             });
@@ -1548,7 +1760,7 @@ function ejecutarIngresoSinAlerta(trId, nombre, incomingCant, incomingFecha, fie
     });
 }
 
-function ejecutarIngresoConLotes(trId, nombre, incomingCant, incomingFecha, field, cantReq, aplicaVenc, currentEntries) {
+function ejecutarIngresoConLotes(trId, nombre, incomingCant, incomingFecha, field, cantReq, aplicaVenc, currentEntries, categoria, categoriaLabel) {
     let lotsHtml = '';
     let totalCurrentUnits = 0;
 
@@ -1567,7 +1779,7 @@ function ejecutarIngresoConLotes(trId, nombre, incomingCant, incomingFecha, fiel
                     <span>Stock actual en checklist:</span>
                     <strong style="color:#0f172a; font-size:13px;">${ent.cant} unid(s)</strong>
                 </div>
-                <div style="display:flex; align-items:center; gap:8px;">
+                <div class="lote-action-row" style="display:flex; align-items:center; gap:8px;">
                     <label style="font-size:11px; font-weight:700; color:#dc2626; flex:none;">Cantidad que SALE:</label>
                     <input type="number" class="lote-sale-input" data-idx="${idx}" min="0" max="${ent.cant}" value="0" 
                            style="flex:1; padding:6px; border:1.5px solid #fca5a5; border-radius:6px; font-weight:700; font-size:13px; text-align:center; color:#b91c1c; box-sizing:border-box;">
@@ -1588,7 +1800,8 @@ function ejecutarIngresoConLotes(trId, nombre, incomingCant, incomingFecha, fiel
         customClass: { popup: 'swal-venc-modal' },
         html: `
             <div style="text-align: left; font-size: 13px; color: #334155; margin-bottom: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px;">
-                <strong style="color: #0f172a; font-size: 15px;">${nombre}</strong><br>
+                <strong style="color: #0f172a; font-size: 15px;">${nombre}</strong>
+                ${categoriaLabel ? `<span style="display: inline-block; background: #e0f2fe; color: #0369a1; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 4px; margin-left: 6px;">📁 ${categoriaLabel}</span>` : ''}<br>
                 <span style="color: #64748b;">Requerido en PASM: <strong>${cantReq} unidad(es)</strong></span>
             </div>
 
@@ -1725,7 +1938,11 @@ function ejecutarIngresoConLotes(trId, nombre, incomingCant, incomingFecha, fiel
     }).then(res => {
         if (!res.isConfirmed || !res.value) return;
 
-        fetch(`/checklist/pasm/aceptar_traslado/${trId}`, { method: 'POST' })
+        fetch(`/checklist/pasm/aceptar_traslado/${trId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ categoria: categoria || '', field: field })
+        })
         .then(r => r.json())
         .then(data => {
             if (data.status === 'success') {
@@ -1769,12 +1986,13 @@ function ejecutarIngresoConLotes(trId, nombre, incomingCant, incomingFecha, fiel
                 }
 
                 updateBadgeInfo(field);
+                enfocarFilaActualizada(field);
                 if (typeof triggerAutosavePasm === 'function') triggerAutosavePasm();
 
                 Swal.fire({
                     icon: 'success',
                     title: '¡Reposición Actualizada!',
-                    text: `Se actualizaron los lotes de ${nombre}. Stock actual: ${totalFinal} unidad(es).`,
+                    html: `Se actualizaron los lotes de <strong>${nombre}</strong> en <strong>${categoriaLabel || 'Checklist'}</strong>. Stock actual: ${totalFinal} unidad(es).`,
                     timer: 2800,
                     showConfirmButton: false
                 });
