@@ -169,15 +169,54 @@
 /* SweetAlert Responsive Styles for Mobile & Tablets */
 .swal2-popup.swal-venc-modal {
     width: 95% !important;
-    max-width: 540px !important;
+    max-width: 520px !important;
     padding: 18px 14px !important;
     border-radius: 14px !important;
     box-sizing: border-box !important;
+    max-height: 92vh !important;
 }
 .swal2-popup.swal-venc-modal .swal2-title {
-    font-size: 18px !important;
+    font-size: 17px !important;
     color: #0f172a !important;
     padding: 0 0 8px 0 !important;
+    line-height: 1.3 !important;
+}
+.swal2-popup.swal-venc-modal .swal2-html-container {
+    max-height: calc(92vh - 120px) !important;
+    overflow-y: auto !important;
+    margin: 8px 0 !important;
+    padding: 0 2px !important;
+    box-sizing: border-box !important;
+}
+.swal-cat-option-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 9px;
+    cursor: pointer;
+    background: #ffffff;
+    text-align: left;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+    width: 100%;
+}
+.swal-cat-option-card:hover {
+    border-color: #10b981 !important;
+    background: #f0fdf4 !important;
+}
+.swal-cat-option-card:has(input[type="radio"]:checked),
+.swal-cat-option-card.selected {
+    border-color: #10b981 !important;
+    background: #ecfdf5 !important;
+    box-shadow: 0 2px 6px rgba(16, 185, 129, 0.15) !important;
+}
+.swal-lote-card .lote-action-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .venc-badge-trigger {
@@ -252,9 +291,35 @@
     .swal2-popup.swal-venc-modal {
         width: 96% !important;
         padding: 14px 10px !important;
+        max-height: 94vh !important;
     }
     .swal2-popup.swal-venc-modal .swal2-title {
         font-size: 16px !important;
+    }
+    .swal-cat-option-card {
+        padding: 9px 10px !important;
+        gap: 8px !important;
+    }
+    .swal-cat-option-card .cat-title {
+        font-size: 12.5px !important;
+    }
+    .swal-cat-option-card .cat-sub {
+        font-size: 11px !important;
+    }
+    .swal-lote-card .lote-action-row {
+        flex-wrap: wrap !important;
+        gap: 6px !important;
+    }
+    .swal-lote-card .lote-action-row label {
+        width: 100% !important;
+        margin-bottom: 2px !important;
+    }
+    .swal-lote-card .lote-action-row input {
+        flex: 1 1 80px !important;
+        min-width: 60px !important;
+    }
+    .swal-lote-card .lote-action-row button {
+        flex: 0 0 auto !important;
     }
     .swal-venc-row, .parcial-venc-row {
         flex-wrap: wrap !important;
@@ -435,7 +500,7 @@
                     <td style="padding: 8px 12px; text-align: center; color: #64748b; font-weight: 600;">{{ tr.destino }}</td>
                     <td style="padding: 8px 12px; text-align: center;">
                         <button type="button" 
-                                onclick="aceptarTraslado('{{ tr.id }}', '{{ tr.nombre|escape }}', '{{ tr.cantidad }}', '{{ tr.fecha_vencimiento or '' }}')" 
+                                onclick="aceptarTraslado('{{ tr.id }}', '{{ tr.nombre|escape }}', '{{ tr.cantidad }}', '{{ tr.fecha_vencimiento or '' }}', '{{ tr.categoria or '' }}')" 
                                 style="background: #10b981; color: white; border: none; padding: 6px 12px; border-radius: 5px; font-weight: 600; font-size: 11px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 2px 4px rgba(16,185,129,0.2);">
                             ✓ Aceptar e Ingresar
                         </button>
@@ -471,7 +536,7 @@
                 </div>
             </div>
             <button type="button" 
-                    onclick="aceptarTraslado('{{ tr.id }}', '{{ tr.nombre|escape }}', '{{ tr.cantidad }}', '{{ tr.fecha_vencimiento or '' }}')" 
+                    onclick="aceptarTraslado('{{ tr.id }}', '{{ tr.nombre|escape }}', '{{ tr.cantidad }}', '{{ tr.fecha_vencimiento or '' }}', '{{ tr.categoria or '' }}')" 
                     style="width: 100%; margin-top: 4px; background: #10b981; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-weight: 700; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 2px 4px rgba(16,185,129,0.25);">
                 ✓ Aceptar e Ingresar
             </button>
@@ -524,7 +589,7 @@
         {% set cant_actual_exist = datos[field].get('cant_actual', '') if (datos and field in datos) else '' %}
         {% set tipo_inc_exist = datos[field].get('tipo_incumplimiento', '') if (datos and field in datos) else '' %}
         {% set aplica_venc = item.get('aplica_vencimiento') or (1 if venc_exist else 0) %}
-        <tr class="item-row-tr" data-field="{{ field }}" data-nombre="{{ item.nombre }}" data-cantidad="{{ item.cantidad or 1 }}" data-aplica-venc="{{ 1 if aplica_venc else 0 }}">
+        <tr class="item-row-tr" data-field="{{ field }}" data-nombre="{{ item.nombre }}" data-cantidad="{{ item.cantidad or 1 }}" data-aplica-venc="{{ 1 if aplica_venc else 0 }}" data-categoria="{{ cat }}" data-categoria-label="{{ info[0] }}">
             <td style="vertical-align: middle;">
                 <input type="hidden" name="vencimiento_{{ field }}" id="vencimiento_{{ field }}" value="{{ venc_exist|forceescape }}">
                 <input type="hidden" name="cant_actual_{{ field }}" id="cant_actual_{{ field }}" value="{{ cant_actual_exist }}">
@@ -1512,47 +1577,210 @@ function removerTrasladoUI(trId) {
     }, 350);
 }
 
-function aceptarTraslado(trId, nombre, cant, fechaVenc) {
+function aceptarTraslado(trId, nombre, cant, fechaVenc, targetCategoria) {
     const incomingCant = parseInt(cant, 10) || 1;
     const incomingFecha = (fechaVenc || '').trim();
 
-    const normName = nombre.trim().toLowerCase();
-    let matchedRow = null;
-    document.querySelectorAll('.item-row-tr').forEach(row => {
-        const rowName = (row.getAttribute('data-nombre') || '').trim().toLowerCase();
-        if (!matchedRow && (rowName === normName || rowName.includes(normName) || normName.includes(rowName))) {
-            matchedRow = row;
+    function cleanItemStr(s) {
+        return (s || '')
+            .toLowerCase()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .replace(/\s+/g, ' ')
+            .trim();
+    }
+
+    const normName = cleanItemStr(nombre);
+    const allRows = Array.from(document.querySelectorAll('.item-row-tr'));
+    let exactMatches = [];
+    let partialMatches = [];
+
+    allRows.forEach(row => {
+        const rowName = cleanItemStr(row.getAttribute('data-nombre') || '');
+        if (rowName === normName) {
+            exactMatches.push(row);
+        } else if (rowName && normName && (rowName.includes(normName) || normName.includes(rowName))) {
+            partialMatches.push(row);
         }
     });
 
-    if (!matchedRow) {
+    let candidates = exactMatches.length > 0 ? exactMatches : partialMatches;
+
+    if (targetCategoria) {
+        const catClean = cleanItemStr(targetCategoria);
+        const catMatched = candidates.filter(r => {
+            const rcCode = cleanItemStr(r.getAttribute('data-categoria') || '');
+            const rcLbl = cleanItemStr(r.getAttribute('data-categoria-label') || '');
+            return rcCode === catClean || rcLbl.includes(catClean) || catClean.includes(rcCode);
+        });
+        if (catMatched.length > 0) {
+            candidates = catMatched;
+        }
+    }
+
+    // CASO 1: No se encontró ningún ítem coincidente automáticamente
+    if (candidates.length === 0) {
+        let catGroups = {};
+        allRows.forEach(r => {
+            const cLabel = r.getAttribute('data-categoria-label') || r.getAttribute('data-categoria') || 'General';
+            const fId = r.getAttribute('data-field');
+            const iName = r.getAttribute('data-nombre') || fId;
+            if (!catGroups[cLabel]) catGroups[cLabel] = [];
+            catGroups[cLabel].push({ field: fId, name: iName });
+        });
+
+        let selectOptionsHtml = '<option value="" disabled selected>-- Seleccione categoría e ítem --</option>';
+        for (const [cLabel, items] of Object.entries(catGroups)) {
+            selectOptionsHtml += `<optgroup label="${cLabel}">`;
+            items.forEach(it => {
+                selectOptionsHtml += `<option value="${it.field}">${it.name}</option>`;
+            });
+            selectOptionsHtml += `</optgroup>`;
+        }
+
         Swal.fire({
-            title: '¿Aceptar Ingreso al Check List?',
-            html: `¿Desea ingresar <strong>${nombre}</strong> (${incomingCant} unidades${incomingFecha ? ' - Vence: ' + incomingFecha : ''}) a esta ambulancia?`,
-            icon: 'question',
+            title: 'Ítem no detectado automáticamente',
+            customClass: { popup: 'swal-venc-modal' },
+            html: `
+                <div style="text-align:left; font-size:13px; color:#334155; margin-bottom:12px; border-bottom:1px solid #e2e8f0; padding-bottom:8px;">
+                    Se recibió: <strong style="color:#0f172a; font-size:14px;">${nombre}</strong> (${incomingCant} unid${incomingCant > 1 ? 'es' : ''}${incomingFecha ? ' • Vence: <strong style="color:#0284c7;">' + incomingFecha + '</strong>' : ''})<br>
+                    <span style="color:#64748b; font-size:12px;">El nombre no coincide exactamente con un ítem de este checklist. Puede vincularlo manualmente a un ítem existente o aceptarlo como entrada general.</span>
+                </div>
+                <div style="text-align:left; margin-bottom:10px;">
+                    <label style="font-size:12px; font-weight:700; color:#1e293b; display:block; margin-bottom:4px;">Seleccione el ítem y categoría de destino:</label>
+                    <select id="swal-manual-item-select" style="width:100%; padding:8px; border:1.5px solid #cbd5e1; border-radius:6px; font-size:13px;">
+                        ${selectOptionsHtml}
+                    </select>
+                </div>
+            `,
             showCancelButton: true,
-            confirmButtonText: 'Sí, Aceptar',
-            cancelButtonText: 'Cancelar',
-            confirmButtonColor: '#10b981'
+            confirmButtonText: 'Vincular y Continuar',
+            cancelButtonText: 'Aceptar sin Vincular',
+            confirmButtonColor: '#2563eb',
+            cancelButtonColor: '#64748b',
+            showDenyButton: true,
+            denyButtonText: 'Cancelar',
+            denyButtonColor: '#ef4444'
         }).then(res => {
-            if (!res.isConfirmed) return;
-            fetch(`/checklist/tab/aceptar_traslado/${trId}`, { method: 'POST' })
-            .then(r => r.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    removerTrasladoUI(trId);
-                    Swal.fire({ icon: 'success', title: '¡Ingreso Exitoso!', text: data.message, timer: 2500, showConfirmButton: false });
-                } else {
-                    Swal.fire('Error', data.message || 'No se pudo aceptar el traslado', 'error');
+            if (res.isConfirmed) {
+                const selField = document.getElementById('swal-manual-item-select')?.value;
+                if (!selField) {
+                    Swal.fire({ title: 'Atención', text: 'Debe seleccionar un ítem para vincular.', icon: 'warning', customClass: { popup: 'swal-venc-modal' } });
+                    return;
                 }
-            }).catch(() => Swal.fire('Error', 'Error al procesar el traslado.', 'error'));
+                const targetRow = allRows.find(r => r.getAttribute('data-field') === selField);
+                if (targetRow) {
+                    procesarIngresoEnFila(trId, nombre, incomingCant, incomingFecha, targetRow);
+                }
+            } else if (res.isDismissed && res.dismiss === Swal.DismissReason.cancel) {
+                fetch(`/checklist/tab/aceptar_traslado/${trId}`, { method: 'POST' })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        removerTrasladoUI(trId);
+                        Swal.fire({ icon: 'success', title: '¡Ingreso Exitoso!', text: data.message, timer: 2500, showConfirmButton: false, customClass: { popup: 'swal-venc-modal' } });
+                    } else {
+                        Swal.fire({ icon: 'error', title: 'Error', text: data.message || 'No se pudo aceptar el traslado', customClass: { popup: 'swal-venc-modal' } });
+                    }
+                }).catch(() => Swal.fire({ icon: 'error', title: 'Error', text: 'Error al procesar el traslado.', customClass: { popup: 'swal-venc-modal' } }));
+            }
         });
         return;
     }
 
+    // CASO 2: Se encontraron MÚLTIPLES categorías con el mismo ítem
+    if (candidates.length > 1) {
+        let optionsHtml = '';
+        candidates.forEach((row, idx) => {
+            const fId = row.getAttribute('data-field');
+            const cLabel = row.getAttribute('data-categoria-label') || row.getAttribute('data-categoria') || 'General';
+            const cCantReq = parseInt(row.getAttribute('data-cantidad'), 10) || 1;
+            const cActual = parseInt(document.getElementById('cant_actual_' + fId)?.value, 10);
+            const radioSi = document.getElementById('tab_' + fId + '_si');
+            const radioNo = document.getElementById('tab_' + fId + '_no');
+            let stBadge = '<span style="color:#64748b;">Pendiente</span>';
+            if (radioSi && radioSi.checked) stBadge = '<span style="color:#16a34a; font-weight:700;">✓ Cumple</span>';
+            else if (radioNo && radioNo.checked) stBadge = '<span style="color:#dc2626; font-weight:700;">❌ Incumple</span>';
+
+            optionsHtml += `
+                <label class="swal-cat-option-card ${idx === 0 ? 'selected' : ''}" data-field="${fId}">
+                    <input type="radio" name="swal_selected_field" value="${fId}" ${idx === 0 ? 'checked' : ''} style="margin-top:3px; transform:scale(1.15); accent-color:#10b981; flex-shrink:0;">
+                    <div style="flex:1; min-width:0;">
+                        <div style="font-weight:700; color:#1e293b; font-size:13.5px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:4px;">
+                            <span class="cat-title" style="word-break:break-word;">📁 ${cLabel}</span>
+                            <span style="font-size:11px; background:#f1f5f9; padding:2px 8px; border-radius:12px; border:1px solid #cbd5e1; flex-shrink:0;">${stBadge}</span>
+                        </div>
+                        <div class="cat-sub" style="font-size:11.5px; color:#475569; margin-top:4px; line-height:1.35; word-break:break-word;">
+                            Requerida: <strong style="color:#0f172a;">${cCantReq} unid(s)</strong> | Stock: <strong style="color:#0f172a;">${isNaN(cActual) ? '0' : cActual} unid(s)</strong>
+                        </div>
+                    </div>
+                </label>
+            `;
+        });
+
+        Swal.fire({
+            title: 'Seleccionar Categoría de Ubicación',
+            customClass: { popup: 'swal-venc-modal' },
+            html: `
+                <div style="text-align: left; font-size: 13px; color: #334155; margin-bottom: 12px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px;">
+                    Artículo: <strong style="color: #0f172a; font-size: 15px;">${nombre}</strong><br>
+                    <span style="color: #64748b;">Reposición entrante: <strong>${incomingCant} unid(s)</strong> ${incomingFecha ? '• Vence: <strong style="color:#0284c7;">' + incomingFecha + '</strong>' : ''}</span>
+                </div>
+                <p style="font-size: 13px; color: #475569; margin-bottom: 12px; text-align: left;">
+                    Este artículo se encuentra configurado en <strong>${candidates.length} categorías</strong> distintas de este checklist. 
+                    Por favor selecciona en cuál de ellas vas a ubicarlo:
+                </p>
+                <div id="swal-cat-container" style="max-height: 280px; overflow-y: auto; padding: 2px;">
+                    ${optionsHtml}
+                </div>
+            `,
+            showCancelButton: true,
+            confirmButtonText: 'Continuar con esta Categoría →',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#2563eb',
+            cancelButtonColor: '#64748b',
+            didOpen: () => {
+                const container = document.getElementById('swal-cat-container');
+                if (!container) return;
+                const labels = container.querySelectorAll('.swal-cat-option-card');
+                labels.forEach(lbl => {
+                    lbl.onclick = function() {
+                        const radio = this.querySelector('input[type="radio"]');
+                        if (radio) radio.checked = true;
+                        labels.forEach(l => l.classList.remove('selected'));
+                        this.classList.add('selected');
+                    };
+                });
+            },
+            preConfirm: () => {
+                const checked = document.querySelector('input[name="swal_selected_field"]:checked');
+                if (!checked) {
+                    Swal.showValidationMessage('Debes seleccionar una categoría para continuar.');
+                    return false;
+                }
+                return checked.value;
+            }
+        }).then(res => {
+            if (!res.isConfirmed || !res.value) return;
+            const selectedField = res.value;
+            const selectedRow = allRows.find(r => r.getAttribute('data-field') === selectedField);
+            if (selectedRow) {
+                procesarIngresoEnFila(trId, nombre, incomingCant, incomingFecha, selectedRow);
+            }
+        });
+        return;
+    }
+
+    // CASO 3: Exactamente 1 coincidencia
+    procesarIngresoEnFila(trId, nombre, incomingCant, incomingFecha, candidates[0]);
+}
+
+function procesarIngresoEnFila(trId, nombre, incomingCant, incomingFecha, matchedRow) {
     const field = matchedRow.getAttribute('data-field');
     const cantReq = parseInt(matchedRow.getAttribute('data-cantidad'), 10) || 1;
     const aplicaVenc = matchedRow.getAttribute('data-aplica-venc') === '1';
+    const catCode = matchedRow.getAttribute('data-categoria') || '';
+    const catLabel = matchedRow.getAttribute('data-categoria-label') || catCode || 'General';
 
     const vencRaw = document.getElementById('vencimiento_' + field)?.value || '';
     const cantActualVal = parseInt(document.getElementById('cant_actual_' + field)?.value, 10);
@@ -1574,15 +1802,61 @@ function aceptarTraslado(trId, nombre, cant, fechaVenc) {
     );
 
     if (!hasPreviousStock || currentEntries.length === 0) {
-        ejecutarIngresoSinAlerta(trId, nombre, incomingCant, incomingFecha, field, cantReq, aplicaVenc);
+        Swal.fire({
+            title: '¿Confirmar Ingreso de Reposición?',
+            customClass: { popup: 'swal-venc-modal' },
+            html: `
+                <div style="text-align:left; font-size:13px; color:#334155; line-height:1.5;">
+                    <div style="display:inline-block; font-size:11px; font-weight:700; color:#1d4ed8; background:#eff6ff; border:1px solid #bfdbfe; border-radius:4px; padding:2px 8px; margin-bottom:8px;">
+                        📂 Categoría: ${catLabel}
+                    </div>
+                    <div style="font-size:15px; font-weight:700; color:#0f172a; margin-bottom:6px;">${nombre}</div>
+                    <div>Cantidad a ingresar: <strong style="color:#10b981;">+${incomingCant} unid(s)</strong> (Requeridas: ${cantReq})</div>
+                    ${incomingFecha ? `<div>Fecha de vencimiento: <strong style="color:#0284c7;">${incomingFecha}</strong></div>` : '<div style="color:#64748b;">Sin fecha de vencimiento</div>'}
+                    <div style="margin-top:10px; font-size:12px; color:#64748b; background:#f8fafc; padding:8px; border-radius:6px; border:1px solid #e2e8f0;">
+                        ℹ️ Se registrarán las ${incomingCant} unid(s) en la categoría <strong>${catLabel}</strong> y su fecha migrará al prellenado.
+                    </div>
+                </div>
+            `,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: '✓ Sí, Ingresar Reposición',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#10b981',
+            cancelButtonColor: '#64748b'
+        }).then(confRes => {
+            if (confRes.isConfirmed) {
+                ejecutarIngresoSinAlerta(trId, nombre, incomingCant, incomingFecha, field, cantReq, aplicaVenc, catCode, catLabel, matchedRow);
+            }
+        });
         return;
     }
 
-    ejecutarIngresoConLotes(trId, nombre, incomingCant, incomingFecha, field, cantReq, aplicaVenc, currentEntries);
+    ejecutarIngresoConLotes(trId, nombre, incomingCant, incomingFecha, field, cantReq, aplicaVenc, currentEntries, catCode, catLabel, matchedRow);
 }
 
-function ejecutarIngresoSinAlerta(trId, nombre, incomingCant, incomingFecha, field, cantReq, aplicaVenc) {
-    fetch(`/checklist/tab/aceptar_traslado/${trId}`, { method: 'POST' })
+function enfocarFilaActualizada(matchedRow) {
+    if (!matchedRow) return;
+    const parentDetails = matchedRow.closest('details');
+    if (parentDetails && !parentDetails.open) {
+        parentDetails.open = true;
+    }
+    setTimeout(() => {
+        matchedRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        matchedRow.style.transition = 'background-color 0.4s ease';
+        matchedRow.style.backgroundColor = '#dcfce7';
+        setTimeout(() => {
+            matchedRow.style.backgroundColor = '';
+        }, 2500);
+    }, 200);
+}
+
+function ejecutarIngresoSinAlerta(trId, nombre, incomingCant, incomingFecha, field, cantReq, aplicaVenc, catCode, catLabel, matchedRow) {
+    fetch(`/checklist/tab/aceptar_traslado/${trId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ categoria: catCode, field: field })
+    })
     .then(r => r.json())
     .then(data => {
         if (data.status === 'success') {
@@ -1620,12 +1894,13 @@ function ejecutarIngresoSinAlerta(trId, nombre, incomingCant, incomingFecha, fie
             updateBadgeInfo(field);
             recalcBadges();
             triggerAutosaveTab();
+            enfocarFilaActualizada(matchedRow);
 
             Swal.fire({
                 icon: 'success',
                 title: '¡Reposición Ingresada!',
-                text: `${incomingCant} unid(s) de ${nombre} agregada(s) al checklist sin stock previo.`,
-                timer: 2800,
+                html: `Se ingresaron <strong>${incomingCant} unid(s)</strong> de <strong>${nombre}</strong> en la categoría <strong>${catLabel}</strong>. La fecha ha sido registrada para el prellenado.`,
+                timer: 3000,
                 showConfirmButton: false
             });
         } else {
@@ -1637,7 +1912,7 @@ function ejecutarIngresoSinAlerta(trId, nombre, incomingCant, incomingFecha, fie
     });
 }
 
-function ejecutarIngresoConLotes(trId, nombre, incomingCant, incomingFecha, field, cantReq, aplicaVenc, currentEntries) {
+function ejecutarIngresoConLotes(trId, nombre, incomingCant, incomingFecha, field, cantReq, aplicaVenc, currentEntries, catCode, catLabel, matchedRow) {
     let lotsHtml = '';
     let totalCurrentUnits = 0;
 
@@ -1656,7 +1931,7 @@ function ejecutarIngresoConLotes(trId, nombre, incomingCant, incomingFecha, fiel
                     <span>Stock actual en checklist:</span>
                     <strong style="color:#0f172a; font-size:13px;">${ent.cant} unid(s)</strong>
                 </div>
-                <div style="display:flex; align-items:center; gap:8px;">
+                <div class="lote-action-row" style="display:flex; align-items:center; gap:8px;">
                     <label style="font-size:11px; font-weight:700; color:#dc2626; flex:none;">Cantidad que SALE:</label>
                     <input type="number" class="lote-sale-input" data-idx="${idx}" min="0" max="${ent.cant}" value="0" 
                            style="flex:1; padding:6px; border:1.5px solid #fca5a5; border-radius:6px; font-weight:700; font-size:13px; text-align:center; color:#b91c1c; box-sizing:border-box;">
@@ -1677,6 +1952,9 @@ function ejecutarIngresoConLotes(trId, nombre, incomingCant, incomingFecha, fiel
         customClass: { popup: 'swal-venc-modal' },
         html: `
             <div style="text-align: left; font-size: 13px; color: #334155; margin-bottom: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px;">
+                <div style="display:inline-block; font-size:11px; font-weight:700; color:#1d4ed8; background:#eff6ff; border:1px solid #bfdbfe; border-radius:4px; padding:2px 8px; margin-bottom:6px;">
+                    📂 Categoría: ${catLabel || 'General'}
+                </div><br>
                 <strong style="color: #0f172a; font-size: 15px;">${nombre}</strong><br>
                 <span style="color: #64748b;">Requerido en TAB: <strong>${cantReq} unidad(es)</strong></span>
             </div>
@@ -1804,7 +2082,11 @@ function ejecutarIngresoConLotes(trId, nombre, incomingCant, incomingFecha, fiel
     }).then(res => {
         if (!res.isConfirmed || !res.value) return;
 
-        fetch(`/checklist/tab/aceptar_traslado/${trId}`, { method: 'POST' })
+        fetch(`/checklist/tab/aceptar_traslado/${trId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ categoria: catCode, field: field })
+        })
         .then(r => r.json())
         .then(data => {
             if (data.status === 'success') {
@@ -1850,11 +2132,12 @@ function ejecutarIngresoConLotes(trId, nombre, incomingCant, incomingFecha, fiel
                 updateBadgeInfo(field);
                 recalcBadges();
                 triggerAutosaveTab();
+                enfocarFilaActualizada(matchedRow);
 
                 Swal.fire({
                     icon: 'success',
                     title: '¡Reposición Actualizada!',
-                    text: `Se actualizaron los lotes de ${nombre}. Stock actual: ${totalFinal} unidad(es).`,
+                    html: `Se actualizaron los lotes de <strong>${nombre}</strong> en <strong>${catLabel}</strong>.<br>Stock resultante: <strong>${totalFinal} unidad(es)</strong>.`,
                     timer: 2800,
                     showConfirmButton: false
                 });

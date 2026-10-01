@@ -62,27 +62,47 @@ class ConnectionPool:
             
         return pymysql.connect(**connect_kwargs)
 
-    def acquire(self):
+    def _discard(self, conn):
         try:
-            conn = self._queue.get_nowait()
+            conn.close()
+        except Exception:
+            pass
+        with self._lock:
+            self._size -= 1
+
+    def acquire(self):
+        # Reutilizar conexiones libres, descartando las muertas
+        while True:
             try:
-                conn.ping()
+                conn = self._queue.get_nowait()
+            except queue.Empty:
+                break
+            try:
+                conn.ping(reconnect=True)
                 return conn
             except Exception:
-                pass
-        except queue.Empty:
-            pass
+                self._discard(conn)
 
+        # Crear una nueva si hay espacio
         with self._lock:
-            if self._size < self._max:
+            can_create = self._size < self._max
+            if can_create:
                 self._size += 1
+        if can_create:
+            try:
                 return self._connect()
+            except Exception:
+                with self._lock:
+                    self._size -= 1
+                raise
 
-        conn = self._queue.get()
+        # Pool lleno: esperar con limite en vez de para siempre
+        conn = self._queue.get(timeout=15)
         try:
-            conn.ping()
+            conn.ping(reconnect=True)
         except Exception:
-            conn = self._connect()
+            self._discard(conn)
+            return self.acquire()
         return conn
 
     def release(self, conn):
@@ -591,6 +611,8 @@ def init_db():
             cantidad INT NOT NULL,
             fecha_vencimiento DATE NULL,
             destino VARCHAR(50) DEFAULT 'PASB',
+            categoria VARCHAR(100) NULL,
+            item_identificador VARCHAR(100) NULL,
             estado VARCHAR(50) DEFAULT 'pendiente',
             registrado_por VARCHAR(255),
             fecha_salida DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -599,6 +621,12 @@ def init_db():
             checklist_id INT NULL
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
     """)
+
+    for col, col_type in [("categoria", "VARCHAR(100) NULL"), ("item_identificador", "VARCHAR(100) NULL")]:
+        try:
+            conn.execute(f"ALTER TABLE checklist_pasb_traslados ADD COLUMN {col} {col_type}")
+        except Exception:
+            pass
     
     conn.execute("""
         CREATE TABLE IF NOT EXISTS checklist_categorias (
