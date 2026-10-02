@@ -1330,9 +1330,13 @@ def init_db():
         conn.execute("UPDATE usuarios SET contrasena = ? WHERE id = ?", (hashed_pw, u["id"]))
         
     admin_exists = conn.execute("SELECT * FROM usuarios WHERE identificacion = 'admin'").fetchone()
-    admin_pass = 'admin'
-    admin_pass_hashed = generate_password_hash(admin_pass)
     if not admin_exists:
+        # Nunca una clave fija: se toma de ADMIN_INITIAL_PASSWORD o se genera una aleatoria
+        import secrets
+        admin_pass = os.getenv("ADMIN_INITIAL_PASSWORD") or secrets.token_urlsafe(12)
+        admin_pass_hashed = generate_password_hash(admin_pass)
+        if not os.getenv("ADMIN_INITIAL_PASSWORD"):
+            print(f"[SEGURIDAD] Usuario 'admin' creado. Clave inicial (cambiela al ingresar): {admin_pass}", flush=True)
         conn.execute("""
             INSERT INTO usuarios (nombre, identificacion, registro_medico, rol, perfil, activo, firma, contrasena, requiere_cambio_clave, correo)
             VALUES ('Administrador', 'admin', 'admin', 'admin', ?, 1, '', ?, 1, '')

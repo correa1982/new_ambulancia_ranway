@@ -5,6 +5,8 @@ import os
 import smtplib
 from email.message import EmailMessage
 import zoneinfo
+import time
+import threading
 
 COL_TZ = zoneinfo.ZoneInfo("America/Bogota")
 
@@ -83,6 +85,61 @@ def calcular_edad(fecha_nac_str):
     return f"{dias_totales} días"
 
 
+class LimitadorIntentos:
+    """Limitador simple en memoria (por proceso) para frenar fuerza bruta."""
+
+    def __init__(self, max_intentos, ventana_segundos):
+        self.max = max_intentos
+        self.ventana = ventana_segundos
+        self._datos = {}
+        self._lock = threading.Lock()
+
+    def bloqueado(self, clave):
+        ahora_ts = time.time()
+        with self._lock:
+            intentos = [t for t in self._datos.get(clave, []) if ahora_ts - t < self.ventana]
+            if intentos:
+                self._datos[clave] = intentos
+            else:
+                self._datos.pop(clave, None)
+            return len(intentos) >= self.max
+
+    def registrar(self, clave):
+        with self._lock:
+            self._datos.setdefault(clave, []).append(time.time())
+
+    def limpiar(self, clave):
+        with self._lock:
+            self._datos.pop(clave, None)
+
+
+def es_admin():
+    u = session.get("usuario") or {}
+    return u.get("rol") == "admin" or u.get("rol_real") == "admin"
+
+
+def es_propietario_o_admin(registro):
+    """True si el usuario en sesion es admin o quien creo el registro."""
+    if es_admin():
+        return True
+    u = session.get("usuario") or {}
+    try:
+        dueno = registro["registrado_por_identificacion"]
+    except Exception:
+        dueno = None
+    return bool(dueno) and str(dueno) == str(u.get("identificacion"))
+
+
+def extension_permitida(filename, permitidas):
+    return bool(filename) and "." in filename and filename.rsplit(".", 1)[1].lower() in permitidas
+
+
+EXT_DOCUMENTOS = {"pdf", "doc", "docx", "xls", "xlsx", "csv", "txt", "ppt", "pptx",
+                  "png", "jpg", "jpeg", "gif", "webp"}
+EXT_IMAGENES = {"png", "jpg", "jpeg", "gif", "webp", "heic", "heif"}
+EXT_LOGO = {"png", "jpg", "jpeg", "webp"}
+
+
 def login_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -135,7 +192,7 @@ def send_recovery_email(to_email, temp_password):
     msg['From'] = user
     msg['To'] = to_email
     
-    msg.set_content(f"Hola,\n\nSe ha solicitado la recuperación de contraseña para tu cuenta.\nTu nueva contraseña temporal es: {temp_password}\n\nPor favor, inicia sesión con esta contraseña y cámbiala inmediatamente.\n\nSaludos,\nEl equipo de S G A - Gestion Institucional y Operativa.")
+    msg.set_content(f"Hola,\n\nSe ha solicitado la recuperación de contraseña para tu cuenta.\nTu contraseña temporal es: {temp_password}\nEs válida durante 30 minutos; tu contraseña anterior sigue funcionando hasta que la cambies.\nSi no solicitaste este cambio, ignora este mensaje.\n\nPor favor, inicia sesión con esta contraseña y cámbiala inmediatamente.\n\nSaludos,\nEl equipo de S G A - Gestion Institucional y Operativa.")
 
     try:
         with smtplib.SMTP(host, port) as server:

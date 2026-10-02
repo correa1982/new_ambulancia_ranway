@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Script para resetear contraseña del admin
-Establece contraseña a: admin123
+Genera una contraseña aleatoria (o usa ADMIN_INITIAL_PASSWORD) y obliga a cambiarla
 Uso: python reset_admin_password.py
 """
 
@@ -35,12 +35,13 @@ def main():
             return 1
         
         # Generar nueva contraseña hasheada
-        password = "admin123"
+        import secrets
+        password = os.getenv("ADMIN_INITIAL_PASSWORD") or secrets.token_urlsafe(12)
         hashed_password = generate_password_hash(password)
         
         # Actualizar contraseña
         conn.execute(
-            "UPDATE usuarios SET contrasena = ?, requiere_cambio_clave = 0 WHERE identificacion = ?",
+            "UPDATE usuarios SET contrasena = ?, requiere_cambio_clave = 1 WHERE identificacion = ?",
             (hashed_password, "admin")
         )
         

@@ -3,7 +3,14 @@ import uuid
 from flask import render_template, request, redirect, url_for, session, flash, current_app, send_from_directory, jsonify
 from werkzeug.utils import secure_filename
 from db import get_db
-from utils import login_required, ahora, get_user_info
+from utils import (login_required, admin_required, ahora, get_user_info,
+                   es_propietario_o_admin, extension_permitida, EXT_DOCUMENTOS)
+
+
+def _ruta_archivo_archivador(archivo_url):
+    """Ruta en disco del archivo, siempre dentro de static/uploads/archivador."""
+    nombre = os.path.basename((archivo_url or "").split("?")[0])
+    return os.path.join(current_app.root_path, 'static', 'uploads', 'archivador', nombre)
 
 def get_categorias(conn):
     rows = conn.execute("SELECT * FROM archivador_categorias ORDER BY activo DESC, nombre ASC").fetchall()
@@ -108,6 +115,15 @@ def register_routes(app):
 
             files = [f for f in files if f and f.filename]
 
+            no_permitidos = [f.filename for f in files if not extension_permitida(f.filename, EXT_DOCUMENTOS)]
+            if no_permitidos:
+                msg = "Tipo de archivo no permitido: " + ", ".join(no_permitidos) + ". Use PDF, Office, CSV, TXT o imágenes."
+                conn.close()
+                if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+                    return jsonify({"success": False, "message": msg, "redirect": url_for("archivador_nuevo")}), 400
+                flash(msg, "error")
+                return redirect(url_for("archivador_nuevo"))
+
             if not nombre_formulario or not files:
                 msg = "Debes ingresar un nombre de formulario y seleccionar al menos un archivo."
                 if request.headers.get("X-Requested-With") == "XMLHttpRequest":
@@ -203,6 +219,11 @@ def register_routes(app):
             conn.close()
             return redirect(url_for("archivador_list"))
 
+        if not es_propietario_o_admin(archivo):
+            conn.close()
+            flash("Solo quien subió el archivo o un administrador puede modificarlo.", "error")
+            return redirect(url_for("archivador_list"))
+
         if request.method == "POST":
             nombre_formulario_select = request.form.get("nombre_formulario_select")
             nombre_formulario_otro = request.form.get("nombre_formulario_otro")
@@ -224,9 +245,17 @@ def register_routes(app):
             archivo_url = archivo["archivo_url"]
             archivo_nombre = archivo["archivo_nombre"]
 
+            if file and file.filename and not extension_permitida(file.filename, EXT_DOCUMENTOS):
+                msg = "Tipo de archivo no permitido. Use PDF, Office, CSV, TXT o imágenes."
+                conn.close()
+                if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+                    return jsonify({"success": False, "message": msg, "redirect": url_for("archivador_editar", id=id)}), 400
+                flash(msg, "error")
+                return redirect(url_for("archivador_editar", id=id))
+
             if file and file.filename:
-                old_path = os.path.join(current_app.root_path, archivo["archivo_url"].lstrip('/'))
-                if os.path.exists(old_path):
+                old_path = _ruta_archivo_archivador(archivo["archivo_url"])
+                if os.path.isfile(old_path):
                     os.remove(old_path)
 
                 filename = secure_filename(file.filename)
@@ -285,11 +314,17 @@ def register_routes(app):
         conn = get_db()
         archivo = conn.execute("SELECT * FROM archivador WHERE id = ?", (id,)).fetchone()
         if not archivo:
+            conn.close()
             flash("Archivo no encontrado.", "error")
             return redirect(url_for("archivador_list"))
 
-        file_path = os.path.join(current_app.root_path, archivo["archivo_url"].lstrip('/'))
-        if os.path.exists(file_path):
+        if not es_propietario_o_admin(archivo):
+            conn.close()
+            flash("Solo quien subió el archivo o un administrador puede eliminarlo.", "error")
+            return redirect(url_for("archivador_list"))
+
+        file_path = _ruta_archivo_archivador(archivo["archivo_url"])
+        if os.path.isfile(file_path):
             os.remove(file_path)
 
         conn.execute("DELETE FROM archivador WHERE id = ?", (id,))
@@ -305,6 +340,7 @@ def register_routes(app):
 
     @app.route("/archivador/gestion")
     @login_required
+    @admin_required
     def archivador_gestion():
         conn = get_db()
         categorias = get_categorias(conn)
@@ -319,6 +355,7 @@ def register_routes(app):
 
     @app.route("/archivador/gestion/categoria/agregar", methods=["POST"])
     @login_required
+    @admin_required
     def archivador_categoria_agregar():
         nombre = request.form.get("nombre", "").strip()
         if not nombre:
@@ -340,6 +377,7 @@ def register_routes(app):
 
     @app.route("/archivador/gestion/categoria/toggle/<int:id>", methods=["POST"])
     @login_required
+    @admin_required
     def archivador_categoria_toggle(id):
         conn = get_db()
         cat = conn.execute("SELECT * FROM archivador_categorias WHERE id = ?", (id,)).fetchone()
@@ -359,6 +397,7 @@ def register_routes(app):
 
     @app.route("/archivador/gestion/categoria/eliminar/<int:id>", methods=["POST"])
     @login_required
+    @admin_required
     def archivador_categoria_eliminar(id):
         conn = get_db()
         cat = conn.execute("SELECT * FROM archivador_categorias WHERE id = ?", (id,)).fetchone()
@@ -376,6 +415,7 @@ def register_routes(app):
 
     @app.route("/archivador/gestion/formulario/agregar", methods=["POST"])
     @login_required
+    @admin_required
     def archivador_formulario_agregar():
         nombre = request.form.get("nombre", "").strip()
         categoria_id = request.form.get("categoria_id", "").strip()
@@ -399,6 +439,7 @@ def register_routes(app):
 
     @app.route("/archivador/gestion/formulario/editar/<int:id>", methods=["POST"])
     @login_required
+    @admin_required
     def archivador_formulario_editar(id):
         nuevo_nombre = request.form.get("nombre", "").strip()
         categoria_id = request.form.get("categoria_id", "").strip()
@@ -429,6 +470,7 @@ def register_routes(app):
 
     @app.route("/archivador/gestion/formulario/toggle/<int:id>", methods=["POST"])
     @login_required
+    @admin_required
     def archivador_formulario_toggle(id):
         conn = get_db()
         frm = conn.execute("SELECT * FROM archivador_formularios WHERE id = ?", (id,)).fetchone()
@@ -448,6 +490,7 @@ def register_routes(app):
 
     @app.route("/archivador/gestion/formulario/eliminar/<int:id>", methods=["POST"])
     @login_required
+    @admin_required
     def archivador_formulario_eliminar(id):
         conn = get_db()
         frm = conn.execute("SELECT * FROM archivador_formularios WHERE id = ?", (id,)).fetchone()

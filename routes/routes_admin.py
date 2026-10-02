@@ -3,7 +3,7 @@ import os
 from datetime import datetime, date
 from flask import render_template, request, redirect, url_for, session, flash, jsonify
 from db import get_db
-from utils import login_required, admin_required, calcular_edad, get_user_info, ahora, hoy
+from utils import login_required, admin_required, calcular_edad, get_user_info, ahora, hoy, extension_permitida, EXT_LOGO
 from itsdangerous import URLSafeSerializer, BadSignature
 
 def register_routes(app):
@@ -723,6 +723,13 @@ def register_routes(app):
                     current_app.scheduler._scheduler.reschedule_job('backup_job', trigger='interval', **trigger_kwargs)
                 except Exception as e:
                     print(f"No se pudo reprogramar el backup_job: {e}")
+
+            if logo_file and logo_file.filename and not extension_permitida(logo_file.filename, EXT_LOGO):
+                flash("El logo debe ser una imagen PNG, JPG o WEBP.", "error")
+                logo_file = None
+            if marca_agua_file and marca_agua_file.filename and not extension_permitida(marca_agua_file.filename, EXT_LOGO):
+                flash("La marca de agua debe ser una imagen PNG, JPG o WEBP.", "error")
+                marca_agua_file = None
 
             if logo_file and logo_file.filename:
                 import os

@@ -27,7 +27,7 @@ if not _secret_key:
         "SECRET_KEY no configurada: se genera una temporal y las sesiones se "
         "invalidaran en cada reinicio. Define SECRET_KEY en el entorno."
     )
-    _secret_key = os.urandom(24)
+    _secret_key = os.urandom(32)
 app.secret_key = _secret_key
 
 _en_produccion = bool(os.getenv("RAILWAY_ENVIRONMENT"))
@@ -171,6 +171,106 @@ def ensure_db_initialized():
                 status=503,
                 mimetype='text/html'
             )
+
+# ── Proteccion CSRF por verificacion de origen ────────────────────────────────
+# Toda peticion que modifica datos debe venir de la propia aplicacion. No requiere
+# tokens en los formularios: se comparan las cabeceras Origin / Referer /
+# Sec-Fetch-Site que el navegador envia y que un sitio externo no puede falsificar.
+import re as _re
+from urllib.parse import urlparse as _urlparse
+
+_GET_QUE_MODIFICA = _re.compile(
+    r"/(toggle|toggle_vencimiento|eliminar|reset|mover|delete|descartar)(/|$)"
+)
+
+
+def _origen_de(valor):
+    try:
+        return _urlparse(valor).netloc.lower()
+    except Exception:
+        return ""
+
+
+@app.before_request
+def verificar_origen_peticion():
+    es_escritura = request.method in ("POST", "PUT", "PATCH", "DELETE")
+    es_get_sensible = request.method == "GET" and bool(_GET_QUE_MODIFICA.search(request.path))
+    if not (es_escritura or es_get_sensible):
+        return None
+
+    host = (request.host or "").lower()
+    origen = request.headers.get("Origin")
+    referer = request.headers.get("Referer")
+    sec_site = (request.headers.get("Sec-Fetch-Site") or "").lower()
+
+    if origen and origen != "null":
+        permitido = _origen_de(origen) == host
+    elif referer:
+        permitido = _origen_de(referer) == host
+    elif sec_site:
+        permitido = sec_site in ("same-origin", "none")
+    else:
+        # Sin ninguna cabecera: no es un navegador moderno. Se permite la escritura
+        # (clientes propios / scripts) pero no los enlaces GET que modifican datos.
+        permitido = es_escritura
+
+    if permitido and sec_site == "cross-site":
+        permitido = False
+
+    if not permitido:
+        app.logger.warning("Peticion bloqueada por origen: %s %s (Origin=%s, Referer=%s)",
+                           request.method, request.path, origen, referer)
+        if request.is_json or request.headers.get("X-Requested-With") == "XMLHttpRequest":
+            return jsonify({"status": "error", "message": "Origen de la petición no permitido."}), 403
+        return Response("<h1>Solicitud no permitida</h1><p>La acción debe iniciarse desde la aplicación.</p>",
+                        status=403, mimetype="text/html")
+    return None
+
+
+# ── Revalidar la sesion contra la base de datos ───────────────────────────────
+# Un usuario deshabilitado o eliminado pierde el acceso en maximo 60 segundos.
+_SESION_REVALIDAR_SEGUNDOS = 60
+
+
+@app.before_request
+def revalidar_sesion():
+    usuario = session.get("usuario")
+    if not usuario or request.endpoint in ("static", "logout", "login"):
+        return None
+    import time as _time
+    ahora_ts = _time.time()
+    if ahora_ts - float(session.get("_revalidado", 0) or 0) < _SESION_REVALIDAR_SEGUNDOS:
+        return None
+    conn = None
+    try:
+        conn = get_db()
+        fila = conn.execute("SELECT activo FROM usuarios WHERE id = ?", (usuario.get("id"),)).fetchone()
+    except Exception:
+        return None  # si la BD falla no se expulsa a nadie
+    finally:
+        if conn is not None:
+            try:
+                conn.close()
+            except Exception:
+                pass
+    if not fila or not fila["activo"]:
+        session.clear()
+        flash("Su sesión ya no es válida. Inicie sesión nuevamente.", "error")
+        return redirect(url_for("login"))
+    session["_revalidado"] = ahora_ts
+    return None
+
+
+@app.after_request
+def add_security_headers(response):
+    response.headers.setdefault("X-Content-Type-Options", "nosniff")
+    response.headers.setdefault("X-Frame-Options", "SAMEORIGIN")
+    response.headers.setdefault("Referrer-Policy", "same-origin")
+    response.headers.setdefault("Content-Security-Policy", "frame-ancestors 'self'; object-src 'none'; base-uri 'self'")
+    if _en_produccion:
+        response.headers.setdefault("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
+    return response
+
 
 @app.after_request
 def add_cache_control(response):

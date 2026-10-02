@@ -77,6 +77,9 @@ def _dump_database_sql(conn):
         cur = conn.execute(f"SELECT * FROM `{table}`")
         rows = cur.fetchall()
         for row in rows:
+            # La clave SMTP no viaja en el respaldo que se envia por correo
+            if table == "configuracion" and row.get("clave") == "smtp_password":
+                continue
             col_names = ', '.join([f"`{k}`" for k in row.keys()])
             vals = []
             for v in row.values():

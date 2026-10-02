@@ -37,7 +37,8 @@ def main():
             return 1
         
         # Crear hash de contraseña
-        password = "admin123"
+        import secrets
+        password = os.getenv("ADMIN_INITIAL_PASSWORD") or secrets.token_urlsafe(12)
         hashed_password = generate_password_hash(password)
         
         # Insertar admin
@@ -53,7 +54,7 @@ def main():
             '["Admin"]',
             1,
             hashed_password,
-            0,  # No requiere cambio de clave
+            1,  # Debe cambiar la clave al primer ingreso
             '{}'
         ))
         

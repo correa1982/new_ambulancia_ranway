@@ -3,7 +3,7 @@ import os
 from datetime import datetime, date
 from flask import render_template, request, redirect, url_for, session, flash, jsonify
 from db import get_db, get_pas_opciones
-from utils import login_required, admin_required, calcular_edad, get_user_info, ahora, hoy
+from utils import login_required, admin_required, calcular_edad, get_user_info, ahora, hoy, es_propietario_o_admin
 # _load_config imported lazily inside functions to avoid circular import
 from itsdangerous import URLSafeSerializer, BadSignature
 from constants import CHECKLIST_CONFIG, PASB_OPCIONES, PASM_OPCIONES
@@ -783,6 +783,11 @@ def register_routes(app):
         if not record:
             conn.close()
             flash("Registro no encontrado.", "error")
+            return redirect(url_for("registros_checklist", tipo=tipo))
+        # Igual que el listado: un usuario no admin solo ve sus propios registros
+        if not es_propietario_o_admin(record):
+            conn.close()
+            flash("Acceso denegado. Solo puede ver sus propios registros.", "error")
             return redirect(url_for("registros_checklist", tipo=tipo))
         record_dict = dict(record)
         # Parse JSON data
