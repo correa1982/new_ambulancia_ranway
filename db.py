@@ -611,6 +611,8 @@ def init_db():
             cantidad INT NOT NULL,
             fecha_vencimiento DATE NULL,
             destino VARCHAR(50) DEFAULT 'PASB',
+            categoria VARCHAR(100) NULL,
+            item_identificador VARCHAR(100) NULL,
             estado VARCHAR(50) DEFAULT 'pendiente',
             registrado_por VARCHAR(255),
             fecha_salida DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -619,6 +621,12 @@ def init_db():
             checklist_id INT NULL
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
     """)
+
+    for col, col_type in [("categoria", "VARCHAR(100) NULL"), ("item_identificador", "VARCHAR(100) NULL")]:
+        try:
+            conn.execute(f"ALTER TABLE checklist_pasb_traslados ADD COLUMN {col} {col_type}")
+        except Exception:
+            pass
     
     conn.execute("""
         CREATE TABLE IF NOT EXISTS checklist_categorias (
@@ -1322,9 +1330,13 @@ def init_db():
         conn.execute("UPDATE usuarios SET contrasena = ? WHERE id = ?", (hashed_pw, u["id"]))
         
     admin_exists = conn.execute("SELECT * FROM usuarios WHERE identificacion = 'admin'").fetchone()
-    admin_pass = 'admin'
-    admin_pass_hashed = generate_password_hash(admin_pass)
     if not admin_exists:
+        # Nunca una clave fija: se toma de ADMIN_INITIAL_PASSWORD o se genera una aleatoria
+        import secrets
+        admin_pass = os.getenv("ADMIN_INITIAL_PASSWORD") or secrets.token_urlsafe(12)
+        admin_pass_hashed = generate_password_hash(admin_pass)
+        if not os.getenv("ADMIN_INITIAL_PASSWORD"):
+            print(f"[SEGURIDAD] Usuario 'admin' creado. Clave inicial (cambiela al ingresar): {admin_pass}", flush=True)
         conn.execute("""
             INSERT INTO usuarios (nombre, identificacion, registro_medico, rol, perfil, activo, firma, contrasena, requiere_cambio_clave, correo)
             VALUES ('Administrador', 'admin', 'admin', 'admin', ?, 1, '', ?, 1, '')

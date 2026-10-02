@@ -4,7 +4,9 @@ from datetime import datetime
 from flask import Blueprint, request, jsonify, render_template, current_app, send_from_directory, flash, redirect, url_for
 from werkzeug.utils import secure_filename
 from db import get_db
-from utils import login_required, get_user_info, validar_upload_excel
+from utils import login_required, get_user_info, LimitadorIntentos, validar_upload_excel
+
+_limite_consulta_nomina = LimitadorIntentos(10, 600)
 
 def register_routes(app):
     nomina_bp = Blueprint('nomina', __name__)
@@ -19,6 +21,26 @@ def register_routes(app):
     def allowed_file(filename):
         return '.' in filename and \
                filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+    def _tiene_acceso_nomina():
+        from flask import session
+        u = session.get('usuario') or {}
+        acceso = u.get('formularios_acceso', [])
+        if isinstance(acceso, dict):
+            acceso = [x for v in acceso.values() if isinstance(v, list) for x in v]
+        return u.get('rol_real') == 'admin' or 'nomina' in (acceso or [])
+
+    def _denegar_nomina():
+        flash('Acceso no autorizado al módulo de honorarios.', 'error')
+        return redirect(url_for('dashboard'))
+
+    # Los archivos de nomina viven bajo /static: se bloquea el acceso directo sin permiso
+    @app.route('/static/uploads/nomina/<path:filename>')
+    @login_required
+    def nomina_static_protegido(filename):
+        if not _tiene_acceso_nomina():
+            return _denegar_nomina()
+        return send_from_directory(UPLOAD_FOLDER, filename, as_attachment=True)
 
     @nomina_bp.route('/nomina', methods=['GET'])
     @login_required
@@ -179,18 +201,22 @@ def register_routes(app):
     @nomina_bp.route('/nomina/download/<filename>')
     @login_required
     def download_nomina(filename):
+        if not _tiene_acceso_nomina():
+            return _denegar_nomina()
         return send_from_directory(UPLOAD_FOLDER, filename, as_attachment=True)
 
     @nomina_bp.route('/nomina/delete/<int:id>', methods=['POST'])
     @login_required
     def delete_nomina(id):
+        if not _tiene_acceso_nomina():
+            return _denegar_nomina()
         conn = get_db()
         try:
             cursor = conn.execute("SELECT archivo_url FROM nomina WHERE id = ?", (id,))
             record = cursor.fetchone()
             if record:
-                file_path = os.path.join(UPLOAD_FOLDER, record['archivo_url'])
-                if os.path.exists(file_path):
+                file_path = os.path.join(UPLOAD_FOLDER, os.path.basename(record['archivo_url'] or ''))
+                if os.path.isfile(file_path):
                     os.remove(file_path)
                     
                 conn.execute("DELETE FROM nomina WHERE id = ?", (id,))
@@ -215,6 +241,11 @@ def register_routes(app):
             
             if not cedula or not codigo:
                 flash('Debe ingresar la cédula y el código.', 'error')
+                return render_template('nomina_consulta.html', resultado=None)
+
+            clave_ip = request.remote_addr or '?'
+            if _limite_consulta_nomina.bloqueado(clave_ip) or _limite_consulta_nomina.bloqueado('c:' + cedula):
+                flash('Demasiados intentos. Espere unos minutos e intente de nuevo.', 'error')
                 return render_template('nomina_consulta.html', resultado=None)
                 
             conn = get_db()
@@ -257,6 +288,8 @@ def register_routes(app):
                         
                     return render_template('nomina_consulta.html', resultado=empleado, fecha_nomina=latest_nomina['fecha_subida'], periodo_nomina=latest_nomina.get('periodo', ''))
                 else:
+                    _limite_consulta_nomina.registrar(clave_ip)
+                    _limite_consulta_nomina.registrar('c:' + cedula)
                     flash('Cédula o código incorrectos, o no se encontró en los honorarios actuales.', 'error')
             except Exception as e:
                 current_app.logger.error(f"Error querying nomina: {e}")

@@ -3,7 +3,7 @@ import os
 from datetime import datetime, date
 from flask import render_template, request, redirect, url_for, session, flash, jsonify
 from db import get_db
-from utils import login_required, admin_required, get_user_info, ahora, hoy
+from utils import login_required, admin_required, get_user_info, ahora, hoy, es_propietario_o_admin
 # _load_config imported lazily inside functions to avoid circular import
 
 def register_routes(app):
@@ -273,7 +273,17 @@ def register_routes(app):
     def eliminar_atencion_vehiculo(id):
         conn = get_db()
         item = conn.execute("SELECT * FROM atencion_vehiculo WHERE id = ?", (id,)).fetchone()
-        if item and item["finalizado"] == 1:
+        if not item:
+            conn.close()
+            flash("Registro no encontrado.", "error")
+            return redirect(url_for("registros_atencion_vehiculo"))
+
+        if not es_propietario_o_admin(item):
+            conn.close()
+            flash("Solo quien creó el registro o un administrador puede eliminarlo.", "error")
+            return redirect(url_for("registros_atencion_vehiculo"))
+
+        if item["finalizado"] == 1:
             conn.close()
             flash("Este registro ya ha sido finalizado y no puede ser eliminado.", "error")
             return redirect(url_for("registros_atencion_vehiculo"))

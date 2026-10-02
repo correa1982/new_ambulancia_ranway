@@ -16,3 +16,8 @@ package/
 vosk.tgz
 static/uploads/
 railway.txt
+ambulancia.db
+data/*.xlsx
+data/rips_dump.json
+*.sql
+*.sql.gz

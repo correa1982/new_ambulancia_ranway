@@ -3,7 +3,7 @@ import os
 from datetime import datetime, date
 from flask import render_template, request, redirect, url_for, session, flash, jsonify
 from db import get_db, get_pas_opciones
-from utils import login_required, admin_required, calcular_edad, get_user_info, ahora, hoy
+from utils import login_required, admin_required, calcular_edad, get_user_info, ahora, hoy, es_propietario_o_admin
 # _load_config imported lazily inside functions to avoid circular import
 from itsdangerous import URLSafeSerializer, BadSignature
 from constants import CHECKLIST_CONFIG, PASB_OPCIONES, PASM_OPCIONES
@@ -606,13 +606,31 @@ def register_routes(app):
             
         now_str = ahora().strftime("%Y-%m-%d %H:%M:%S")
         user_name = session["usuario"]["nombre"]
-        conn.execute(
-            "UPDATE checklist_pasb_traslados SET estado = 'aceptado', aceptado_por = ?, fecha_aceptado = ? WHERE id = ?",
-            (user_name, now_str, traslado_id)
-        )
+
+        payload = request.get_json(silent=True) or request.form or {}
+        categoria_sel = payload.get("categoria") or None
+        field_sel = payload.get("field") or None
+
+        try:
+            conn.execute(
+                """UPDATE checklist_pasb_traslados 
+                   SET estado = 'aceptado', aceptado_por = ?, fecha_aceptado = ?, 
+                       categoria = COALESCE(?, categoria), item_identificador = COALESCE(?, item_identificador) 
+                   WHERE id = ?""",
+                (user_name, now_str, categoria_sel, field_sel, traslado_id)
+            )
+        except Exception:
+            conn.execute(
+                "UPDATE checklist_pasb_traslados SET estado = 'aceptado', aceptado_por = ?, fecha_aceptado = ? WHERE id = ?",
+                (user_name, now_str, traslado_id)
+            )
         conn.commit()
         
         tr_dict = dict(traslado)
+        if categoria_sel:
+            tr_dict["categoria"] = categoria_sel
+        if field_sel:
+            tr_dict["item_identificador"] = field_sel
         if tr_dict.get("fecha_vencimiento") and hasattr(tr_dict["fecha_vencimiento"], "strftime"):
             tr_dict["fecha_vencimiento"] = tr_dict["fecha_vencimiento"].strftime("%Y-%m-%d")
         elif tr_dict.get("fecha_vencimiento"):
@@ -765,6 +783,11 @@ def register_routes(app):
         if not record:
             conn.close()
             flash("Registro no encontrado.", "error")
+            return redirect(url_for("registros_checklist", tipo=tipo))
+        # Igual que el listado: un usuario no admin solo ve sus propios registros
+        if not es_propietario_o_admin(record):
+            conn.close()
+            flash("Acceso denegado. Solo puede ver sus propios registros.", "error")
             return redirect(url_for("registros_checklist", tipo=tipo))
         record_dict = dict(record)
         # Parse JSON data

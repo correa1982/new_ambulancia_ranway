@@ -3,7 +3,7 @@ import os
 from datetime import datetime, date
 from flask import render_template, request, redirect, url_for, session, flash, jsonify
 from db import get_db
-from utils import login_required, admin_required, calcular_edad, get_user_info, ahora, hoy, validar_upload_imagen
+from utils import login_required, admin_required, calcular_edad, get_user_info, ahora, hoy, extension_permitida, EXT_IMAGENES, validar_upload_imagen
 # _load_config imported lazily inside functions to avoid circular import
 from itsdangerous import URLSafeSerializer, BadSignature
 def register_routes(app):
@@ -80,6 +80,7 @@ def register_routes(app):
                 try:
                     parsed_existing = json.loads(existing_ev)
                     if isinstance(parsed_existing, list):
+                        parsed_existing = [os.path.basename(str(x)) for x in parsed_existing if x]
                         evidencia_filenames = parsed_existing + evidencia_filenames
                 except Exception:
                     if existing_ev not in evidencia_filenames:
@@ -250,6 +251,13 @@ def register_routes(app):
                                record=record,
                                datos=datos)
 
+
+    # Las evidencias viven bajo /static: se exige sesion para verlas
+    @app.route("/static/uploads/evidencias/<path:filename>")
+    @login_required
+    def evidencia_protegida(filename):
+        from flask import send_from_directory
+        return send_from_directory(os.path.join(app.root_path, 'static', 'uploads', 'evidencias'), filename)
 
     @app.route("/formularios/preoperacional/registros")
     @login_required
