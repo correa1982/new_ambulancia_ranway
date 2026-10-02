@@ -6,7 +6,7 @@ import unicodedata
 from datetime import datetime, date
 from flask import render_template, request, redirect, url_for, session, flash, jsonify
 from db import get_db
-from utils import login_required, admin_required, calcular_edad, get_user_info, hoy, LimitadorIntentos
+from utils import login_required, admin_required, calcular_edad, get_user_info, hoy, LimitadorIntentos, validar_upload_excel
 import secrets
 import string
 from itsdangerous import URLSafeSerializer, BadSignature
@@ -417,6 +417,10 @@ def register_routes(app):
                 flash("La nueva contraseña no puede ser igual a su número de identificación por seguridad.", "error")
                 return render_template("cambiar_contrasena.html")
 
+            if len(nueva_clave) < 8 or not any(c.isalpha() for c in nueva_clave) or not any(c.isdigit() for c in nueva_clave):
+                flash("La contraseña debe tener al menos 8 caracteres e incluir letras y números.", "error")
+                return render_template("cambiar_contrasena.html")
+
             if nueva_clave == clave_actual:
                 flash("La nueva contraseña debe ser diferente a la actual.", "error")
                 return render_template("cambiar_contrasena.html")
@@ -545,8 +549,8 @@ def register_routes(app):
             flash("Debe seleccionar un archivo Excel.", "error")
             return redirect(url_for("usuarios"))
 
-        if not file.filename.lower().endswith((".xlsx", ".xls")):
-            flash("El archivo debe tener extensión .xlsx o .xls.", "error")
+        if not validar_upload_excel(file):
+            flash("El archivo debe ser un Excel válido (.xlsx o .xls).", "error")
             return redirect(url_for("usuarios"))
 
         conn = get_db()

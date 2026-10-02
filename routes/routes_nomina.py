@@ -4,7 +4,7 @@ from datetime import datetime
 from flask import Blueprint, request, jsonify, render_template, current_app, send_from_directory, flash, redirect, url_for
 from werkzeug.utils import secure_filename
 from db import get_db
-from utils import login_required, get_user_info, LimitadorIntentos
+from utils import login_required, get_user_info, LimitadorIntentos, validar_upload_excel
 
 _limite_consulta_nomina = LimitadorIntentos(10, 600)
 
@@ -80,7 +80,7 @@ def register_routes(app):
             flash('El nombre del archivo está vacío.', 'error')
             return redirect(url_for('nomina.nomina_index'))
             
-        if file and allowed_file(file.filename):
+        if file and allowed_file(file.filename) and validar_upload_excel(file):
             original_filename = secure_filename(file.filename)
             # Make the filename unique to prevent overwriting
             unique_filename = f"{datetime.now().strftime('%Y%m%d%H%M%S')}_{uuid.uuid4().hex[:6]}_{original_filename}"

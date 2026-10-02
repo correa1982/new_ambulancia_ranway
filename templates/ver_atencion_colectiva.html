@@ -251,7 +251,7 @@ tr { page-break-inside: avoid; break-inside: avoid; }
                 <div class="sig-box-body">
                     {% if evento.firma_registrador %}
                     <div class="signature-container">
-                        <img src="{{ evento.firma_registrador }}" alt="Firma" crossorigin="anonymous">
+                        <img src="{{ evento.firma_registrador|firma_src }}" alt="Firma" crossorigin="anonymous">
                     </div>
                     {% else %}
                     <span class="sig-empty">Sin firma</span>

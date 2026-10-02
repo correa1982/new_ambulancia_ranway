@@ -341,6 +341,15 @@ const PWA = (() => {
               }
             }
 
+            // Token CSRF: si el registro no lo guardo (creado antes del despliegue),
+            // se toma del meta de la pagina actual.
+            if (!formData.has('csrf_token')) {
+              const meta = document.querySelector('meta[name="csrf-token"]');
+              if (meta && meta.getAttribute('content')) {
+                formData.append('csrf_token', meta.getAttribute('content'));
+              }
+            }
+
             let urlPost = registro.datos._offline_post_url || '/formulario';
             const acId = registro.datos.atencion_colectiva_id;
             if (!registro.datos._offline_post_url && acId && acId !== 'None' && acId !== 'null' && acId !== 'undefined' && acId !== '') {
@@ -785,6 +794,21 @@ document.addEventListener('DOMContentLoaded', () => {
 //  CACHEAR SESION TRAS LOGIN (para login offline)
 // ═══════════════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', async () => {
+  // Guardar el token CSRF para que el service worker pueda replicar
+  // registros offline creados antes del despliegue con CSRF.
+  try {
+    const meta = document.querySelector('meta[name="csrf-token"]');
+    if (meta && meta.getAttribute('content')) {
+      const db = await abrirDB();
+      await new Promise((resolve, reject) => {
+        const tx = db.transaction('sesion', 'readwrite');
+        tx.objectStore('sesion').put({ key: 'csrf_token', fecha_guardado: Date.now(), token: meta.getAttribute('content') });
+        tx.oncomplete = resolve;
+        tx.onerror = e => reject(e.target.error);
+      });
+    }
+  } catch (e) { /* silencioso */ }
+
   const el = document.getElementById('usuario-datos');
   if (!el) return;
   try {

@@ -745,7 +745,7 @@ tr { page-break-inside: avoid; break-inside: avoid; }
     {% if record.firma_registrador %}
     <div class="firma-box" style="border-top:none; margin-top:0;">
     <div class="signature-container">
-        <img src="{{ record.firma_registrador }}" alt="Firma Registrador">
+        <img src="{{ record.firma_registrador|firma_src }}" alt="Firma Registrador">
     </div>
         <div class="firma-name">{{ record.registrado_por }}</div>
         <div class="firma-meta">
@@ -759,7 +759,7 @@ tr { page-break-inside: avoid; break-inside: avoid; }
     {% if tipo == 'calif_atencion' and record.firma_paciente %}
     <div class="firma-box" style="border-top:none; margin-top:0;">
     <div class="signature-container">
-        <img src="{{ record.firma_paciente }}" alt="Firma Paciente">
+        <img src="{{ record.firma_paciente|firma_src }}" alt="Firma Paciente">
     </div>
         <div class="firma-name">
             {% if record.responsable_nombre %}

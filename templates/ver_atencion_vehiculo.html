@@ -351,7 +351,7 @@ tr { page-break-inside: avoid; break-inside: avoid; }
                     <span class="sig-empty" style="color: #d97706; font-weight: 700;">⏳ Borrador - Firma bloqueada</span>
                     {% elif item.firma_registrador %}
                     <div class="signature-container">
-                        <img src="{{ item.firma_registrador }}" alt="Firma Registrador" crossorigin="anonymous">
+                        <img src="{{ item.firma_registrador|firma_src }}" alt="Firma Registrador" crossorigin="anonymous">
                     </div>
                     {% else %}
                     <span class="sig-empty">Sin firma digital registrada</span>
