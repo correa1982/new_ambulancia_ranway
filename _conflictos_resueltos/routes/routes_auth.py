@@ -1,0 +1,862 @@
+import json
+import os
+import time
+import threading
+import unicodedata
+from datetime import datetime, date
+from flask import render_template, request, redirect, url_for, session, flash, jsonify
+from db import get_db
+from utils import login_required, admin_required, calcular_edad, get_user_info, hoy, LimitadorIntentos, validar_upload_excel
+import secrets
+import string
+from itsdangerous import URLSafeSerializer, BadSignature
+from werkzeug.security import generate_password_hash, check_password_hash
+
+_login_failures = {}
+_login_lock = threading.Lock()
+_LOGIN_MAX_INTENTOS = 5
+_LOGIN_VENTANA_SEGUNDOS = 300
+
+
+def _login_bloqueado(clave):
+    ahora_ts = time.time()
+    with _login_lock:
+        intentos = [t for t in _login_failures.get(clave, []) if ahora_ts - t < _LOGIN_VENTANA_SEGUNDOS]
+        if intentos:
+            _login_failures[clave] = intentos
+        else:
+            _login_failures.pop(clave, None)
+        return len(intentos) >= _LOGIN_MAX_INTENTOS
+
+
+def _registrar_fallo_login(clave):
+    with _login_lock:
+        _login_failures.setdefault(clave, []).append(time.time())
+
+
+def _limpiar_fallos_login(clave):
+    with _login_lock:
+        _login_failures.pop(clave, None)
+
+# Limites adicionales: por identificacion (sin importar la IP) y para recuperacion
+_limite_login_ident = LimitadorIntentos(20, 900)
+_limite_recuperar_ident = LimitadorIntentos(3, 3600)
+_limite_recuperar_ip = LimitadorIntentos(10, 3600)
+_LONGITUD_MINIMA_CLAVE = 8
+_TEMP_CLAVE_MINUTOS = 30
+_MSG_CREDENCIALES = "Credenciales incorrectas."
+
+
+def _generar_clave_temporal(longitud=10):
+    alfabeto = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789"
+    return "".join(secrets.choice(alfabeto) for _ in range(longitud))
+
+
+def _asegurar_columnas_clave_temporal(conn):
+    for col, tipo in (("contrasena_temporal", "VARCHAR(255) NULL"), ("contrasena_temporal_expira", "DATETIME NULL")):
+        try:
+            conn.execute(f"ALTER TABLE usuarios ADD COLUMN {col} {tipo}")
+            conn.commit()
+        except Exception:
+            pass
+
+
+def register_routes(app):
+    @app.route("/", methods=["GET", "POST"])
+    def login():
+        if "usuario" in session:
+            return redirect(url_for("dashboard"))
+
+        if request.method == "POST":
+            identificacion = request.form["identificacion"].strip()
+            contrasena = request.form["contrasena"].strip()
+
+            if not identificacion or not contrasena:
+                flash("Todos los campos son obligatorios.", "error")
+                return render_template("login.html")
+
+            clave_intentos = f"{request.remote_addr}:{identificacion}"
+            if _login_bloqueado(clave_intentos) or _limite_login_ident.bloqueado(identificacion):
+                flash("Demasiados intentos fallidos. Espere unos minutos e intente de nuevo.", "error")
+                return render_template("login.html")
+
+            conn = get_db()
+            user = conn.execute(
+                "SELECT * FROM usuarios WHERE identificacion = ?", (identificacion,)
+            ).fetchone()
+
+            uso_clave_temporal = False
+            if user:
+                clave_ok = check_password_hash(user["contrasena"], contrasena)
+                if not clave_ok and user.get("contrasena_temporal") and user.get("contrasena_temporal_expira"):
+                    expira = user["contrasena_temporal_expira"]
+                    if isinstance(expira, str):
+                        try:
+                            expira = datetime.strptime(expira[:19], "%Y-%m-%d %H:%M:%S")
+                        except ValueError:
+                            expira = None
+                    if expira and datetime.now() <= expira and check_password_hash(user["contrasena_temporal"], contrasena):
+                        clave_ok = True
+                        uso_clave_temporal = True
+                if not clave_ok:
+                    _registrar_fallo_login(clave_intentos)
+                    _limite_login_ident.registrar(identificacion)
+                    flash(_MSG_CREDENCIALES, "error")
+                    conn.close()
+                    return render_template("login.html")
+                if uso_clave_temporal:
+                    # La clave temporal pasa a ser la definitiva hasta el cambio obligatorio
+                    conn.execute(
+                        "UPDATE usuarios SET contrasena = contrasena_temporal, contrasena_temporal = NULL, "
+                        "contrasena_temporal_expira = NULL, requiere_cambio_clave = 1 WHERE id = ?",
+                        (user["id"],)
+                    )
+                    conn.commit()
+                    user["requiere_cambio_clave"] = 1
+                
+                if not user["activo"]:
+                    flash("Su usuario se encuentra deshabilitado. Por favor contacte al administrador.", "error")
+                    conn.close()
+                    return render_template("login.html")
+
+                if user.get("fecha_validez"):
+                    from datetime import date
+                    validez = user["fecha_validez"]
+                    if isinstance(validez, str):
+                        try:
+                            validez = datetime.strptime(validez, "%Y-%m-%d").date()
+                        except ValueError:
+                            pass
+                    if isinstance(validez, (date, datetime)):
+                        if isinstance(validez, datetime):
+                            validez = validez.date()
+                        if hoy() > validez:
+                            flash("Su cuenta ha expirado por fecha de validez. Por favor contacte al administrador.", "error")
+                            conn.close()
+                            return render_template("login.html")
+            else:
+                # Mismo mensaje y mismo costo que una clave incorrecta: no revela si la identificacion existe
+                check_password_hash(generate_password_hash("x"), contrasena)
+                _registrar_fallo_login(clave_intentos)
+                _limite_login_ident.registrar(identificacion)
+                flash(_MSG_CREDENCIALES, "error")
+                conn.close()
+                return render_template("login.html")
+
+            conn.close()
+            _limpiar_fallos_login(clave_intentos)
+            _limite_login_ident.limpiar(identificacion)
+            session.clear()
+
+            try:
+                formularios_acceso_raw = user["formularios_acceso"]
+                formularios_acceso = json.loads(formularios_acceso_raw) if formularios_acceso_raw else []
+            except Exception:
+                formularios_acceso = []
+
+            # Parse perfiles (JSON array)
+            try:
+                perfiles_raw = user["perfil"]
+                perfiles = json.loads(perfiles_raw) if perfiles_raw else []
+                if isinstance(perfiles, str):
+                    perfiles = [perfiles]
+            except (json.JSONDecodeError, TypeError):
+                perfiles = [user["perfil"]] if user["perfil"] else []
+
+            # If multiple profiles, redirect to profile selection
+            if len(perfiles) > 1:
+                session["pendiente_seleccion_perfil"] = {
+                    "id": user["id"],
+                    "nombre": user["nombre"],
+                    "identificacion": user["identificacion"],
+                    "registro_medico": user["registro_medico"],
+                    "rol": user["rol"],
+                    "perfiles": perfiles,
+                    "requiere_cambio_clave": user["requiere_cambio_clave"],
+                    "formularios_acceso": formularios_acceso,
+                    "permiso_ths_sga": user.get("permiso_ths_sga"),
+                    "permiso_programacion_operativa": user.get("permiso_programacion_operativa"),
+                }
+                return redirect(url_for("seleccionar_perfil"))
+
+            # Single profile (or none): proceed normally
+            perfil_unico = perfiles[0] if perfiles else ""
+            
+            # Extract profile-specific form access
+            acc_dict = formularios_acceso
+            if isinstance(acc_dict, str):
+                try:
+                    acc_dict = json.loads(acc_dict)
+                except:
+                    acc_dict = []
+                    
+            if isinstance(acc_dict, dict):
+                formularios_acceso_list = acc_dict.get(perfil_unico, [])
+            elif isinstance(acc_dict, list):
+                formularios_acceso_list = acc_dict
+            else:
+                formularios_acceso_list = []
+
+            session["usuario"] = {
+                "id": user["id"],
+                "nombre": user["nombre"],
+                "identificacion": user["identificacion"],
+                "registro_medico": user["registro_medico"],
+                "rol": "admin" if (user["rol"] == "admin" or perfil_unico == "Administrador") else "usuario",
+                "rol_real": user["rol"],
+                "perfil": perfil_unico,
+                "requiere_cambio_clave": user["requiere_cambio_clave"],
+                "formularios_acceso": formularios_acceso_list,
+                "permiso_ths_sga": user.get("permiso_ths_sga"),
+                "permiso_programacion_operativa": user.get("permiso_programacion_operativa")
+            }
+            session.permanent = True
+            
+            if user["requiere_cambio_clave"] == 1:
+                flash("Debe cambiar su contraseña por seguridad al ser el primer ingreso o tras un restablecimiento.", "error")
+                return redirect(url_for("cambiar_contrasena"))
+
+            session["mostrar_bienvenida"] = True
+            return redirect(url_for("dashboard"))
+
+        return render_template("login.html")
+
+
+    @app.route("/seleccionar_perfil", methods=["GET", "POST"])
+    def seleccionar_perfil():
+        pendiente = session.get("pendiente_seleccion_perfil")
+        if not pendiente:
+            return redirect(url_for("login"))
+
+        if request.method == "POST":
+            perfil_elegido = request.form.get("perfil", "").strip()
+            perfiles_disponibles = pendiente.get("perfiles", [])
+
+            if perfil_elegido not in perfiles_disponibles:
+                flash("Perfil no válido. Seleccione uno de los perfiles asignados.", "error")
+                return render_template("seleccionar_perfil.html", perfiles=perfiles_disponibles, nombre=pendiente["nombre"])
+
+            # Extract profile-specific form access
+            acc_dict = pendiente["formularios_acceso"]
+            if isinstance(acc_dict, str):
+                try:
+                    acc_dict = json.loads(acc_dict)
+                except:
+                    acc_dict = []
+                    
+            if isinstance(acc_dict, dict):
+                formularios_acceso_list = acc_dict.get(perfil_elegido, [])
+            elif isinstance(acc_dict, list):
+                formularios_acceso_list = acc_dict
+            else:
+                formularios_acceso_list = []
+
+            # Set definitive session
+            session["usuario"] = {
+                "id": pendiente.get("id"),
+                "nombre": pendiente["nombre"],
+                "identificacion": pendiente["identificacion"],
+                "registro_medico": pendiente["registro_medico"],
+                "rol": "admin" if (pendiente["rol"] == "admin" or perfil_elegido == "Administrador") else "usuario",
+                "rol_real": pendiente["rol"],
+                "perfil": perfil_elegido,
+                "requiere_cambio_clave": pendiente["requiere_cambio_clave"],
+                "formularios_acceso": formularios_acceso_list,
+                "permiso_ths_sga": pendiente.get("permiso_ths_sga"),
+                "permiso_programacion_operativa": pendiente.get("permiso_programacion_operativa"),
+            }
+            session.permanent = True
+            # Clean up temp data
+            session.pop("pendiente_seleccion_perfil", None)
+
+            if pendiente["requiere_cambio_clave"] == 1:
+                flash("Debe cambiar su contraseña por seguridad al ser el primer ingreso o tras un restablecimiento.", "error")
+                return redirect(url_for("cambiar_contrasena"))
+
+            session["mostrar_bienvenida"] = True
+            return redirect(url_for("dashboard"))
+
+        return render_template("seleccionar_perfil.html", perfiles=pendiente["perfiles"], nombre=pendiente["nombre"])
+
+
+    @app.route("/dashboard")
+    @login_required
+    def dashboard():
+        user_ident = session["usuario"]["identificacion"]
+        user_perfil = session["usuario"].get("perfil", "")
+        conn = get_db()
+        
+        # 1. Historia Clínica Individual (pacientes where atencion_colectiva_id IS NULL and finalizado = 0)
+        hc_pending = conn.execute(
+            "SELECT COUNT(*) as count FROM pacientes WHERE atencion_colectiva_id IS NULL AND finalizado = 0 AND registrado_por_identificacion = ? AND perfil_registrador = ?",
+            (user_ident, user_perfil)
+        ).fetchone()["count"]
+        
+        # 2. Atención Colectiva (atencion_colectiva where finalizado = 0)
+        ac_pending = conn.execute(
+            "SELECT COUNT(*) as count FROM atencion_colectiva WHERE finalizado = 0 AND registrado_por_identificacion = ? AND perfil_registrador = ?",
+            (user_ident, user_perfil)
+        ).fetchone()["count"]
+        
+        # 3. Preoperacional (preoperacional where finalizado = 0)
+        try:
+            preop_pending = conn.execute(
+                "SELECT COUNT(*) as count FROM preoperacional WHERE finalizado = 0 AND registrado_por_identificacion = ? AND perfil_registrador = ?",
+                (user_ident, user_perfil)
+            ).fetchone()["count"]
+        except Exception:
+            preop_pending = 0
+
+        # 4. Checklists (tam, tab, pasb, pasm, equipos where finalizado = 0)
+        checklist_pending = 0
+        for _cl_table in ("checklist_tam", "checklist_tab", "checklist_pasb", "checklist_pasm", "checklist_equipos", "checklist_avanzada"):
+            try:
+                n = conn.execute(
+                    f"SELECT COUNT(*) as count FROM {_cl_table} WHERE finalizado = 0 AND registrado_por_identificacion = ? AND perfil_registrador = ?",
+                    (user_ident, user_perfil)
+                ).fetchone()["count"]
+                checklist_pending += n
+            except Exception:
+                pass
+
+        total_pending = hc_pending + ac_pending
+        checklist_total_pending = checklist_pending + preop_pending
+
+        vehiculo_alerts = []
+        is_conductor_o_admin = (
+            session["usuario"].get("rol") == "admin" or
+            session["usuario"].get("rol_real") == "admin" or
+            session["usuario"].get("perfil") in ("Administrador", "Conductor") or
+            "conductor" in str(session["usuario"].get("perfil") or "").lower() or
+            "admin" in str(session["usuario"].get("perfil") or "").lower()
+        )
+        if is_conductor_o_admin:
+            try:
+                active_vehiculos = conn.execute("SELECT id, placa, soat_vigencia, rtm_vigencia FROM vehiculos WHERE activo = 1").fetchall()
+                fecha_hoy = hoy()
+                for v in active_vehiculos:
+                    placa = v["placa"]
+                    for doc_name, doc_date in [("SOAT", v["soat_vigencia"]), ("RTM", v["rtm_vigencia"])]:
+                        if doc_date:
+                            if isinstance(doc_date, str):
+                                try:
+                                    d_val = datetime.strptime(doc_date.split()[0], "%Y-%m-%d").date()
+                                except Exception:
+                                    d_val = None
+                            else:
+                                d_val = doc_date if isinstance(doc_date, date) else doc_date.date()
+                            
+                            if d_val:
+                                diff = (d_val - fecha_hoy).days
+                                if diff <= 15:
+                                    vehiculo_alerts.append({
+                                        "placa": placa,
+                                        "tipo": doc_name,
+                                        "dias": diff,
+                                        "fecha": d_val.strftime("%d/%m/%Y")
+                                    })
+            except Exception as e:
+                print("Error al calcular alertas de vehiculos:", e)
+
+        conn.close()
+        
+        # Ordenar las alertas por los dias mas criticos (vencidos primero)
+        vehiculo_alerts.sort(key=lambda x: x["dias"])
+
+        return render_template(
+            "dashboard.html",
+            total_pending=total_pending,
+            hc_pending=hc_pending,
+            ac_pending=ac_pending,
+            preop_pending=preop_pending,
+            checklist_pending=checklist_pending,
+            checklist_total_pending=checklist_total_pending,
+            vehiculo_alerts=vehiculo_alerts
+        )
+
+
+    @app.route("/logout")
+    def logout():
+        if "usuario" in session:
+            conn = get_db()
+            conn.execute("""
+                UPDATE usuarios 
+                SET ultima_latitud = NULL, ultima_longitud = NULL, ultima_actualizacion_gps = NULL 
+                WHERE identificacion = ?
+            """, (session["usuario"]["identificacion"],))
+            conn.commit()
+            conn.close()
+        session.clear()
+        return redirect(url_for("login"))
+
+
+    @app.route("/cambiar_contrasena", methods=["GET", "POST"])
+    def cambiar_contrasena():
+        if "usuario" not in session:
+            return redirect(url_for("login"))
+            
+        if request.method == "POST":
+            clave_actual = request.form.get("clave_actual", "").strip()
+            nueva_clave = request.form.get("nueva_clave", "").strip()
+            confirmacion = request.form.get("confirmacion", "").strip()
+
+            if not clave_actual or not nueva_clave or not confirmacion:
+                flash("Todos los campos son obligatorios.", "error")
+                return render_template("cambiar_contrasena.html")
+
+            if len(nueva_clave) < _LONGITUD_MINIMA_CLAVE:
+                flash(f"La nueva contraseña debe tener al menos {_LONGITUD_MINIMA_CLAVE} caracteres.", "error")
+                return render_template("cambiar_contrasena.html")
+
+            if nueva_clave != confirmacion:
+                flash("Las contraseñas no coinciden.", "error")
+                return render_template("cambiar_contrasena.html")
+
+            identificacion = session["usuario"]["identificacion"]
+            if nueva_clave == identificacion:
+                flash("La nueva contraseña no puede ser igual a su número de identificación por seguridad.", "error")
+                return render_template("cambiar_contrasena.html")
+
+            if len(nueva_clave) < 8 or not any(c.isalpha() for c in nueva_clave) or not any(c.isdigit() for c in nueva_clave):
+                flash("La contraseña debe tener al menos 8 caracteres e incluir letras y números.", "error")
+                return render_template("cambiar_contrasena.html")
+
+            if nueva_clave == clave_actual:
+                flash("La nueva contraseña debe ser diferente a la actual.", "error")
+                return render_template("cambiar_contrasena.html")
+
+            conn = get_db()
+            actual = conn.execute("SELECT contrasena FROM usuarios WHERE identificacion = ?", (identificacion,)).fetchone()
+            if not actual or not check_password_hash(actual["contrasena"], clave_actual):
+                conn.close()
+                flash("La contraseña actual no es correcta.", "error")
+                return render_template("cambiar_contrasena.html")
+
+            hashed_clave = generate_password_hash(nueva_clave)
+            conn.execute(
+                "UPDATE usuarios SET contrasena = ?, requiere_cambio_clave = 0 WHERE identificacion = ?",
+                (hashed_clave, identificacion)
+            )
+            conn.commit()
+            conn.close()
+
+            session["usuario"]["requiere_cambio_clave"] = 0
+            session.modified = True
+            flash("Contraseña actualizada exitosamente.", "success")
+            return redirect(url_for("dashboard"))
+
+        return render_template("cambiar_contrasena.html")
+
+
+    @app.route("/recuperar_contrasena", methods=["GET", "POST"])
+    def recuperar_contrasena():
+        if request.method == "POST":
+            identificacion = request.form.get("identificacion", "").strip()
+            msg_generico = "Si la identificación existe en nuestro sistema, se han enviado las instrucciones al correo registrado."
+            ip = request.remote_addr or "?"
+            if not identificacion:
+                flash("Debe ingresar su identificación.", "error")
+            elif _limite_recuperar_ip.bloqueado(ip) or _limite_recuperar_ident.bloqueado(identificacion):
+                # Demasiadas solicitudes: se responde igual, sin generar ni enviar nada
+                flash(msg_generico, "success")
+            else:
+                _limite_recuperar_ip.registrar(ip)
+                _limite_recuperar_ident.registrar(identificacion)
+                conn = get_db()
+                user = conn.execute("SELECT * FROM usuarios WHERE identificacion = ?", (identificacion,)).fetchone()
+                
+                if user and user.get("correo") and user.get("activo"):
+                    from datetime import timedelta
+                    temp_password = _generar_clave_temporal()
+                    hashed_temp = generate_password_hash(temp_password)
+                    expira = (datetime.now() + timedelta(minutes=_TEMP_CLAVE_MINUTOS)).strftime("%Y-%m-%d %H:%M:%S")
+                    # La clave temporal se guarda aparte: la contrasena actual sigue siendo valida,
+                    # asi nadie puede bloquear a otro usuario pidiendo la recuperacion.
+                    _asegurar_columnas_clave_temporal(conn)
+                    conn.execute(
+                        "UPDATE usuarios SET contrasena_temporal = ?, contrasena_temporal_expira = ? WHERE id = ?",
+                        (hashed_temp, expira, user["id"])
+                    )
+                    conn.commit()
+                    
+                    from utils import send_recovery_email
+                    success = send_recovery_email(user["correo"], temp_password)
+                    if not success:
+                        app.logger.error("No se pudo enviar el correo de recuperacion (usuario id %s).", user["id"])
+                # Siempre el mismo mensaje: no revela si la identificacion existe
+                flash(msg_generico, "success")
+                conn.close()
+            return redirect(url_for("login"))
+        return render_template("recuperar_contrasena.html")
+
+
+    @app.route("/usuarios/plantilla_excel")
+    @login_required
+    @admin_required
+    def plantilla_excel():
+        import openpyxl
+        from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = "Usuarios"
+
+        headers = [
+            "nombre", "identificacion", "registro_medico", "correo",
+            "rol", "perfiles", "activo"
+        ]
+        header_font = Font(bold=True, color="FFFFFF", size=11)
+        header_fill = PatternFill("solid", fgColor="1e6fbf")
+        thin_border = Border(
+            left=Side(style="thin"), right=Side(style="thin"),
+            top=Side(style="thin"), bottom=Side(style="thin")
+        )
+        for col, h in enumerate(headers, 1):
+            cell = ws.cell(row=1, column=col, value=h)
+            cell.font = header_font
+            cell.fill = header_fill
+            cell.alignment = Alignment(horizontal="center")
+            cell.border = thin_border
+
+        ws.cell(row=2, column=1, value="Ejemplo Pérez")
+        ws.cell(row=2, column=2, value="1234567890")
+        ws.cell(row=2, column=3, value="RM-12345")
+        ws.cell(row=2, column=4, value="ejemplo@correo.com")
+        ws.cell(row=2, column=5, value="usuario")
+        ws.cell(row=2, column=6, value="Médico,APH")
+        ws.cell(row=2, column=7, value=1)
+
+        for col in range(1, len(headers) + 1):
+            ws.column_dimensions[ws.cell(row=1, column=col).column_letter].width = 22
+
+        from io import BytesIO
+        buf = BytesIO()
+        wb.save(buf)
+        buf.seek(0)
+        from flask import send_file
+        return send_file(buf, mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", as_attachment=True, download_name="plantilla_usuarios.xlsx")
+
+
+    @app.route("/usuarios/importar_excel", methods=["POST"])
+    @login_required
+    @admin_required
+    def importar_usuarios_excel():
+        import openpyxl
+        from openpyxl.utils import get_column_letter
+
+        file = request.files.get("archivo_excel")
+        if not file or file.filename == "":
+            flash("Debe seleccionar un archivo Excel.", "error")
+            return redirect(url_for("usuarios"))
+
+        if not validar_upload_excel(file):
+            flash("El archivo debe ser un Excel válido (.xlsx o .xls).", "error")
+            return redirect(url_for("usuarios"))
+
+        conn = get_db()
+        creados = 0
+        creados_list = []
+        errores = []
+        fila = 1
+
+        try:
+            wb = openpyxl.load_workbook(file, read_only=True)
+            ws = wb.active
+            rows = list(ws.iter_rows(values_only=True))
+            if not rows:
+                flash("El archivo Excel está vacío.", "error")
+                conn.close()
+                return redirect(url_for("usuarios"))
+
+            header_row = [str(c).strip().lower() if c else "" for c in rows[0]]
+            expected = ["nombre", "identificacion", "registro_medico", "correo", "rol", "perfiles", "activo"]
+            col_map = {}
+            for i, h in enumerate(expected):
+                try:
+                    col_map[h] = header_row.index(h)
+                except ValueError:
+                    errores.append(f"Fila 1: falta la columna '{h}'")
+                    conn.close()
+                    flash("El archivo no tiene las columnas requeridas. Descargue la plantilla.", "error")
+                    return redirect(url_for("usuarios"))
+
+            for row in rows[1:]:
+                fila += 1
+                if all(c is None or str(c).strip() == "" for c in row):
+                    continue
+
+                try:
+                    nombre = str(row[col_map["nombre"]]).strip() if row[col_map["nombre"]] is not None else ""
+                    identificacion = str(row[col_map["identificacion"]]).strip() if row[col_map["identificacion"]] is not None else ""
+                    registro_medico = str(row[col_map["registro_medico"]]).strip() if row[col_map["registro_medico"]] is not None else ""
+                    correo = str(row[col_map["correo"]]).strip() if row[col_map["correo"]] is not None else ""
+                    rol = str(row[col_map["rol"]]).strip().lower() if row[col_map["rol"]] is not None else "usuario"
+                    perfiles_raw = str(row[col_map["perfiles"]]).strip() if row[col_map["perfiles"]] is not None else ""
+                    activo_raw = row[col_map["activo"]]
+                except IndexError:
+                    errores.append(f"Fila {fila}: datos incompletos")
+                    continue
+
+                if not nombre or not identificacion:
+                    errores.append(f"Fila {fila}: nombre e identificación son obligatorios")
+                    continue
+
+                raw_perfiles = [p.strip() for p in perfiles_raw.split(",") if p.strip()]
+                if not raw_perfiles:
+                    errores.append(f"Fila {fila} ({nombre}): debe tener al menos un perfil")
+                    continue
+
+                def normalizar(s):
+                    return unicodedata.normalize('NFKD', s).encode('ascii', 'ignore').decode().strip().lower()
+
+                perfiles_canon = {"Médico", "Enfermero", "APH", "Auxiliar en Enfermeria", "Socorrista", "Conductor", "Gestion Humana"}
+                mapa_norm = {normalizar(p): p for p in perfiles_canon}
+                perfiles_list = []
+                invalidos = []
+                for p in raw_perfiles:
+                    norm = normalizar(p)
+                    if norm in mapa_norm:
+                        perfiles_list.append(mapa_norm[norm])
+                    else:
+                        invalidos.append(p)
+                if invalidos:
+                    errores.append(f"Fila {fila} ({nombre}): perfil(es) inválido(s): {', '.join(invalidos)}. Válidos: {', '.join(sorted(perfiles_canon))}")
+                    continue
+
+                tiene_perfil_requerido = any(p in {"Médico", "Enfermero", "APH", "Auxiliar en Enfermeria"} for p in perfiles_list)
+                if tiene_perfil_requerido and not registro_medico:
+                    errores.append(f"Fila {fila} ({nombre}): la Resolución en Salud es obligatoria para los perfiles Médico, Enfermero, APH y Auxiliar en Enfermeria")
+                    continue
+
+                if rol not in ("usuario", "admin"):
+                    rol = "usuario"
+
+                try:
+                    activo = int(activo_raw) if activo_raw is not None else 1
+                except (ValueError, TypeError):
+                    activo = 1
+
+                existing = conn.execute("SELECT id FROM usuarios WHERE identificacion = ?", (identificacion,)).fetchone()
+                if existing:
+                    errores.append(f"Fila {fila} ({nombre}): identificación ya existe")
+                    continue
+
+                perfiles_json = json.dumps(perfiles_list, ensure_ascii=False)
+                formularios_acceso_default = {}
+                for p in perfiles_list:
+                    formularios_acceso_default[p] = []
+                formularios_acceso_json = json.dumps(formularios_acceso_default, ensure_ascii=False)
+                hashed_pw = generate_password_hash(identificacion)
+
+                conn.execute("""
+                    INSERT INTO usuarios (nombre, identificacion, registro_medico, rol, perfil, activo, firma, contrasena, requiere_cambio_clave, formularios_acceso, correo)
+                    VALUES (?, ?, ?, ?, ?, ?, '', ?, 1, ?, ?)
+                """, (nombre, identificacion, registro_medico, rol, perfiles_json, activo, hashed_pw, formularios_acceso_json, correo))
+                creados += 1
+                creados_list.append({"nombre": nombre, "identificacion": identificacion})
+
+            conn.commit()
+        except Exception as e:
+            conn.close()
+            flash(f"Error al procesar el archivo: {e}", "error")
+            return redirect(url_for("usuarios"))
+
+        conn.close()
+
+        session['import_result'] = {
+            'creados': creados,
+            'creados_list': creados_list,
+            'errores': errores,
+            'total_rows': len(rows) - 1 if len(rows) > 1 else 0
+        }
+        if creados > 0:
+            plural = "" if creados == 1 else "s"
+            flash(f"✅ {creados} usuario{plural} creado{plural} exitosamente.", "success")
+        return redirect(url_for("usuarios"))
+
+
+    @app.route("/usuarios/clear_import_result")
+    @login_required
+    @admin_required
+    def clear_import_result():
+        session.pop('import_result', None)
+        return 'ok'
+
+
+    @app.route("/usuarios", methods=["GET", "POST"])
+    @login_required
+    @admin_required
+    def usuarios():
+        conn = get_db()
+        if request.method == "POST":
+            nombre = request.form["nombre"].strip()
+            identificacion = request.form["identificacion"].strip()
+            registro_medico = request.form["registro_medico"].strip()
+            rol = request.form["rol"].strip()
+            perfiles_list = request.form.getlist("perfil")
+            perfil = json.dumps(perfiles_list, ensure_ascii=False)
+            activo = int(request.form.get("activo", 1))
+            firma = request.form.get("firma", "").strip()
+            correo = request.form.get("correo", "").strip()
+            
+            permiso_programacion_operativa = 1 if request.form.get("permiso_programacion_operativa") == "on" else 0
+            can_assign = session.get("usuario") and (session["usuario"]["id"] == 1 or (session["usuario"].get("rol") == "admin" and session["usuario"].get("permiso_programacion_operativa") == 1))
+            if not can_assign:
+                permiso_programacion_operativa = 0
+            
+            formularios_acceso_dict = {}
+            for p in perfiles_list:
+                formularios_acceso_dict[p] = request.form.getlist(f"formularios_acceso_{p}")
+            formularios_acceso = json.dumps(formularios_acceso_dict, ensure_ascii=False)
+
+            perfiles_requieren_rm = {"Médico", "Enfermero", "APH", "Auxiliar en Enfermeria"}
+            tiene_perfil_requerido = any(p in perfiles_requieren_rm for p in perfiles_list)
+
+            if not nombre or not identificacion:
+                flash("Nombre e identificación son obligatorios.", "error")
+            elif not perfiles_list:
+                flash("Debe seleccionar al menos un perfil profesional.", "error")
+            elif tiene_perfil_requerido and not registro_medico:
+                flash("La Resolución en Salud es obligatoria para los perfiles Médico, Enfermero, APH y Auxiliar en Enfermeria.", "error")
+            else:
+                existing = conn.execute(
+                    "SELECT * FROM usuarios WHERE identificacion = ?", (identificacion,)
+                ).fetchone()
+                if existing:
+                    flash("Ya existe un usuario con esa Identificación.", "error")
+                else:
+                    # Password defaults to identification and requires change (requiere_cambio_clave = 1)
+                    hashed_identificacion = generate_password_hash(identificacion)
+                    fecha_validez = request.form.get("fecha_validez", "").strip() or None
+                    conn.execute("""
+                        INSERT INTO usuarios (nombre, identificacion, registro_medico, rol, perfil, activo, firma, contrasena, requiere_cambio_clave, formularios_acceso, correo, fecha_validez, permiso_programacion_operativa)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?)
+                    """, (nombre, identificacion, registro_medico, rol, perfil, activo, firma, hashed_identificacion, formularios_acceso, correo, fecha_validez, permiso_programacion_operativa))
+                    conn.commit()
+                    flash("Usuario creado exitosamente. La contraseña inicial es su número de identificación.", "success")
+                    conn.close()
+                    return redirect(url_for("usuarios"))
+
+        usuarios_list = conn.execute("SELECT * FROM usuarios ORDER BY id DESC").fetchall()
+        conn.close()
+        return render_template("usuarios.html", usuarios=usuarios_list, usuario=session["usuario"], json=json)
+
+
+    @app.route("/usuarios/editar/<int:user_id>", methods=["GET", "POST"])
+    @login_required
+    @admin_required
+    def editar_usuario(user_id):
+        conn = get_db()
+        user = conn.execute("SELECT * FROM usuarios WHERE id = ?", (user_id,)).fetchone()
+        if not user:
+            flash("Usuario no encontrado.", "error")
+            conn.close()
+            return redirect(url_for("usuarios"))
+
+        if request.method == "POST":
+            nombre = request.form["nombre"].strip()
+            identificacion = request.form["identificacion"].strip()
+            registro_medico = request.form["registro_medico"].strip()
+            rol = request.form["rol"].strip()
+            perfiles_list = request.form.getlist("perfil")
+            perfil = json.dumps(perfiles_list, ensure_ascii=False)
+            activo = int(request.form.get("activo", 1))
+            firma = request.form.get("firma", "").strip()
+            correo = request.form.get("correo", "").strip()
+            
+            can_assign = session.get("usuario") and (session["usuario"]["id"] == 1 or (session["usuario"].get("rol") == "admin" and session["usuario"].get("permiso_programacion_operativa") == 1))
+            if can_assign:
+                permiso_programacion_operativa = 1 if request.form.get("permiso_programacion_operativa") == "on" else 0
+            else:
+                permiso_programacion_operativa = user.get("permiso_programacion_operativa", 0)
+            
+            # Recuperar permisos antiguos por si el usuario que edita no es admin real
+            old_acc_dict = {}
+            if user and user["formularios_acceso"]:
+                try:
+                    old_acc_dict = json.loads(user["formularios_acceso"])
+                except:
+                    pass
+
+            formularios_acceso_dict = {}
+            for p in perfiles_list:
+                current_forms = request.form.getlist(f"formularios_acceso_{p}")
+                # Si no es admin real, preservar el permiso 'nomina' si ya lo tenía
+                if session['usuario'].get('rol_real') != 'admin':
+                    old_forms = old_acc_dict.get(p, []) if isinstance(old_acc_dict, dict) else []
+                    if 'nomina' in old_forms and 'nomina' not in current_forms:
+                        current_forms.append('nomina')
+                formularios_acceso_dict[p] = current_forms
+            formularios_acceso = json.dumps(formularios_acceso_dict, ensure_ascii=False)
+
+            perfiles_requieren_rm = {"Médico", "Enfermero", "APH", "Auxiliar en Enfermeria"}
+            tiene_perfil_requerido = any(p in perfiles_requieren_rm for p in perfiles_list)
+
+            if not nombre or not identificacion:
+                flash("Nombre e identificación son obligatorios.", "error")
+            elif not perfiles_list:
+                flash("Debe seleccionar al menos un perfil profesional.", "error")
+            elif tiene_perfil_requerido and not registro_medico:
+                flash("La Resolución en Salud es obligatoria para los perfiles Médico, Enfermero, APH y Auxiliar en Enfermeria.", "error")
+            else:
+                existing = conn.execute(
+                    "SELECT * FROM usuarios WHERE identificacion = ? AND id != ?", (identificacion, user_id)
+                ).fetchone()
+                if existing:
+                    flash("Ya existe otro usuario con esa Identificación.", "error")
+                else:
+                    fecha_validez = request.form.get("fecha_validez", "").strip() or None
+                    conn.execute("""
+                        UPDATE usuarios
+                        SET nombre = ?, identificacion = ?, registro_medico = ?, rol = ?, perfil = ?, activo = ?, firma = ?, formularios_acceso = ?, correo = ?, fecha_validez = ?, permiso_programacion_operativa = ?
+                        WHERE id = ?
+                    """, (nombre, identificacion, registro_medico, rol, perfil, activo, firma, formularios_acceso, correo, fecha_validez, permiso_programacion_operativa, user_id))
+                    conn.commit()
+                    flash("Usuario actualizado exitosamente.", "success")
+                    conn.close()
+                    return redirect(url_for("usuarios"))
+
+        conn.close()
+        return render_template("editar_usuario.html", user=user, usuario=session["usuario"], json=json)
+
+
+    @app.route("/usuarios/toggle/<int:user_id>")
+    @login_required
+    @admin_required
+    def toggle_usuario(user_id):
+        conn = get_db()
+        user = conn.execute("SELECT * FROM usuarios WHERE id = ?", (user_id,)).fetchone()
+        if user:
+            if user["identificacion"] == "admin":
+                flash("No se puede deshabilitar al usuario administrador principal.", "error")
+            else:
+                nuevo_estado = 0 if user["activo"] else 1
+                conn.execute("UPDATE usuarios SET activo = ? WHERE id = ?", (nuevo_estado, user_id))
+                conn.commit()
+                flash(f"Usuario {'habilitado' if nuevo_estado else 'deshabilitado'} correctamente.", "success")
+        else:
+            flash("Usuario no encontrado.", "error")
+        conn.close()
+        return redirect(url_for("usuarios"))
+
+
+    @app.route("/usuarios/reset/<int:user_id>")
+    @login_required
+    @admin_required
+    def reset_usuario_contrasena(user_id):
+        conn = get_db()
+        user = conn.execute("SELECT * FROM usuarios WHERE id = ?", (user_id,)).fetchone()
+        if user:
+                # Reset password to identification and force change
+                hashed_id = generate_password_hash(user["identificacion"])
+                conn.execute(
+                    "UPDATE usuarios SET contrasena = ?, requiere_cambio_clave = 1 WHERE id = ?",
+                    (hashed_id, user_id)
+                )
+                conn.commit()
+                flash(f"Contraseña de {user['nombre']} restablecida. La nueva clave es su identificación.", "success")
+        else:
+            flash("Usuario no encontrado.", "error")
+        conn.close()
+        return redirect(url_for("usuarios"))
+
