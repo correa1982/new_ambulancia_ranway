@@ -53,6 +53,108 @@
             background: linear-gradient(135deg, #10b981, #059669) !important;
         }
 
+        /* Protection for radio/checkbox inputs inside SweetAlert2 modals */
+        .swal2-container input[type="radio"],
+        .swal2-container input[type="checkbox"] {
+            width: auto !important;
+            margin-top: 0 !important;
+            padding: 0 !important;
+            border: none !important;
+            background: transparent !important;
+        }
+
+        /* Modal Reportar Novedad / Faltante options */
+        .modal-incumple-options {
+            display: grid;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+        .modal-incumple-card {
+            display: flex !important;
+            align-items: center !important;
+            gap: 10px !important;
+            padding: 10px 12px !important;
+            border-radius: 8px !important;
+            border: 2px solid #e2e8f0 !important;
+            background: #ffffff !important;
+            cursor: pointer !important;
+            transition: all 0.15s ease-in-out !important;
+            user-select: none !important;
+            margin: 0 !important;
+            text-align: left !important;
+            box-sizing: border-box !important;
+        }
+        .modal-incumple-card:hover {
+            border-color: #cbd5e1 !important;
+            background: #f8fafc !important;
+        }
+        .modal-incumple-card.is-selected-parcial {
+            border-color: #f59e0b !important;
+            background: #fffbeb !important;
+            box-shadow: 0 1px 3px rgba(245, 158, 11, 0.15) !important;
+        }
+        .modal-incumple-card.is-selected-total {
+            border-color: #ef4444 !important;
+            background: #fef2f2 !important;
+            box-shadow: 0 1px 3px rgba(239, 68, 68, 0.15) !important;
+        }
+        .modal-incumple-radio-circle {
+            width: 18px !important;
+            height: 18px !important;
+            min-width: 18px !important;
+            border-radius: 50% !important;
+            border: 2px solid #94a3b8 !important;
+            background: #ffffff !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            transition: all 0.15s ease-in-out !important;
+            flex-shrink: 0 !important;
+        }
+        .is-selected-parcial .modal-incumple-radio-circle {
+            border-color: #d97706 !important;
+            background: #d97706 !important;
+        }
+        .is-selected-total .modal-incumple-radio-circle {
+            border-color: #dc2626 !important;
+            background: #dc2626 !important;
+        }
+        .modal-incumple-radio-circle::after {
+            content: '' !important;
+            width: 6px !important;
+            height: 6px !important;
+            border-radius: 50% !important;
+            background: #ffffff !important;
+            display: none !important;
+        }
+        .is-selected-parcial .modal-incumple-radio-circle::after,
+        .is-selected-total .modal-incumple-radio-circle::after {
+            display: block !important;
+        }
+        .modal-incumple-title {
+            font-size: 12px !important;
+            font-weight: 700 !important;
+            line-height: 1.3 !important;
+            color: #1e293b !important;
+        }
+        .is-selected-parcial .modal-incumple-title {
+            color: #b45309 !important;
+        }
+        .is-selected-total .modal-incumple-title {
+            color: #b91c1c !important;
+        }
+        .modal-incumple-desc {
+            font-size: 10.5px !important;
+            color: #64748b !important;
+            line-height: 1.2 !important;
+            margin-top: 2px !important;
+        }
+        @media (max-width: 480px) {
+            .modal-incumple-options {
+                grid-template-columns: 1fr !important;
+            }
+        }
+
         @media (max-width: 768px) {
             .swal2-custom-popup {
                 width: 92% !important;
@@ -74,14 +176,9 @@
         }
     </style>
     <!-- Flatpickr: picker 24h para datetime-local -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"
-        integrity="sha384-RkASv+6KfBMW9eknReJIJ6b3UnjKOKC5bOUaNgIY778NFbQ8MtWq9Lr/khUgqtTt" crossorigin="anonymous">
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"
-        integrity="sha384-5JqMv4L/Xa0hfvtF06qboNdhvuYXUku9ZrhZh3bSk8VXF0A/RuSLHpLsSV9Zqhl6"
-        crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"
-        integrity="sha384-j/aEP2b+3OKMqGank2qCSosSrlrF9jpIpdgApXq2ryJYBpLSbEi63/PDdL+rKmcQ"
-        crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/l10n/es.js"></script>
     <style>
         :root {
             --primary: #1e6fbf;
