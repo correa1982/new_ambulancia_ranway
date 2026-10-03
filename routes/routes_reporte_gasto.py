@@ -1,4 +1,5 @@
 import json
+import re
 from datetime import datetime
 from flask import render_template, request, redirect, url_for, session, flash, jsonify
 from db import get_db, get_pas_opciones
@@ -199,12 +200,37 @@ def register_routes(app):
         pasb_ops = get_pas_opciones(conn, "pasb")
         pasm_ops = get_pas_opciones(conn, "pasm")
 
-        # Vehículos TAM y TAB
-        tam_rows = conn.execute("SELECT placa FROM vehiculos WHERE (UPPER(TRIM(tipo)) = 'TAM' OR UPPER(TRIM(tipo_ambulancia)) = 'TAM') AND activo = 1 ORDER BY placa").fetchall()
-        tam_ops = [r["placa"] for r in tam_rows]
+        # Vehículos TAM y TAB: mostrar Número de Móvil (ej: MOVIL 1) en vez de placa, pero guardar/ligar a placa
+        def _get_vehiculos_gasto(tipo_filtro):
+            try:
+                rows = conn.execute(
+                    "SELECT placa, movil FROM vehiculos WHERE (UPPER(TRIM(tipo)) = ? OR UPPER(TRIM(tipo_ambulancia)) = ?) AND activo = 1",
+                    (tipo_filtro, tipo_filtro)
+                ).fetchall()
+                res = []
+                for r in rows:
+                    placa = (r["placa"] or "").strip()
+                    movil = (r["movil"] or "").strip()
+                    label = movil if movil else (f"Móvil {placa}" if placa else "Móvil")
+                    res.append({
+                        "placa": placa,
+                        "movil": movil,
+                        "label": label,
+                        "val": placa
+                    })
 
-        tab_rows = conn.execute("SELECT placa FROM vehiculos WHERE (UPPER(TRIM(tipo)) = 'TAB' OR UPPER(TRIM(tipo_ambulancia)) = 'TAB') AND activo = 1 ORDER BY placa").fetchall()
-        tab_ops = [r["placa"] for r in tab_rows]
+                def sort_key(x):
+                    text = x["label"]
+                    parts = re.split(r'(\d+)', text)
+                    return [int(p) if p.isdigit() else p.lower() for p in parts]
+
+                res.sort(key=sort_key)
+                return res
+            except Exception:
+                return []
+
+        tam_ops = _get_vehiculos_gasto("TAM")
+        tab_ops = _get_vehiculos_gasto("TAB")
 
         # Buscar si el usuario actual tiene un borrador guardado en BD
         borrador_row = conn.execute(
@@ -345,15 +371,24 @@ def register_routes(app):
         tabla, col_id = tablas_map[tipo]
         conn = get_db()
         try:
+            placa_buscar = ident
+            if tipo in ("tam", "tab"):
+                veh_row = conn.execute(
+                    "SELECT placa FROM vehiculos WHERE (UPPER(TRIM(placa)) = UPPER(TRIM(?)) OR UPPER(TRIM(movil)) = UPPER(TRIM(?))) AND activo = 1 LIMIT 1",
+                    (ident, ident)
+                ).fetchone()
+                if veh_row and veh_row.get("placa"):
+                    placa_buscar = veh_row["placa"]
+
             # Buscar el checklist más reciente finalizado (o más reciente almacenado)
             row = conn.execute(
                 f"SELECT datos_json FROM {tabla} WHERE {col_id} = ? AND finalizado = 1 AND datos_json IS NOT NULL AND datos_json != '' ORDER BY id DESC LIMIT 1",
-                (ident,)
+                (placa_buscar,)
             ).fetchone()
             if not row:
                 row = conn.execute(
                     f"SELECT datos_json FROM {tabla} WHERE {col_id} = ? AND datos_json IS NOT NULL AND datos_json != '' ORDER BY id DESC LIMIT 1",
-                    (ident,)
+                    (placa_buscar,)
                 ).fetchone()
 
             conn.close()
@@ -459,6 +494,18 @@ def register_routes(app):
                     (user_ident,)
                 ).fetchall()
 
+        # Mapa de placa -> movil para mostrar Número de Móvil en el listado
+        veh_map = {}
+        try:
+            v_rows = conn.execute("SELECT placa, movil FROM vehiculos").fetchall()
+            for vr in v_rows:
+                p = (vr.get("placa") or "").strip().upper()
+                m = (vr.get("movil") or "").strip()
+                if p and m:
+                    veh_map[p] = m
+        except Exception:
+            pass
+
         items = []
         for r in rows:
             rd = dict(r)
@@ -469,6 +516,14 @@ def register_routes(app):
             except Exception:
                 rd["total_articulos"] = 0
                 rd["total_unidades"] = 0
+
+            orig = rd.get("identificador_origen") or ""
+            tipo_orig = (rd.get("tipo_origen") or "").strip().upper()
+            if tipo_orig in ("TAM", "TAB") and orig.upper() in veh_map:
+                rd["identificador_display"] = veh_map[orig.upper()]
+            else:
+                rd["identificador_display"] = orig
+
             items.append(rd)
 
         conn.close()
@@ -496,6 +551,18 @@ def register_routes(app):
             return redirect(url_for("registros_reporte_gasto"))
 
         record = dict(row)
+
+        orig = record.get("identificador_origen") or ""
+        tipo_orig = (record.get("tipo_origen") or "").strip().upper()
+        identificador_display = orig
+        if tipo_orig in ("TAM", "TAB"):
+            v_row = conn.execute(
+                "SELECT movil FROM vehiculos WHERE UPPER(TRIM(placa)) = ? OR UPPER(TRIM(movil)) = ? LIMIT 1",
+                (orig.upper(), orig.upper())
+            ).fetchone()
+            if v_row and v_row.get("movil"):
+                identificador_display = v_row["movil"].strip()
+        record["identificador_display"] = identificador_display
 
         is_admin = session.get("usuario", {}).get("rol") == "admin"
         user_ident = session.get("usuario", {}).get("identificacion")

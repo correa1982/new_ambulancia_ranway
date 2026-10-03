@@ -312,6 +312,8 @@
         height: 100%;
         background-color: rgba(0,0,0,0.5);
         overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        box-sizing: border-box;
     }
     .modal-content {
         background-color: #fff;
@@ -322,6 +324,7 @@
         max-width: 90%;
         box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         overflow: visible;
+        box-sizing: border-box;
     }
     .modal-header {
         display: flex;
@@ -393,9 +396,10 @@
         }
         .modal-content {
             width: 95% !important;
-            margin: 5% auto !important;
-            padding: 15px !important;
-            max-height: 95vh;
+            margin: 20px auto 60px auto !important;
+            padding: 16px !important;
+            max-height: none !important;
+            box-sizing: border-box !important;
         }
         .responsive-flex {
             flex-direction: column !important;
