@@ -190,7 +190,7 @@
         </div>
         <div style="text-align:right;">
             <span style="background:rgba(255,255,255,0.2); padding:4px 10px; border-radius:6px; font-weight:700; font-size:12px;">
-                {{ record.tipo_origen }} – {{ record.identificador_origen }}
+                {{ record.tipo_origen }} – {{ record.identificador_display or record.identificador_origen }}
             </span>
         </div>
     </div>
@@ -214,7 +214,7 @@
                     {% else %}{{ record.tipo_origen }}{% endif %}
                 </td>
                 <td class="lbl">Unidad / Móvil</td>
-                <td class="val" style="font-size:13px; color:#1e40af;"><strong>{{ record.identificador_origen }}</strong></td>
+                <td class="val" style="font-size:13px; color:#1e40af;"><strong>{{ record.identificador_display or record.identificador_origen }}</strong></td>
             </tr>
             <tr>
                 <td class="lbl">Registrado por</td>
