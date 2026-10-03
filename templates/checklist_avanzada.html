@@ -2769,43 +2769,19 @@ document.addEventListener('DOMContentLoaded', function() {
             if (isRestoringDraftAvanzada) return;
 
             resetFormItems();
-            if (!bot) {
-                const banner = document.getElementById('banner-precargado-avanzada');
-                if (banner) banner.style.display = 'none';
-                return;
-            }
+            const banner = document.getElementById('banner-precargado-avanzada');
+            if (banner) banner.style.display = 'none';
 
-            fetch(`/api/checklist/ultimo_datos?tipo=avanzada&botiquin=${encodeURIComponent(bot)}`)
-            .then(r => r.json())
-            .then(res => {
-                if (res.status === 'success' && res.datos && Object.keys(res.datos).length > 0) {
-                    applyUltimoDatos(res.datos);
-                    const banner = document.getElementById('banner-precargado-avanzada');
-                    const nomSpan = document.getElementById('banner-avanzada-nom');
-                    if (banner) banner.style.display = 'flex';
-                    if (nomSpan) nomSpan.textContent = bot;
-                    Swal.fire({
-                        toast: true,
-                        position: 'top-end',
-                        icon: 'success',
-                        title: `📅 Fechas de vencimiento previas cargadas de ${bot}`,
-                        showConfirmButton: false,
-                        timer: 3000
-                    });
-                } else {
-                    const banner = document.getElementById('banner-precargado-avanzada');
-                    if (banner) banner.style.display = 'none';
-                    Swal.fire({
-                        toast: true,
-                        position: 'top-end',
-                        icon: 'info',
-                        title: `📋 Checklist iniciado para ${bot}`,
-                        showConfirmButton: false,
-                        timer: 2000
-                    });
-                }
-            })
-            .catch(() => {});
+            if (!bot) return;
+
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'info',
+                title: `📋 Checklist iniciado para ${bot}`,
+                showConfirmButton: false,
+                timer: 2000
+            });
         }
 
         inBot.addEventListener('change', handleBotiquinChange);
