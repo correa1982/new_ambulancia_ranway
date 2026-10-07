@@ -6,7 +6,7 @@ from werkzeug.utils import secure_filename
 from db import get_db
 from utils import login_required, get_user_info, LimitadorIntentos, validar_upload_excel
 
-_limite_consulta_nomina = LimitadorIntentos(10, 600)
+_limite_consulta_nomina = LimitadorIntentos(5, 900)
 
 def register_routes(app):
     nomina_bp = Blueprint('nomina', __name__)

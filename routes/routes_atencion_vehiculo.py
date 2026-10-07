@@ -84,7 +84,8 @@ def register_routes(app):
                 else:
                     flash("Borrador de Atención Vehículo de Intervención guardado con éxito.", "success")
             except Exception as e:
-                flash(f"Error al guardar el formulario: {e}", "error")
+                print("ERROR:", repr(e))
+                flash(f"Error al guardar el formulario.", "error")
             finally:
                 conn.close()
             if request.form.get("_offline_sync") == "1":
@@ -168,6 +169,12 @@ def register_routes(app):
             conn.close()
             flash("Registro no encontrado.", "error")
             return redirect(url_for("registros_atencion_vehiculo"))
+
+        # Solo quien creó el registro (o un administrador) puede editarlo
+        if not es_propietario_o_admin(item):
+            conn.close()
+            flash("No tiene permiso para editar este registro.", "error")
+            return redirect(url_for("registros_atencion_vehiculo"))
             
         if item["finalizado"] == 1:
             conn.close()
@@ -238,7 +245,8 @@ def register_routes(app):
                 else:
                     flash("Borrador actualizado con éxito.", "success")
             except Exception as e:
-                flash(f"Error al actualizar: {e}", "error")
+                print("ERROR:", repr(e))
+                flash(f"Error al actualizar.", "error")
             finally:
                 conn.close()
             if request.form.get("_offline_sync") == "1":
@@ -293,7 +301,8 @@ def register_routes(app):
             conn.commit()
             flash("Registro eliminado permanentemente.", "success")
         except Exception as e:
-            flash(f"Error al eliminar el registro: {e}", "error")
+            print("ERROR:", repr(e))
+            flash(f"Error al eliminar el registro.", "error")
         finally:
             conn.close()
         return redirect(url_for("registros_atencion_vehiculo"))

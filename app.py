@@ -280,7 +280,7 @@ def revalidar_sesion():
     conn = None
     try:
         conn = get_db()
-        fila = conn.execute("SELECT activo FROM usuarios WHERE id = ?", (usuario.get("id"),)).fetchone()
+        fila = conn.execute("SELECT * FROM usuarios WHERE id = ?", (usuario.get("id"),)).fetchone()
     except Exception:
         return None  # si la BD falla no se expulsa a nadie
     finally:
@@ -293,6 +293,39 @@ def revalidar_sesion():
         session.clear()
         flash("Su sesión ya no es válida. Inicie sesión nuevamente.", "error")
         return redirect(url_for("login"))
+
+    # Refrescar rol y permisos: un cambio hecho por el administrador aplica sin
+    # esperar a que el usuario cierre sesión.
+    try:
+        try:
+            perfiles = json.loads(fila["perfil"]) if fila["perfil"] else []
+            if isinstance(perfiles, str):
+                perfiles = [perfiles]
+        except (ValueError, TypeError):
+            perfiles = [fila["perfil"]] if fila["perfil"] else []
+        perfil_actual = usuario.get("perfil", "")
+        if perfil_actual and perfil_actual not in perfiles:
+            # Le quitaron el perfil con el que estaba trabajando
+            session.clear()
+            flash("Sus perfiles fueron modificados. Inicie sesión nuevamente.", "error")
+            return redirect(url_for("login"))
+        try:
+            acceso = json.loads(fila["formularios_acceso"]) if fila["formularios_acceso"] else []
+        except (ValueError, TypeError):
+            acceso = []
+        if isinstance(acceso, dict):
+            acceso = acceso.get(perfil_actual, [])
+        elif not isinstance(acceso, list):
+            acceso = []
+        usuario["rol"] = "admin" if (fila["rol"] == "admin" or perfil_actual == "Administrador") else "usuario"
+        usuario["rol_real"] = fila["rol"]
+        usuario["formularios_acceso"] = acceso
+        usuario["permiso_ths_sga"] = fila.get("permiso_ths_sga")
+        usuario["permiso_programacion_operativa"] = fila.get("permiso_programacion_operativa")
+        session["usuario"] = usuario
+    except Exception:
+        app.logger.exception("No se pudieron refrescar los permisos de la sesion")
+
     session["_revalidado"] = ahora_ts
     return None
 

@@ -788,7 +788,8 @@ def register_routes(app):
             import traceback
             print("ERROR IN configurar_institucion:", e)
             print(traceback.format_exc())
-            flash(f"Error al guardar: {e}", "error")
+            print("ERROR:", repr(e))
+            flash(f"Error al guardar.", "error")
         finally:
             conn.close()
             
@@ -822,7 +823,8 @@ def register_routes(app):
             if "UNIQUE" in str(e):
                 flash(f"La aseguradora «{nombre}» ya existe.", "error")
             else:
-                flash(f"Error al agregar aseguradora: {e}", "error")
+                print("ERROR:", repr(e))
+                flash(f"Error al agregar aseguradora.", "error")
         finally:
             conn.close()
         return redirect(url_for("admin_checklists", tipo="aseguradoras"))
@@ -879,7 +881,8 @@ def register_routes(app):
             if "UNIQUE" in str(e) or "Duplicate" in str(e):
                 flash(f"La aseguradora SOAT «{nombre}» ya existe.", "error")
             else:
-                flash(f"Error al agregar aseguradora SOAT: {e}", "error")
+                print("ERROR:", repr(e))
+                flash(f"Error al agregar aseguradora SOAT.", "error")
         finally:
             conn.close()
         return redirect(url_for("admin_checklists", tipo="aseguradoras_soat"))

@@ -646,7 +646,9 @@ def register_routes(app):
                 for p in perfiles_list:
                     formularios_acceso_default[p] = []
                 formularios_acceso_json = json.dumps(formularios_acceso_default, ensure_ascii=False)
-                hashed_pw = generate_password_hash(identificacion)
+                # Sin clave conocida: el usuario la define con "Recuperar contraseña"
+                # o el administrador se la restablece (clave temporal aleatoria).
+                hashed_pw = generate_password_hash(secrets.token_urlsafe(32))
 
                 conn.execute("""
                     INSERT INTO usuarios (nombre, identificacion, registro_medico, rol, perfil, activo, firma, contrasena, requiere_cambio_clave, formularios_acceso, correo)
@@ -658,7 +660,8 @@ def register_routes(app):
             conn.commit()
         except Exception as e:
             conn.close()
-            flash(f"Error al procesar el archivo: {e}", "error")
+            print("ERROR:", repr(e))
+            flash(f"Error al procesar el archivo.", "error")
             return redirect(url_for("usuarios"))
 
         conn.close()
@@ -671,7 +674,9 @@ def register_routes(app):
         }
         if creados > 0:
             plural = "" if creados == 1 else "s"
-            flash(f"✅ {creados} usuario{plural} creado{plural} exitosamente.", "success")
+            flash(f"✅ {creados} usuario{plural} creado{plural} exitosamente. Por seguridad no tienen una clave "
+                  "conocida: cada uno debe usar \"Recuperar contraseña\" (si tiene correo) o usted puede "
+                  "restablecerle la clave para obtener una temporal.", "success")
         return redirect(url_for("usuarios"))
 
 
@@ -725,15 +730,17 @@ def register_routes(app):
                 if existing:
                     flash("Ya existe un usuario con esa Identificación.", "error")
                 else:
-                    # Password defaults to identification and requires change (requiere_cambio_clave = 1)
-                    hashed_identificacion = generate_password_hash(identificacion)
+                    # Clave temporal aleatoria (ya no es la identificación); cambio obligatorio al ingresar
+                    clave_temporal = _generar_clave_temporal()
+                    hashed_identificacion = generate_password_hash(clave_temporal)
                     fecha_validez = request.form.get("fecha_validez", "").strip() or None
                     conn.execute("""
                         INSERT INTO usuarios (nombre, identificacion, registro_medico, rol, perfil, activo, firma, contrasena, requiere_cambio_clave, formularios_acceso, correo, fecha_validez, permiso_programacion_operativa)
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?)
                     """, (nombre, identificacion, registro_medico, rol, perfil, activo, firma, hashed_identificacion, formularios_acceso, correo, fecha_validez, permiso_programacion_operativa))
                     conn.commit()
-                    flash("Usuario creado exitosamente. La contraseña inicial es su número de identificación.", "success")
+                    flash(f"Usuario creado exitosamente. Contraseña temporal: {clave_temporal} — "
+                          "anótela y entréguela al usuario; no se volverá a mostrar.", "success")
                     conn.close()
                     return redirect(url_for("usuarios"))
 
@@ -847,14 +854,16 @@ def register_routes(app):
         conn = get_db()
         user = conn.execute("SELECT * FROM usuarios WHERE id = ?", (user_id,)).fetchone()
         if user:
-                # Reset password to identification and force change
-                hashed_id = generate_password_hash(user["identificacion"])
+                # Clave temporal aleatoria (ya no es la identificación) y cambio obligatorio
+                clave_temporal = _generar_clave_temporal()
+                hashed_id = generate_password_hash(clave_temporal)
                 conn.execute(
                     "UPDATE usuarios SET contrasena = ?, requiere_cambio_clave = 1 WHERE id = ?",
                     (hashed_id, user_id)
                 )
                 conn.commit()
-                flash(f"Contraseña de {user['nombre']} restablecida. La nueva clave es su identificación.", "success")
+                flash(f"Contraseña de {user['nombre']} restablecida. Clave temporal: {clave_temporal} — "
+                      "anótela y entréguela al usuario; no se volverá a mostrar.", "success")
         else:
             flash("Usuario no encontrado.", "error")
         conn.close()

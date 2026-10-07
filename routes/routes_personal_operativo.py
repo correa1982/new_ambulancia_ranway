@@ -55,7 +55,8 @@ def register_routes(app):
             return jsonify({"success": True})
         except Exception as e:
             conn.rollback()
-            return jsonify({"success": False, "error": str(e)})
+            print("ERROR:", repr(e))
+            return jsonify({"success": False, "error": "Error interno. Intente nuevamente."})
         finally:
             conn.close()
 
@@ -78,7 +79,8 @@ def register_routes(app):
             return jsonify({"success": True})
         except Exception as e:
             conn.rollback()
-            return jsonify({"success": False, "error": str(e)})
+            print("ERROR:", repr(e))
+            return jsonify({"success": False, "error": "Error interno. Intente nuevamente."})
         finally:
             conn.close()
 
@@ -184,7 +186,8 @@ def register_routes(app):
             conn.close()
             flash(f"Se procesaron {registros_exitosos} registros correctamente.", "success")
         except Exception as e:
-            flash(f"Error al procesar el archivo: {e}", "error")
+            print("ERROR:", repr(e))
+            flash(f"Error al procesar el archivo.", "error")
             
         return redirect(url_for("personal_operativo_panel"))
 

@@ -386,7 +386,8 @@ def register_routes(app):
             if "Duplicate" in str(e) or "UNIQUE" in str(e):
                 flash(f"La categoría '{nombre}' ya existe.", "error")
             else:
-                flash(f"Error al agregar la categoría: {e}", "error")
+                print("ERROR:", repr(e))
+                flash(f"Error al agregar la categoría.", "error")
         conn.close()
         return redirect(url_for("admin_checklists", tipo="archivador"))
 
@@ -448,7 +449,8 @@ def register_routes(app):
             if "Duplicate" in str(e) or "UNIQUE" in str(e):
                 flash(f"El formulario '{nombre}' ya existe.", "error")
             else:
-                flash(f"Error al agregar el formulario: {e}", "error")
+                print("ERROR:", repr(e))
+                flash(f"Error al agregar el formulario.", "error")
         conn.close()
         return redirect(url_for("admin_checklists", tipo="archivador"))
 
@@ -479,7 +481,8 @@ def register_routes(app):
             if "Duplicate" in str(e) or "UNIQUE" in str(e):
                 flash(f"Ya existe un formulario con el nombre '{nuevo_nombre}'.", "error")
             else:
-                flash(f"Error al editar: {e}", "error")
+                print("ERROR:", repr(e))
+                flash(f"Error al editar.", "error")
         conn.close()
         return redirect(url_for("admin_checklists", tipo="archivador"))
 

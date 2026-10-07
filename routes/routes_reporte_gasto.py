@@ -346,7 +346,8 @@ def register_routes(app):
             conn.close()
             return jsonify({"status": "success", "borrador_id": borrador_id, "updated_at": now_str})
         except Exception as e:
-            return jsonify({"status": "error", "message": str(e)}), 500
+            print("ERROR:", repr(e))
+            return jsonify({"status": "error", "message": "Error interno. Intente nuevamente."}), 500
 
 
     @app.route("/api/reporte_gasto/articulos_disponibles")
@@ -457,7 +458,8 @@ def register_routes(app):
         except Exception as e:
             if conn:
                 conn.close()
-            return jsonify({"status": "error", "message": str(e), "articulos": []}), 500
+            print("ERROR:", repr(e))
+            return jsonify({"status": "error", "message": "Error interno. Intente nuevamente.", "articulos": []}), 500
 
 
     @app.route("/reporte_gasto/registros")

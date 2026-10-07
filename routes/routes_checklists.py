@@ -305,7 +305,8 @@ def register_routes(app):
                     conn.conn.rollback()
                 except Exception:
                     pass
-                flash(f"Ocurrió un inconveniente al guardar el checklist: {str(e)}. Sus datos permanecen seguros, por favor verifique e intente nuevamente.", "error")
+                print("ERROR:", repr(e))
+                flash(f"Ocurrió un inconveniente al guardar el checklist. Sus datos permanecen seguros, por favor verifique e intente nuevamente.", "error")
                 return redirect(request.referrer or url_for("form_checklist", tipo=tipo))
             finally:
                 try:
@@ -697,7 +698,8 @@ def register_routes(app):
             return jsonify({"status": "not_found", "datos": {}})
         except Exception as e:
             conn.close()
-            return jsonify({"status": "error", "message": str(e)}), 500
+            print("ERROR:", repr(e))
+            return jsonify({"status": "error", "message": "Error interno. Intente nuevamente."}), 500
 
 
     @app.route("/formularios/checklist/<tipo>/registros")
