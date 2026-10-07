@@ -312,6 +312,8 @@
         height: 100%;
         background-color: rgba(0,0,0,0.5);
         overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        box-sizing: border-box;
     }
     .modal-content {
         background-color: #fff;
@@ -322,6 +324,7 @@
         max-width: 90%;
         box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         overflow: visible;
+        box-sizing: border-box;
     }
     .modal-header {
         display: flex;
@@ -393,9 +396,10 @@
         }
         .modal-content {
             width: 95% !important;
-            margin: 5% auto !important;
-            padding: 15px !important;
-            max-height: 95vh;
+            margin: 20px auto 60px auto !important;
+            padding: 16px !important;
+            max-height: none !important;
+            box-sizing: border-box !important;
         }
         .responsive-flex {
             flex-direction: column !important;
@@ -1694,17 +1698,17 @@ function descartarVencido(itemId, nombre) {
                         <option value="" disabled selected>-- Seleccione Destino --</option>
                         <optgroup label="Móviles / Vehículos">
                             {% if vehiculos %}
-                                {% for v in vehiculos %}
+                                {% for v in vehiculos|sort(attribute='nombre_display') %}
                                     {% if v.placa %}
-                                    <option value="{{ v.placa }}">{{ v.placa }}{% if v.tipo_ambulancia %} ({{ v.tipo_ambulancia }}{% if v.movil %} - {{ v.movil }}{% endif %}){% elif v.tipo %} ({{ v.tipo }}{% if v.movil %} - {{ v.movil }}{% endif %}){% elif v.movil %} ({{ v.movil }}){% endif %}</option>
+                                    {% set v_label = v.nombre_display or ((v.tipo_ambulancia ~ (' - ' ~ v.movil if v.movil else '')) if v.tipo_ambulancia else ((v.tipo ~ (' - ' ~ v.movil if v.movil else '')) if v.tipo else (v.movil if v.movil else v.placa))) %}
+                                    <option value="{{ v.placa }}">{{ v_label }}</option>
                                     {% endif %}
                                 {% endfor %}
                             {% endif %}
                         </optgroup>
                         <optgroup label="Puestos de Atención Básica (PASB)">
-                            <option value="PASB">PASB General</option>
                             {% if pasb_opciones %}
-                                {% for op in pasb_opciones %}
+                                {% for op in pasb_opciones if 'general' not in op|lower %}
                                 <option value="{{ op }}">{{ op }}</option>
                                 {% endfor %}
                             {% else %}
@@ -1715,9 +1719,8 @@ function descartarVencido(itemId, nombre) {
                             {% endif %}
                         </optgroup>
                         <optgroup label="Puestos de Atención Medicalizada (PASM)">
-                            <option value="PASM">PASM General</option>
                             {% if pasm_opciones %}
-                                {% for op in pasm_opciones %}
+                                {% for op in pasm_opciones if 'general' not in op|lower %}
                                 <option value="{{ op }}">{{ op }}</option>
                                 {% endfor %}
                             {% else %}
@@ -1728,9 +1731,8 @@ function descartarVencido(itemId, nombre) {
                             {% endif %}
                         </optgroup>
                         <optgroup label="Botiquines de Atención Médica Avanzada">
-                            <option value="Botiquines Avanzada">Botiquines Avanzada General</option>
                             {% if botiquines_opciones %}
-                                {% for op in botiquines_opciones %}
+                                {% for op in botiquines_opciones if 'general' not in op|lower %}
                                 <option value="{{ op }}">{{ op }}</option>
                                 {% endfor %}
                             {% else %}
@@ -1852,17 +1854,17 @@ function descartarVencido(itemId, nombre) {
                         <option value="" disabled selected>-- Seleccione Destino --</option>
                         <optgroup label="Móviles / Vehículos">
                             {% if vehiculos %}
-                                {% for v in vehiculos %}
+                                {% for v in vehiculos|sort(attribute='nombre_display') %}
                                     {% if v.placa %}
-                                    <option value="{{ v.placa }}">{{ v.placa }}{% if v.tipo_ambulancia %} ({{ v.tipo_ambulancia }}{% if v.movil %} - {{ v.movil }}{% endif %}){% elif v.tipo %} ({{ v.tipo }}{% if v.movil %} - {{ v.movil }}{% endif %}){% elif v.movil %} ({{ v.movil }}){% endif %}</option>
+                                    {% set v_label = v.nombre_display or ((v.tipo_ambulancia ~ (' - ' ~ v.movil if v.movil else '')) if v.tipo_ambulancia else ((v.tipo ~ (' - ' ~ v.movil if v.movil else '')) if v.tipo else (v.movil if v.movil else v.placa))) %}
+                                    <option value="{{ v.placa }}">{{ v_label }}</option>
                                     {% endif %}
                                 {% endfor %}
                             {% endif %}
                         </optgroup>
                         <optgroup label="Puestos de Atención Básica (PASB)">
-                            <option value="PASB">PASB General</option>
                             {% if pasb_opciones %}
-                                {% for op in pasb_opciones %}
+                                {% for op in pasb_opciones if 'general' not in op|lower %}
                                 <option value="{{ op }}">{{ op }}</option>
                                 {% endfor %}
                             {% else %}
@@ -1873,9 +1875,8 @@ function descartarVencido(itemId, nombre) {
                             {% endif %}
                         </optgroup>
                         <optgroup label="Puestos de Atención Medicalizada (PASM)">
-                            <option value="PASM">PASM General</option>
                             {% if pasm_opciones %}
-                                {% for op in pasm_opciones %}
+                                {% for op in pasm_opciones if 'general' not in op|lower %}
                                 <option value="{{ op }}">{{ op }}</option>
                                 {% endfor %}
                             {% else %}
@@ -1886,9 +1887,8 @@ function descartarVencido(itemId, nombre) {
                             {% endif %}
                         </optgroup>
                         <optgroup label="Botiquines de Atención Médica Avanzada">
-                            <option value="Botiquines Avanzada">Botiquines Avanzada General</option>
                             {% if botiquines_opciones %}
-                                {% for op in botiquines_opciones %}
+                                {% for op in botiquines_opciones if 'general' not in op|lower %}
                                 <option value="{{ op }}">{{ op }}</option>
                                 {% endfor %}
                             {% else %}

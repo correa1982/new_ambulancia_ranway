@@ -52,7 +52,7 @@
             {{ item.tipo_origen }}
         </span>
     </td>
-    <td style="padding:10px 12px; font-weight:600; color:#1e3a5f;">{{ item.identificador_origen }}</td>
+    <td style="padding:10px 12px; font-weight:600; color:#1e3a5f;">{{ item.identificador_display or item.identificador_origen }}</td>
     <td style="padding:10px 12px; text-align:center;">
         <span style="background:#e0f2fe; color:#0369a1; padding:2px 8px; border-radius:12px; font-weight:700; font-size:11px;">
             {{ item.total_articulos }} arts

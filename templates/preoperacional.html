@@ -41,7 +41,7 @@
 }
 </style>
 
-<form method="POST" enctype="multipart/form-data">
+<form method="POST" enctype="multipart/form-data" id="form-preoperacional" novalidate>
 {% if record %}
 <input type="hidden" name="id" value="{{ record.id }}">
 {% endif %}
@@ -176,7 +176,7 @@
     </td>
     <td style="vertical-align: middle; padding: 6px 14px;">
         <div class="obs-item-row" id="obs_row_{{ field }}" style="{% if val_exist == 'NO' %}display:block;{% else %}display:none;{% endif %}">
-            <input type="text" name="obs_{{ field }}" id="obs_{{ field }}" class="form-control" placeholder="Observación obligatoria..." style="width: 100%; border: 1px solid #fecaca; border-radius: 5px; padding: 6px; font-size: 12px; box-sizing: border-box;" value="{{ obs_exist }}" {% if val_exist == 'NO' %}required{% endif %}>
+            <input type="text" name="obs_{{ field }}" id="obs_{{ field }}" class="form-control" placeholder="Observación obligatoria..." style="width: 100%; border: 1px solid #fecaca; border-radius: 5px; padding: 6px; font-size: 12px; box-sizing: border-box;" value="{{ obs_exist }}">
         </div>
     </td>
 </tr>
@@ -331,16 +331,171 @@ function abrirGaleria() {
     <a href="{{ url_for('registros_preoperacional') }}" style="margin:0; box-sizing: border-box; height: 44px; font-family: inherit; background: linear-gradient(135deg,#f59e0b,#d97706); color:white; text-decoration:none; border:none; padding:0 24px; border-radius:10px; font-weight:600; font-size:14px; display:inline-flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(245,158,11,0.2);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(245,158,11,0.3)'" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 6px -1px rgba(245,158,11,0.2)'">
         <i class="ph ph-folder-open" style="font-size:18px;"></i> Ver Registros
     </a>
-    <button type="submit" name="accion" value="borrador" style="margin:0; box-sizing: border-box; height: 44px; font-family: inherit; background:linear-gradient(135deg,#1e6fbf,#185999); color:white; border:none; padding:0 24px; border-radius:10px; font-weight:600; font-size:14px; display:inline-flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(30,111,191,0.3);" formnovalidate onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(30,111,191,0.4)'" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 6px -1px rgba(30,111,191,0.3)'">
+    <button type="submit" name="accion" value="borrador" style="margin:0; box-sizing: border-box; height: 44px; font-family: inherit; background:linear-gradient(135deg,#1e6fbf,#185999); color:white; border:none; padding:0 24px; border-radius:10px; font-weight:600; font-size:14px; display:inline-flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(30,111,191,0.3);" onclick="return validarBorradorPreoperacional(event);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(30,111,191,0.4)'" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 6px -1px rgba(30,111,191,0.3)'">
         <i class="ph ph-floppy-disk" style="font-size:18px;"></i> Guardar Borrador
     </button>
-    <button type="submit" name="accion" value="finalizar" style="margin:0; box-sizing: border-box; height: 44px; font-family: inherit; background:linear-gradient(135deg,#10b981,#059669); color:white; border:none; padding:0 24px; border-radius:10px; font-weight:600; font-size:14px; display:inline-flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(16,185,129,0.2);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(16,185,129,0.3)'" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 6px -1px rgba(16,185,129,0.2)'" onclick="return confirm('¿Está seguro de finalizar este registro? Una vez finalizado no podrá ser editado.');">
+    <button type="button" name="accion" value="finalizar" style="margin:0; box-sizing: border-box; height: 44px; font-family: inherit; background:linear-gradient(135deg,#10b981,#059669); color:white; border:none; padding:0 24px; border-radius:10px; font-weight:600; font-size:14px; display:inline-flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(16,185,129,0.2);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(16,185,129,0.3)'" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 6px -1px rgba(16,185,129,0.2)'" onclick="validarYConfirmarFinalizacionPreoperacional(event);">
         <i class="ph ph-check-circle" style="font-size:18px;"></i> Finalizar Preoperacional
     </button>
 </div>
 </form>
 
 <script>
+window.validarBorradorPreoperacional = function(e) {
+    const placaSelect = document.getElementById('select-placa-vehiculo');
+    if (!placaSelect || !placaSelect.value) {
+        if (e) e.preventDefault();
+        Swal.fire({
+            title: 'Campo Requerido',
+            text: 'Debe seleccionar al menos la placa del vehículo para guardar el borrador.',
+            icon: 'warning',
+            confirmButtonColor: '#1e6fbf'
+        });
+        if (placaSelect) {
+            placaSelect.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            placaSelect.focus();
+        }
+        return false;
+    }
+    return true;
+};
+
+window.validarYConfirmarFinalizacionPreoperacional = function(e) {
+    if (e) e.preventDefault();
+
+    const form = document.getElementById('form-preoperacional');
+    const fechaInput = form.querySelector('input[name="fecha"]');
+    const placaSelect = document.getElementById('select-placa-vehiculo');
+    const conductorSelect = form.querySelector('select[name="nombre_conductor"]');
+
+    let errors = [];
+
+    if (!fechaInput || !fechaInput.value.trim()) {
+        errors.push({ element: fechaInput, text: 'Fecha del registro' });
+    }
+    if (!placaSelect || !placaSelect.value.trim()) {
+        errors.push({ element: placaSelect, text: 'Placa del vehículo' });
+    }
+    if (!conductorSelect || !conductorSelect.value.trim()) {
+        errors.push({ element: conductorSelect, text: 'Nombre del conductor' });
+    }
+
+    if (errors.length > 0) {
+        const errorList = errors.map(err => `<li>${err.text}</li>`).join('');
+        Swal.fire({
+            title: 'Datos Principales Incompletos',
+            html: `<p style="font-size:14px; color:#4b5563; margin-bottom:10px;">Por favor complete los siguientes campos obligatorios:</p><ul style="text-align:left; font-size:14px; color:#dc2626; line-height:1.6; max-height:220px; overflow-y:auto; padding-left:25px;">${errorList}</ul>`,
+            icon: 'warning',
+            confirmButtonColor: '#f59e0b',
+            confirmButtonText: 'Revisar'
+        }).then(() => {
+            const firstErr = errors[0].element;
+            if (firstErr) {
+                firstErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                firstErr.focus();
+                firstErr.style.outline = '2px solid #ef4444';
+                setTimeout(() => firstErr.style.outline = '', 3000);
+            }
+        });
+        return false;
+    }
+
+    // Check unanswered items
+    const radioNames = new Set();
+    document.querySelectorAll('.check-table input[type="radio"]').forEach(r => radioNames.add(r.name));
+    let unanswered = [];
+    radioNames.forEach(name => {
+        const checked = document.querySelector(`.check-table input[type="radio"][name="${name}"]:checked`);
+        if (!checked) {
+            const row = document.querySelector(`.check-table input[type="radio"][name="${name}"]`).closest('tr');
+            const itemName = row ? (row.querySelector('.item-name')?.textContent?.trim() || name) : name;
+            unanswered.push({ name: name, label: itemName, row: row });
+        }
+    });
+
+    if (unanswered.length > 0) {
+        const missingList = unanswered.slice(0, 10).map(u => `<li>${u.label}</li>`).join('');
+        const moreCount = unanswered.length > 10 ? `<li style="list-style:none; font-weight:bold; color:#6b7280;">... y ${unanswered.length - 10} ítem(s) más</li>` : '';
+        Swal.fire({
+            title: 'Ítems Pendientes por Calificar',
+            html: `<p style="font-size:14px; color:#4b5563; margin-bottom:10px;">Faltan <strong>${unanswered.length}</strong> ítem(s) por calificar (SI, NO o N/A):</p><ul style="text-align:left; font-size:14px; color:#dc2626; line-height:1.6; max-height:220px; overflow-y:auto; padding-left:25px;">${missingList}${moreCount}</ul>`,
+            icon: 'warning',
+            confirmButtonColor: '#f59e0b',
+            confirmButtonText: 'Ir a completar'
+        }).then(() => {
+            const first = unanswered[0].row;
+            if (first) {
+                first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                first.style.backgroundColor = '#fee2e2';
+                setTimeout(() => first.style.backgroundColor = '', 3000);
+            }
+        });
+        return false;
+    }
+
+    // Check items marked NO without observation
+    let missingObs = [];
+    document.querySelectorAll('.check-table input[type="radio"][value="NO"]:checked').forEach(radio => {
+        const name = radio.name;
+        const obsInput = document.getElementById('obs_' + name);
+        if (obsInput && !obsInput.value.trim()) {
+            const row = radio.closest('tr');
+            const itemName = row ? (row.querySelector('.item-name')?.textContent?.trim() || name) : name;
+            missingObs.push({ input: obsInput, label: itemName });
+        }
+    });
+
+    if (missingObs.length > 0) {
+        const obsList = missingObs.slice(0, 10).map(m => `<li>${m.label}</li>`).join('');
+        const moreCount = missingObs.length > 10 ? `<li style="list-style:none; font-weight:bold; color:#6b7280;">... y ${missingObs.length - 10} más</li>` : '';
+        Swal.fire({
+            title: 'Observaciones Obligatorias',
+            html: `<p style="font-size:14px; color:#4b5563; margin-bottom:10px;">Los siguientes ítems están marcados como <strong>NO</strong> y requieren justificar la observación:</p><ul style="text-align:left; font-size:14px; color:#dc2626; line-height:1.6; max-height:220px; overflow-y:auto; padding-left:25px;">${obsList}${moreCount}</ul>`,
+            icon: 'error',
+            confirmButtonColor: '#ef4444',
+            confirmButtonText: 'Completar observaciones'
+        }).then(() => {
+            const first = missingObs[0].input;
+            if (first) {
+                first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                first.focus();
+                first.style.border = '2px solid #ef4444';
+                first.style.boxShadow = '0 0 10px rgba(239, 68, 68, 0.4)';
+                setTimeout(() => {
+                    first.style.border = '1px solid #fecaca';
+                    first.style.boxShadow = '';
+                }, 3500);
+            }
+        });
+        return false;
+    }
+
+    // Confirm finalization
+    Swal.fire({
+        title: '¿Finalizar Preoperacional?',
+        text: 'Una vez finalizado no podrá ser editado.',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#10b981',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: 'Sí, finalizar',
+        cancelButtonText: 'Revisar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            let hiddenAction = form.querySelector('input[name="accion"]');
+            if (!hiddenAction) {
+                hiddenAction = document.createElement('input');
+                hiddenAction.type = 'hidden';
+                hiddenAction.name = 'accion';
+                form.appendChild(hiddenAction);
+            }
+            hiddenAction.value = 'finalizar';
+            form.submit();
+        }
+    });
+    return false;
+};
+
 (function() {
     const obsTextarea = document.getElementById('observaciones');
     const obsBadge = document.getElementById('obs-badge');
@@ -358,10 +513,8 @@ function abrirGaleria() {
                 if(obsRow && obsInput) {
                     if (radio.value === 'NO') {
                         obsRow.style.display = 'block';
-                        obsInput.required = true;
                     } else {
                         obsRow.style.display = 'none';
-                        obsInput.required = false;
                         obsInput.value = ''; // clear hidden value
                     }
                 }

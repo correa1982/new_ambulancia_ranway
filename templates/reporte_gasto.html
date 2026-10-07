@@ -191,6 +191,69 @@ legend {
     white-space: nowrap;
 }
 
+/* Searchable Artículos Dropdown */
+.searchable-item-wrapper {
+    position: relative;
+    width: 100%;
+}
+.searchable-item-wrapper input.input-search-articulo {
+    padding-right: 32px;
+}
+.searchable-item-wrapper .btn-toggle-dropdown {
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: #64748b;
+    padding: 4px;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.dropdown-articulos-list {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    max-height: 240px;
+    overflow-y: auto;
+    background: #ffffff;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 8px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    z-index: 1050;
+    padding: 4px 0;
+}
+.dropdown-art-option {
+    padding: 9px 12px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 12.5px;
+    color: #1e293b;
+    transition: background-color 0.15s;
+}
+.dropdown-art-option:last-child {
+    border-bottom: none;
+}
+.dropdown-art-option:hover,
+.dropdown-art-option.active {
+    background-color: #f0fdf4;
+    color: #166534;
+}
+.dropdown-art-empty {
+    padding: 12px;
+    text-align: center;
+    color: #94a3b8;
+    font-size: 12px;
+}
+
 /* Responsividad en celular */
 @media (max-width: 768px) {
     .items-table-desktop {
@@ -378,11 +441,11 @@ legend {
             <table class="items-table-desktop" id="tabla-articulos-desktop">
                 <thead>
                     <tr>
-                        <th style="width: 42%;">Artículo Disponible <span class="req-star">*</span></th>
-                        <th style="width: 16%;">Categoría</th>
-                        <th style="width: 14%; text-align:center;">Existencia Disp.</th>
+                        <th style="width: 22%;">Categoría <span class="req-star">*</span></th>
+                        <th style="width: 36%;">Artículo Disponible <span class="req-star">*</span></th>
+                        <th style="width: 12%; text-align:center;">Existencia Disp.</th>
                         <th style="width: 14%;">Cant. Gastada <span class="req-star">*</span></th>
-                        <th style="width: 14%;">Detalle / Obs.</th>
+                        <th style="width: 12%;">Detalle / Obs.</th>
                         <th style="width: 40px; text-align:center;"></th>
                     </tr>
                 </thead>
@@ -469,8 +532,8 @@ function onTipoOrigenChange(clearChildren = true) {
 
     if (tipo === 'PASB') lblIdent.innerHTML = 'Número del PASB <span class="req-star">*</span>';
     else if (tipo === 'PASM') lblIdent.innerHTML = 'Número del PASM <span class="req-star">*</span>';
-    else if (tipo === 'TAM') lblIdent.innerHTML = 'Placa Móvil TAM <span class="req-star">*</span>';
-    else if (tipo === 'TAB') lblIdent.innerHTML = 'Placa Móvil TAB <span class="req-star">*</span>';
+    else if (tipo === 'TAM') lblIdent.innerHTML = 'Número de Móvil TAM <span class="req-star">*</span>';
+    else if (tipo === 'TAB') lblIdent.innerHTML = 'Número de Móvil TAB <span class="req-star">*</span>';
 
     const opciones = UNIDADES_DATA[tipo] || [];
     if (opciones.length === 0) {
@@ -478,8 +541,15 @@ function onTipoOrigenChange(clearChildren = true) {
     } else {
         opciones.forEach(op => {
             const optEl = document.createElement('option');
-            optEl.value = op;
-            optEl.textContent = op;
+            if (typeof op === 'object' && op !== null) {
+                optEl.value = op.val || op.placa || '';
+                optEl.textContent = op.label || op.movil || op.placa || '';
+                if (op.placa) optEl.dataset.placa = op.placa;
+                if (op.label) optEl.dataset.label = op.label;
+            } else {
+                optEl.value = op;
+                optEl.textContent = op;
+            }
             selectIdent.appendChild(optEl);
         });
     }
@@ -503,11 +573,13 @@ function onIdentificadorChange() {
 
 function fetchArticulosDisponibles(itemsToRestore = null) {
     const tipo = document.getElementById('select_tipo_origen').value.toLowerCase();
-    const ident = document.getElementById('select_identificador_origen').value;
+    const selectIdent = document.getElementById('select_identificador_origen');
+    const ident = selectIdent.value;
+    const identLabel = (selectIdent.options[selectIdent.selectedIndex]?.textContent || ident).trim();
 
     if (!tipo || !ident) return;
 
-    mostrarBanner('⏳ Consultando existencias del último checklist...', '#f8fafc', '#475569', '#94a3b8', '🔄');
+    mostrarBanner(`⏳ Consultando existencias del último checklist de <strong>${escapeHtml(identLabel)}</strong>...`, '#f8fafc', '#475569', '#94a3b8', '🔄');
 
     fetch(`/api/reporte_gasto/articulos_disponibles?tipo=${encodeURIComponent(tipo)}&identificador=${encodeURIComponent(ident)}`)
     .then(r => r.json())
@@ -515,7 +587,7 @@ function fetchArticulosDisponibles(itemsToRestore = null) {
         if (res.status === 'success') {
             articulosDisponibles = res.articulos || [];
             if (articulosDisponibles.length > 0) {
-                mostrarBanner(`✅ Se encontraron <strong>${articulosDisponibles.length} artículos</strong> con existencia disponible en el checklist más reciente de <strong>${ident}</strong>.`, '#f0fdf4', '#166534', '#86efac', '📦');
+                mostrarBanner(`✅ Se encontraron <strong>${articulosDisponibles.length} artículos</strong> con existencia disponible en el checklist más reciente de <strong>${escapeHtml(identLabel)}</strong>.`, '#f0fdf4', '#166534', '#86efac', '📦');
                 limpiarFilasArticulos();
                 
                 if (itemsToRestore && itemsToRestore.length > 0) {
@@ -526,7 +598,7 @@ function fetchArticulosDisponibles(itemsToRestore = null) {
                     agregarFilaArticulo(); // Agregar automáticamente la primera fila
                 }
             } else {
-                mostrarBanner(`⚠️ El último checklist de <strong>${ident}</strong> no tiene artículos con existencias mayores a 0.`, '#fffbeb', '#92400e', '#fde68a', '⚠️');
+                mostrarBanner(`⚠️ El último checklist de <strong>${escapeHtml(identLabel)}</strong> no tiene artículos con existencias mayores a 0.`, '#fffbeb', '#92400e', '#fde68a', '⚠️');
                 limpiarFilasArticulos();
             }
         } else {
@@ -566,126 +638,206 @@ function limpiarFilasArticulos() {
     rowCounter = 0;
 }
 
-function buildArticleOptionsHtml(selectedNombre = '') {
-    if (!articulosDisponibles || articulosDisponibles.length === 0) {
-        return '<option value="">— No hay artículos con existencias —</option>';
+function getCategoriasDisponibles() {
+    const cats = new Set();
+    if (articulosDisponibles && articulosDisponibles.length > 0) {
+        articulosDisponibles.forEach(art => {
+            if (art.categoria && art.categoria.trim()) {
+                cats.add(art.categoria.trim().toUpperCase());
+            }
+        });
     }
-    let html = '<option value="">— Seleccione artículo —</option>';
-    articulosDisponibles.forEach(art => {
-        const isSel = (art.nombre === selectedNombre || art.identificador === selectedNombre) ? 'selected' : '';
-        html += `<option value="${escapeHtml(art.nombre)}" data-ident="${escapeHtml(art.identificador)}" data-cat="${escapeHtml(art.categoria)}" data-stock="${art.stock_disponible}" ${isSel}>${escapeHtml(art.nombre)} (Disp: ${art.stock_disponible})</option>`;
+    return Array.from(cats).sort((a, b) => a.localeCompare(b, 'es', { sensitivity: 'base' }));
+}
+
+function buildCategoryOptionsHtml(selectedCat = '') {
+    const cats = getCategoriasDisponibles();
+    if (cats.length === 0) {
+        return '<option value="">— No hay categorías —</option>';
+    }
+    let html = '<option value="">— Seleccione Categoría —</option>';
+    cats.forEach(c => {
+        const isSel = (c === selectedCat.trim().toUpperCase()) ? 'selected' : '';
+        html += `<option value="${escapeHtml(c)}" ${isSel}>${escapeHtml(c)}</option>`;
     });
     return html;
 }
 
-function agregarFilaArticulo() {
-    if (articulosDisponibles.length === 0) {
-        Swal.fire('Atención', 'Primero debe seleccionar un origen que tenga un checklist previo con artículos disponibles.', 'warning');
+function getArticulosFiltrados(categoria, query = '') {
+    if (!categoria) return [];
+    const q = (query || '').trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    return articulosDisponibles.filter(art => {
+        const catMatch = (art.categoria || '').trim().toUpperCase() === categoria.trim().toUpperCase();
+        if (!catMatch) return false;
+        if (!q) return true;
+        const nomNorm = (art.nombre || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        const identNorm = (art.identificador || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        return nomNorm.includes(q) || identNorm.includes(q);
+    });
+}
+
+function renderDropdownList(rowId, isMobile = false) {
+    const prefix = isMobile ? 'mob_' : '';
+    const catSelect = document.getElementById(`${prefix}cat_select_${rowId}`);
+    const searchInput = document.getElementById(`${prefix}search_art_${rowId}`);
+    const listContainer = document.getElementById(`${prefix}dropdown_list_${rowId}`);
+    if (!catSelect || !searchInput || !listContainer) return;
+
+    const categoria = catSelect.value;
+    if (!categoria) {
+        listContainer.innerHTML = '<div class="dropdown-art-empty">⚠️ Primero seleccione una categoría</div>';
+        listContainer.style.display = 'block';
         return;
     }
-    agregarFilaArticuloConValores(null);
+
+    const query = searchInput.value;
+    const items = getArticulosFiltrados(categoria, query);
+
+    listContainer.innerHTML = '';
+    if (items.length === 0) {
+        listContainer.innerHTML = `<div class="dropdown-art-empty">No hay artículos en "${escapeHtml(categoria)}" que coincidan</div>`;
+        listContainer.style.display = 'block';
+        return;
+    }
+
+    items.forEach(art => {
+        const itemEl = document.createElement('div');
+        itemEl.className = 'dropdown-art-option';
+        itemEl.innerHTML = `
+            <span class="art-option-name" style="font-weight:500;">${escapeHtml(art.nombre)}</span>
+            <span class="badge-stock" style="margin-left:8px; flex-shrink:0;">Disp: ${art.stock_disponible}</span>
+        `;
+        itemEl.addEventListener('mousedown', function(e) {
+            e.preventDefault();
+            seleccionarArticulo(rowId, art.nombre, art.identificador, art.categoria, art.stock_disponible);
+        });
+        listContainer.appendChild(itemEl);
+    });
+    listContainer.style.display = 'block';
 }
 
-function agregarFilaArticuloConValores(itemData = null) {
-    rowCounter++;
-    const rowId = `row_${rowCounter}`;
-
-    const selNom = itemData ? (itemData.nombre || '') : '';
-    const selCant = itemData ? (itemData.cantidad || '') : '';
-    const selObs = itemData ? (itemData.observacion || '') : '';
-
-    // 1. Fila Desktop
-    const tr = document.createElement('tr');
-    tr.id = `dt_${rowId}`;
-    tr.className = 'gasto-row-desktop';
-    tr.innerHTML = `
-        <td>
-            <input type="hidden" name="item_identificador[]" id="ident_${rowId}">
-            <input type="hidden" name="item_categoria[]" id="cat_${rowId}">
-            <select name="item_nombre[]" class="form-control-custom select-item-gasto" required onchange="onItemSelectChange('${rowId}', this)">
-                ${buildArticleOptionsHtml(selNom)}
-            </select>
-        </td>
-        <td>
-            <span id="label_cat_${rowId}" style="font-size:12px; color:#64748b;">—</span>
-        </td>
-        <td style="text-align:center;">
-            <span id="badge_stock_${rowId}" class="badge-stock" style="display:none;">0</span>
-            <span id="empty_stock_${rowId}" style="color:#94a3b8; font-size:12px;">—</span>
-        </td>
-        <td>
-            <input type="number" name="item_cantidad[]" id="cant_${rowId}" class="form-control-custom input-cant-gasto" min="1" required placeholder="0" value="${escapeHtml(selCant)}" oninput="validarCantidadMax('${rowId}', this)">
-        </td>
-        <td>
-            <input type="text" name="item_observacion[]" class="form-control-custom" placeholder="Opcional..." value="${escapeHtml(selObs)}" oninput="syncDesktopToMobileObs('${rowId}', this)">
-        </td>
-        <td style="text-align:center;">
-            <button type="button" class="btn-remove-row" onclick="eliminarFilaArticulo('${rowId}')" title="Quitar">✕</button>
-        </td>
-    `;
-    document.getElementById('tbody-articulos-desktop').appendChild(tr);
-
-    // 2. Card Móvil
-    const card = document.createElement('div');
-    card.id = `mob_${rowId}`;
-    card.className = 'item-card-mobile';
-    card.innerHTML = `
-        <div class="card-header">
-            <span style="font-weight:700; font-size:13px; color:#1e3a5f;">Artículo #${rowCounter}</span>
-            <button type="button" class="btn-remove-row" onclick="eliminarFilaArticulo('${rowId}')">✕</button>
-        </div>
-        <div class="form-group" style="margin-bottom:8px;">
-            <label>Artículo Disponible <span class="req-star">*</span></label>
-            <select class="form-control-custom mob-select-item" onchange="syncMobileToDesktopSelect('${rowId}', this)">
-                ${buildArticleOptionsHtml(selNom)}
-            </select>
-        </div>
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-            <span style="font-size:12px; color:#64748b;">Categoría: <strong id="mob_cat_${rowId}">—</strong></span>
-            <span id="mob_badge_stock_${rowId}" class="badge-stock" style="display:none;">Disp: 0</span>
-        </div>
-        <div class="form-group" style="margin-bottom:8px;">
-            <label>Cantidad Utilizada <span class="req-star">*</span></label>
-            <input type="number" min="1" class="form-control-custom mob-input-cant" placeholder="0" value="${escapeHtml(selCant)}" oninput="syncMobileToDesktopCant('${rowId}', this)">
-        </div>
-        <div class="form-group">
-            <label>Detalle / Observación</label>
-            <input type="text" class="form-control-custom mob-input-obs" placeholder="Opcional..." value="${escapeHtml(selObs)}" oninput="syncMobileToDesktopObs('${rowId}', this)">
-        </div>
-    `;
-    document.getElementById('container-articulos-mobile').appendChild(card);
-
-    if (selNom) {
-        const dtSelect = tr.querySelector('.select-item-gasto');
-        if (dtSelect) onItemSelectChange(rowId, dtSelect);
+function toggleDropdown(rowId, isMobile = false) {
+    const prefix = isMobile ? 'mob_' : '';
+    const list = document.getElementById(`${prefix}dropdown_list_${rowId}`);
+    if (list && list.style.display === 'block') {
+        list.style.display = 'none';
+    } else {
+        cerrarTodosDropdowns();
+        renderDropdownList(rowId, isMobile);
+        const searchInput = document.getElementById(`${prefix}search_art_${rowId}`);
+        if (searchInput && !searchInput.disabled) searchInput.focus();
     }
 }
 
-function eliminarFilaArticulo(rowId) {
-    const dtEl = document.getElementById(`dt_${rowId}`);
-    const mobEl = document.getElementById(`mob_${rowId}`);
-    if (dtEl) dtEl.remove();
-    if (mobEl) mobEl.remove();
+function onSearchArticuloInput(rowId, isMobile = false) {
+    const prefix = isMobile ? 'mob_' : '';
+    const otherPrefix = isMobile ? '' : 'mob_';
+    const input = document.getElementById(`${prefix}search_art_${rowId}`);
+    const otherInput = document.getElementById(`${otherPrefix}search_art_${rowId}`);
+    if (otherInput && input) otherInput.value = input.value;
+
+    // Si el usuario borra todo, limpiar artículo seleccionado
+    if (!input.value.trim()) {
+        limpiarArticuloSeleccionado(rowId);
+    }
+
+    renderDropdownList(rowId, isMobile);
     dispararAutosave();
 }
 
-function onItemSelectChange(rowId, selectEl) {
-    const selOpt = selectEl.options[selectEl.selectedIndex];
-    const ident = selOpt.getAttribute('data-ident') || '';
-    const cat = selOpt.getAttribute('data-cat') || '';
-    const stock = parseInt(selOpt.getAttribute('data-stock') || '0', 10);
+function onSearchKeyDown(e, rowId, isMobile = false) {
+    if (e.key === 'Escape') {
+        cerrarTodosDropdowns();
+    } else if (e.key === 'Enter') {
+        e.preventDefault();
+        const prefix = isMobile ? 'mob_' : '';
+        const list = document.getElementById(`${prefix}dropdown_list_${rowId}`);
+        const firstOpt = list ? list.querySelector('.dropdown-art-option') : null;
+        if (firstOpt) {
+            firstOpt.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+        }
+    }
+}
 
-    // Update Desktop elements
-    const identInput = document.getElementById(`ident_${rowId}`);
-    const catInput = document.getElementById(`cat_${rowId}`);
-    const labelCat = document.getElementById(`label_cat_${rowId}`);
+function onCategoryChange(rowId, isMobile = false) {
+    const prefix = isMobile ? 'mob_' : '';
+    const otherPrefix = isMobile ? '' : 'mob_';
+    const catSelect = document.getElementById(`${prefix}cat_select_${rowId}`);
+    const cat = catSelect ? catSelect.value : '';
+
+    const otherCatSelect = document.getElementById(`${otherPrefix}cat_select_${rowId}`);
+    if (otherCatSelect && otherCatSelect.value !== cat) {
+        otherCatSelect.value = cat;
+    }
+
+    const catHidden = document.getElementById(`cat_${rowId}`);
+    if (catHidden) catHidden.value = cat;
+
+    limpiarArticuloSeleccionado(rowId);
+
+    const dtInput = document.getElementById(`search_art_${rowId}`);
+    const mobInput = document.getElementById(`mob_search_art_${rowId}`);
+
+    if (cat) {
+        if (dtInput) {
+            dtInput.disabled = false;
+            dtInput.placeholder = "🔍 Escriba o seleccione artículo...";
+        }
+        if (mobInput) {
+            mobInput.disabled = false;
+            mobInput.placeholder = "🔍 Escriba o seleccione artículo...";
+        }
+        // Desplegar automáticamente los artículos de esa categoría
+        setTimeout(() => {
+            renderDropdownList(rowId, isMobile);
+            const activeInput = isMobile ? mobInput : dtInput;
+            if (activeInput) activeInput.focus();
+        }, 50);
+    } else {
+        if (dtInput) {
+            dtInput.disabled = true;
+            dtInput.placeholder = "← Primero seleccione categoría";
+        }
+        if (mobInput) {
+            mobInput.disabled = true;
+            mobInput.placeholder = "← Primero seleccione categoría";
+        }
+        cerrarTodosDropdowns();
+    }
+    dispararAutosave();
+}
+
+function seleccionarArticulo(rowId, nombre, ident, cat, stock) {
+    const hiddenNombre = document.getElementById(`nombre_${rowId}`);
+    const hiddenIdent = document.getElementById(`ident_${rowId}`);
+    const hiddenCat = document.getElementById(`cat_${rowId}`);
+    if (hiddenNombre) hiddenNombre.value = nombre;
+    if (hiddenIdent) hiddenIdent.value = ident;
+    if (hiddenCat) hiddenCat.value = cat;
+
+    const dtInput = document.getElementById(`search_art_${rowId}`);
+    const mobInput = document.getElementById(`mob_search_art_${rowId}`);
+    if (dtInput) {
+        dtInput.value = nombre;
+        dtInput.disabled = false;
+    }
+    if (mobInput) {
+        mobInput.value = nombre;
+        mobInput.disabled = false;
+    }
+
+    const dtCat = document.getElementById(`cat_select_${rowId}`);
+    const mobCat = document.getElementById(`mob_cat_select_${rowId}`);
+    if (dtCat && (!dtCat.value || dtCat.value.toUpperCase() !== (cat || '').toUpperCase())) {
+        dtCat.value = cat ? cat.toUpperCase() : '';
+    }
+    if (mobCat && (!mobCat.value || mobCat.value.toUpperCase() !== (cat || '').toUpperCase())) {
+        mobCat.value = cat ? cat.toUpperCase() : '';
+    }
+
     const badgeStock = document.getElementById(`badge_stock_${rowId}`);
     const emptyStock = document.getElementById(`empty_stock_${rowId}`);
     const cantInput = document.getElementById(`cant_${rowId}`);
-
-    if (identInput) identInput.value = ident;
-    if (catInput) catInput.value = cat;
-    if (labelCat) labelCat.textContent = cat || '—';
 
     if (badgeStock && emptyStock && cantInput) {
         if (stock > 0) {
@@ -702,28 +854,209 @@ function onItemSelectChange(rowId, selectEl) {
         }
     }
 
-    // Sync Mobile Card
-    const mobCard = document.getElementById(`mob_${rowId}`);
-    if (mobCard) {
-        const mobSel = mobCard.querySelector('.mob-select-item');
-        if (mobSel && mobSel.value !== selectEl.value) mobSel.value = selectEl.value;
-        const mobCat = document.getElementById(`mob_cat_${rowId}`);
-        if (mobCat) mobCat.textContent = cat || '—';
-        const mobBadge = document.getElementById(`mob_badge_stock_${rowId}`);
-        if (mobBadge) {
-            if (stock > 0) {
-                mobBadge.textContent = `Disp: ${stock}`;
-                mobBadge.style.display = 'inline-block';
-            } else {
-                mobBadge.style.display = 'none';
-            }
-        }
-        const mobCant = mobCard.querySelector('.mob-input-cant');
-        if (mobCant) {
-            mobCant.max = stock;
-            mobCant.placeholder = `Máx ${stock}`;
+    const mobBadge = document.getElementById(`mob_badge_stock_${rowId}`);
+    const mobCant = document.getElementById(`mob_cant_${rowId}`);
+    if (mobBadge) {
+        if (stock > 0) {
+            mobBadge.textContent = `Disp: ${stock}`;
+            mobBadge.style.display = 'inline-block';
+        } else {
+            mobBadge.style.display = 'none';
         }
     }
+    if (mobCant) {
+        if (stock > 0) {
+            mobCant.max = stock;
+            mobCant.placeholder = `Máx ${stock}`;
+        } else {
+            mobCant.removeAttribute('max');
+            mobCant.placeholder = '0';
+        }
+    }
+
+    cerrarTodosDropdowns();
+    dispararAutosave();
+}
+
+function limpiarArticuloSeleccionado(rowId) {
+    const hiddenNombre = document.getElementById(`nombre_${rowId}`);
+    const hiddenIdent = document.getElementById(`ident_${rowId}`);
+    if (hiddenNombre) hiddenNombre.value = '';
+    if (hiddenIdent) hiddenIdent.value = '';
+
+    const dtInput = document.getElementById(`search_art_${rowId}`);
+    const mobInput = document.getElementById(`mob_search_art_${rowId}`);
+    if (dtInput) dtInput.value = '';
+    if (mobInput) mobInput.value = '';
+
+    const badgeStock = document.getElementById(`badge_stock_${rowId}`);
+    const emptyStock = document.getElementById(`empty_stock_${rowId}`);
+    const cantInput = document.getElementById(`cant_${rowId}`);
+    if (badgeStock) badgeStock.style.display = 'none';
+    if (emptyStock) emptyStock.style.display = 'inline';
+    if (cantInput) {
+        cantInput.removeAttribute('max');
+        cantInput.placeholder = '0';
+    }
+
+    const mobBadge = document.getElementById(`mob_badge_stock_${rowId}`);
+    const mobCant = document.getElementById(`mob_cant_${rowId}`);
+    if (mobBadge) mobBadge.style.display = 'none';
+    if (mobCant) {
+        mobCant.removeAttribute('max');
+        mobCant.placeholder = '0';
+    }
+}
+
+function cerrarTodosDropdowns() {
+    document.querySelectorAll('.dropdown-articulos-list').forEach(el => {
+        el.style.display = 'none';
+    });
+}
+
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('.searchable-item-wrapper')) {
+        cerrarTodosDropdowns();
+    }
+});
+
+function agregarFilaArticulo() {
+    if (articulosDisponibles.length === 0) {
+        Swal.fire('Atención', 'Primero debe seleccionar un origen que tenga un checklist previo con artículos disponibles.', 'warning');
+        return;
+    }
+    agregarFilaArticuloConValores(null);
+}
+
+function agregarFilaArticuloConValores(itemData = null) {
+    rowCounter++;
+    const rowId = `row_${rowCounter}`;
+
+    const selNom = itemData ? (itemData.nombre || '') : '';
+    let selCat = itemData ? (itemData.categoria || '') : '';
+    const selCant = itemData ? (itemData.cantidad || '') : '';
+    const selObs = itemData ? (itemData.observacion || '') : '';
+
+    if (selNom && articulosDisponibles && articulosDisponibles.length > 0) {
+        const found = articulosDisponibles.find(a => a.nombre === selNom || a.identificador === selNom);
+        if (found && found.categoria) {
+            selCat = found.categoria;
+        }
+    }
+
+    // 1. Fila Desktop
+    const tr = document.createElement('tr');
+    tr.id = `dt_${rowId}`;
+    tr.className = 'gasto-row-desktop';
+    tr.innerHTML = `
+        <td>
+            <select class="form-control-custom select-cat-gasto" id="cat_select_${rowId}" onchange="onCategoryChange('${rowId}', false)">
+                ${buildCategoryOptionsHtml(selCat)}
+            </select>
+        </td>
+        <td>
+            <div class="searchable-item-wrapper">
+                <input type="hidden" name="item_nombre[]" id="nombre_${rowId}" value="${escapeHtml(selNom)}">
+                <input type="hidden" name="item_identificador[]" id="ident_${rowId}">
+                <input type="hidden" name="item_categoria[]" id="cat_${rowId}" value="${escapeHtml(selCat)}">
+                <input type="text"
+                       class="form-control-custom input-search-articulo"
+                       id="search_art_${rowId}"
+                       placeholder="${selCat ? '🔍 Escriba o seleccione artículo...' : '← Primero seleccione categoría'}"
+                       value="${escapeHtml(selNom)}"
+                       autocomplete="off"
+                       ${selCat ? '' : 'disabled'}
+                       onfocus="renderDropdownList('${rowId}', false)"
+                       onclick="renderDropdownList('${rowId}', false)"
+                       oninput="onSearchArticuloInput('${rowId}', false)"
+                       onkeydown="onSearchKeyDown(event, '${rowId}', false)">
+                <button type="button" class="btn-toggle-dropdown" tabindex="-1" onclick="toggleDropdown('${rowId}', false)" title="Ver opciones">
+                    <i class="ph ph-caret-down"></i>
+                </button>
+                <div class="dropdown-articulos-list" id="dropdown_list_${rowId}" style="display:none;"></div>
+            </div>
+        </td>
+        <td style="text-align:center;">
+            <span id="badge_stock_${rowId}" class="badge-stock" style="display:none;">0</span>
+            <span id="empty_stock_${rowId}" style="color:#94a3b8; font-size:12px;">—</span>
+        </td>
+        <td>
+            <input type="number" name="item_cantidad[]" id="cant_${rowId}" class="form-control-custom input-cant-gasto" min="1" required placeholder="0" value="${escapeHtml(selCant)}" oninput="validarCantidadMax('${rowId}', this)">
+        </td>
+        <td>
+            <input type="text" name="item_observacion[]" id="obs_${rowId}" class="form-control-custom" placeholder="Opcional..." value="${escapeHtml(selObs)}" oninput="syncDesktopToMobileObs('${rowId}', this)">
+        </td>
+        <td style="text-align:center;">
+            <button type="button" class="btn-remove-row" onclick="eliminarFilaArticulo('${rowId}')" title="Quitar">✕</button>
+        </td>
+    `;
+    document.getElementById('tbody-articulos-desktop').appendChild(tr);
+
+    // 2. Card Móvil
+    const card = document.createElement('div');
+    card.id = `mob_${rowId}`;
+    card.className = 'item-card-mobile';
+    card.innerHTML = `
+        <div class="card-header">
+            <span style="font-weight:700; font-size:13px; color:#1e3a5f;">Artículo #${rowCounter}</span>
+            <button type="button" class="btn-remove-row" onclick="eliminarFilaArticulo('${rowId}')">✕</button>
+        </div>
+        <div class="form-group" style="margin-bottom:10px;">
+            <label>1. Categoría <span class="req-star">*</span></label>
+            <select class="form-control-custom mob-select-cat" id="mob_cat_select_${rowId}" onchange="onCategoryChange('${rowId}', true)">
+                ${buildCategoryOptionsHtml(selCat)}
+            </select>
+        </div>
+        <div class="form-group" style="margin-bottom:10px;">
+            <label>2. Artículo Disponible <span class="req-star">*</span></label>
+            <div class="searchable-item-wrapper">
+                <input type="text"
+                       class="form-control-custom input-search-articulo"
+                       id="mob_search_art_${rowId}"
+                       placeholder="${selCat ? '🔍 Escriba o seleccione artículo...' : '← Primero seleccione categoría'}"
+                       value="${escapeHtml(selNom)}"
+                       autocomplete="off"
+                       ${selCat ? '' : 'disabled'}
+                       onfocus="renderDropdownList('${rowId}', true)"
+                       onclick="renderDropdownList('${rowId}', true)"
+                       oninput="onSearchArticuloInput('${rowId}', true)"
+                       onkeydown="onSearchKeyDown(event, '${rowId}', true)">
+                <button type="button" class="btn-toggle-dropdown" tabindex="-1" onclick="toggleDropdown('${rowId}', true)" title="Ver opciones">
+                    <i class="ph ph-caret-down"></i>
+                </button>
+                <div class="dropdown-articulos-list" id="mob_dropdown_list_${rowId}" style="display:none;"></div>
+            </div>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; background:#f8fafc; padding:6px 10px; border-radius:6px;">
+            <span style="font-size:12px; color:#64748b;">Existencia en Checklist:</span>
+            <span id="mob_badge_stock_${rowId}" class="badge-stock" style="display:none;">Disp: 0</span>
+        </div>
+        <div class="form-group" style="margin-bottom:10px;">
+            <label>Cantidad Utilizada <span class="req-star">*</span></label>
+            <input type="number" min="1" id="mob_cant_${rowId}" class="form-control-custom mob-input-cant" placeholder="0" value="${escapeHtml(selCant)}" oninput="syncMobileToDesktopCant('${rowId}', this)">
+        </div>
+        <div class="form-group">
+            <label>Detalle / Observación</label>
+            <input type="text" id="mob_obs_${rowId}" class="form-control-custom mob-input-obs" placeholder="Opcional..." value="${escapeHtml(selObs)}" oninput="syncMobileToDesktopObs('${rowId}', this)">
+        </div>
+    `;
+    document.getElementById('container-articulos-mobile').appendChild(card);
+
+    if (selNom) {
+        const art = articulosDisponibles.find(a => a.nombre === selNom || a.identificador === selNom);
+        if (art) {
+            seleccionarArticulo(rowId, art.nombre, art.identificador, art.categoria, art.stock_disponible);
+        } else {
+            seleccionarArticulo(rowId, selNom, (itemData ? itemData.identificador : '') || '', selCat, 999);
+        }
+    }
+}
+
+function eliminarFilaArticulo(rowId) {
+    const dtEl = document.getElementById(`dt_${rowId}`);
+    const mobEl = document.getElementById(`mob_${rowId}`);
+    if (dtEl) dtEl.remove();
+    if (mobEl) mobEl.remove();
     dispararAutosave();
 }
 
@@ -741,53 +1074,33 @@ function validarCantidadMax(rowId, inputEl) {
             timer: 2500
         });
     }
-    // Sync to mobile input
-    const mobCard = document.getElementById(`mob_${rowId}`);
-    if (mobCard) {
-        const mobCant = mobCard.querySelector('.mob-input-cant');
-        if (mobCant && mobCant.value !== inputEl.value) mobCant.value = inputEl.value;
+    const dtCant = document.getElementById(`cant_${rowId}`);
+    const mobCant = document.getElementById(`mob_cant_${rowId}`);
+    if (inputEl === dtCant && mobCant && mobCant.value !== inputEl.value) {
+        mobCant.value = inputEl.value;
+    } else if (inputEl === mobCant && dtCant && dtCant.value !== inputEl.value) {
+        dtCant.value = inputEl.value;
     }
     dispararAutosave();
 }
 
-// Sync helpers between Mobile card and Desktop hidden form inputs
-function syncMobileToDesktopSelect(rowId, mobSelect) {
-    const dtRow = document.getElementById(`dt_${rowId}`);
-    if (dtRow) {
-        const dtSelect = dtRow.querySelector('.select-item-gasto');
-        if (dtSelect) {
-            dtSelect.value = mobSelect.value;
-            onItemSelectChange(rowId, dtSelect);
-        }
-    }
-}
-
 function syncMobileToDesktopCant(rowId, mobInput) {
-    const dtRow = document.getElementById(`dt_${rowId}`);
-    if (dtRow) {
-        const dtCant = dtRow.querySelector('.input-cant-gasto');
-        if (dtCant) {
-            dtCant.value = mobInput.value;
-            validarCantidadMax(rowId, dtCant);
-        }
+    const dtCant = document.getElementById(`cant_${rowId}`);
+    if (dtCant) {
+        dtCant.value = mobInput.value;
+        validarCantidadMax(rowId, dtCant);
     }
 }
 
 function syncMobileToDesktopObs(rowId, mobInput) {
-    const dtRow = document.getElementById(`dt_${rowId}`);
-    if (dtRow) {
-        const dtObs = dtRow.querySelector('input[name="item_observacion[]"]');
-        if (dtObs) dtObs.value = mobInput.value;
-    }
+    const dtObs = document.getElementById(`obs_${rowId}`);
+    if (dtObs) dtObs.value = mobInput.value;
     dispararAutosave();
 }
 
 function syncDesktopToMobileObs(rowId, dtInput) {
-    const mobCard = document.getElementById(`mob_${rowId}`);
-    if (mobCard) {
-        const mobObs = mobCard.querySelector('.mob-input-obs');
-        if (mobObs) mobObs.value = dtInput.value;
-    }
+    const mobObs = document.getElementById(`mob_obs_${rowId}`);
+    if (mobObs) mobObs.value = dtInput.value;
     dispararAutosave();
 }
 
@@ -801,7 +1114,7 @@ function recopilarDatosFormulario() {
     const rows = document.querySelectorAll('#tbody-articulos-desktop tr');
     const articulos = [];
     rows.forEach(tr => {
-        const nom = tr.querySelector('.select-item-gasto')?.value || '';
+        const nom = tr.querySelector('input[name="item_nombre[]"]')?.value || '';
         const idnt = tr.querySelector('input[name="item_identificador[]"]')?.value || '';
         const cat = tr.querySelector('input[name="item_categoria[]"]')?.value || '';
         const cant = parseInt(tr.querySelector('.input-cant-gasto')?.value || '0', 10) || 0;
@@ -880,10 +1193,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 return true;
             } else {
                 form.noValidate = false;
-                const selects = form.querySelectorAll('.select-item-gasto');
+                const nombres = form.querySelectorAll('input[name="item_nombre[]"]');
                 let hasItem = false;
-                for (let sel of selects) {
-                    if (sel.value.trim() !== '') {
+                for (let n of nombres) {
+                    if (n.value.trim() !== '') {
                         hasItem = true;
                         break;
                     }
@@ -932,7 +1245,19 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('select_tipo_origen').value = draftData.tipo_origen;
             onTipoOrigenChange(false);
             if (draftData.identificador_origen) {
-                document.getElementById('select_identificador_origen').value = draftData.identificador_origen;
+                const sel = document.getElementById('select_identificador_origen');
+                sel.value = draftData.identificador_origen;
+                if (!sel.value && sel.options) {
+                    for (let i = 0; i < sel.options.length; i++) {
+                        const opt = sel.options[i];
+                        if (opt.value === draftData.identificador_origen ||
+                            opt.text.trim().toLowerCase() === draftData.identificador_origen.trim().toLowerCase() ||
+                            opt.dataset?.placa?.toLowerCase() === draftData.identificador_origen.trim().toLowerCase()) {
+                            sel.selectedIndex = i;
+                            break;
+                        }
+                    }
+                }
                 isRestoring = false;
                 fetchArticulosDisponibles(draftData.articulos || []);
             } else {

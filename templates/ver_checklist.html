@@ -40,8 +40,30 @@
 /* Header */
 .doc-header { display: flex; align-items: center; justify-content: space-between; border-bottom: 3px solid #1e6fbf; padding-bottom: 18px; margin-bottom: 24px; }
 .doc-logo img { max-height: 120px; max-width: 280px; object-fit: contain; image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges; }
-tr { page-break-inside: avoid; break-inside: avoid; }
-.doc-section-title, .cat-title { page-break-after: avoid; break-after: avoid; page-break-inside: avoid; break-inside: avoid; }
+/* Control de saltos de página en tablas y secciones */
+table {
+    page-break-inside: auto;
+}
+tr, td, th {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+}
+.formal-table tr, .result-table tr, .col-split-table tr,
+.formal-table td, .result-table td, .col-split-table td,
+.formal-table th, .result-table th, .col-split-table th {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+}
+.doc-section-title, .cat-title {
+    page-break-after: avoid !important;
+    break-after: avoid !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+}
+.doc-header, .doc-title-band, .firma-box, .obs-box {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+}
 .doc-logo-placeholder { width: 100px; height: 60px; background: #f1f5f9; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #94a3b8; font-size: 11px; }
 .doc-inst { text-align: right; }
 .doc-inst .inst-name { font-size: 15px; font-weight: 800; color: #1e3a5f; }
@@ -118,6 +140,22 @@ tr { page-break-inside: avoid; break-inside: avoid; }
     .firma-box .firma-meta { font-size: 8px; }
     
     .val-si, .val-no, .val-na { padding: 1px 3px; font-size: 7.5px; border-radius: 2px; }
+
+    table { page-break-inside: auto; }
+    tr, td, th {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+    }
+    .cat-title, .doc-section-title {
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+    }
+    .doc-header, .doc-title-band, .firma-box, .obs-box {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+    }
 }
 
 .pdf-mode .no-print { display: none !important; }
@@ -145,6 +183,40 @@ tr { page-break-inside: avoid; break-inside: avoid; }
 .pdf-mode .val-si, .pdf-mode .val-no, .pdf-mode .val-na { padding: 1px 3px !important; font-size: 7.5px !important; border-radius: 2px !important; }
 .pdf-mode .badge-cargo { background: transparent !important; color: inherit !important; padding: 0 !important; font-size: inherit !important; font-weight: normal !important; display: inline !important; border-radius: 0 !important; }
 .pdf-mode .doc-section { margin-top: 2px !important; }
+
+/* Reglas estrictas para el clon en modo PDF: evitar división de filas y celdas */
+.pdf-mode table {
+    page-break-inside: auto !important;
+}
+.pdf-mode tr,
+.pdf-mode td,
+.pdf-mode th,
+.pdf-mode .formal-table tr,
+.pdf-mode .result-table tr,
+.pdf-mode .col-split-table tr,
+.pdf-mode .formal-table td,
+.pdf-mode .result-table td,
+.pdf-mode .col-split-table td,
+.pdf-mode .formal-table th,
+.pdf-mode .result-table th,
+.pdf-mode .col-split-table th {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+}
+.pdf-mode .cat-title,
+.pdf-mode .doc-section-title {
+    page-break-after: avoid !important;
+    break-after: avoid !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+}
+.pdf-mode .doc-header,
+.pdf-mode .doc-title-band,
+.pdf-mode .firma-box,
+.pdf-mode .obs-box {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+}
 
 
 @media (max-width: 768px) {
@@ -814,7 +886,10 @@ function descargarPDF() {
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: { scale: 3, useCORS: true, allowTaint: true, logging: false },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        pagebreak: { mode: ['css', 'legacy'] }
+        pagebreak: { 
+            mode: ['avoid-all', 'css', 'legacy'],
+            avoid: ['tr', 'td', 'th', '.cat-title', '.doc-title-band', '.doc-header', '.firma-box', '.obs-box', '.doc-section']
+        }
     };
     
     const doc = document.getElementById('checklist-doc');
@@ -822,7 +897,7 @@ function descargarPDF() {
     const tempContainer = document.createElement('div');
     tempContainer.style.position = 'absolute';
     tempContainer.style.left = '-9999px';
-    tempContainer.style.top = window.scrollY + 'px';
+    tempContainer.style.top = '0';
     tempContainer.style.width = '800px';
     tempContainer.style.background = 'white';
     tempContainer.classList.add('pdf-mode');
@@ -832,6 +907,22 @@ function descargarPDF() {
     
     const wrappers = clone.querySelectorAll('.table-wrap, .table-responsive');
     wrappers.forEach(w => w.style.overflowX = 'visible');
+
+    // Forzar estilos inline en el clon para evitar cortes de filas o celdas
+    clone.querySelectorAll('tr, td, th').forEach(el => {
+        el.style.pageBreakInside = 'avoid';
+        el.style.breakInside = 'avoid';
+    });
+    clone.querySelectorAll('.cat-title, .doc-section-title').forEach(el => {
+        el.style.pageBreakAfter = 'avoid';
+        el.style.breakAfter = 'avoid';
+        el.style.pageBreakInside = 'avoid';
+        el.style.breakInside = 'avoid';
+    });
+    clone.querySelectorAll('.doc-header, .doc-title-band, .firma-box, .obs-box').forEach(el => {
+        el.style.pageBreakInside = 'avoid';
+        el.style.breakInside = 'avoid';
+    });
     
     tempContainer.appendChild(clone);
     document.body.appendChild(tempContainer);

@@ -495,33 +495,9 @@ def register_routes(app):
                         precargado_ultimo = False
                         datos = {}
                 elif tipo == "avanzada":
-                    botiquin_param = request.args.get("botiquin")
-                    if botiquin_param:
-                        last_row = conn.execute(
-                            f"SELECT datos_json FROM checklist_avanzada WHERE botiquin = ? AND finalizado = 1 AND datos_json IS NOT NULL AND datos_json != '' ORDER BY id DESC LIMIT 1",
-                            (botiquin_param,)
-                        ).fetchone()
-                        if not last_row:
-                            last_row = conn.execute(
-                                f"SELECT datos_json FROM checklist_avanzada WHERE botiquin = ? AND datos_json IS NOT NULL AND datos_json != '' ORDER BY id DESC LIMIT 1",
-                                (botiquin_param,)
-                            ).fetchone()
-                        if last_row and last_row["datos_json"]:
-                            ultimo_datos = json.loads(last_row["datos_json"])
-                            for field, info in ultimo_datos.items():
-                                if field.startswith("_") or not isinstance(info, dict):
-                                    continue
-                                datos[field] = {
-                                    "valor": info.get("valor", ""),
-                                    "fecha_vencimiento": info.get("fecha_vencimiento", ""),
-                                    "observacion": info.get("observacion", ""),
-                                    "cant_actual": info.get("cant_actual", ""),
-                                    "tipo_incumplimiento": info.get("tipo_incumplimiento", "")
-                                }
-                            precargado_ultimo = True
-                    else:
-                        precargado_ultimo = False
-                        datos = {}
+                    # Avanzada no debe tener prellenado del último checklist al ingresar a diligenciar nuevamente
+                    precargado_ultimo = False
+                    datos = {}
                 else:
                     last_row = conn.execute(
                         f"SELECT datos_json FROM {cfg['table']} WHERE datos_json IS NOT NULL AND datos_json != '' ORDER BY id DESC LIMIT 1"
@@ -701,19 +677,9 @@ def register_routes(app):
                     conn.close()
                     return jsonify({"status": "not_found", "datos": {}})
             elif tipo == "avanzada":
-                if botiquin:
-                    row = conn.execute(
-                        f"SELECT datos_json FROM checklist_avanzada WHERE botiquin = ? AND finalizado = 1 AND datos_json IS NOT NULL AND datos_json != '' ORDER BY id DESC LIMIT 1",
-                        (botiquin,)
-                    ).fetchone()
-                    if not row:
-                        row = conn.execute(
-                            f"SELECT datos_json FROM checklist_avanzada WHERE botiquin = ? AND datos_json IS NOT NULL AND datos_json != '' ORDER BY id DESC LIMIT 1",
-                            (botiquin,)
-                        ).fetchone()
-                else:
-                    conn.close()
-                    return jsonify({"status": "not_found", "datos": {}})
+                # Avanzada no utiliza prellenado del último checklist
+                conn.close()
+                return jsonify({"status": "not_found", "datos": {}})
             else:
                 row = conn.execute(
                     f"SELECT datos_json FROM {cfg['table']} WHERE finalizado = 1 AND datos_json IS NOT NULL AND datos_json != '' ORDER BY id DESC LIMIT 1"

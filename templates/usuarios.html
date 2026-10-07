@@ -558,12 +558,12 @@ setTimeout(function() {
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
                                 Editar
                             </a>
-                            <a href="{{ url_for('reset_usuario_contrasena', user_id=u.id) }}" class="btn-accion restablecer" title="Restablecer contraseña" onclick="return confirm('¿Restablecer contraseña de {{ u.nombre }}? Será su número de identificación y deberá cambiarla al ingresar.');">
+                            <button type="button" class="btn-accion restablecer" title="Restablecer contraseña" onclick="confirmarResetClave('{{ url_for('reset_usuario_contrasena', user_id=u.id) }}', '{{ u.nombre|e }}', '{{ u.identificacion|e }}')">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="m8 12 2 2 4-4"/></svg>
                                 Rest. Clave
-                            </a>
+                            </button>
                             {% if u.identificacion != 'admin' %}
-                            <a href="{{ url_for('toggle_usuario', user_id=u.id) }}" class="btn-accion {% if u.activo %}desactivar{% else %}activar{% endif %}" title="{% if u.activo %}Desactivar usuario{% else %}Activar usuario{% endif %}" onclick="return confirm('¿Está seguro de {% if u.activo %}desactivar{% else %}activar{% endif %} al usuario {{ u.nombre }}?');">
+                            <button type="button" class="btn-accion {% if u.activo %}desactivar{% else %}activar{% endif %}" title="{% if u.activo %}Desactivar usuario{% else %}Activar usuario{% endif %}" onclick="confirmarToggleUsuario('{{ url_for('toggle_usuario', user_id=u.id) }}', '{{ u.nombre|e }}', {{ 'true' if u.activo else 'false' }})">
                                 {% if u.activo %}
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.68 13.31a6 6 0 0 0 0 0"/><path d="M18 8h2a3 3 0 0 1 0 6h-2"/><path d="M4 8h2a3 3 0 0 1 0 6H4"/><path d="M8 14v-3a4 4 0 0 1 8 0v3"/></svg>
                                 Desactivar
@@ -571,7 +571,7 @@ setTimeout(function() {
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="m9 12 2 2 4-4"/></svg>
                                 Activar
                                 {% endif %}
-                            </a>
+                            </button>
                             {% endif %}
                         </div>
                     </td>
@@ -624,6 +624,93 @@ setTimeout(function() {
 
     searchInput.addEventListener('input', aplicarFiltros);
 })();
+
+function confirmarResetClave(url, nombre, identificacion) {
+    Swal.fire({
+        title: '<div style="font-size: 20px; font-weight: 800; color: #1e3a5f;">¿Restablecer contraseña?</div>',
+        html: `
+            <div style="text-align: left; font-family: 'Inter', sans-serif; margin-top: 6px;">
+                <p style="color: #64748b; font-size: 13.5px; margin: 0 0 14px; text-align: center;">
+                    Esta acción asignará una nueva clave temporal para el usuario.
+                </p>
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px 16px; margin-bottom: 14px; box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);">
+                    <div style="font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.6px; color: #64748b; font-weight: 700; margin-bottom: 3px;">Usuario</div>
+                    <div style="font-size: 15px; font-weight: 700; color: #0f172a;">${nombre}</div>
+                    <div style="display: flex; align-items: center; gap: 6px; margin-top: 8px;">
+                        <span style="font-size: 12px; color: #64748b;">Identificación:</span>
+                        <span style="font-family: monospace; font-size: 12.5px; font-weight: 700; color: #1e40af; background: #eff6ff; padding: 2px 8px; border-radius: 5px; border: 1px solid #bfdbfe;">${identificacion}</span>
+                    </div>
+                </div>
+                <div style="background: #fffbeb; border: 1px solid #fef08a; border-left: 4px solid #f59e0b; padding: 12px 14px; border-radius: 8px; display: flex; gap: 10px; align-items: flex-start;">
+                    <span style="font-size: 18px; line-height: 1.2;">🔑</span>
+                    <div style="font-size: 12.5px; color: #92400e; line-height: 1.45;">
+                        La contraseña restablecida será su <strong>número de identificación</strong> y se le exigirá cambiarla de forma obligatoria al iniciar sesión.
+                    </div>
+                </div>
+            </div>
+        `,
+        iconHtml: '<div style="width: 58px; height: 58px; border-radius: 50%; background: linear-gradient(135deg, #fef3c7, #fde68a); display: flex; align-items: center; justify-content: center; font-size: 28px; box-shadow: 0 4px 14px rgba(245, 158, 11, 0.25);">🔑</div>',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, restablecer clave',
+        cancelButtonText: 'Cancelar',
+        confirmButtonColor: '#f59e0b',
+        cancelButtonColor: '#94a3b8',
+        reverseButtons: true,
+        focusCancel: true,
+        customClass: {
+            popup: 'swal2-custom-popup',
+            confirmButton: 'swal2-custom-confirm-amber',
+            cancelButton: 'swal2-custom-cancel'
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = url;
+        }
+    });
+}
+
+function confirmarToggleUsuario(url, nombre, activo) {
+    const accion = activo ? 'Desactivar' : 'Activar';
+    const colorBtn = activo ? '#ef4444' : '#10b981';
+    const iconBadge = activo ? '🚫' : '✅';
+    const iconBg = activo ? 'linear-gradient(135deg, #fee2e2, #fecaca)' : 'linear-gradient(135deg, #d1fae5, #a7f3d0)';
+    const shadowColor = activo ? 'rgba(239, 68, 68, 0.25)' : 'rgba(16, 185, 129, 0.25)';
+    const msg = activo
+        ? 'El usuario <strong>no podrá iniciar sesión</strong> ni realizar registros hasta que vuelva a ser activado.'
+        : 'El usuario <strong>recuperará el acceso</strong> con su rol y permisos habituales de inmediato.';
+
+    Swal.fire({
+        title: `<div style="font-size: 20px; font-weight: 800; color: #1e3a5f;">¿${accion} usuario?</div>`,
+        html: `
+            <div style="text-align: left; font-family: 'Inter', sans-serif; margin-top: 6px;">
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px 16px; margin-bottom: 14px;">
+                    <div style="font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.6px; color: #64748b; font-weight: 700; margin-bottom: 3px;">Usuario</div>
+                    <div style="font-size: 15px; font-weight: 700; color: #0f172a;">${nombre}</div>
+                </div>
+                <div style="background: ${activo ? '#fef2f2' : '#f0fdf4'}; border: 1px solid ${activo ? '#fecaca' : '#bbf7d0'}; border-left: 4px solid ${colorBtn}; padding: 12px 14px; border-radius: 8px; font-size: 12.5px; color: ${activo ? '#991b1b' : '#166534'}; line-height: 1.45;">
+                    ${msg}
+                </div>
+            </div>
+        `,
+        iconHtml: `<div style="width: 58px; height: 58px; border-radius: 50%; background: ${iconBg}; display: flex; align-items: center; justify-content: center; font-size: 28px; box-shadow: 0 4px 14px ${shadowColor};">${iconBadge}</div>`,
+        showCancelButton: true,
+        confirmButtonText: `Sí, ${accion.toLowerCase()}`,
+        cancelButtonText: 'Cancelar',
+        confirmButtonColor: colorBtn,
+        cancelButtonColor: '#94a3b8',
+        reverseButtons: true,
+        focusCancel: true,
+        customClass: {
+            popup: 'swal2-custom-popup',
+            confirmButton: activo ? 'swal2-custom-confirm-danger' : 'swal2-custom-confirm',
+            cancelButton: 'swal2-custom-cancel'
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = url;
+        }
+    });
+}
 </script>
 <style>
 .filter-pill {
@@ -657,6 +744,40 @@ setTimeout(function() {
 .btn-accion.desactivar:hover { background: #dc2626; }
 .btn-accion.activar { background: #22c55e; color: white; }
 .btn-accion.activar:hover { background: #16a34a; }
+
+/* Botones personalizados de SweetAlert2 */
+.swal2-custom-confirm-amber {
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    padding: 10px 24px !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+    background: linear-gradient(135deg, #f59e0b, #d97706) !important;
+    color: white !important;
+    border: none !important;
+    cursor: pointer !important;
+    transition: all 0.15s ease !important;
+}
+.swal2-custom-confirm-amber:hover {
+    background: linear-gradient(135deg, #d97706, #b45309) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 6px 12px -2px rgba(217, 119, 6, 0.25) !important;
+}
+.swal2-custom-confirm-danger {
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    padding: 10px 24px !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+    background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+    color: white !important;
+    border: none !important;
+    cursor: pointer !important;
+    transition: all 0.15s ease !important;
+}
+.swal2-custom-confirm-danger:hover {
+    background: linear-gradient(135deg, #dc2626, #b91c1c) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 6px 12px -2px rgba(220, 38, 38, 0.25) !important;
+}
 </style>
 </div>
 
