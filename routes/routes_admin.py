@@ -2,11 +2,29 @@ import json
 import os
 from datetime import datetime, date
 from flask import render_template, request, redirect, url_for, session, flash, jsonify
-from db import get_db
+from db import get_db, guardar_imagen, obtener_imagen, MIME_IMAGENES
 from utils import login_required, admin_required, calcular_edad, get_user_info, ahora, hoy, extension_permitida, EXT_LOGO, validar_upload_imagen
 from itsdangerous import URLSafeSerializer, BadSignature
 
 def register_routes(app):
+    # Logo y marca de agua: se sirven desde la BD con la misma URL de siempre.
+    # Si no están en la BD se usa el archivo en disco (p. ej. banner_excel.png).
+    @app.route("/static/uploads/<string:filename>")
+    def imagen_institucional(filename):
+        from flask import Response, send_from_directory
+        img = None
+        if filename.startswith(("logo_institucion.", "marca_agua_institucion.")):
+            try:
+                img = obtener_imagen(f"config/{filename}")
+            except Exception as e:
+                print("Error leyendo imagen institucional de la BD:", e)
+        if img:
+            datos, mime = img
+            resp = Response(datos, mimetype=mime)
+            resp.headers["Cache-Control"] = "public, max-age=86400"
+            return resp
+        return send_from_directory(os.path.join(app.root_path, 'static', 'uploads'), filename)
+
     @app.route("/admin/vehiculos")
     @admin_required
     def admin_vehiculos():
@@ -740,16 +758,11 @@ def register_routes(app):
                 marca_agua_file = None
 
             if logo_file and logo_file.filename:
-                import os
-                # Create static/uploads directory if it doesn't exist
-                upload_dir = os.path.join(app.root_path, 'static', 'uploads')
-                os.makedirs(upload_dir, exist_ok=True)
-                
-                # Save file with the validated extension
+                # La imagen se guarda en la base de datos (tabla imagenes)
                 filename = f"logo_institucion.{logo_ext}"
-                filepath = os.path.join(upload_dir, filename)
-                
-                logo_file.save(filepath)
+                logo_file.stream.seek(0)
+                conn.execute("DELETE FROM imagenes WHERE nombre LIKE 'config/logo\\_institucion.%'")
+                guardar_imagen(conn, f"config/{filename}", logo_file.read(), MIME_IMAGENES.get(logo_ext))
                 
                 # Generate a URL with a timestamp to avoid browser caching issues when replacing the logo
                 logo_url = f"/static/uploads/{filename}?v={int(ahora().timestamp())}"
@@ -757,16 +770,11 @@ def register_routes(app):
                 conn.execute("REPLACE INTO configuracion (clave, valor) VALUES ('logo', ?)", (logo_url,))
                 
             if marca_agua_file and marca_agua_file.filename:
-                import os
-                # Create static/uploads directory if it doesn't exist
-                upload_dir = os.path.join(app.root_path, 'static', 'uploads')
-                os.makedirs(upload_dir, exist_ok=True)
-                
-                # Save file with the validated extension
+                # La imagen se guarda en la base de datos (tabla imagenes)
                 filename = f"marca_agua_institucion.{marca_ext}"
-                filepath = os.path.join(upload_dir, filename)
-                
-                marca_agua_file.save(filepath)
+                marca_agua_file.stream.seek(0)
+                conn.execute("DELETE FROM imagenes WHERE nombre LIKE 'config/marca\\_agua\\_institucion.%'")
+                guardar_imagen(conn, f"config/{filename}", marca_agua_file.read(), MIME_IMAGENES.get(marca_ext))
                 
                 # Generate a URL with a timestamp to avoid browser caching issues when replacing the watermark
                 marca_agua_url = f"/static/uploads/{filename}?v={int(ahora().timestamp())}"

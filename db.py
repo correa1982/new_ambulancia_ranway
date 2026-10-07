@@ -326,6 +326,17 @@ def init_db():
             valor LONGTEXT
         )
     """)
+    # Imágenes subidas (logo, marca de agua, evidencias): se guardan en la BD
+    # para que no se pierdan cuando el disco del servidor se reinicia.
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS imagenes (
+            nombre VARCHAR(255) PRIMARY KEY,
+            mime VARCHAR(100) NOT NULL,
+            tamano INT NOT NULL DEFAULT 0,
+            datos LONGBLOB NOT NULL,
+            creado_en DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
     conn.execute("""
         CREATE TABLE IF NOT EXISTS eventos (
             id INTEGER PRIMARY KEY AUTO_INCREMENT,
@@ -1856,7 +1867,93 @@ def init_db():
         print("Error seeding checklist_pas_opciones:", e)
 
     conn.commit()
+
+    # Pasar a la BD las imágenes que aún estén solo en disco (static/uploads)
+    try:
+        migrar_imagenes_de_disco(conn)
+    except Exception as e:
+        print("Error migrando imágenes de disco a la BD:", e)
+
     conn.close()
+
+
+# ── Imágenes en base de datos ──────────────────────────────────────────────
+MIME_IMAGENES = {
+    "png": "image/png",
+    "jpg": "image/jpeg",
+    "jpeg": "image/jpeg",
+    "gif": "image/gif",
+    "webp": "image/webp",
+}
+
+
+def mime_de_imagen(nombre):
+    ext = nombre.rsplit(".", 1)[-1].lower() if "." in nombre else ""
+    return MIME_IMAGENES.get(ext)
+
+
+def guardar_imagen(conn, nombre, datos, mime=None):
+    """Guarda (o reemplaza) una imagen en la tabla `imagenes`.
+    `nombre` es la clave, p. ej. 'evidencias/abc_foto.jpg' o 'config/logo_institucion.png'.
+    No hace commit: queda dentro de la transacción de `conn`."""
+    mime = mime or mime_de_imagen(nombre) or "application/octet-stream"
+    conn.execute(
+        "REPLACE INTO imagenes (nombre, mime, tamano, datos) VALUES (?, ?, ?, ?)",
+        (nombre, mime, len(datos), datos),
+    )
+
+
+def obtener_imagen(nombre, conn=None):
+    """Devuelve (datos, mime) de una imagen guardada en la BD, o None si no existe."""
+    should_close = False
+    if conn is None:
+        conn = get_db()
+        should_close = True
+    try:
+        row = conn.execute("SELECT datos, mime FROM imagenes WHERE nombre = ?", (nombre,)).fetchone()
+    finally:
+        if should_close:
+            conn.close()
+    if not row:
+        return None
+    return bytes(row["datos"]), row["mime"]
+
+
+def eliminar_imagen(conn, nombre):
+    conn.execute("DELETE FROM imagenes WHERE nombre = ?", (nombre,))
+
+
+def migrar_imagenes_de_disco(conn):
+    """Copia a la BD las imágenes que existan en static/uploads y aún no estén en la BD.
+    No borra nada del disco; se puede ejecutar cuantas veces sea necesario."""
+    base = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static", "uploads")
+    pendientes = []
+    if os.path.isdir(base):
+        for f in os.listdir(base):
+            if f.startswith(("logo_institucion.", "marca_agua_institucion.")):
+                pendientes.append((f"config/{f}", os.path.join(base, f)))
+    ev_dir = os.path.join(base, "evidencias")
+    if os.path.isdir(ev_dir):
+        for f in os.listdir(ev_dir):
+            pendientes.append((f"evidencias/{f}", os.path.join(ev_dir, f)))
+
+    migradas = 0
+    for nombre, ruta in pendientes:
+        mime = mime_de_imagen(nombre)
+        if not mime or not os.path.isfile(ruta) or len(nombre) > 255:
+            continue
+        if conn.execute("SELECT 1 FROM imagenes WHERE nombre = ?", (nombre,)).fetchone():
+            continue
+        try:
+            with open(ruta, "rb") as fh:
+                guardar_imagen(conn, nombre, fh.read(), mime)
+            conn.commit()
+            migradas += 1
+        except Exception as e:
+            print(f"No se pudo migrar la imagen {nombre}:", e)
+    if migradas:
+        print(f"Imágenes migradas de disco a la BD: {migradas}")
+    return migradas
 
 def get_pas_opciones(conn=None, tipo="pasb"):
     should_close = False

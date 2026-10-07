@@ -2,7 +2,7 @@ import json
 import os
 from datetime import datetime, date
 from flask import render_template, request, redirect, url_for, session, flash, jsonify
-from db import get_db
+from db import get_db, guardar_imagen, obtener_imagen, MIME_IMAGENES
 from utils import login_required, admin_required, calcular_edad, get_user_info, ahora, hoy, extension_permitida, EXT_IMAGENES, validar_upload_imagen
 # _load_config imported lazily inside functions to avoid circular import
 from itsdangerous import URLSafeSerializer, BadSignature
@@ -60,18 +60,19 @@ def register_routes(app):
             
             files = request.files.getlist("evidencia")
             evidencia_filenames = []
-            upload_folder = os.path.join(app.root_path, 'static', 'uploads', 'evidencias')
-            os.makedirs(upload_folder, exist_ok=True)
-            
+
+            # Las evidencias se guardan en la base de datos (tabla imagenes),
+            # dentro de la misma transacción del registro.
             for file in files:
                 if file and file.filename != '':
-                    if not validar_upload_imagen(file):
+                    ev_ext = validar_upload_imagen(file)
+                    if not ev_ext:
                         flash("La evidencia debe ser una imagen PNG, JPG, GIF o WEBP de máximo 5 MB.", "error")
                         return redirect(url_for("form_preoperacional"))
-                    filename = secure_filename(file.filename)
+                    filename = secure_filename(file.filename)[-150:] or f"evidencia.{ev_ext}"
                     unique_filename = f"{uuid.uuid4().hex}_{filename}"
-                    file_path = os.path.join(upload_folder, unique_filename)
-                    file.save(file_path)
+                    file.stream.seek(0)
+                    guardar_imagen(conn, f"evidencias/{unique_filename}", file.read(), MIME_IMAGENES.get(ev_ext))
                     evidencia_filenames.append(unique_filename)
             
             # Merge with existing evidence if editing draft
@@ -256,7 +257,14 @@ def register_routes(app):
     @app.route("/static/uploads/evidencias/<path:filename>")
     @login_required
     def evidencia_protegida(filename):
-        from flask import send_from_directory
+        from flask import send_from_directory, Response
+        # Primero la BD; si no está ahí (registros antiguos) se busca en disco
+        img = obtener_imagen(f"evidencias/{os.path.basename(filename)}")
+        if img:
+            datos, mime = img
+            resp = Response(datos, mimetype=mime)
+            resp.headers["Cache-Control"] = "private, max-age=86400"
+            return resp
         return send_from_directory(os.path.join(app.root_path, 'static', 'uploads', 'evidencias'), filename)
 
     @app.route("/formularios/preoperacional/registros")
