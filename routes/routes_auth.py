@@ -703,11 +703,12 @@ def register_routes(app):
             formularios_acceso_dict = {}
             for p in perfiles_list:
                 current_forms = request.form.getlist(f"formularios_acceso_{p}")
-                # Si no es admin real, preservar el permiso 'nomina' si ya lo tenía
+                # Si no es admin real, preservar los permisos 'nomina' y 'pagos' si ya los tenía
                 if session['usuario'].get('rol_real') != 'admin':
                     old_forms = old_acc_dict.get(p, []) if isinstance(old_acc_dict, dict) else []
-                    if 'nomina' in old_forms and 'nomina' not in current_forms:
-                        current_forms.append('nomina')
+                    for _perm_pres in ('nomina', 'pagos'):
+                        if _perm_pres in old_forms and _perm_pres not in current_forms:
+                            current_forms.append(_perm_pres)
                 formularios_acceso_dict[p] = current_forms
             formularios_acceso = json.dumps(formularios_acceso_dict, ensure_ascii=False)
 
