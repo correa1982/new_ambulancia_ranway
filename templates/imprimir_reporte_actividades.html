@@ -220,7 +220,7 @@
                 <img src="{{ marca_agua_path }}" class="firma-marca" alt="">
             {% endif %}
             {% if registro.firma_registrador %}
-                <img src="{{ registro.firma_registrador }}" class="signature-img" alt="Firma Voluntario">
+                <img src="{{ registro.firma_registrador|firma_src }}" class="signature-img" alt="Firma Voluntario">
             {% else %}
                 <div style="height: 80px;"></div>
             {% endif %}
@@ -235,7 +235,7 @@
                 <img src="{{ marca_agua_path }}" class="firma-marca" alt="">
             {% endif %}
             {% if registro.estado == 'Avalado' and registro.firma_avalador %}
-                <img src="{{ registro.firma_avalador }}" class="signature-img" alt="Firma Coordinador">
+                <img src="{{ registro.firma_avalador|firma_src }}" class="signature-img" alt="Firma Coordinador">
             {% else %}
                 <div style="height: 80px;">
                     {% if registro.estado != 'Avalado' %}

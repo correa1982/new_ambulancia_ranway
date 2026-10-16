@@ -547,7 +547,7 @@ setTimeout(function() {
                     </td>
                     <td>
                         {% if u.firma %}
-                        <img src="{{ u.firma }}" alt="Firma" style="max-height: 36px; background: white; border: 1px solid #e2e8f0; padding: 2px; border-radius: 4px;">
+                        <img src="{{ u.firma|firma_src }}" alt="Firma" style="max-height: 36px; background: white; border: 1px solid #e2e8f0; padding: 2px; border-radius: 4px;">
                         {% else %}
                         <span style="color: #94a3b8; font-size: 16px;">—</span>
                         {% endif %}

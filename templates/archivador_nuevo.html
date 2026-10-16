@@ -349,12 +349,12 @@ function filtrarFormularios() {
   emptyOpt.textContent = cat ? "-- Selecciona un formulario --" : "-- Primero selecciona una categoría --";
   select.appendChild(emptyOpt);
   {% for frm in formularios_con_categoria %}
-    if (cat === "" || cat === "{{ (frm.categoria_nombre or '')|safe }}") {
+    if (cat === "" || cat === {{ (frm.categoria_nombre or '')|tojson }}) {
       var opt = document.createElement("option");
-      opt.value = "{{ frm.nombre|safe }}";
-      opt.textContent = "{{ frm.nombre|safe }}";
-      opt.setAttribute("data-categoria", "{{ (frm.categoria_nombre or '')|safe }}");
-      if (optAnterior === "{{ frm.nombre|safe }}") opt.selected = true;
+      opt.value = {{ frm.nombre|tojson }};
+      opt.textContent = {{ frm.nombre|tojson }};
+      opt.setAttribute("data-categoria", {{ (frm.categoria_nombre or '')|tojson }});
+      if (optAnterior === {{ frm.nombre|tojson }}) opt.selected = true;
       select.appendChild(opt);
     }
   {% endfor %}

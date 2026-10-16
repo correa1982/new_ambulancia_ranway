@@ -223,7 +223,7 @@
             <div class="firma-col">
                 {% if tiene_marca %}<img src="{{ cfg.marca_agua }}" class="firma-marca" alt="">{% endif %}
                 {% if firma_registrador %}
-                    <img src="{{ firma_registrador }}" class="firma-img" alt="Firma Voluntario">
+                    <img src="{{ firma_registrador|firma_src }}" class="firma-img" alt="Firma Voluntario">
                 {% else %}
                     <div style="height:55px;"></div>
                 {% endif %}
@@ -240,7 +240,7 @@
             <div class="firma-col">
                 {% if tiene_marca %}<img src="{{ cfg.marca_agua }}" class="firma-marca" alt="">{% endif %}
                 {% if registro.estado == 'Avalado' and firma_avalador %}
-                    <img src="{{ firma_avalador }}" class="firma-img" alt="Firma Avalador">
+                    <img src="{{ firma_avalador|firma_src }}" class="firma-img" alt="Firma Avalador">
                 {% elif registro.estado != 'Avalado' %}
                     <div class="firma-pending">(Pendiente de Aval)</div>
                 {% else %}

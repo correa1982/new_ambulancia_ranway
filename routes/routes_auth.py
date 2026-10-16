@@ -6,7 +6,7 @@ import unicodedata
 from datetime import datetime, date
 from flask import render_template, request, redirect, url_for, session, flash, jsonify
 from db import get_db
-from utils import login_required, admin_required, calcular_edad, get_user_info, hoy
+from utils import login_required, admin_required, calcular_edad, get_user_info, hoy, validar_upload_excel
 from itsdangerous import URLSafeSerializer, BadSignature
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -360,6 +360,10 @@ def register_routes(app):
                 flash("La nueva contraseña no puede ser igual a su número de identificación por seguridad.", "error")
                 return render_template("cambiar_contrasena.html")
 
+            if len(nueva_clave) < 8 or not any(c.isalpha() for c in nueva_clave) or not any(c.isdigit() for c in nueva_clave):
+                flash("La contraseña debe tener al menos 8 caracteres e incluir letras y números.", "error")
+                return render_template("cambiar_contrasena.html")
+
             conn = get_db()
             hashed_clave = generate_password_hash(nueva_clave)
             conn.execute(
@@ -387,9 +391,8 @@ def register_routes(app):
                 user = conn.execute("SELECT * FROM usuarios WHERE identificacion = ?", (identificacion,)).fetchone()
                 
                 if user and user.get("correo"):
-                    import random
-                    import string
-                    temp_password = ''.join(random.choices(string.digits, k=4))
+                    import secrets
+                    temp_password = secrets.token_urlsafe(16)
                     
                     hashed_temp = generate_password_hash(temp_password)
                     conn.execute("UPDATE usuarios SET contrasena = ?, requiere_cambio_clave = 1 WHERE id = ?", (hashed_temp, user["id"]))
@@ -468,8 +471,8 @@ def register_routes(app):
             flash("Debe seleccionar un archivo Excel.", "error")
             return redirect(url_for("usuarios"))
 
-        if not file.filename.lower().endswith((".xlsx", ".xls")):
-            flash("El archivo debe tener extensión .xlsx o .xls.", "error")
+        if not validar_upload_excel(file):
+            flash("El archivo debe ser un Excel válido (.xlsx o .xls).", "error")
             return redirect(url_for("usuarios"))
 
         conn = get_db()

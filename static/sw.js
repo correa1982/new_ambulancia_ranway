@@ -158,6 +158,13 @@ async function sincronizarRegistros() {
       formData.append('_offline_id', registro.id);
       formData.append('_offline_dedupe_key', registro.dedupe_key || '');
 
+      // Token CSRF: los registros creados antes del despliegue no lo traen;
+      // se recupera del token guardado en la base de sesion.
+      if (!formData.has('csrf_token')) {
+        const t = await leerTokenCSRF(db);
+        if (t) formData.append('csrf_token', t);
+      }
+
       let urlPost = registro.datos._offline_post_url || '/formulario';
       const acId = registro.datos.atencion_colectiva_id;
       if (!registro.datos._offline_post_url && acId && acId !== 'None' && acId !== 'null' && acId !== 'undefined' && acId !== '') {
@@ -225,6 +232,17 @@ function obtenerPendientes(db) {
     const req   = index.getAll(0);
     req.onsuccess = e => resolve(e.target.result);
     req.onerror   = e => reject(e.target.error);
+  });
+}
+
+function leerTokenCSRF(db) {
+  return new Promise((resolve) => {
+    try {
+      const tx = db.transaction('sesion', 'readonly');
+      const req = tx.objectStore('sesion').get('csrf_token');
+      req.onsuccess = e => resolve((e.target.result && e.target.result.token) || null);
+      req.onerror = () => resolve(null);
+    } catch (e) { resolve(null); }
   });
 }
 

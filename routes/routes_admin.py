@@ -3,7 +3,7 @@ import os
 from datetime import datetime, date
 from flask import render_template, request, redirect, url_for, session, flash, jsonify
 from db import get_db
-from utils import login_required, admin_required, calcular_edad, get_user_info, ahora, hoy
+from utils import login_required, admin_required, calcular_edad, get_user_info, ahora, hoy, validar_upload_imagen
 from itsdangerous import URLSafeSerializer, BadSignature
 
 def register_routes(app):
@@ -662,6 +662,15 @@ def register_routes(app):
         logo_file = request.files.get("logo_file")
         marca_agua_file = request.files.get("marca_agua_file")
 
+        logo_ext = validar_upload_imagen(logo_file) if logo_file and logo_file.filename else None
+        marca_ext = validar_upload_imagen(marca_agua_file) if marca_agua_file and marca_agua_file.filename else None
+        if logo_file and logo_file.filename and not logo_ext:
+            flash("El logo debe ser una imagen PNG, JPG, GIF o WEBP de máximo 5 MB.", "error")
+            return redirect(url_for("configuracion"))
+        if marca_agua_file and marca_agua_file.filename and not marca_ext:
+            flash("La marca de agua debe ser una imagen PNG, JPG, GIF o WEBP de máximo 5 MB.", "error")
+            return redirect(url_for("configuracion"))
+
         conn = get_db()
         try:
             if nombre:
@@ -682,7 +691,6 @@ def register_routes(app):
                 conn.execute("REPLACE INTO configuracion (clave, valor) VALUES ('habilitaciones', ?)", ("[]",))
                 conn.execute("REPLACE INTO configuracion (clave, valor) VALUES ('habilitacion', ?)", ("",))
                 
-            print("FORM DATA:", request.form)
             backup_email_dests = request.form.getlist("backup_email_dest[]")
             backup_email_dest_str = ",".join([e.strip() for e in backup_email_dests if e.strip()])
             
@@ -726,14 +734,12 @@ def register_routes(app):
 
             if logo_file and logo_file.filename:
                 import os
-                from datetime import datetime
                 # Create static/uploads directory if it doesn't exist
                 upload_dir = os.path.join(app.root_path, 'static', 'uploads')
                 os.makedirs(upload_dir, exist_ok=True)
                 
-                # Get extension and save file
-                ext = logo_file.filename.rsplit('.', 1)[1].lower() if '.' in logo_file.filename else 'png'
-                filename = f"logo_institucion.{ext}"
+                # Save file with the validated extension
+                filename = f"logo_institucion.{logo_ext}"
                 filepath = os.path.join(upload_dir, filename)
                 
                 logo_file.save(filepath)
@@ -749,9 +755,8 @@ def register_routes(app):
                 upload_dir = os.path.join(app.root_path, 'static', 'uploads')
                 os.makedirs(upload_dir, exist_ok=True)
                 
-                # Get extension and save file
-                ext = marca_agua_file.filename.rsplit('.', 1)[1].lower() if '.' in marca_agua_file.filename else 'png'
-                filename = f"marca_agua_institucion.{ext}"
+                # Save file with the validated extension
+                filename = f"marca_agua_institucion.{marca_ext}"
                 filepath = os.path.join(upload_dir, filename)
                 
                 marca_agua_file.save(filepath)

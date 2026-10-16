@@ -277,7 +277,7 @@
     <!-- ── Firma del Registrador ── -->
     <div class="firma-box">
         {% if record.firma_registrador %}
-        <img src="{{ record.firma_registrador }}" alt="Firma">
+        <img src="{{ record.firma_registrador|firma_src }}" alt="Firma">
         {% endif %}
         <div class="firma-name">{{ record.registrado_por }}</div>
         <div class="firma-meta">{{ record.perfil_registrador or 'Personal Operativo' }} · CC: {{ record.registrado_por_identificacion }}</div>
