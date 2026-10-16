@@ -149,6 +149,7 @@
                                     {% endif %}
                                     {% if session.usuario.get('rol_real') == 'admin' and p != 'Administrador' %}
                                     <label class="perm-toggle"><input type="checkbox" name="formularios_acceso_{{ p }}" value="nomina"><span class="perm-label"><span class="perm-icon">💵</span>Gestión de Honorarios</span></label>
+                                    <label class="perm-toggle"><input type="checkbox" name="formularios_acceso_{{ p }}" value="pagos"><span class="perm-label"><span class="perm-icon">💳</span>Verificación de Pagos</span></label>
                                     {% endif %}
                                 </div>
                             </div>
