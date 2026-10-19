@@ -92,7 +92,7 @@
         </div>
         <div>
             <label>Contraseña de Aplicación (16 dígitos)</label>
-            <input type="password" name="smtp_password" value="{{ institucion.smtp_password }}" placeholder="****************">
+            <input type="password" name="smtp_password" value="" autocomplete="new-password" placeholder="{% if institucion.smtp_password %}Guardada — deje vacío para conservarla{% else %}****************{% endif %}">
         </div>
     </div>
     

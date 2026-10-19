@@ -470,7 +470,8 @@ def register_routes(app):
             flash("Asistencia confirmada correctamente.", "success")
         except Exception as e:
             conn.rollback()
-            flash(f"Error al confirmar asistencia: {e}", "error")
+            print("ERROR:", repr(e))
+            flash(f"Error al confirmar asistencia.", "error")
         finally:
             conn.close()
             
@@ -586,7 +587,8 @@ def register_routes(app):
             flash("Integrantes actualizados correctamente.", "success")
         except Exception as e:
             conn.rollback()
-            flash(f"Error al actualizar integrantes: {e}", "error")
+            print("ERROR:", repr(e))
+            flash(f"Error al actualizar integrantes.", "error")
         finally:
             conn.close()
             
@@ -595,6 +597,10 @@ def register_routes(app):
     @app.route("/programacion_operativa/exportar_pagos")
     @login_required
     def programacion_operativa_exportar_pagos():
+        if not session.get("usuario") or (not session["usuario"].get("permiso_programacion_operativa") and str(session["usuario"].get("id")) != '1'):
+            flash("No tienes permiso para acceder a Programación Operativa.", "error")
+            return redirect(url_for("dashboard"))
+
         fecha_inicio = request.args.get("fecha_inicio")
         fecha_fin = request.args.get("fecha_fin")
         

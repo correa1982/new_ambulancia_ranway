@@ -74,9 +74,19 @@ def _dump_database_sql(conn):
         lines.append(create_sql + ";")
         lines.append("")
 
+        # Las imágenes (binarios) no viajan en el respaldo por correo: lo harían
+        # demasiado pesado para enviarse. Se respalda solo la estructura de la tabla.
+        if table == "imagenes":
+            lines.append("-- Datos de `imagenes` omitidos (binarios)")
+            lines.append("")
+            continue
+
         cur = conn.execute(f"SELECT * FROM `{table}`")
         rows = cur.fetchall()
         for row in rows:
+            # La clave SMTP no viaja en el respaldo que se envia por correo
+            if table == "configuracion" and row.get("clave") == "smtp_password":
+                continue
             col_names = ', '.join([f"`{k}`" for k in row.keys()])
             vals = []
             for v in row.values():

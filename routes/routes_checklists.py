@@ -3,7 +3,7 @@ import os
 from datetime import datetime, date
 from flask import render_template, request, redirect, url_for, session, flash, jsonify
 from db import get_db, get_pas_opciones
-from utils import login_required, admin_required, calcular_edad, get_user_info, ahora, hoy
+from utils import login_required, admin_required, calcular_edad, get_user_info, ahora, hoy, es_propietario_o_admin
 # _load_config imported lazily inside functions to avoid circular import
 from itsdangerous import URLSafeSerializer, BadSignature
 from constants import CHECKLIST_CONFIG, PASB_OPCIONES, PASM_OPCIONES
@@ -305,7 +305,8 @@ def register_routes(app):
                     conn.conn.rollback()
                 except Exception:
                     pass
-                flash(f"Ocurrió un inconveniente al guardar el checklist: {str(e)}. Sus datos permanecen seguros, por favor verifique e intente nuevamente.", "error")
+                print("ERROR:", repr(e))
+                flash(f"Ocurrió un inconveniente al guardar el checklist. Sus datos permanecen seguros, por favor verifique e intente nuevamente.", "error")
                 return redirect(request.referrer or url_for("form_checklist", tipo=tipo))
             finally:
                 try:
@@ -495,33 +496,9 @@ def register_routes(app):
                         precargado_ultimo = False
                         datos = {}
                 elif tipo == "avanzada":
-                    botiquin_param = request.args.get("botiquin")
-                    if botiquin_param:
-                        last_row = conn.execute(
-                            f"SELECT datos_json FROM checklist_avanzada WHERE botiquin = ? AND finalizado = 1 AND datos_json IS NOT NULL AND datos_json != '' ORDER BY id DESC LIMIT 1",
-                            (botiquin_param,)
-                        ).fetchone()
-                        if not last_row:
-                            last_row = conn.execute(
-                                f"SELECT datos_json FROM checklist_avanzada WHERE botiquin = ? AND datos_json IS NOT NULL AND datos_json != '' ORDER BY id DESC LIMIT 1",
-                                (botiquin_param,)
-                            ).fetchone()
-                        if last_row and last_row["datos_json"]:
-                            ultimo_datos = json.loads(last_row["datos_json"])
-                            for field, info in ultimo_datos.items():
-                                if field.startswith("_") or not isinstance(info, dict):
-                                    continue
-                                datos[field] = {
-                                    "valor": info.get("valor", ""),
-                                    "fecha_vencimiento": info.get("fecha_vencimiento", ""),
-                                    "observacion": info.get("observacion", ""),
-                                    "cant_actual": info.get("cant_actual", ""),
-                                    "tipo_incumplimiento": info.get("tipo_incumplimiento", "")
-                                }
-                            precargado_ultimo = True
-                    else:
-                        precargado_ultimo = False
-                        datos = {}
+                    # Avanzada no debe tener prellenado del último checklist al ingresar a diligenciar nuevamente
+                    precargado_ultimo = False
+                    datos = {}
                 else:
                     last_row = conn.execute(
                         f"SELECT datos_json FROM {cfg['table']} WHERE datos_json IS NOT NULL AND datos_json != '' ORDER BY id DESC LIMIT 1"
@@ -606,13 +583,31 @@ def register_routes(app):
             
         now_str = ahora().strftime("%Y-%m-%d %H:%M:%S")
         user_name = session["usuario"]["nombre"]
-        conn.execute(
-            "UPDATE checklist_pasb_traslados SET estado = 'aceptado', aceptado_por = ?, fecha_aceptado = ? WHERE id = ?",
-            (user_name, now_str, traslado_id)
-        )
+
+        payload = request.get_json(silent=True) or request.form or {}
+        categoria_sel = payload.get("categoria") or None
+        field_sel = payload.get("field") or None
+
+        try:
+            conn.execute(
+                """UPDATE checklist_pasb_traslados 
+                   SET estado = 'aceptado', aceptado_por = ?, fecha_aceptado = ?, 
+                       categoria = COALESCE(?, categoria), item_identificador = COALESCE(?, item_identificador) 
+                   WHERE id = ?""",
+                (user_name, now_str, categoria_sel, field_sel, traslado_id)
+            )
+        except Exception:
+            conn.execute(
+                "UPDATE checklist_pasb_traslados SET estado = 'aceptado', aceptado_por = ?, fecha_aceptado = ? WHERE id = ?",
+                (user_name, now_str, traslado_id)
+            )
         conn.commit()
         
         tr_dict = dict(traslado)
+        if categoria_sel:
+            tr_dict["categoria"] = categoria_sel
+        if field_sel:
+            tr_dict["item_identificador"] = field_sel
         if tr_dict.get("fecha_vencimiento") and hasattr(tr_dict["fecha_vencimiento"], "strftime"):
             tr_dict["fecha_vencimiento"] = tr_dict["fecha_vencimiento"].strftime("%Y-%m-%d")
         elif tr_dict.get("fecha_vencimiento"):
@@ -683,19 +678,9 @@ def register_routes(app):
                     conn.close()
                     return jsonify({"status": "not_found", "datos": {}})
             elif tipo == "avanzada":
-                if botiquin:
-                    row = conn.execute(
-                        f"SELECT datos_json FROM checklist_avanzada WHERE botiquin = ? AND finalizado = 1 AND datos_json IS NOT NULL AND datos_json != '' ORDER BY id DESC LIMIT 1",
-                        (botiquin,)
-                    ).fetchone()
-                    if not row:
-                        row = conn.execute(
-                            f"SELECT datos_json FROM checklist_avanzada WHERE botiquin = ? AND datos_json IS NOT NULL AND datos_json != '' ORDER BY id DESC LIMIT 1",
-                            (botiquin,)
-                        ).fetchone()
-                else:
-                    conn.close()
-                    return jsonify({"status": "not_found", "datos": {}})
+                # Avanzada no utiliza prellenado del último checklist
+                conn.close()
+                return jsonify({"status": "not_found", "datos": {}})
             else:
                 row = conn.execute(
                     f"SELECT datos_json FROM {cfg['table']} WHERE finalizado = 1 AND datos_json IS NOT NULL AND datos_json != '' ORDER BY id DESC LIMIT 1"
@@ -713,7 +698,8 @@ def register_routes(app):
             return jsonify({"status": "not_found", "datos": {}})
         except Exception as e:
             conn.close()
-            return jsonify({"status": "error", "message": str(e)}), 500
+            print("ERROR:", repr(e))
+            return jsonify({"status": "error", "message": "Error interno. Intente nuevamente."}), 500
 
 
     @app.route("/formularios/checklist/<tipo>/registros")
@@ -765,6 +751,11 @@ def register_routes(app):
         if not record:
             conn.close()
             flash("Registro no encontrado.", "error")
+            return redirect(url_for("registros_checklist", tipo=tipo))
+        # Igual que el listado: un usuario no admin solo ve sus propios registros
+        if not es_propietario_o_admin(record):
+            conn.close()
+            flash("Acceso denegado. Solo puede ver sus propios registros.", "error")
             return redirect(url_for("registros_checklist", tipo=tipo))
         record_dict = dict(record)
         # Parse JSON data

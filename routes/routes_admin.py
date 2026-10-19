@@ -2,11 +2,29 @@ import json
 import os
 from datetime import datetime, date
 from flask import render_template, request, redirect, url_for, session, flash, jsonify
-from db import get_db
-from utils import login_required, admin_required, calcular_edad, get_user_info, ahora, hoy, validar_upload_imagen
+from db import get_db, guardar_imagen, obtener_imagen, MIME_IMAGENES
+from utils import login_required, admin_required, calcular_edad, get_user_info, ahora, hoy, extension_permitida, EXT_LOGO, validar_upload_imagen
 from itsdangerous import URLSafeSerializer, BadSignature
 
 def register_routes(app):
+    # Logo y marca de agua: se sirven desde la BD con la misma URL de siempre.
+    # Si no están en la BD se usa el archivo en disco (p. ej. banner_excel.png).
+    @app.route("/static/uploads/<string:filename>")
+    def imagen_institucional(filename):
+        from flask import Response, send_from_directory
+        img = None
+        if filename.startswith(("logo_institucion.", "marca_agua_institucion.")):
+            try:
+                img = obtener_imagen(f"config/{filename}")
+            except Exception as e:
+                print("Error leyendo imagen institucional de la BD:", e)
+        if img:
+            datos, mime = img
+            resp = Response(datos, mimetype=mime)
+            resp.headers["Cache-Control"] = "public, max-age=86400"
+            return resp
+        return send_from_directory(os.path.join(app.root_path, 'static', 'uploads'), filename)
+
     @app.route("/admin/vehiculos")
     @admin_required
     def admin_vehiculos():
@@ -732,17 +750,19 @@ def register_routes(app):
                 except Exception as e:
                     print(f"No se pudo reprogramar el backup_job: {e}")
 
+            if logo_file and logo_file.filename and not extension_permitida(logo_file.filename, EXT_LOGO):
+                flash("El logo debe ser una imagen PNG, JPG o WEBP.", "error")
+                logo_file = None
+            if marca_agua_file and marca_agua_file.filename and not extension_permitida(marca_agua_file.filename, EXT_LOGO):
+                flash("La marca de agua debe ser una imagen PNG, JPG o WEBP.", "error")
+                marca_agua_file = None
+
             if logo_file and logo_file.filename:
-                import os
-                # Create static/uploads directory if it doesn't exist
-                upload_dir = os.path.join(app.root_path, 'static', 'uploads')
-                os.makedirs(upload_dir, exist_ok=True)
-                
-                # Save file with the validated extension
+                # La imagen se guarda en la base de datos (tabla imagenes)
                 filename = f"logo_institucion.{logo_ext}"
-                filepath = os.path.join(upload_dir, filename)
-                
-                logo_file.save(filepath)
+                logo_file.stream.seek(0)
+                conn.execute("DELETE FROM imagenes WHERE nombre LIKE 'config/logo\\_institucion.%'")
+                guardar_imagen(conn, f"config/{filename}", logo_file.read(), MIME_IMAGENES.get(logo_ext))
                 
                 # Generate a URL with a timestamp to avoid browser caching issues when replacing the logo
                 logo_url = f"/static/uploads/{filename}?v={int(ahora().timestamp())}"
@@ -750,16 +770,11 @@ def register_routes(app):
                 conn.execute("REPLACE INTO configuracion (clave, valor) VALUES ('logo', ?)", (logo_url,))
                 
             if marca_agua_file and marca_agua_file.filename:
-                import os
-                # Create static/uploads directory if it doesn't exist
-                upload_dir = os.path.join(app.root_path, 'static', 'uploads')
-                os.makedirs(upload_dir, exist_ok=True)
-                
-                # Save file with the validated extension
+                # La imagen se guarda en la base de datos (tabla imagenes)
                 filename = f"marca_agua_institucion.{marca_ext}"
-                filepath = os.path.join(upload_dir, filename)
-                
-                marca_agua_file.save(filepath)
+                marca_agua_file.stream.seek(0)
+                conn.execute("DELETE FROM imagenes WHERE nombre LIKE 'config/marca\\_agua\\_institucion.%'")
+                guardar_imagen(conn, f"config/{filename}", marca_agua_file.read(), MIME_IMAGENES.get(marca_ext))
                 
                 # Generate a URL with a timestamp to avoid browser caching issues when replacing the watermark
                 marca_agua_url = f"/static/uploads/{filename}?v={int(ahora().timestamp())}"
@@ -773,7 +788,8 @@ def register_routes(app):
             import traceback
             print("ERROR IN configurar_institucion:", e)
             print(traceback.format_exc())
-            flash(f"Error al guardar: {e}", "error")
+            print("ERROR:", repr(e))
+            flash(f"Error al guardar.", "error")
         finally:
             conn.close()
             
@@ -807,7 +823,8 @@ def register_routes(app):
             if "UNIQUE" in str(e):
                 flash(f"La aseguradora «{nombre}» ya existe.", "error")
             else:
-                flash(f"Error al agregar aseguradora: {e}", "error")
+                print("ERROR:", repr(e))
+                flash(f"Error al agregar aseguradora.", "error")
         finally:
             conn.close()
         return redirect(url_for("admin_checklists", tipo="aseguradoras"))
@@ -864,7 +881,8 @@ def register_routes(app):
             if "UNIQUE" in str(e) or "Duplicate" in str(e):
                 flash(f"La aseguradora SOAT «{nombre}» ya existe.", "error")
             else:
-                flash(f"Error al agregar aseguradora SOAT: {e}", "error")
+                print("ERROR:", repr(e))
+                flash(f"Error al agregar aseguradora SOAT.", "error")
         finally:
             conn.close()
         return redirect(url_for("admin_checklists", tipo="aseguradoras_soat"))

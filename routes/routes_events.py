@@ -9,8 +9,8 @@ from itsdangerous import URLSafeSerializer, BadSignature
 from constants import REQUIRED_PATIENT_FIELDS
 
 def register_routes(app):
-    @login_required
     @app.route("/atencion_colectiva/ver/<int:id>")
+    @login_required
     def ver_atencion_colectiva(id):
         conn = get_db()
         evento = conn.execute("SELECT * FROM atencion_colectiva WHERE id = ?", (id,)).fetchone()
