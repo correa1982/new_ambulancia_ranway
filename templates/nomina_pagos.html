@@ -1,0 +1,1939 @@
+{% extends "base.html" %}
+
+{% block title %}Verificación de Pagos - Cuentas de Cobro - {{ institucion.nombre_institucion }}{% endblock %}
+
+{% block content %}
+<style>
+    .pagos-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 1.5rem 1rem 3.5rem;
+    }
+
+    .page-header {
+        margin-bottom: 1.75rem;
+        text-align: center;
+    }
+
+    .page-header h1 {
+        font-size: 1.85rem;
+        font-weight: 800;
+        color: #1e3a5f;
+        margin-bottom: 0.35rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .page-header p {
+        color: #64748b;
+        font-size: 0.95rem;
+    }
+
+    /* Card principal de búsqueda */
+    .search-card {
+        background: #ffffff;
+        border-radius: 14px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        border: 1px solid #e2e8f0;
+        padding: 1.5rem 1.75rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .search-form-grid {
+        display: grid;
+        grid-template-columns: 1.4fr 1fr auto;
+        gap: 1rem;
+        align-items: end;
+    }
+
+    @media (max-width: 768px) {
+        .search-form-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+    }
+
+    .form-label {
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: #475569;
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+    }
+
+    .form-select, .form-input {
+        width: 100%;
+        padding: 0.65rem 0.85rem;
+        border: 1.5px solid #cbd5e1;
+        border-radius: 9px;
+        font-size: 0.92rem;
+        color: #1e293b;
+        background: #f8fafc;
+        transition: all 0.2s ease;
+        outline: none;
+        font-family: inherit;
+    }
+
+    .form-select:focus, .form-input:focus {
+        border-color: #10b981;
+        background: #ffffff;
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+    }
+
+    .btn-search {
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+        border: none;
+        border-radius: 9px;
+        padding: 0.68rem 1.4rem;
+        font-weight: 700;
+        font-size: 0.92rem;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        box-shadow: 0 2px 4px rgba(16, 185, 129, 0.25);
+        transition: all 0.2s;
+        height: 42px;
+    }
+
+    .btn-search:hover {
+        background: linear-gradient(135deg, #059669, #047857);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3);
+    }
+
+    /* Barra de Alertas / Acciones */
+    .alerts-trigger-bar {
+        background: linear-gradient(135deg, #f8fafc, #eff6ff);
+        border: 1.5px solid #bfdbfe;
+        border-radius: 12px;
+        padding: 1rem 1.25rem;
+        margin-bottom: 1.75rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .alerts-trigger-info {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .alerts-icon-bubble {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        background: #dbeafe;
+        color: #2563eb;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.35rem;
+    }
+
+    .alerts-trigger-title {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: #1e3a5f;
+    }
+
+    .alerts-trigger-sub {
+        font-size: 0.82rem;
+        color: #64748b;
+    }
+
+    .btn-open-alerts {
+        background: linear-gradient(135deg, #1e3a5f, #0f172a);
+        color: white;
+        border: none;
+        border-radius: 9px;
+        padding: 0.65rem 1.25rem;
+        font-size: 0.88rem;
+        font-weight: 700;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        box-shadow: 0 2px 5px rgba(15, 23, 42, 0.25);
+        transition: all 0.2s;
+    }
+
+    .btn-open-alerts:hover {
+        background: linear-gradient(135deg, #2563eb, #1d4ed8);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(37, 99, 235, 0.3);
+    }
+
+    .badge-pending-counter {
+        background: #f59e0b;
+        color: white;
+        font-size: 0.75rem;
+        padding: 2px 8px;
+        border-radius: 9999px;
+        font-weight: 800;
+    }
+
+    /* Tarjeta de Resultados Individuales */
+    .result-card {
+        background: #ffffff;
+        border-radius: 16px;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.06), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+        overflow: hidden;
+        animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(8px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .result-header {
+        background: linear-gradient(135deg, #0f172a, #1e3a5f);
+        color: white;
+        padding: 1.25rem 1.75rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+    }
+
+    .result-header-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .periodo-badge {
+        background: rgba(16, 185, 129, 0.2);
+        color: #6ee7b7;
+        border: 1px solid rgba(16, 185, 129, 0.4);
+        padding: 4px 12px;
+        border-radius: 9999px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+    }
+
+    .result-body {
+        padding: 1.75rem;
+    }
+
+    /* Grid de las 3 datos solicitados */
+    .data-cards-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.25rem;
+        margin-bottom: 2rem;
+    }
+
+    @media (max-width: 768px) {
+        .data-cards-grid {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+    }
+
+    .data-card {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 1.1rem;
+        display: flex;
+        flex-direction: column;
+        transition: all 0.2s ease;
+    }
+
+    .data-card:hover {
+        border-color: #cbd5e1;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+    }
+
+    .data-card-label {
+        font-size: 0.72rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #64748b;
+        margin-bottom: 0.4rem;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    .data-card-value {
+        font-size: 1.15rem;
+        font-weight: 800;
+        color: #0f172a;
+        word-break: break-word;
+    }
+
+    .data-card.highlight {
+        background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+        border: 1.5px solid #a7f3d0;
+    }
+
+    .data-card.highlight .data-card-label {
+        color: #065f46;
+    }
+
+    .data-card.highlight .data-card-value {
+        color: #047857;
+        font-size: 1.5rem;
+    }
+
+    /* Sección del Checklist de Pago */
+    .checklist-section {
+        background: #f0fdf4;
+        border: 2px solid #86efac;
+        border-radius: 14px;
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+    }
+
+    .checklist-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .checklist-item {
+        display: flex;
+        align-items: center;
+        gap: 0.85rem;
+        cursor: pointer;
+        user-select: none;
+    }
+
+    .checklist-checkbox-wrapper {
+        position: relative;
+        width: 32px;
+        height: 32px;
+        min-width: 32px;
+    }
+
+    .checklist-checkbox {
+        position: absolute;
+        opacity: 0;
+        cursor: pointer;
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        z-index: 2;
+    }
+
+    .checklist-checkmark {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 32px;
+        height: 32px;
+        background-color: #ffffff;
+        border: 2.5px solid #cbd5e1;
+        border-radius: 8px;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .checklist-checkbox:checked ~ .checklist-checkmark {
+        background: #10b981;
+        border-color: #10b981;
+        box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2);
+    }
+
+    /* Icono SVG del Chulito garantizado visible */
+    .checklist-checkmark .check-icon {
+        width: 20px;
+        height: 20px;
+        stroke: #ffffff;
+        opacity: 0;
+        transform: scale(0.3);
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        display: block;
+        pointer-events: none;
+    }
+
+    .checklist-checkbox:checked ~ .checklist-checkmark .check-icon {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    .checklist-text {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .checklist-title {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: #065f46;
+    }
+
+    .checklist-desc {
+        font-size: 0.8rem;
+        color: #047857;
+    }
+
+    /* Grid de 2 Columnas para Verificación Compacta */
+    .verification-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.15rem;
+        align-items: stretch;
+    }
+
+    @media (max-width: 820px) {
+        .verification-grid {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+    }
+
+    .verification-col {
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* Tarjeta Columna 1: Documento Equivalente */
+    .doc-equivalente-box {
+        background: #ffffff;
+        border: 1.5px solid #bbf7d0;
+        border-radius: 12px;
+        padding: 1.1rem 1.25rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        gap: 0.55rem;
+        height: 100%;
+        box-sizing: border-box;
+        box-shadow: 0 2px 4px rgba(16, 185, 129, 0.04);
+        transition: all 0.2s ease;
+    }
+
+    .doc-equivalente-box:focus-within {
+        border-color: #10b981;
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+    }
+
+    .doc-equivalente-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .doc-equivalente-label {
+        font-size: 0.88rem;
+        font-weight: 700;
+        color: #065f46;
+        display: flex;
+        align-items: center;
+        gap: 0.45rem;
+        cursor: pointer;
+    }
+
+    .doc-equivalente-tag {
+        font-size: 0.7rem;
+        font-weight: 700;
+        background: #e0f2fe;
+        color: #0369a1;
+        padding: 2px 7px;
+        border-radius: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+    }
+
+    .doc-equivalente-input-wrap {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .doc-equivalente-input-icon {
+        position: absolute;
+        left: 12px;
+        color: #059669;
+        font-size: 1.15rem;
+        pointer-events: none;
+    }
+
+    .doc-equivalente-input {
+        width: 100%;
+        padding: 0.65rem 0.9rem 0.65rem 2.45rem;
+        font-size: 0.92rem;
+        font-weight: 600;
+        color: #0f172a;
+        background: #f8fafc;
+        border: 1.5px solid #cbd5e1;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+        outline: none;
+        letter-spacing: 0.01em;
+        box-sizing: border-box;
+    }
+
+    .doc-equivalente-input:focus {
+        background: #ffffff;
+        border-color: #10b981;
+        box-shadow: 0 2px 4px rgba(16, 185, 129, 0.1);
+    }
+
+    .doc-equivalente-input::placeholder {
+        color: #94a3b8;
+        font-weight: 400;
+    }
+
+    .doc-equivalente-help {
+        font-size: 0.75rem;
+        color: #047857;
+        opacity: 0.85;
+    }
+
+    /* Tarjeta Columna 2: Checklist y Botón */
+    .checklist-card-box {
+        background: #ffffff;
+        border: 1.5px solid #bbf7d0;
+        border-radius: 12px;
+        padding: 1.1rem 1.25rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        gap: 0.85rem;
+        height: 100%;
+        box-sizing: border-box;
+        box-shadow: 0 2px 4px rgba(16, 185, 129, 0.04);
+        transition: all 0.2s ease;
+    }
+
+    .checklist-card-box .checklist-item {
+        margin-bottom: auto;
+    }
+
+    .checklist-card-box .btn-save-pago {
+        width: 100%;
+        justify-content: center;
+        padding: 0.7rem 1.25rem;
+    }
+
+    .doc-badge-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        background: #eff6ff;
+        border: 1px solid #bfdbfe;
+        color: #1d4ed8;
+        padding: 2px 8px;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        font-weight: 700;
+    }
+
+    .btn-save-pago {
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+        border: none;
+        border-radius: 9px;
+        padding: 0.75rem 1.75rem;
+        font-size: 0.95rem;
+        font-weight: 700;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.3);
+        transition: all 0.2s;
+        box-sizing: border-box;
+    }
+
+    .btn-save-pago:hover {
+        background: linear-gradient(135deg, #059669, #047857);
+        transform: translateY(-1px);
+        box-shadow: 0 6px 12px -2px rgba(16, 185, 129, 0.4);
+    }
+
+    .btn-save-pago:disabled {
+        opacity: 0.65;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .status-banner {
+        border-radius: 10px;
+        padding: 0.85rem 1.15rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-size: 0.9rem;
+    }
+
+    .status-banner.success {
+        background: #ffffff;
+        border: 1px solid #86efac;
+        color: #065f46;
+    }
+
+    .status-banner.pending {
+        background: #fffbeb;
+        border: 1px solid #fde68a;
+        color: #92400e;
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 3px 10px;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+    }
+
+    .status-badge.paid {
+        background: #dcfce7;
+        color: #15803d;
+    }
+
+    .status-badge.unpaid {
+        background: #fee2e2;
+        color: #b91c1c;
+    }
+
+    /* Modal de Alertas */
+    .alerts-modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(15, 23, 42, 0.7);
+        backdrop-filter: blur(4px);
+        z-index: 9999;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+        animation: fadeIn 0.2s ease;
+    }
+
+    .alerts-modal-overlay.active {
+        display: flex;
+    }
+
+    .alerts-modal {
+        background: #ffffff;
+        border-radius: 18px;
+        width: 100%;
+        max-width: 820px;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        border: 1px solid #e2e8f0;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .alerts-modal-header {
+        background: linear-gradient(135deg, #1e3a5f, #0f172a);
+        color: white;
+        padding: 1.25rem 1.75rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+
+    .alerts-modal-title {
+        font-size: 1.15rem;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+    }
+
+    .btn-close-modal {
+        background: rgba(255, 255, 255, 0.15);
+        color: white;
+        border: none;
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 1.2rem;
+        transition: all 0.15s;
+    }
+
+    .btn-close-modal:hover {
+        background: rgba(239, 68, 68, 0.8);
+        transform: scale(1.05);
+    }
+
+    .alerts-modal-body {
+        padding: 1.75rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    /* Grid de las 6 Alertas */
+    .alerts-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+    }
+
+    @media (max-width: 680px) {
+        .alerts-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .alert-stat-card {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 1.15rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .alert-stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: #94a3b8;
+    }
+
+    .alert-stat-card.blue::before { background: #3b82f6; }
+    .alert-stat-card.green::before { background: #10b981; }
+    .alert-stat-card.amber::before { background: #f59e0b; }
+
+    .alert-stat-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .alert-stat-title {
+        font-size: 0.75rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: #64748b;
+    }
+
+    .alert-stat-icon {
+        font-size: 1.25rem;
+        color: #64748b;
+    }
+
+    .alert-stat-card.blue .alert-stat-icon { color: #2563eb; }
+    .alert-stat-card.green .alert-stat-icon { color: #059669; }
+    .alert-stat-card.amber .alert-stat-icon { color: #d97706; }
+
+    .alert-stat-number {
+        font-size: 1.45rem;
+        font-weight: 800;
+        color: #0f172a;
+    }
+
+    .alert-stat-card.green .alert-stat-number { color: #047857; }
+    .alert-stat-card.amber .alert-stat-number { color: #b45309; }
+
+    .alert-stat-sub {
+        font-size: 0.75rem;
+        color: #94a3b8;
+    }
+
+    /* Acordeón y Filtros de Colaboradores (Pendientes y Pagados) */
+    .accordion-container {
+        display: flex;
+        flex-direction: column;
+        gap: 0.85rem;
+    }
+
+    .accordion-item {
+        background: #ffffff;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 12px;
+        overflow: hidden;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .accordion-item.active {
+        border-color: #cbd5e1;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+
+    .accordion-header {
+        width: 100%;
+        background: #f8fafc;
+        border: none;
+        padding: 0.85rem 1.25rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        cursor: pointer;
+        font-family: inherit;
+        transition: background 0.2s;
+        text-align: left;
+    }
+
+    .accordion-header:hover {
+        background: #f1f5f9;
+    }
+
+    .accordion-header.active {
+        background: #ffffff;
+        border-bottom: 1.5px solid #e2e8f0;
+    }
+
+    .accordion-header-left {
+        display: flex;
+        align-items: center;
+        gap: 0.65rem;
+        flex-wrap: wrap;
+    }
+
+    .accordion-title {
+        font-size: 0.92rem;
+        font-weight: 700;
+        color: #1e293b;
+    }
+
+    .accordion-badge {
+        font-size: 0.75rem;
+        font-weight: 700;
+        padding: 2px 8px;
+        border-radius: 999px;
+    }
+
+    .accordion-badge.badge-amber {
+        background: #fef3c7;
+        color: #b45309;
+        border: 1px solid #fde68a;
+    }
+
+    .accordion-badge.badge-green {
+        background: #dcfce7;
+        color: #15803d;
+        border: 1px solid #bbf7d0;
+    }
+
+    .accordion-arrow {
+        font-size: 1rem;
+        color: #64748b;
+        transition: transform 0.25s ease;
+    }
+
+    .accordion-header.active .accordion-arrow {
+        transform: rotate(180deg);
+    }
+
+    .accordion-content {
+        display: none;
+        padding: 1.15rem;
+        background: #ffffff;
+        animation: fadeIn 0.2s ease;
+    }
+
+    .accordion-content.show {
+        display: block;
+    }
+
+    /* Barra de filtro de documento */
+    .filter-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-bottom: 0.85rem;
+        flex-wrap: wrap;
+    }
+
+    .filter-input-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+        flex: 1;
+        min-width: 250px;
+    }
+
+    .filter-icon {
+        position: absolute;
+        left: 10px;
+        color: #94a3b8;
+        font-size: 1rem;
+        pointer-events: none;
+    }
+
+    .filter-cedula-input {
+        width: 100%;
+        padding: 0.45rem 2rem 0.45rem 2rem;
+        font-size: 0.85rem;
+        border: 1.5px solid #cbd5e1;
+        border-radius: 8px;
+        outline: none;
+        font-family: inherit;
+        background: #f8fafc;
+        transition: all 0.2s ease;
+        box-sizing: border-box;
+    }
+
+    .filter-cedula-input:focus {
+        background: #ffffff;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+    }
+
+    .btn-clear-filter {
+        position: absolute;
+        right: 8px;
+        background: transparent;
+        border: none;
+        color: #94a3b8;
+        cursor: pointer;
+        font-size: 0.9rem;
+        padding: 2px 4px;
+        border-radius: 4px;
+        display: none;
+    }
+
+    .btn-clear-filter:hover {
+        color: #ef4444;
+    }
+
+    .filter-counter-text {
+        font-size: 0.78rem;
+        color: #64748b;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .table-pending-container {
+        max-height: 280px;
+        overflow-y: auto;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+    }
+
+    .table-pending {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.85rem;
+    }
+
+    .table-pending th {
+        background: #f1f5f9;
+        color: #475569;
+        font-weight: 700;
+        padding: 0.55rem 0.75rem;
+        text-align: left;
+        position: sticky;
+        top: 0;
+        border-bottom: 1px solid #cbd5e1;
+        z-index: 2;
+    }
+
+    .table-pending td {
+        padding: 0.55rem 0.75rem;
+        border-bottom: 1px solid #f1f5f9;
+        color: #1e293b;
+    }
+
+    .table-pending tr:hover {
+        background: #f8fafc;
+    }
+
+    .btn-quick-select {
+        background: #eff6ff;
+        color: #2563eb;
+        border: 1px solid #bfdbfe;
+        border-radius: 6px;
+        padding: 3px 8px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        transition: all 0.15s;
+    }
+
+    .btn-quick-select:hover {
+        background: #2563eb;
+        color: white;
+    }
+
+    .security-notice-box {
+        background: #f8fafc;
+        border: 1px dashed #cbd5e1;
+        border-radius: 10px;
+        padding: 1rem 1.25rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        color: #64748b;
+        font-size: 0.85rem;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 3.5rem 1.5rem;
+        background: #ffffff;
+        border-radius: 14px;
+        border: 1.5px dashed #cbd5e1;
+    }
+
+    .empty-state i {
+        font-size: 3.5rem;
+        color: #94a3b8;
+        margin-bottom: 0.8rem;
+    }
+
+    .empty-state h3 {
+        font-size: 1.15rem;
+        color: #334155;
+        margin-bottom: 0.35rem;
+    }
+
+    .empty-state p {
+        color: #64748b;
+        font-size: 0.9rem;
+        max-width: 480px;
+        margin: 0 auto;
+    }
+
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        color: #475569;
+        text-decoration: none;
+        font-size: 0.88rem;
+        font-weight: 600;
+        margin-top: 1.5rem;
+        transition: color 0.15s;
+    }
+
+    .back-link:hover {
+        color: #1e3a5f;
+    }
+</style>
+
+<div class="pagos-container">
+    <div class="page-header">
+        <h1><i class="ph ph-check-square-offset" style="color: #059669;"></i> Verificación de Pagos</h1>
+        <p>Consulta el valor de la cuenta de cobro por cédula y registra la validación del pago con fecha y hora.</p>
+    </div>
+
+    <!-- Formulario de Consulta -->
+    <div class="search-card">
+        <form method="GET" action="{{ url_for('nomina.nomina_pagos') }}" id="searchForm">
+            <div class="search-form-grid">
+                <div class="form-group">
+                    <label class="form-label" for="nomina_id">
+                        <i class="ph ph-file-xls" style="color: #10b981;"></i> Cuenta de Cobro / Excel
+                    </label>
+                    <select name="nomina_id" id="nomina_id" class="form-select" onchange="document.getElementById('searchForm').submit();" required>
+                        {% if archivos %}
+                            {% for arch in archivos %}
+                            <option value="{{ arch.id }}" {% if arch.id == selected_nomina_id %}selected{% endif %}>
+                                {% if arch.periodo %}
+                                    📅 {{ arch.periodo }} &mdash; {{ arch.nombre_archivo }}
+                                {% else %}
+                                    📄 {{ arch.nombre_archivo }} ({{ arch.fecha_subida.strftime('%d/%m/%Y') if arch.fecha_subida else '' }})
+                                {% endif %}
+                            </option>
+                            {% endfor %}
+                        {% else %}
+                            <option value="">No hay cuentas de cobro cargadas</option>
+                        {% endif %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="cedula">
+                        <i class="ph ph-identification-card" style="color: #10b981;"></i> Número de Cédula
+                    </label>
+                    <input type="text" name="cedula" id="cedula" class="form-input" placeholder="Ej: 1017256315" value="{{ cedula or '' }}" required autofocus autocomplete="off">
+                </div>
+
+                <button type="submit" class="btn-search">
+                    <i class="ph ph-magnifying-glass"></i> Consultar
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Botón / Barra de Alertas del Excel Seleccionado -->
+    {% if selected_nomina_id %}
+    <div class="alerts-trigger-bar">
+        <div class="alerts-trigger-info">
+            <div class="alerts-icon-bubble">
+                <i class="ph ph-chart-pie-slice"></i>
+            </div>
+            <div>
+                <div class="alerts-trigger-title">Alertas y Estado General de Pagos</div>
+                <div class="alerts-trigger-sub">
+                    Archivo: <strong>{{ selected_nomina.nombre_archivo if selected_nomina else '' }}</strong>
+                    {% if selected_nomina and selected_nomina.periodo %} &bull; Período: <strong>{{ selected_nomina.periodo }}</strong>{% endif %}
+                </div>
+            </div>
+        </div>
+
+        <button type="button" class="btn-open-alerts" onclick="openAlertsModal();">
+            <i class="ph ph-bell-ringing"></i> Ver Alertas de Pagos
+            <span id="badgePendingCounter" class="badge-pending-counter" style="{% if alertas.personas_pendientes <= 0 %}display: none;{% endif %}">
+                <span id="badgePendingNum">{{ alertas.personas_pendientes }}</span> pendientes
+            </span>
+        </button>
+    </div>
+    {% endif %}
+
+    {% if resultado %}
+    <!-- Tarjeta con Datos y Checklist -->
+    <div class="result-card">
+        <div class="result-header">
+            <div class="result-header-title">
+                <i class="ph ph-user-check" style="font-size: 1.3rem;"></i>
+                Datos del Colaborador
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                <span class="periodo-badge">
+                    <i class="ph ph-calendar"></i>
+                    {% if resultado.periodo %}{{ resultado.periodo }}{% else %}Período del archivo{% endif %}
+                </span>
+                <span style="font-size: 0.8rem; opacity: 0.85;">
+                    <i class="ph ph-file"></i> {{ resultado.nombre_archivo }}
+                </span>
+            </div>
+        </div>
+
+        <div class="result-body">
+            <!-- 3 datos clave solicitados: CEDULA, NOMBRE Y APELLIDO UNIFICADO, VALOR CUENTA DE COBRO -->
+            <div class="data-cards-grid">
+                <!-- CÉDULA -->
+                <div class="data-card">
+                    <div class="data-card-label">
+                        <i class="ph ph-identification-card" style="font-size: 1rem; color: #3b82f6;"></i> Cédula de Ciudadanía
+                    </div>
+                    <div class="data-card-value">
+                        {{ resultado.identificacion }}
+                    </div>
+                </div>
+
+                <!-- NOMBRE Y APELLIDO UNIFICADO -->
+                <div class="data-card">
+                    <div class="data-card-label">
+                        <i class="ph ph-user" style="font-size: 1rem; color: #8b5cf6;"></i> Nombre y Apellido
+                    </div>
+                    <div class="data-card-value">
+                        {{ resultado.nombre_completo or (resultado.nombres ~ ' ' ~ resultado.apellidos) }}
+                    </div>
+                </div>
+
+                <!-- VALOR CUENTA DE COBRO -->
+                <div class="data-card highlight">
+                    <div class="data-card-label">
+                        <i class="ph ph-currency-dollar" style="font-size: 1.1rem; color: #059669;"></i> Valor Cuenta de Cobro
+                    </div>
+                    <div class="data-card-value">
+                        {{ resultado.valor_total_formateado or resultado.valor_total }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECCIÓN DEL CHECKLIST Y DOCUMENTO EQUIVALENTE DE PAGO (2 COLUMNAS) -->
+            <div class="checklist-section">
+                <div class="verification-grid">
+                    <!-- Columna 1: Documento Equivalente -->
+                    <div class="verification-col">
+                        <div class="doc-equivalente-box">
+                            <div class="doc-equivalente-header">
+                                <label for="documentoEquivalente" class="doc-equivalente-label">
+                                    <i class="ph ph-file-text" style="font-size: 1.15rem; color: #059669;"></i>
+                                    Documento Equivalente
+                                </label>
+                                <span class="doc-equivalente-tag">Alfanumérico Libre</span>
+                            </div>
+                            <div class="doc-equivalente-input-wrap">
+                                <i class="ph ph-receipt doc-equivalente-input-icon"></i>
+                                <input type="text"
+                                       id="documentoEquivalente"
+                                       name="documento_equivalente"
+                                       class="doc-equivalente-input"
+                                       placeholder="Ej: DE-1049, DOC-2026-001, Factura 892..."
+                                       value="{{ resultado.documento_equivalente or '' }}"
+                                       autocomplete="off">
+                            </div>
+                            <div class="doc-equivalente-help">
+                                Escribe la referencia libre. Quedará guardada y visible cada vez que consultes a este colaborador.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Columna 2: Checklist de Pago y Botón Guardar -->
+                    <div class="verification-col">
+                        <div class="checklist-card-box">
+                            <label class="checklist-item" for="checklistPago">
+                                <div class="checklist-checkbox-wrapper">
+                                    <input type="checkbox" id="checklistPago" class="checklist-checkbox" {% if resultado.pago_realizado %}checked{% endif %}>
+                                    <span class="checklist-checkmark">
+                                        <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+                                            <polyline points="20 6 9 17 4 12"></polyline>
+                                        </svg>
+                                    </span>
+                                </div>
+                                <div class="checklist-text">
+                                    <span class="checklist-title">Marcar como Pago Realizado (Checklist)</span>
+                                    <span class="checklist-desc">Registra fecha y hora oficial del pago.</span>
+                                </div>
+                            </label>
+
+                            <button type="button" id="btnGuardarPago" class="btn-save-pago">
+                                <i class="ph ph-floppy-disk"></i> Guardar Verificación
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Banner Informativo del Estado Actual de Pago -->
+                <div id="statusBanner" class="status-banner {% if resultado.pago_realizado %}success{% else %}pending{% endif %}">
+                    <div style="font-size: 1.5rem; line-height: 1;">
+                        <span id="statusIcon">{% if resultado.pago_realizado %}✅{% else %}⏳{% endif %}</span>
+                    </div>
+                    <div style="flex: 1;">
+                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 2px;">
+                            <strong id="statusTitle">
+                                {% if resultado.pago_realizado %}Pago Verificado y Guardado{% else %}Pendiente de Pago{% endif %}
+                            </strong>
+                            <span id="statusBadge" class="status-badge {% if resultado.pago_realizado %}paid{% else %}unpaid{% endif %}">
+                                {% if resultado.pago_realizado %}PAGADO{% else %}PENDIENTE{% endif %}
+                            </span>
+                        </div>
+                        <div id="statusDetails" style="font-size: 0.85rem; color: inherit; opacity: 0.9;">
+                            {% if resultado.pago_realizado %}
+                                📅 <strong>Fecha y hora de guardado:</strong> <span id="fechaPagoDisplay">{{ resultado.fecha_pago_formateada }}</span>
+                                {% if resultado.usuario_pago %}
+                                    &bull; 👤 <strong>Registrado por:</strong> <span id="usuarioPagoDisplay">{{ resultado.usuario_pago }}</span>
+                                {% endif %}
+                                <span id="docEquivStatusDisplay">
+                                    {% if resultado.documento_equivalente %}
+                                        &bull; 📄 <strong>Doc. Equivalente:</strong> <span class="doc-badge-pill" id="docEquivValDisplay">{{ resultado.documento_equivalente }}</span>
+                                    {% endif %}
+                                </span>
+                            {% else %}
+                                <span>Este registro aún no tiene guardada la verificación de pago en esta cuenta de cobro.</span>
+                                <span id="docEquivStatusDisplay">
+                                    {% if resultado.documento_equivalente %}
+                                        &bull; 📄 <strong>Doc. Equivalente:</strong> <span class="doc-badge-pill" id="docEquivValDisplay">{{ resultado.documento_equivalente }}</span>
+                                    {% endif %}
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% elif cedula %}
+    <div class="empty-state">
+        <i class="ph ph-warning-circle" style="color: #f59e0b;"></i>
+        <h3>No se encontró el colaborador</h3>
+        <p>No se encontró ningún registro para la cédula <strong>{{ cedula }}</strong> en la cuenta de cobro seleccionada. Verifica el número o selecciona otro archivo de nómina.</p>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <i class="ph ph-wallet"></i>
+        <h3>Consulta y Gestión de Cuentas de Cobro</h3>
+        <p>Selecciona una cuenta de cobro de la lista desplegable e ingresa el número de cédula del colaborador para verificar los honorarios y registrar el pago.</p>
+    </div>
+    {% endif %}
+
+    <div style="text-align: center;">
+        <a href="{{ url_for('dashboard') }}" class="back-link">
+            <i class="ph ph-arrow-left"></i> Volver al Panel Principal
+        </a>
+    </div>
+</div>
+
+<!-- MODAL DE ALERTAS Y ESTADO DE CUENTAS DE COBRO -->
+<div id="alertsModalOverlay" class="alerts-modal-overlay" onclick="closeAlertsModal(event);">
+    <div class="alerts-modal" onclick="event.stopPropagation();">
+        <div class="alerts-modal-header">
+            <div class="alerts-modal-title">
+                <i class="ph ph-bell-ringing" style="color: #6ee7b7;"></i>
+                Alertas y Resumen de Cuentas de Cobro
+            </div>
+            <button type="button" class="btn-close-modal" onclick="closeAlertsModal();">
+                <i class="ph ph-x"></i>
+            </button>
+        </div>
+
+        <div class="alerts-modal-body">
+            <!-- 6 TARJETAS DE ALERTAS -->
+            <div class="alerts-grid">
+                <!-- 1. Cantidad de Personas (Celda U > 0) -->
+                <div class="alert-stat-card blue">
+                    <div class="alert-stat-header">
+                        <span class="alert-stat-title">Cantidad de Personas</span>
+                        <i class="ph ph-users alert-stat-icon"></i>
+                    </div>
+                    <div class="alert-stat-number" id="statTotalPersonas">{{ alertas.total_personas }}</div>
+                </div>
+
+                <!-- 2. Personas con Pago Realizado -->
+                <div class="alert-stat-card green">
+                    <div class="alert-stat-header">
+                        <span class="alert-stat-title">Pago Realizado</span>
+                        <i class="ph ph-check-circle alert-stat-icon"></i>
+                    </div>
+                    <div class="alert-stat-number" id="statPersonasPagadas">{{ alertas.personas_pagadas }}</div>
+                </div>
+
+                <!-- 3. Personas con Pago Pendiente -->
+                <div class="alert-stat-card amber">
+                    <div class="alert-stat-header">
+                        <span class="alert-stat-title">Pago Pendiente</span>
+                        <i class="ph ph-clock-countdown alert-stat-icon"></i>
+                    </div>
+                    <div class="alert-stat-number" id="statPersonasPendientes">{{ alertas.personas_pendientes }}</div>
+                </div>
+
+                <!-- 4. Valor Total Cuentas de Cobro (Columna U) -->
+                <div class="alert-stat-card blue">
+                    <div class="alert-stat-header">
+                        <span class="alert-stat-title">Valor Total Cuentas Cobro</span>
+                        <i class="ph ph-calculator alert-stat-icon"></i>
+                    </div>
+                    <div class="alert-stat-number" id="statValorTotal" style="font-size: 1.25rem;">{{ alertas.valor_total_formateado }}</div>
+                </div>
+
+                <!-- 5. Valor Total Cancelado -->
+                <div class="alert-stat-card green">
+                    <div class="alert-stat-header">
+                        <span class="alert-stat-title">Valor Total Cancelado</span>
+                        <i class="ph ph-wallet alert-stat-icon"></i>
+                    </div>
+                    <div class="alert-stat-number" id="statValorCancelado" style="font-size: 1.25rem;">{{ alertas.valor_cancelado_formateado }}</div>
+                </div>
+
+                <!-- 6. Valor Pendiente por Pagar -->
+                <div class="alert-stat-card amber">
+                    <div class="alert-stat-header">
+                        <span class="alert-stat-title">Pendiente por Pagar</span>
+                        <i class="ph ph-hourglass-high alert-stat-icon"></i>
+                    </div>
+                    <div class="alert-stat-number" id="statValorPendiente" style="font-size: 1.25rem;">{{ alertas.valor_pendiente_formateado }}</div>
+                </div>
+            </div>
+
+            <!-- SECCIÓN EXCLUSIVA PARA ADMINISTRADORES: Acordeón con Pestañas de Pendientes y Pagados -->
+            {% if es_admin %}
+            <div class="accordion-container">
+                <!-- ACORDEÓN 1: PENDIENTES POR RECIBIR PAGO -->
+                <div class="accordion-item active" id="accItemPendientes">
+                    <button type="button" class="accordion-header active" onclick="toggleAccordion('accItemPendientes');">
+                        <div class="accordion-header-left">
+                            <i class="ph ph-hourglass-high" style="color: #d97706; font-size: 1.15rem;"></i>
+                            <span class="accordion-title">Colaboradores Pendientes por Recibir Pago</span>
+                            <span class="accordion-badge badge-amber" id="badgeCountPendientes">
+                                {{ alertas.pendientes_lista|length }} registros
+                            </span>
+                        </div>
+                        <i class="ph ph-caret-down accordion-arrow"></i>
+                    </button>
+                    <div class="accordion-content show" id="accContentPendientes">
+                        <!-- Barra de Filtro de Cédula -->
+                        <div class="filter-bar">
+                            <div class="filter-input-wrapper">
+                                <i class="ph ph-magnifying-glass filter-icon"></i>
+                                <input type="text" id="filtroCedulaPendientes" class="filter-cedula-input" placeholder="Filtrar por número de documento de identidad..." oninput="filtrarTablaCedula('pendingTableBody', this.value, 'countFilteredPendientes', this)">
+                                <button type="button" class="btn-clear-filter" onclick="limpiarFiltro('filtroCedulaPendientes', 'pendingTableBody', 'countFilteredPendientes')" title="Limpiar filtro">
+                                    <i class="ph ph-x"></i>
+                                </button>
+                            </div>
+                            <span id="countFilteredPendientes" class="filter-counter-text"></span>
+                        </div>
+
+                        <div id="pendingTableWrapper">
+                            {% if alertas.pendientes_lista %}
+                            <div class="table-pending-container">
+                                <table class="table-pending">
+                                    <thead>
+                                        <tr>
+                                            <th>Cédula</th>
+                                            <th>Nombre y Apellido</th>
+                                            <th>Doc. Equivalente</th>
+                                            <th style="text-align: right;">Valor Cuenta Cobro</th>
+                                            <th style="text-align: center;">Acción</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="pendingTableBody">
+                                        {% for pend in alertas.pendientes_lista %}
+                                        <tr id="pending-row-{{ pend.identificacion }}" data-cedula="{{ pend.identificacion }}">
+                                            <td><strong>{{ pend.identificacion }}</strong></td>
+                                            <td>{{ pend.nombre_completo }}</td>
+                                            <td>
+                                                {% if pend.documento_equivalente %}
+                                                <span class="doc-badge-pill">{{ pend.documento_equivalente }}</span>
+                                                {% else %}
+                                                <span style="color: #94a3b8; font-size: 0.78rem; font-style: italic;">Sin asignar</span>
+                                                {% endif %}
+                                            </td>
+                                            <td style="text-align: right; font-weight: 700; color: #b45309;">{{ pend.valor_formateado }}</td>
+                                            <td style="text-align: center;">
+                                                <button type="button" class="btn-quick-select" onclick="consultarCedulaDesdeAlertas('{{ pend.identificacion }}');">
+                                                    <i class="ph ph-magnifying-glass"></i> Consultar
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% else %}
+                            <div id="pendingEmptyMessage" style="text-align: center; padding: 1.5rem; color: #059669; font-weight: 600; font-size: 0.9rem;">
+                                🎉 ¡Excelente! No hay personas pendientes de pago en esta cuenta de cobro.
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ACORDEÓN 2: COLABORADORES CON PAGO REALIZADO -->
+                <div class="accordion-item" id="accItemPagados">
+                    <button type="button" class="accordion-header" onclick="toggleAccordion('accItemPagados');">
+                        <div class="accordion-header-left">
+                            <i class="ph ph-check-circle" style="color: #059669; font-size: 1.15rem;"></i>
+                            <span class="accordion-title">Colaboradores con Pago Realizado</span>
+                            <span class="accordion-badge badge-green" id="badgeCountPagados">
+                                {{ alertas.pagados_lista|length }} registros
+                            </span>
+                        </div>
+                        <i class="ph ph-caret-down accordion-arrow"></i>
+                    </button>
+                    <div class="accordion-content" id="accContentPagados">
+                        <!-- Barra de Filtro de Cédula -->
+                        <div class="filter-bar">
+                            <div class="filter-input-wrapper">
+                                <i class="ph ph-magnifying-glass filter-icon"></i>
+                                <input type="text" id="filtroCedulaPagados" class="filter-cedula-input" placeholder="Filtrar por número de documento de identidad..." oninput="filtrarTablaCedula('paidTableBody', this.value, 'countFilteredPagados', this)">
+                                <button type="button" class="btn-clear-filter" onclick="limpiarFiltro('filtroCedulaPagados', 'paidTableBody', 'countFilteredPagados')" title="Limpiar filtro">
+                                    <i class="ph ph-x"></i>
+                                </button>
+                            </div>
+                            <span id="countFilteredPagados" class="filter-counter-text"></span>
+                        </div>
+
+                        <div id="paidTableWrapper">
+                            {% if alertas.pagados_lista %}
+                            <div class="table-pending-container">
+                                <table class="table-pending">
+                                    <thead>
+                                        <tr>
+                                            <th>Cédula</th>
+                                            <th>Nombre y Apellido</th>
+                                            <th>Doc. Equivalente</th>
+                                            <th style="text-align: right;">Valor Cancelado</th>
+                                            <th>Fecha y Hora Pago</th>
+                                            <th style="text-align: center;">Acción</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="paidTableBody">
+                                        {% for pag in alertas.pagados_lista %}
+                                        <tr id="paid-row-{{ pag.identificacion }}" data-cedula="{{ pag.identificacion }}">
+                                            <td><strong>{{ pag.identificacion }}</strong></td>
+                                            <td>{{ pag.nombre_completo }}</td>
+                                            <td>
+                                                {% if pag.documento_equivalente %}
+                                                <span class="doc-badge-pill">{{ pag.documento_equivalente }}</span>
+                                                {% else %}
+                                                <span style="color: #94a3b8; font-size: 0.78rem; font-style: italic;">Sin asignar</span>
+                                                {% endif %}
+                                            </td>
+                                            <td style="text-align: right; font-weight: 700; color: #047857;">{{ pag.valor_formateado }}</td>
+                                            <td style="font-size: 0.8rem; color: #475569;">
+                                                <i class="ph ph-calendar-check" style="color: #10b981;"></i> {{ pag.fecha_pago }}
+                                            </td>
+                                            <td style="text-align: center;">
+                                                <button type="button" class="btn-quick-select" onclick="consultarCedulaDesdeAlertas('{{ pag.identificacion }}');">
+                                                    <i class="ph ph-magnifying-glass"></i> Consultar
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% else %}
+                            <div id="paidEmptyMessage" style="text-align: center; padding: 1.5rem; color: #64748b; font-weight: 600; font-size: 0.9rem;">
+                                📋 Aún no se han registrado pagos en esta cuenta de cobro.
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <!-- AVISO DE PRIVACIDAD PARA PERSONAL DE PAGOS -->
+            <div class="security-notice-box">
+                <i class="ph ph-lock-key" style="font-size: 1.5rem; color: #64748b;"></i>
+                <div>
+                    <strong>Acceso Personal de Pagos:</strong> Puedes visualizar los totales y conteos de las alertas para control de la cuenta de cobro.
+                    Por políticas de privacidad, la consulta de datos detallados se realiza de forma individual ingresando el número de cédula en el formulario principal.
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+function openAlertsModal() {
+    const modal = document.getElementById('alertsModalOverlay');
+    if (modal) modal.classList.add('active');
+}
+
+function closeAlertsModal(e) {
+    if (e && e.target && e.target.id !== 'alertsModalOverlay' && !e.target.closest('.btn-close-modal')) {
+        return;
+    }
+    const modal = document.getElementById('alertsModalOverlay');
+    if (modal) modal.classList.remove('active');
+}
+
+function consultarCedulaDesdeAlertas(cedula) {
+    closeAlertsModal();
+    const cedulaInput = document.getElementById('cedula');
+    if (cedulaInput) {
+        cedulaInput.value = cedula;
+        document.getElementById('searchForm').submit();
+    }
+}
+
+function toggleAccordion(itemId) {
+    const item = document.getElementById(itemId);
+    if (!item) return;
+    const header = item.querySelector('.accordion-header');
+    const content = item.querySelector('.accordion-content');
+    if (!header || !content) return;
+
+    const isCurrentlyOpen = content.classList.contains('show');
+    if (isCurrentlyOpen) {
+        content.classList.remove('show');
+        header.classList.remove('active');
+        item.classList.remove('active');
+    } else {
+        content.classList.add('show');
+        header.classList.add('active');
+        item.classList.add('active');
+    }
+}
+
+function filtrarTablaCedula(tbodyId, query, counterId, inputElem) {
+    const tbody = document.getElementById(tbodyId);
+    if (!tbody) return;
+    const filter = (query || '').trim().toLowerCase();
+    const rows = tbody.querySelectorAll('tr[data-cedula]');
+    let visibleCount = 0;
+
+    rows.forEach(row => {
+        const cedula = (row.getAttribute('data-cedula') || '').toLowerCase();
+        if (!filter || cedula.includes(filter)) {
+            row.style.display = '';
+            visibleCount++;
+        } else {
+            row.style.display = 'none';
+        }
+    });
+
+    // Controlar botón de limpiar filtro
+    if (inputElem) {
+        const wrapper = inputElem.closest('.filter-input-wrapper');
+        if (wrapper) {
+            const clearBtn = wrapper.querySelector('.btn-clear-filter');
+            if (clearBtn) clearBtn.style.display = filter ? 'inline-flex' : 'none';
+        }
+    }
+
+    // Actualizar contador
+    const counter = document.getElementById(counterId);
+    if (counter) {
+        if (filter) {
+            counter.textContent = `${visibleCount} de ${rows.length} encontrados`;
+            counter.style.color = visibleCount === 0 ? '#ef4444' : '#2563eb';
+        } else {
+            counter.textContent = '';
+        }
+    }
+
+    // Fila sin coincidencias
+    let noMatchRow = tbody.querySelector('.no-match-row');
+    if (visibleCount === 0 && rows.length > 0) {
+        if (!noMatchRow) {
+            noMatchRow = document.createElement('tr');
+            noMatchRow.className = 'no-match-row';
+            const colSpan = tbodyId === 'paidTableBody' ? 6 : 5;
+            const escapeHtml = (s) => {
+                const d = document.createElement('div');
+                d.textContent = s;
+                return d.innerHTML;
+            };
+            noMatchRow.innerHTML = `<td colspan="${colSpan}" style="text-align: center; padding: 1.25rem; color: #64748b; font-style: italic;">No se encontraron registros que coincidan con "${escapeHtml(filter)}".</td>`;
+            tbody.appendChild(noMatchRow);
+        }
+    } else if (noMatchRow) {
+        noMatchRow.remove();
+    }
+}
+
+function limpiarFiltro(inputId, tbodyId, counterId) {
+    const input = document.getElementById(inputId);
+    if (input) {
+        input.value = '';
+        const wrapper = input.closest('.filter-input-wrapper');
+        if (wrapper) {
+            const clearBtn = wrapper.querySelector('.btn-clear-filter');
+            if (clearBtn) clearBtn.style.display = 'none';
+        }
+        filtrarTablaCedula(tbodyId, '', counterId, input);
+        input.focus();
+    }
+}
+
+function actualizarVistaAlertas(alertas) {
+    if (!alertas) return;
+
+    // 1. Contador del botón superior
+    const badgePendingCounter = document.getElementById('badgePendingCounter');
+    const badgePendingNum = document.getElementById('badgePendingNum');
+    if (badgePendingCounter && badgePendingNum) {
+        badgePendingNum.textContent = alertas.personas_pendientes;
+        badgePendingCounter.style.display = (alertas.personas_pendientes > 0) ? 'inline-block' : 'none';
+    }
+
+    // 2. Las 6 tarjetas de estadísticas del modal
+    const statTotalPersonas = document.getElementById('statTotalPersonas');
+    if (statTotalPersonas) statTotalPersonas.textContent = alertas.total_personas;
+
+    const statPersonasPagadas = document.getElementById('statPersonasPagadas');
+    if (statPersonasPagadas) statPersonasPagadas.textContent = alertas.personas_pagadas;
+
+    const statPersonasPendientes = document.getElementById('statPersonasPendientes');
+    if (statPersonasPendientes) statPersonasPendientes.textContent = alertas.personas_pendientes;
+
+    const statValorTotal = document.getElementById('statValorTotal');
+    if (statValorTotal) statValorTotal.textContent = alertas.valor_total_formateado;
+
+    const statValorCancelado = document.getElementById('statValorCancelado');
+    if (statValorCancelado) statValorCancelado.textContent = alertas.valor_cancelado_formateado;
+
+    const statValorPendiente = document.getElementById('statValorPendiente');
+    if (statValorPendiente) statValorPendiente.textContent = alertas.valor_pendiente_formateado;
+
+    const escapeHtmlStr = (str) => {
+        const div = document.createElement('div');
+        div.textContent = str || '';
+        return div.innerHTML;
+    };
+
+    // 3. Badges de los acordeones
+    const badgePend = document.getElementById('badgeCountPendientes');
+    if (badgePend && typeof alertas.pendientes_lista !== 'undefined') {
+        badgePend.textContent = `${alertas.pendientes_lista.length} registros`;
+    }
+    const badgePag = document.getElementById('badgeCountPagados');
+    if (badgePag && typeof alertas.pagados_lista !== 'undefined') {
+        badgePag.textContent = `${alertas.pagados_lista.length} registros`;
+    }
+
+    // 4. Tabla de Pendientes para admin
+    const pendingTableWrapper = document.getElementById('pendingTableWrapper');
+    if (pendingTableWrapper && typeof alertas.pendientes_lista !== 'undefined') {
+        if (!alertas.pendientes_lista || alertas.pendientes_lista.length === 0) {
+            pendingTableWrapper.innerHTML = `
+                <div id="pendingEmptyMessage" style="text-align: center; padding: 1.5rem; color: #059669; font-weight: 600; font-size: 0.9rem;">
+                    🎉 ¡Excelente! No hay personas pendientes de pago en esta cuenta de cobro.
+                </div>
+            `;
+        } else {
+            let rowsHtml = '';
+            alertas.pendientes_lista.forEach(p => {
+                const docBadge = p.documento_equivalente ?
+                    `<span class="doc-badge-pill">${escapeHtmlStr(p.documento_equivalente)}</span>` :
+                    `<span style="color: #94a3b8; font-size: 0.78rem; font-style: italic;">Sin asignar</span>`;
+
+                rowsHtml += `
+                    <tr id="pending-row-${escapeHtmlStr(p.identificacion)}" data-cedula="${escapeHtmlStr(p.identificacion)}">
+                        <td><strong>${escapeHtmlStr(p.identificacion)}</strong></td>
+                        <td>${escapeHtmlStr(p.nombre_completo)}</td>
+                        <td>${docBadge}</td>
+                        <td style="text-align: right; font-weight: 700; color: #b45309;">${escapeHtmlStr(p.valor_formateado)}</td>
+                        <td style="text-align: center;">
+                            <button type="button" class="btn-quick-select" onclick="consultarCedulaDesdeAlertas('${escapeHtmlStr(p.identificacion)}');">
+                                <i class="ph ph-magnifying-glass"></i> Consultar
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            pendingTableWrapper.innerHTML = `
+                <div class="table-pending-container">
+                    <table class="table-pending">
+                        <thead>
+                            <tr>
+                                <th>Cédula</th>
+                                <th>Nombre y Apellido</th>
+                                <th>Doc. Equivalente</th>
+                                <th style="text-align: right;">Valor Cuenta Cobro</th>
+                                <th style="text-align: center;">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pendingTableBody">
+                            ${rowsHtml}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            const fInputPend = document.getElementById('filtroCedulaPendientes');
+            if (fInputPend && fInputPend.value) {
+                filtrarTablaCedula('pendingTableBody', fInputPend.value, 'countFilteredPendientes', fInputPend);
+            }
+        }
+    }
+
+    // 5. Tabla de Pagados para admin
+    const paidTableWrapper = document.getElementById('paidTableWrapper');
+    if (paidTableWrapper && typeof alertas.pagados_lista !== 'undefined') {
+        if (!alertas.pagados_lista || alertas.pagados_lista.length === 0) {
+            paidTableWrapper.innerHTML = `
+                <div id="paidEmptyMessage" style="text-align: center; padding: 1.5rem; color: #64748b; font-weight: 600; font-size: 0.9rem;">
+                    📋 Aún no se han registrado pagos en esta cuenta de cobro.
+                </div>
+            `;
+        } else {
+            let rowsPaidHtml = '';
+            alertas.pagados_lista.forEach(pag => {
+                const docBadge = pag.documento_equivalente ?
+                    `<span class="doc-badge-pill">${escapeHtmlStr(pag.documento_equivalente)}</span>` :
+                    `<span style="color: #94a3b8; font-size: 0.78rem; font-style: italic;">Sin asignar</span>`;
+
+                rowsPaidHtml += `
+                    <tr id="paid-row-${escapeHtmlStr(pag.identificacion)}" data-cedula="${escapeHtmlStr(pag.identificacion)}">
+                        <td><strong>${escapeHtmlStr(pag.identificacion)}</strong></td>
+                        <td>${escapeHtmlStr(pag.nombre_completo)}</td>
+                        <td>${docBadge}</td>
+                        <td style="text-align: right; font-weight: 700; color: #047857;">${escapeHtmlStr(pag.valor_formateado)}</td>
+                        <td style="font-size: 0.8rem; color: #475569;">
+                            <i class="ph ph-calendar-check" style="color: #10b981;"></i> ${escapeHtmlStr(pag.fecha_pago)}
+                        </td>
+                        <td style="text-align: center;">
+                            <button type="button" class="btn-quick-select" onclick="consultarCedulaDesdeAlertas('${escapeHtmlStr(pag.identificacion)}');">
+                                <i class="ph ph-magnifying-glass"></i> Consultar
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            paidTableWrapper.innerHTML = `
+                <div class="table-pending-container">
+                    <table class="table-pending">
+                        <thead>
+                            <tr>
+                                <th>Cédula</th>
+                                <th>Nombre y Apellido</th>
+                                <th>Doc. Equivalente</th>
+                                <th style="text-align: right;">Valor Cancelado</th>
+                                <th>Fecha y Hora Pago</th>
+                                <th style="text-align: center;">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="paidTableBody">
+                            ${rowsPaidHtml}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            const fInputPag = document.getElementById('filtroCedulaPagados');
+            if (fInputPag && fInputPag.value) {
+                filtrarTablaCedula('paidTableBody', fInputPag.value, 'countFilteredPagados', fInputPag);
+            }
+        }
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const btnGuardarPago = document.getElementById('btnGuardarPago');
+    const checklistPago = document.getElementById('checklistPago');
+
+    if (btnGuardarPago && checklistPago) {
+        btnGuardarPago.addEventListener('click', function(e) {
+            e.preventDefault();
+
+            const isChecked = checklistPago.checked;
+            const docEquivInput = document.getElementById('documentoEquivalente');
+            const docEquivVal = docEquivInput ? docEquivInput.value.trim() : '';
+            const nominaId = "{{ selected_nomina_id }}";
+            const identificacion = "{{ resultado.identificacion if resultado else '' }}";
+
+            if (!nominaId || !identificacion) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Faltan datos del registro para proceder.',
+                    customClass: { popup: 'swal2-custom-popup', title: 'swal2-custom-title' }
+                });
+                return;
+            }
+
+            // Deshabilitar botón durante el envío
+            btnGuardarPago.disabled = true;
+            const originalHtml = btnGuardarPago.innerHTML;
+            btnGuardarPago.innerHTML = '<i class="ph ph-spinner ph-spin"></i> Guardando...';
+
+            fetch("{{ url_for('nomina.nomina_guardar_pago') }}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": (document.querySelector('meta[name="csrf-token"]') ? document.querySelector('meta[name="csrf-token"]').getAttribute('content') : '')
+                },
+                body: JSON.stringify({
+                    nomina_id: nominaId,
+                    identificacion: identificacion,
+                    pago_realizado: isChecked ? 1 : 0,
+                    documento_equivalente: docEquivVal
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                btnGuardarPago.disabled = false;
+                btnGuardarPago.innerHTML = originalHtml;
+
+                if (data.success) {
+                    // 1. Actualizar el estado y tabla de alertas en tiempo real
+                    if (data.alertas) {
+                        actualizarVistaAlertas(data.alertas);
+                    }
+
+                    // 2. Actualizar el DOM de la verificación individual
+                    const statusBanner = document.getElementById('statusBanner');
+                    const statusIcon = document.getElementById('statusIcon');
+                    const statusTitle = document.getElementById('statusTitle');
+                    const statusBadge = document.getElementById('statusBadge');
+                    const statusDetails = document.getElementById('statusDetails');
+
+                    // Mantener el input sincronizado
+                    if (docEquivInput && typeof data.documento_equivalente !== 'undefined') {
+                        docEquivInput.value = data.documento_equivalente;
+                    }
+
+                    const escapeHtml = (str) => {
+                        const div = document.createElement('div');
+                        div.textContent = str;
+                        return div.innerHTML;
+                    };
+
+                    const docEquivHtml = data.documento_equivalente ? ` &bull; 📄 <strong>Doc. Equivalente:</strong> <span class="doc-badge-pill">${escapeHtml(data.documento_equivalente)}</span>` : '';
+
+                    if (data.pago_realizado === 1) {
+                        statusBanner.className = 'status-banner success';
+                        statusIcon.textContent = '✅';
+                        statusTitle.textContent = 'Pago Verificado y Guardado';
+                        statusBadge.className = 'status-badge paid';
+                        statusBadge.textContent = 'PAGADO';
+                        statusDetails.innerHTML = `📅 <strong>Fecha y hora de guardado:</strong> <span id="fechaPagoDisplay">${data.fecha_pago}</span> &bull; 👤 <strong>Registrado por:</strong> <span id="usuarioPagoDisplay">${data.usuario_pago}</span>${docEquivHtml}`;
+                        checklistPago.checked = true;
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: '¡Pago Registrado!',
+                            html: `Se guardó correctamente: <br><strong>${data.fecha_pago}</strong>` +
+                                  (data.documento_equivalente ? `<br><br><span class="doc-badge-pill">📄 Doc. Equivalente: ${escapeHtml(data.documento_equivalente)}</span>` : ''),
+                            confirmButtonColor: '#10b981',
+                            customClass: { popup: 'swal2-custom-popup', title: 'swal2-custom-title', confirmButton: 'swal2-custom-confirm' }
+                        });
+                    } else {
+                        statusBanner.className = 'status-banner pending';
+                        statusIcon.textContent = '⏳';
+                        statusTitle.textContent = 'Pendiente de Pago';
+                        statusBadge.className = 'status-badge unpaid';
+                        statusBadge.textContent = 'PENDIENTE';
+                        statusDetails.innerHTML = `<span>Este registro aún no tiene guardada la verificación de pago en esta cuenta de cobro.</span>${docEquivHtml}`;
+                        checklistPago.checked = false;
+
+                        Swal.fire({
+                            icon: 'info',
+                            title: 'Estado Actualizado',
+                            html: 'El registro se ha marcado como pendiente de pago.' +
+                                  (data.documento_equivalente ? `<br><br><span class="doc-badge-pill">📄 Doc. Equivalente: ${escapeHtml(data.documento_equivalente)}</span>` : ''),
+                            confirmButtonColor: '#3b82f6',
+                            customClass: { popup: 'swal2-custom-popup', title: 'swal2-custom-title', confirmButton: 'swal2-custom-confirm' }
+                        });
+                    }
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: data.message || 'No se pudo guardar la verificación.',
+                        customClass: { popup: 'swal2-custom-popup', title: 'swal2-custom-title' }
+                    });
+                }
+            })
+            .catch(error => {
+                btnGuardarPago.disabled = false;
+                btnGuardarPago.innerHTML = originalHtml;
+                console.error('Error al guardar pago:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error de Conexión',
+                    text: 'Ocurrió un error al comunicarse con el servidor.',
+                    customClass: { popup: 'swal2-custom-popup', title: 'swal2-custom-title' }
+                });
+            });
+        });
+    }
+});
+</script>
+{% endblock %}

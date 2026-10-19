@@ -1866,6 +1866,40 @@ def init_db():
     except Exception as e:
         print("Error seeding checklist_pas_opciones:", e)
 
+    # Migración de tabla nomina_pagos y columnas en nomina_empleados para verificación de pagos
+    try:
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS nomina_pagos (
+                id INTEGER PRIMARY KEY AUTO_INCREMENT,
+                periodo VARCHAR(255) NOT NULL,
+                identificacion VARCHAR(255) NOT NULL,
+                pago_realizado INTEGER DEFAULT 1,
+                fecha_pago DATETIME,
+                registrado_por VARCHAR(255),
+                registrado_por_identificacion VARCHAR(255),
+                fecha_actualizacion DATETIME,
+                UNIQUE KEY unq_periodo_identificacion (periodo, identificacion)
+            )
+        """)
+        cursor = conn.cursor()
+        cursor.execute("DESCRIBE nomina_pagos")
+        np_cols = [row["Field"] for row in cursor.fetchall()]
+        if "documento_equivalente" not in np_cols:
+            conn.execute("ALTER TABLE nomina_pagos ADD COLUMN documento_equivalente VARCHAR(255) DEFAULT NULL")
+
+        cursor.execute("DESCRIBE nomina_empleados")
+        ne_cols = [row["Field"] for row in cursor.fetchall()]
+        if "pago_realizado" not in ne_cols:
+            conn.execute("ALTER TABLE nomina_empleados ADD COLUMN pago_realizado INTEGER DEFAULT 0")
+        if "fecha_pago" not in ne_cols:
+            conn.execute("ALTER TABLE nomina_empleados ADD COLUMN fecha_pago DATETIME DEFAULT NULL")
+        if "usuario_pago" not in ne_cols:
+            conn.execute("ALTER TABLE nomina_empleados ADD COLUMN usuario_pago VARCHAR(255) DEFAULT NULL")
+        if "documento_equivalente" not in ne_cols:
+            conn.execute("ALTER TABLE nomina_empleados ADD COLUMN documento_equivalente VARCHAR(255) DEFAULT NULL")
+    except Exception as e:
+        print("Error migrando nomina_pagos/nomina_empleados:", e)
+
     conn.commit()
 
     # Pasar a la BD las imágenes que aún estén solo en disco (static/uploads)
