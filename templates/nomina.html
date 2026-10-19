@@ -285,7 +285,7 @@
                     <tr>
                         <td>
                             <div style="font-weight: 500;">{{ archivo.fecha_subida.strftime('%Y-%m-%d') if archivo.fecha_subida else '' }}</div>
-                            <div style="font-size: 0.85rem; color: var(--text-muted);">{{ archivo.fecha_subida.strftime('%H:%M') if archivo.fecha_subida else '' }}</div>
+                            <div style="font-size: 0.85rem; color: var(--text-muted);">{{ archivo.fecha_subida.strftime('%I:%M %p') if archivo.fecha_subida else '' }}</div>
                         </td>
                         <td>
                             <div style="display: flex; align-items: center; gap: 0.5rem;">
