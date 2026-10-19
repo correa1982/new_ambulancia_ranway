@@ -1581,6 +1581,18 @@ def init_db():
             conn.execute("ALTER TABLE usuarios ADD COLUMN fecha_validez DATE DEFAULT NULL")
         if "permiso_programacion_operativa" not in usuarios_cols:
             conn.execute("ALTER TABLE usuarios ADD COLUMN permiso_programacion_operativa TINYINT(1) DEFAULT 0")
+        if "permiso_verificacion_pagos" not in usuarios_cols:
+            conn.execute("ALTER TABLE usuarios ADD COLUMN permiso_verificacion_pagos TINYINT(1) DEFAULT 0")
+            try:
+                cur2 = conn.cursor()
+                cur2.execute("SELECT id, formularios_acceso FROM usuarios")
+                for u_row in cur2.fetchall():
+                    fa = u_row.get("formularios_acceso")
+                    if fa and '"pagos"' in str(fa):
+                        conn.execute("UPDATE usuarios SET permiso_verificacion_pagos = 1 WHERE id = ?", (u_row["id"],))
+                conn.commit()
+            except Exception as e_mig:
+                print("Error migrando permiso_verificacion_pagos:", e_mig)
     except Exception as e:
         print("Error al migrar la tabla usuarios:", e)
 
@@ -1856,6 +1868,15 @@ def init_db():
             conn.execute("ALTER TABLE nomina_empleados ADD COLUMN documento_equivalente VARCHAR(255) DEFAULT NULL")
     except Exception as e:
         print("Error migrando nomina_pagos/nomina_empleados:", e)
+
+    # Migración de zona horaria para registros históricos de nómina (de UTC a Hora Colombia)
+    try:
+        mig_tz = conn.execute("SELECT valor FROM configuracion WHERE clave = 'migracion_nomina_tz_bogota'").fetchone()
+        if not mig_tz:
+            conn.execute("UPDATE nomina SET fecha_subida = DATE_SUB(fecha_subida, INTERVAL 5 HOUR)")
+            conn.execute("INSERT INTO configuracion (clave, valor) VALUES ('migracion_nomina_tz_bogota', '1') ON DUPLICATE KEY UPDATE valor = '1'")
+    except Exception as e:
+        print("Error en migración de zona horaria nómina:", e)
 
     conn.commit()
     conn.close()

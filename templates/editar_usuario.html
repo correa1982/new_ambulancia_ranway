@@ -45,13 +45,21 @@
                 <label>Fecha de Validez</label>
                 <input onclick="this.showPicker()" type="date" name="fecha_validez" value="{{ user.fecha_validez or '' }}" placeholder="Sin límite">
             </div>
-            {% if session.usuario.get('id')|string == '1' or (session.usuario.get('rol') == 'admin' and session.usuario.get('permiso_programacion_operativa')) %}
+            {% if session.usuario.get('rol') == 'admin' or session.usuario.get('rol_real') == 'admin' or session.usuario.get('id')|string == '1' %}
             <div>
-                <label style="color:#6366f1;">Permiso Especial</label>
-                <label style="display:flex; align-items:center; gap:5px; margin-top:8px; cursor:pointer;">
-                    <input type="checkbox" name="permiso_programacion_operativa" {% if user.permiso_programacion_operativa %}checked{% endif %}> 
-                    <span>Programación Operativa</span>
-                </label>
+                <label style="color:#4f46e5; font-weight: 700;">Permisos Especiales</label>
+                <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px;">
+                    {% if session.usuario.get('id')|string == '1' or (session.usuario.get('rol') == 'admin' and session.usuario.get('permiso_programacion_operativa')) %}
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer; font-size:13px; color:#334155;">
+                        <input type="checkbox" name="permiso_programacion_operativa" {% if user.permiso_programacion_operativa %}checked{% endif %}> 
+                        <span>📅 Programación Operativa</span>
+                    </label>
+                    {% endif %}
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer; font-size:13px; color:#334155;">
+                        <input type="checkbox" name="permiso_verificacion_pagos" {% if user.permiso_verificacion_pagos %}checked{% endif %}> 
+                        <span>💳 Verificación de Pagos</span>
+                    </label>
+                </div>
             </div>
             {% endif %}
         </div>
@@ -170,7 +178,6 @@
                         {% endif %}
                         {% if session.usuario.get('rol_real') == 'admin' and p != 'Administrador' %}
                         <label class="perm-toggle"><input type="checkbox" name="formularios_acceso_{{ p }}" value="nomina" {% if 'nomina' in current_p_forms %}checked{% endif %}><span class="perm-label"><span class="perm-icon">💵</span>Gestión de Honorarios</span></label>
-                        <label class="perm-toggle"><input type="checkbox" name="formularios_acceso_{{ p }}" value="pagos" {% if 'pagos' in current_p_forms %}checked{% endif %}><span class="perm-label"><span class="perm-icon">💳</span>Verificación de Pagos</span></label>
                         {% endif %}
                     </div>
                 </div>
