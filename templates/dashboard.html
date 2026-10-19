@@ -401,7 +401,7 @@ document.addEventListener("DOMContentLoaded", function() {
 </div>
 {% endif %}
 
-{% set has_financiera = session.usuario.rol == 'admin' or session.usuario.get('rol_real') == 'admin' or 'nomina' in session.usuario.get('formularios_acceso', []) or 'pagos' in session.usuario.get('formularios_acceso', []) %}
+{% set has_financiera = session.usuario.rol == 'admin' or session.usuario.get('rol_real') == 'admin' or 'nomina' in session.usuario.get('formularios_acceso', []) or session.usuario.get('permiso_verificacion_pagos') or 'pagos' in session.usuario.get('formularios_acceso', []) %}
 {% if has_financiera %}
 <div class="section-title">Gestión Financiera</div>
 <div class="dashboard-grid">
@@ -413,7 +413,7 @@ document.addEventListener("DOMContentLoaded", function() {
     </a>
     {% endif %}
 
-    {% if session.usuario.get('rol_real') == 'admin' or 'nomina' in session.usuario.get('formularios_acceso', []) or 'pagos' in session.usuario.get('formularios_acceso', []) %}
+    {% if session.usuario.get('rol_real') == 'admin' or session.usuario.rol == 'admin' or session.usuario.get('permiso_verificacion_pagos') or 'pagos' in session.usuario.get('formularios_acceso', []) %}
     <a href="{{ url_for('nomina.nomina_pagos') }}" class="dash-card" style="border-color: #a7f3d0; background: linear-gradient(135deg, #f0fdf4, #ecfdf5);">
         <div class="card-icon" style="background: #d1fae5;"><i class="ph ph-check-square-offset" style="color: #059669;"></i></div>
         <div class="card-title" style="color: #065f46;">Verificación de Pagos</div>

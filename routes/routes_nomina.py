@@ -4,7 +4,7 @@ from datetime import datetime, date
 from flask import Blueprint, request, jsonify, render_template, current_app, send_from_directory, flash, redirect, url_for
 from werkzeug.utils import secure_filename
 from db import get_db
-from utils import login_required, get_user_info, validar_upload_excel
+from utils import login_required, get_user_info, validar_upload_excel, ahora
 
 def register_routes(app):
     nomina_bp = Blueprint('nomina', __name__)
@@ -74,11 +74,12 @@ def register_routes(app):
                 user_info = session['usuario']
                 conn = get_db()
                 try:
+                    now_bogota = ahora().replace(tzinfo=None)
                     cursor = conn.execute("""
                         INSERT INTO nomina (fecha_subida, nombre_archivo, archivo_url, registrado_por, registrado_por_identificacion)
                         VALUES (?, ?, ?, ?, ?)
                     """, (
-                        datetime.now(),
+                        now_bogota,
                         original_filename,
                         unique_filename,
                         user_info['nombre'],
@@ -357,12 +358,7 @@ def register_routes(app):
             return 0.0
 
     def _get_bogota_now():
-        try:
-            import zoneinfo
-            return datetime.now(zoneinfo.ZoneInfo("America/Bogota"))
-        except Exception:
-            from datetime import timezone, timedelta
-            return datetime.now(timezone(timedelta(hours=-5)))
+        return ahora()
 
     def _calcular_alertas(conn, nomina_id, es_admin=False):
         cursor_all = conn.execute("""
@@ -447,7 +443,14 @@ def register_routes(app):
     def nomina_pagos():
         from flask import session
         user_info = session['usuario']
-        if user_info.get('rol_real') != 'admin' and 'nomina' not in user_info.get('formularios_acceso', []) and 'pagos' not in user_info.get('formularios_acceso', []):
+        tiene_acceso_pagos = (
+            user_info.get('rol_real') == 'admin' or
+            user_info.get('rol') == 'admin' or
+            bool(user_info.get('permiso_verificacion_pagos')) or
+            'nomina' in user_info.get('formularios_acceso', []) or
+            'pagos' in user_info.get('formularios_acceso', [])
+        )
+        if not tiene_acceso_pagos:
             flash('Acceso no autorizado al módulo de verificación de pagos.', 'error')
             return redirect(url_for('dashboard'))
 
@@ -559,7 +562,14 @@ def register_routes(app):
     def nomina_guardar_pago():
         from flask import session
         user_info = session['usuario']
-        if user_info.get('rol_real') != 'admin' and 'nomina' not in user_info.get('formularios_acceso', []) and 'pagos' not in user_info.get('formularios_acceso', []):
+        tiene_acceso_pagos = (
+            user_info.get('rol_real') == 'admin' or
+            user_info.get('rol') == 'admin' or
+            bool(user_info.get('permiso_verificacion_pagos')) or
+            'nomina' in user_info.get('formularios_acceso', []) or
+            'pagos' in user_info.get('formularios_acceso', [])
+        )
+        if not tiene_acceso_pagos:
             if request.is_json:
                 return jsonify({'success': False, 'message': 'Acceso no autorizado'}), 403
             flash('Acceso no autorizado.', 'error')
