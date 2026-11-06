@@ -1,0 +1,672 @@
+{% extends "base.html" %}
+
+{% block title %}Nómina Empleados - {{ institucion.nombre_institucion }}{% endblock %}
+
+{% block content %}
+<style>
+    .ne-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 1.5rem 1rem 3.5rem;
+    }
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.75rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    .page-header-title {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    .page-header-title h1 {
+        font-size: 1.85rem;
+        font-weight: 800;
+        color: #1e3a5f;
+        margin: 0;
+    }
+    .page-header-title p {
+        color: #64748b;
+        font-size: 0.95rem;
+        margin: 0.25rem 0 0;
+    }
+    .header-actions {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+    .btn-action {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.55rem 1rem;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-decoration: none;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .btn-action.back {
+        background: white;
+        border: 1px solid #cbd5e1;
+        color: #475569;
+    }
+    .btn-action.back:hover { background: #f8fafc; border-color: #94a3b8; }
+    .btn-action.param {
+        background: linear-gradient(135deg, #2563eb, #1d4ed8);
+        border: none;
+        color: white;
+        box-shadow: 0 4px 10px rgba(37,99,235,0.25);
+    }
+    .btn-action.param:hover { background: linear-gradient(135deg, #1d4ed8, #1e40af); transform: translateY(-1px); }
+
+    /* KPI Grid */
+    .kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    .kpi-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.25rem;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    .kpi-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        flex-shrink: 0;
+    }
+    .kpi-info h3 {
+        margin: 0;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #64748b;
+        font-weight: 700;
+    }
+    .kpi-info .kpi-value {
+        margin: 0.25rem 0 0;
+        font-size: 1.35rem;
+        font-weight: 800;
+        color: #0f172a;
+    }
+    .kpi-info .kpi-sub {
+        font-size: 0.75rem;
+        color: #94a3b8;
+        margin-top: 0.15rem;
+    }
+
+    /* Filter Bar */
+    .filter-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1rem 1.25rem;
+        border: 1px solid #e2e8f0;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    .period-selector {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+    }
+    .period-selector label {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: #334155;
+    }
+    .period-selector select {
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        border: 1.5px solid #cbd5e1;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #1e3a5f;
+        background: #f8fafc;
+        cursor: pointer;
+    }
+    .search-box {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        position: relative;
+        min-width: 280px;
+    }
+    .search-box input {
+        width: 100%;
+        padding: 0.5rem 1rem 0.5rem 2.2rem;
+        border-radius: 8px;
+        border: 1.5px solid #cbd5e1;
+        font-size: 0.85rem;
+        box-sizing: border-box;
+    }
+    .search-box i {
+        position: absolute;
+        left: 0.75rem;
+        color: #94a3b8;
+        font-size: 16px;
+    }
+
+    /* Table */
+    .table-card {
+        background: white;
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+        overflow: hidden;
+    }
+    .ne-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+    }
+    .ne-table th {
+        background: #f8fafc;
+        padding: 0.85rem 1rem;
+        text-align: left;
+        font-weight: 700;
+        color: #475569;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        border-bottom: 1.5px solid #e2e8f0;
+    }
+    .ne-table td {
+        padding: 0.9rem 1rem;
+        border-bottom: 1px solid #f1f5f9;
+        color: #334155;
+        vertical-align: middle;
+    }
+    .ne-table tr:hover { background: #fbfdff; }
+    
+    .badge-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+    .badge-status.pagado {
+        background: #dcfce7;
+        color: #166534;
+        border: 1px solid #bbf7d0;
+    }
+    .badge-status.pendiente {
+        background: #fef9c3;
+        color: #854d0e;
+        border: 1px solid #fef08a;
+    }
+
+    .btn-pay {
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        box-shadow: 0 2px 4px rgba(16,185,129,0.2);
+        transition: all 0.15s;
+    }
+    .btn-pay:hover { background: linear-gradient(135deg, #059669, #047857); transform: translateY(-1px); }
+
+    .btn-unpay {
+        background: #f1f5f9;
+        color: #64748b;
+        border: 1px solid #cbd5e1;
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+    }
+    .btn-unpay:hover { background: #fee2e2; color: #dc2626; border-color: #fca5a5; }
+
+    .btn-edit-val {
+        background: #f8fafc;
+        color: #475569;
+        border: 1px solid #cbd5e1;
+        border-radius: 6px;
+        padding: 2px 6px;
+        cursor: pointer;
+        font-size: 13px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.15s ease;
+    }
+    .btn-edit-val:hover {
+        background: #dbeafe;
+        color: #1d4ed8;
+        border-color: #93c5fd;
+        transform: scale(1.08);
+    }
+
+    .btn-edit-pay {
+        background: #eff6ff;
+        color: #1d4ed8;
+        border: 1px solid #bfdbfe;
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        transition: all 0.15s;
+    }
+    .btn-edit-pay:hover {
+        background: #dbeafe;
+        border-color: #93c5fd;
+        transform: translateY(-1px);
+    }
+</style>
+
+<div class="ne-container">
+    <div class="page-header">
+        <div class="page-header-title">
+            <div style="width: 48px; height: 48px; background: #dbeafe; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 26px; color: #2563eb;">
+                <i class="ph ph-identification-badge"></i>
+            </div>
+            <div>
+                <h1>Nómina Empleados</h1>
+                <p>Control, registro y verificación de pagos mensuales a empleados de planta.</p>
+            </div>
+        </div>
+        <div class="header-actions">
+            <a href="{{ url_for('dashboard') }}" class="btn-action back">
+                <i class="ph ph-arrow-left"></i> Volver al Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- KPIs -->
+    <div class="kpi-grid">
+        <div class="kpi-card">
+            <div class="kpi-icon" style="background: #eff6ff; color: #2563eb;">
+                <i class="ph ph-users-three"></i>
+            </div>
+            <div class="kpi-info">
+                <h3>Total Empleados</h3>
+                <div class="kpi-value">{{ kpis.total_empleados }}</div>
+                <div class="kpi-sub">Parametrizados activos</div>
+            </div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-icon" style="background: #f8fafc; color: #475569;">
+                <i class="ph ph-money"></i>
+            </div>
+            <div class="kpi-info">
+                <h3>Valor Total Nómina</h3>
+                <div class="kpi-value" style="color: #1e3a5f;">{{ kpis.valor_total_fmt }}</div>
+                <div class="kpi-sub">Total presupuestado mes</div>
+            </div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-icon" style="background: #f0fdf4; color: #16a34a;">
+                <i class="ph ph-check-circle"></i>
+            </div>
+            <div class="kpi-info">
+                <h3>Total Pagado</h3>
+                <div class="kpi-value" style="color: #16a34a;">{{ kpis.valor_pagado_fmt }}</div>
+                <div class="kpi-sub">{{ kpis.total_pagados }} empleado(s) pagado(s)</div>
+            </div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-icon" style="background: #fffbeb; color: #d97706;">
+                <i class="ph ph-clock-countdown"></i>
+            </div>
+            <div class="kpi-info">
+                <h3>Total Pendiente</h3>
+                <div class="kpi-value" style="color: #b45309;">{{ kpis.valor_pendiente_fmt }}</div>
+                <div class="kpi-sub">{{ kpis.total_pendientes }} empleado(s) por pagar</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="filter-card">
+        <form method="GET" action="{{ url_for('nomina.nomina_empleados') }}" id="form-periodo" class="period-selector">
+            <label for="select-periodo"><i class="ph ph-calendar-blank"></i> Periodo:</label>
+            <select name="periodo" id="select-periodo" onchange="document.getElementById('form-periodo').submit();">
+                {% for p in periodos_disponibles %}
+                <option value="{{ p.codigo }}" {% if p.codigo == periodo_seleccionado %}selected{% endif %}>
+                    {{ p.etiqueta }}
+                </option>
+                {% endfor %}
+            </select>
+        </form>
+
+        <div class="search-box">
+            <i class="ph ph-magnifying-glass"></i>
+            <input type="text" id="filtro-busqueda" placeholder="Buscar por documento o nombre..." onkeyup="filtrarTabla();">
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-card">
+        {% if empleados|length > 0 %}
+        <div style="overflow-x: auto;">
+            <table class="ne-table" id="tabla-empleados">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Documento</th>
+                        <th>Nombre Completo</th>
+                        <th>Valor a Pagar</th>
+                        <th>Estado</th>
+                        <th>Fecha de Pago</th>
+                        <th>Documento Soporte</th>
+                        <th style="text-align: center;">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for e in empleados %}
+                    <tr class="fila-empleado" data-doc="{{ e.documento_identidad|lower }}" data-nombre="{{ e.nombre_completo|lower }}">
+                        <td style="color: #94a3b8; font-weight: 600;">{{ loop.index }}</td>
+                        <td style="font-weight: 700; color: #1e3a5f;">{{ e.documento_identidad }}</td>
+                        <td style="font-weight: 600; color: #1e293b;">{{ e.nombre_completo }}</td>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span style="font-weight: 700; color: #059669; font-family: monospace; font-size: 0.92rem;">
+                                    {{ e.valor_pago_fmt }}
+                                </span>
+                                <button type="button" class="btn-edit-val" onclick="editarValorModal({{ e.id }}, '{{ e.nombre_completo|e }}', {{ e.valor_pago }})" title="Modificar valor a pagar">
+                                    <i class="ph ph-pencil-simple"></i>
+                                </button>
+                            </div>
+                        </td>
+                        <td>
+                            {% if e.pago_realizado %}
+                            <span class="badge-status pagado">
+                                <i class="ph ph-check"></i> Pagado
+                            </span>
+                            {% else %}
+                            <span class="badge-status pendiente">
+                                <i class="ph ph-hourglass"></i> Pendiente
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if e.fecha_pago %}
+                            <span style="font-size: 0.85rem; font-weight: 600; color: #475569;">
+                                {{ e.fecha_pago }}
+                            </span>
+                            {% if e.registrado_por %}
+                            <div style="font-size: 0.72rem; color: #94a3b8;">por {{ e.registrado_por }}</div>
+                            {% endif %}
+                            {% else %}
+                            <span style="color: #cbd5e1;">—</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if e.documento_soporte %}
+                            <span style="font-size: 0.82rem; font-weight: 600; background: #f1f5f9; padding: 2px 6px; border-radius: 4px; color: #334155;">
+                                {{ e.documento_soporte }}
+                            </span>
+                            {% if e.observaciones %}
+                            <div style="font-size: 0.72rem; color: #64748b; font-style: italic;" title="{{ e.observaciones }}">{{ e.observaciones }}</div>
+                            {% endif %}
+                            {% else %}
+                            <span style="color: #cbd5e1;">—</span>
+                            {% endif %}
+                        </td>
+                        <td style="text-align: center;">
+                            {% if not e.pago_realizado %}
+                            <button type="button" class="btn-pay" onclick="registrarPagoModal({{ e.id }}, '{{ e.documento_identidad|e }}', '{{ e.nombre_completo|e }}', {{ e.valor_pago }})">
+                                <i class="ph ph-check"></i> Registrar Pago
+                            </button>
+                            {% else %}
+                            <div style="display: flex; gap: 6px; justify-content: center; align-items: center;">
+                                <button type="button" class="btn-edit-pay" onclick="editarValorModal({{ e.id }}, '{{ e.nombre_completo|e }}', {{ e.valor_pago }})" title="Modificar valor de este mes">
+                                    <i class="ph ph-pencil-simple"></i> Editar Valor
+                                </button>
+                                <button type="button" class="btn-unpay" onclick="anularPago({{ e.pago_id }}, '{{ e.nombre_completo|e }}')" title="Desmarcar pago y volver a estado pendiente">
+                                    <i class="ph ph-arrow-counter-clockwise"></i> Anular
+                                </button>
+                            </div>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div style="text-align: center; padding: 50px 20px; color: #94a3b8;">
+            <div style="font-size: 48px; margin-bottom: 12px; opacity: 0.4;">👥</div>
+            <h3 style="margin: 0; color: #64748b; font-size: 16px;">No hay empleados parametrizados</h3>
+            <p style="margin: 6px 0 0; font-size: 13px;">Los empleados deben ser parametrizados previamente desde el módulo de <strong>Gestión de Ítems</strong>.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function filtrarTabla() {
+    const q = document.getElementById('filtro-busqueda').value.toLowerCase().trim();
+    const filas = document.querySelectorAll('.fila-empleado');
+    filas.forEach(f => {
+        const doc = f.getAttribute('data-doc') || '';
+        const nom = f.getAttribute('data-nombre') || '';
+        if (doc.includes(q) || nom.includes(q)) {
+            f.style.display = '';
+        } else {
+            f.style.display = 'none';
+        }
+    });
+}
+
+function registrarPagoModal(itemId, doc, nombre, valorNum) {
+    const ahoraStr = new Date().toISOString().slice(0, 16);
+    Swal.fire({
+        title: 'Registrar Pago de Nómina',
+        html: `
+            <div style="text-align: left; font-size: 13px; font-family: inherit;">
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; margin-bottom: 14px;">
+                    <div style="color: #64748b; font-size: 11px; text-transform: uppercase; font-weight: 700;">Empleado</div>
+                    <div style="font-size: 15px; font-weight: 700; color: #1e3a5f; margin: 2px 0;">${nombre}</div>
+                    <div style="color: #475569;">Doc: <strong>${doc}</strong> &bull; Periodo: <strong>{{ periodo_seleccionado }}</strong></div>
+                </div>
+
+                <div style="margin-bottom: 12px;">
+                    <label style="font-weight: 700; color: #334155; display: block; margin-bottom: 4px;">Valor a Pagar ($) <span style="color:#ef4444">*</span></label>
+                    <input type="number" step="any" min="0" id="swal-valor-pago" class="swal2-input" style="width: 100%; margin: 0; box-sizing: border-box;" value="${valorNum}">
+                    <small style="color: #64748b; font-size: 11px;">Puede modificar el valor si hubo ajustes para este mes.</small>
+                </div>
+
+                <div style="margin-bottom: 12px;">
+                    <label style="font-weight: 700; color: #334155; display: block; margin-bottom: 4px;">Fecha y Hora de Pago <span style="color:#ef4444">*</span></label>
+                    <input type="datetime-local" id="swal-fecha-pago" class="swal2-input" style="width: 100%; margin: 0; box-sizing: border-box;" value="${ahoraStr}">
+                </div>
+
+                <div style="margin-bottom: 12px;">
+                    <label style="font-weight: 700; color: #334155; display: block; margin-bottom: 4px;">Comprobante / Soporte (Opcional)</label>
+                    <input type="text" id="swal-soporte" class="swal2-input" style="width: 100%; margin: 0; box-sizing: border-box;" placeholder="Ej. Transf. Bancolombia #1234">
+                </div>
+
+                <div>
+                    <label style="font-weight: 700; color: #334155; display: block; margin-bottom: 4px;">Observaciones (Opcional)</label>
+                    <textarea id="swal-obs" class="swal2-textarea" style="width: 100%; margin: 0; box-sizing: border-box; height: 60px;" placeholder="Notas o detalles del pago..."></textarea>
+                </div>
+            </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: 'Confirmar y Guardar Pago',
+        cancelButtonText: 'Cancelar',
+        confirmButtonColor: '#10b981',
+        cancelButtonColor: '#94a3b8',
+        preConfirm: () => {
+            const valor = document.getElementById('swal-valor-pago').value.trim();
+            const fecha = document.getElementById('swal-fecha-pago').value;
+            const soporte = document.getElementById('swal-soporte').value.trim();
+            const obs = document.getElementById('swal-obs').value.trim();
+            if (!valor || isNaN(valor) || parseFloat(valor) < 0) {
+                Swal.showValidationMessage('Ingrese un valor de pago válido');
+                return false;
+            }
+            if (!fecha) {
+                Swal.showValidationMessage('La fecha de pago es obligatoria');
+                return false;
+            }
+            return { valor, fecha, soporte, obs };
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = "{{ url_for('nomina.nomina_empleados_guardar_pago') }}";
+            
+            const fields = {
+                'item_id': itemId,
+                'periodo': "{{ periodo_seleccionado }}",
+                'valor_pago': result.value.valor,
+                'pago_realizado': 1,
+                'fecha_pago': result.value.fecha,
+                'documento_soporte': result.value.soporte,
+                'observaciones': result.value.obs
+            };
+
+            for (const [k, v] of Object.entries(fields)) {
+                const inp = document.createElement('input');
+                inp.type = 'hidden';
+                inp.name = k;
+                inp.value = v;
+                form.appendChild(inp);
+            }
+            document.body.appendChild(form);
+            form.submit();
+        }
+    });
+}
+
+function editarValorModal(itemId, nombre, valorActual) {
+    Swal.fire({
+        title: 'Modificar Valor de Pago',
+        html: `
+            <div style="text-align: left; font-size: 13px; font-family: inherit;">
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; margin-bottom: 14px;">
+                    <div style="color: #64748b; font-size: 11px; text-transform: uppercase; font-weight: 700;">Empleado</div>
+                    <div style="font-size: 15px; font-weight: 700; color: #1e3a5f; margin: 2px 0;">${nombre}</div>
+                    <div style="color: #475569; font-size: 12px;">Periodo seleccionado: <strong>{{ periodo_seleccionado }}</strong></div>
+                </div>
+
+                <div style="margin-bottom: 12px;">
+                    <label style="font-weight: 700; color: #334155; display: block; margin-bottom: 4px;">Valor de Pago ($) <span style="color:#ef4444">*</span></label>
+                    <input type="number" step="any" min="0" id="swal-edit-valor" class="swal2-input" style="width: 100%; margin: 0; box-sizing: border-box;" value="${valorActual}">
+                    <small style="color: #64748b; font-size: 11px;">Este cambio se aplicará a la nómina del periodo actual.</small>
+                </div>
+
+                <div style="margin-top: 8px; background: #eff6ff; padding: 10px; border-radius: 6px; border: 1px solid #bfdbfe;">
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 12px; color: #1e40af; font-weight: 600; margin: 0;">
+                        <input type="checkbox" id="swal-actualizar-base" value="1">
+                        <span>Actualizar también como valor base predeterminado</span>
+                    </label>
+                </div>
+            </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: 'Guardar Valor',
+        cancelButtonText: 'Cancelar',
+        confirmButtonColor: '#2563eb',
+        cancelButtonColor: '#94a3b8',
+        preConfirm: () => {
+            const val = document.getElementById('swal-edit-valor').value.trim();
+            const actBase = document.getElementById('swal-actualizar-base').checked ? '1' : '0';
+            if (!val || isNaN(val) || parseFloat(val) < 0) {
+                Swal.showValidationMessage('Ingrese un valor de pago válido');
+                return false;
+            }
+            return { valor: val, actualizar_base: actBase };
+        }
+    }).then((res) => {
+        if (res.isConfirmed) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = "{{ url_for('nomina.nomina_empleados_actualizar_valor') }}";
+            const fields = {
+                'item_id': itemId,
+                'periodo': "{{ periodo_seleccionado }}",
+                'valor_pago': res.value.valor,
+                'actualizar_base': res.value.actualizar_base
+            };
+            for (const [k, v] of Object.entries(fields)) {
+                const inp = document.createElement('input');
+                inp.type = 'hidden';
+                inp.name = k;
+                inp.value = v;
+                form.appendChild(inp);
+            }
+            document.body.appendChild(form);
+            form.submit();
+        }
+    });
+}
+                inp.name = k;
+                inp.value = v;
+                form.appendChild(inp);
+            }
+            document.body.appendChild(form);
+            form.submit();
+        }
+    });
+}
+
+function anularPago(pagoId, nombre) {
+    Swal.fire({
+        title: '¿Anular Pago?',
+        html: `¿Está seguro de anular el pago registrado para <strong>${nombre}</strong>?<br><small style="color:#64748b;">El estado volverá a <strong>Pendiente</strong>.</small>`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, anular pago',
+        cancelButtonText: 'Cancelar',
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#94a3b8'
+    }).then((res) => {
+        if (res.isConfirmed) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/nomina-empleados/anular-pago/${pagoId}`;
+            const inp = document.createElement('input');
+            inp.type = 'hidden';
+            inp.name = 'periodo';
+            inp.value = "{{ periodo_seleccionado }}";
+            form.appendChild(inp);
+            document.body.appendChild(form);
+            form.submit();
+        }
+    });
+}
+</script>
+{% endblock %}
+

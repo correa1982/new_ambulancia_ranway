@@ -226,7 +226,7 @@ def register_routes(app):
     @admin_required
     def admin_checklists():
         tipo = request.args.get("tipo", "vehiculos")
-        if tipo not in ("tam", "tab", "pasb", "pasm", "preoperacional", "vehiculos", "aseguradoras", "aseguradoras_soat", "equipos", "calif_atencion", "segur_paciente", "avanzada", "archivador"):
+        if tipo not in ("tam", "tab", "pasb", "pasm", "preoperacional", "vehiculos", "aseguradoras", "aseguradoras_soat", "equipos", "calif_atencion", "segur_paciente", "avanzada", "archivador", "nomina_empleados", "pagos_varios"):
             tipo = "tam"
         conn = get_db()
         
@@ -305,6 +305,20 @@ def register_routes(app):
                                    archivador_categorias=categorias_arch,
                                    archivador_formularios_por_cat=formularios_por_cat,
                                    usuario=session["usuario"])
+
+        # When showing nomina_empleados tab
+        if tipo == "nomina_empleados":
+            empleados_list = conn.execute("SELECT * FROM items_nomina_empleados ORDER BY nombre_completo ASC").fetchall()
+            conn.close()
+            return render_template("admin_checklists.html", items=[], categorias=[], tipo=tipo,
+                                   nomina_empleados_todos=empleados_list, usuario=session["usuario"])
+
+        # When showing pagos_varios tab
+        if tipo == "pagos_varios":
+            pagos_varios_list = conn.execute("SELECT * FROM items_pagos_varios ORDER BY nombre_completo ASC").fetchall()
+            conn.close()
+            return render_template("admin_checklists.html", items=[], categorias=[], tipo=tipo,
+                                   pagos_varios_todos=pagos_varios_list, usuario=session["usuario"])
 
         items = conn.execute(
             "SELECT * FROM checklist_items WHERE tipo_checklist = ? ORDER BY categoria, orden ASC, id ASC",
@@ -1225,3 +1239,195 @@ def register_routes(app):
             pass
 
         return jsonify({"success": ok, "message": msg})
+
+    # ── Admin: Nómina Empleados (Parametrización) ───────────────────────────
+    @app.route("/admin/nomina-empleados/agregar", methods=["POST"])
+    @login_required
+    @admin_required
+    def admin_nomina_empleados_agregar():
+        doc = request.form.get("documento_identidad", "").strip()
+        nombre = request.form.get("nombre_completo", "").strip()
+        valor_raw = request.form.get("valor_pago", "").strip().replace("$", "").replace(".", "").replace(",", ".")
+        try:
+            valor = float(valor_raw) if valor_raw else 0.0
+        except ValueError:
+            valor = 0.0
+
+        if not doc or not nombre:
+            flash("Documento de identidad y nombre completo son obligatorios.", "error")
+            return redirect(url_for("admin_checklists", tipo="nomina_empleados"))
+
+        conn = get_db()
+        try:
+            conn.execute(
+                "INSERT INTO items_nomina_empleados (documento_identidad, nombre_completo, valor_pago, activo) VALUES (?, ?, ?, 1)",
+                (doc, nombre, valor)
+            )
+            conn.commit()
+            flash("Empleado parametrizado exitosamente.", "success")
+        except Exception as e:
+            flash(f"Error al registrar empleado: {e}", "error")
+        finally:
+            conn.close()
+
+        return redirect(url_for("admin_checklists", tipo="nomina_empleados"))
+
+    @app.route("/admin/nomina-empleados/editar/<int:item_id>", methods=["POST"])
+    @login_required
+    @admin_required
+    def admin_nomina_empleados_editar(item_id):
+        doc = request.form.get("documento_identidad", "").strip()
+        nombre = request.form.get("nombre_completo", "").strip()
+        valor_raw = request.form.get("valor_pago", "").strip().replace("$", "").replace(".", "").replace(",", ".")
+        try:
+            valor = float(valor_raw) if valor_raw else 0.0
+        except ValueError:
+            valor = 0.0
+
+        if not doc or not nombre:
+            flash("Documento de identidad y nombre completo son obligatorios.", "error")
+            return redirect(url_for("admin_checklists", tipo="nomina_empleados"))
+
+        conn = get_db()
+        try:
+            conn.execute(
+                "UPDATE items_nomina_empleados SET documento_identidad = ?, nombre_completo = ?, valor_pago = ? WHERE id = ?",
+                (doc, nombre, valor, item_id)
+            )
+            conn.commit()
+            flash("Empleado actualizado exitosamente.", "success")
+        except Exception as e:
+            flash(f"Error al actualizar empleado: {e}", "error")
+        finally:
+            conn.close()
+
+        return redirect(url_for("admin_checklists", tipo="nomina_empleados"))
+
+    @app.route("/admin/nomina-empleados/toggle/<int:item_id>")
+    @login_required
+    @admin_required
+    def admin_nomina_empleados_toggle(item_id):
+        conn = get_db()
+        try:
+            row = conn.execute("SELECT activo FROM items_nomina_empleados WHERE id = ?", (item_id,)).fetchone()
+            if row:
+                nuevo = 0 if row["activo"] == 1 else 1
+                conn.execute("UPDATE items_nomina_empleados SET activo = ? WHERE id = ?", (nuevo, item_id))
+                conn.commit()
+                flash("Estado del empleado actualizado.", "success")
+        except Exception as e:
+            flash(f"Error al cambiar estado: {e}", "error")
+        finally:
+            conn.close()
+        return redirect(url_for("admin_checklists", tipo="nomina_empleados"))
+
+    @app.route("/admin/nomina-empleados/eliminar/<int:item_id>")
+    @login_required
+    @admin_required
+    def admin_nomina_empleados_eliminar(item_id):
+        conn = get_db()
+        try:
+            conn.execute("DELETE FROM items_nomina_empleados WHERE id = ?", (item_id,))
+            conn.commit()
+            flash("Empleado eliminado permanentemente.", "success")
+        except Exception as e:
+            flash(f"Error al eliminar empleado: {e}", "error")
+        finally:
+            conn.close()
+        return redirect(url_for("admin_checklists", tipo="nomina_empleados"))
+
+    # ── Admin: Pagos Varios (Parametrización) ────────────────────────────────
+    @app.route("/admin/pagos-varios/agregar", methods=["POST"])
+    @login_required
+    @admin_required
+    def admin_pagos_varios_agregar():
+        doc = request.form.get("documento_identidad", "").strip()
+        nombre = request.form.get("nombre_completo", "").strip()
+        valor_raw = request.form.get("valor_pago", "").strip().replace("$", "").replace(".", "").replace(",", ".")
+        try:
+            valor = float(valor_raw) if valor_raw else 0.0
+        except ValueError:
+            valor = 0.0
+
+        if not doc or not nombre:
+            flash("Documento de identidad y nombre completo son obligatorios.", "error")
+            return redirect(url_for("admin_checklists", tipo="pagos_varios"))
+
+        conn = get_db()
+        try:
+            conn.execute(
+                "INSERT INTO items_pagos_varios (documento_identidad, nombre_completo, valor_pago, activo) VALUES (?, ?, ?, 1)",
+                (doc, nombre, valor)
+            )
+            conn.commit()
+            flash("Pago vario parametrizado exitosamente.", "success")
+        except Exception as e:
+            flash(f"Error al registrar pago vario: {e}", "error")
+        finally:
+            conn.close()
+
+        return redirect(url_for("admin_checklists", tipo="pagos_varios"))
+
+    @app.route("/admin/pagos-varios/editar/<int:item_id>", methods=["POST"])
+    @login_required
+    @admin_required
+    def admin_pagos_varios_editar(item_id):
+        doc = request.form.get("documento_identidad", "").strip()
+        nombre = request.form.get("nombre_completo", "").strip()
+        valor_raw = request.form.get("valor_pago", "").strip().replace("$", "").replace(".", "").replace(",", ".")
+        try:
+            valor = float(valor_raw) if valor_raw else 0.0
+        except ValueError:
+            valor = 0.0
+
+        if not doc or not nombre:
+            flash("Documento de identidad y nombre completo son obligatorios.", "error")
+            return redirect(url_for("admin_checklists", tipo="pagos_varios"))
+
+        conn = get_db()
+        try:
+            conn.execute(
+                "UPDATE items_pagos_varios SET documento_identidad = ?, nombre_completo = ?, valor_pago = ? WHERE id = ?",
+                (doc, nombre, valor, item_id)
+            )
+            conn.commit()
+            flash("Pago vario actualizado exitosamente.", "success")
+        except Exception as e:
+            flash(f"Error al actualizar pago vario: {e}", "error")
+        finally:
+            conn.close()
+
+        return redirect(url_for("admin_checklists", tipo="pagos_varios"))
+
+    @app.route("/admin/pagos-varios/toggle/<int:item_id>")
+    @login_required
+    @admin_required
+    def admin_pagos_varios_toggle(item_id):
+        conn = get_db()
+        try:
+            row = conn.execute("SELECT activo FROM items_pagos_varios WHERE id = ?", (item_id,)).fetchone()
+            if row:
+                nuevo = 0 if row["activo"] == 1 else 1
+                conn.execute("UPDATE items_pagos_varios SET activo = ? WHERE id = ?", (nuevo, item_id))
+                conn.commit()
+                flash("Estado del pago vario actualizado.", "success")
+        except Exception as e:
+            flash(f"Error al cambiar estado: {e}", "error")
+        finally:
+            conn.close()
+        return redirect(url_for("admin_checklists", tipo="pagos_varios"))
+
+    @app.route("/admin/pagos-varios/eliminar/<int:item_id>")
+    @login_required
+    @admin_required
+    def admin_pagos_varios_eliminar(item_id):
+        conn = get_db()
+        try:
+            conn.execute("DELETE FROM items_pagos_varios WHERE id = ?", (item_id,))
+            conn.commit()
+            flash("Pago vario eliminado permanentemente.", "success")
+        except Exception as e:
+            flash(f"Error al eliminar pago vario: {e}", "error")
+        finally:
+            conn.close()
+        return redirect(url_for("admin_checklists", tipo="pagos_varios"))

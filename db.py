@@ -1921,6 +1921,65 @@ def init_db():
     except Exception as e:
         print("Error en migración de zona horaria nómina:", e)
 
+    # Tablas para parametrización y registro de Nómina Empleados y Pagos Varios
+    try:
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS items_nomina_empleados (
+                id INTEGER PRIMARY KEY AUTO_INCREMENT,
+                documento_identidad VARCHAR(50) NOT NULL,
+                nombre_completo VARCHAR(255) NOT NULL,
+                valor_pago DECIMAL(15, 2) NOT NULL DEFAULT 0.00,
+                activo TINYINT(1) DEFAULT 1,
+                fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS items_pagos_varios (
+                id INTEGER PRIMARY KEY AUTO_INCREMENT,
+                documento_identidad VARCHAR(50) NOT NULL,
+                nombre_completo VARCHAR(255) NOT NULL,
+                valor_pago DECIMAL(15, 2) NOT NULL DEFAULT 0.00,
+                activo TINYINT(1) DEFAULT 1,
+                fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS registro_pagos_nomina_empleados (
+                id INTEGER PRIMARY KEY AUTO_INCREMENT,
+                item_id INTEGER NOT NULL,
+                periodo VARCHAR(20) NOT NULL,
+                documento_identidad VARCHAR(50) NOT NULL,
+                nombre_completo VARCHAR(255) NOT NULL,
+                valor_pago DECIMAL(15, 2) NOT NULL DEFAULT 0.00,
+                pago_realizado TINYINT(1) DEFAULT 0,
+                fecha_pago DATETIME DEFAULT NULL,
+                documento_soporte VARCHAR(255) DEFAULT NULL,
+                observaciones TEXT DEFAULT NULL,
+                registrado_por VARCHAR(255) DEFAULT NULL,
+                registrado_por_identificacion VARCHAR(50) DEFAULT NULL,
+                fecha_actualizacion DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS registro_pagos_varios (
+                id INTEGER PRIMARY KEY AUTO_INCREMENT,
+                item_id INTEGER NOT NULL,
+                periodo VARCHAR(20) NOT NULL,
+                documento_identidad VARCHAR(50) NOT NULL,
+                nombre_completo VARCHAR(255) NOT NULL,
+                valor_pago DECIMAL(15, 2) NOT NULL DEFAULT 0.00,
+                pago_realizado TINYINT(1) DEFAULT 0,
+                fecha_pago DATETIME DEFAULT NULL,
+                documento_soporte VARCHAR(255) DEFAULT NULL,
+                observaciones TEXT DEFAULT NULL,
+                registrado_por VARCHAR(255) DEFAULT NULL,
+                registrado_por_identificacion VARCHAR(50) DEFAULT NULL,
+                fecha_actualizacion DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+    except Exception as e:
+        print("Error creando tablas de nómina empleados y pagos varios:", e)
+
     conn.commit()
 
     # Pasar a la BD las imágenes que aún estén solo en disco (static/uploads)
