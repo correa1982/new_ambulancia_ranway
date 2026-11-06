@@ -401,11 +401,11 @@ document.addEventListener("DOMContentLoaded", function() {
 </div>
 {% endif %}
 
-{% set has_financiera = session.usuario.rol == 'admin' or session.usuario.get('rol_real') == 'admin' or 'nomina' in session.usuario.get('formularios_acceso', []) or session.usuario.get('permiso_verificacion_pagos') or 'pagos' in session.usuario.get('formularios_acceso', []) %}
+{% set has_financiera = session.usuario.rol == 'admin' or session.usuario.get('rol_real') == 'admin' or 'nomina' in session.usuario.get('formularios_acceso', []) or session.usuario.get('permiso_verificacion_pagos') or 'pagos' in session.usuario.get('formularios_acceso', []) or has_permiso_formulario(session.usuario.formularios_acceso, 'nomina_empleados') or has_permiso_formulario(session.usuario.formularios_acceso, 'pagos_varios') %}
 {% if has_financiera %}
 <div class="section-title">Gestión Financiera</div>
 <div class="dashboard-grid">
-    {% if session.usuario.get('rol_real') == 'admin' or 'nomina' in session.usuario.get('formularios_acceso', []) %}
+    {% if session.usuario.get('rol_real') == 'admin' or session.usuario.rol == 'admin' or 'nomina' in session.usuario.get('formularios_acceso', []) %}
     <a href="{{ url_for('nomina.nomina_index') }}" class="dash-card" style="border-color: #e2e8f0;">
         <div class="card-icon" style="background: #dcfce7;"><i class="ph ph-money" style="color: #16a34a;"></i></div>
         <div class="card-title">Gestión de Honorarios</div>
@@ -418,6 +418,22 @@ document.addEventListener("DOMContentLoaded", function() {
         <div class="card-icon" style="background: #d1fae5;"><i class="ph ph-check-square-offset" style="color: #059669;"></i></div>
         <div class="card-title" style="color: #065f46;">Verificación de Pagos</div>
         <div class="card-desc">Consultar cuentas de cobro por cédula y registrar la fecha/hora de pago.</div>
+    </a>
+    {% endif %}
+
+    {% if has_permiso_formulario(session.usuario.formularios_acceso, 'nomina_empleados') or session.usuario.get('id')|string == '1' %}
+    <a href="{{ url_for('nomina.nomina_empleados') }}" class="dash-card" style="border-color: #bfdbfe; background: linear-gradient(135deg, #eff6ff, #f8fafc);">
+        <div class="card-icon" style="background: #dbeafe;"><i class="ph ph-identification-badge" style="color: #2563eb;"></i></div>
+        <div class="card-title" style="color: #1e3a5f;">Nomina Empleados</div>
+        <div class="card-desc">Control, registro y verificación de pagos mensuales a empleados de planta.</div>
+    </a>
+    {% endif %}
+
+    {% if has_permiso_formulario(session.usuario.formularios_acceso, 'pagos_varios') or session.usuario.get('id')|string == '1' %}
+    <a href="{{ url_for('nomina.pagos_varios') }}" class="dash-card" style="border-color: #e9d5ff; background: linear-gradient(135deg, #faf5ff, #f8fafc);">
+        <div class="card-icon" style="background: #f3e8ff;"><i class="ph ph-wallet" style="color: #7e22ce;"></i></div>
+        <div class="card-title" style="color: #581c87;">Pagos Varios</div>
+        <div class="card-desc">Control, registro y verificación de pagos varios y proveedores de planta.</div>
     </a>
     {% endif %}
 </div>

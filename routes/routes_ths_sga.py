@@ -183,7 +183,8 @@ def register_routes(app):
                 conn.close()
                 flash("Registro eliminado exitosamente.", "success")
             except Exception as e:
-                flash(f"Error al eliminar: {e}", "error")
+                print("ERROR:", repr(e))
+                flash(f"Error al eliminar.", "error")
         
         return redirect(url_for("admin_ths_sga"))
 

@@ -6,7 +6,9 @@ import unicodedata
 from datetime import datetime, date
 from flask import render_template, request, redirect, url_for, session, flash, jsonify
 from db import get_db
-from utils import login_required, admin_required, calcular_edad, get_user_info, hoy, validar_upload_excel
+from utils import login_required, admin_required, calcular_edad, get_user_info, hoy, LimitadorIntentos, validar_upload_excel
+import secrets
+import string
 from itsdangerous import URLSafeSerializer, BadSignature
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -36,6 +38,29 @@ def _limpiar_fallos_login(clave):
     with _login_lock:
         _login_failures.pop(clave, None)
 
+# Limites adicionales: por identificacion (sin importar la IP) y para recuperacion
+_limite_login_ident = LimitadorIntentos(20, 900)
+_limite_recuperar_ident = LimitadorIntentos(3, 3600)
+_limite_recuperar_ip = LimitadorIntentos(10, 3600)
+_LONGITUD_MINIMA_CLAVE = 8
+_TEMP_CLAVE_MINUTOS = 30
+_MSG_CREDENCIALES = "Credenciales incorrectas."
+
+
+def _generar_clave_temporal(longitud=10):
+    alfabeto = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789"
+    return "".join(secrets.choice(alfabeto) for _ in range(longitud))
+
+
+def _asegurar_columnas_clave_temporal(conn):
+    for col, tipo in (("contrasena_temporal", "VARCHAR(255) NULL"), ("contrasena_temporal_expira", "DATETIME NULL")):
+        try:
+            conn.execute(f"ALTER TABLE usuarios ADD COLUMN {col} {tipo}")
+            conn.commit()
+        except Exception:
+            pass
+
+
 def register_routes(app):
     @app.route("/", methods=["GET", "POST"])
     def login():
@@ -51,7 +76,7 @@ def register_routes(app):
                 return render_template("login.html")
 
             clave_intentos = f"{request.remote_addr}:{identificacion}"
-            if _login_bloqueado(clave_intentos):
+            if _login_bloqueado(clave_intentos) or _limite_login_ident.bloqueado(identificacion):
                 flash("Demasiados intentos fallidos. Espere unos minutos e intente de nuevo.", "error")
                 return render_template("login.html")
 
@@ -60,12 +85,34 @@ def register_routes(app):
                 "SELECT * FROM usuarios WHERE identificacion = ?", (identificacion,)
             ).fetchone()
 
+            uso_clave_temporal = False
             if user:
-                if not check_password_hash(user["contrasena"], contrasena):
+                clave_ok = check_password_hash(user["contrasena"], contrasena)
+                if not clave_ok and user.get("contrasena_temporal") and user.get("contrasena_temporal_expira"):
+                    expira = user["contrasena_temporal_expira"]
+                    if isinstance(expira, str):
+                        try:
+                            expira = datetime.strptime(expira[:19], "%Y-%m-%d %H:%M:%S")
+                        except ValueError:
+                            expira = None
+                    if expira and datetime.now() <= expira and check_password_hash(user["contrasena_temporal"], contrasena):
+                        clave_ok = True
+                        uso_clave_temporal = True
+                if not clave_ok:
                     _registrar_fallo_login(clave_intentos)
-                    flash("Credenciales incorrectas.", "error")
+                    _limite_login_ident.registrar(identificacion)
+                    flash(_MSG_CREDENCIALES, "error")
                     conn.close()
                     return render_template("login.html")
+                if uso_clave_temporal:
+                    # La clave temporal pasa a ser la definitiva hasta el cambio obligatorio
+                    conn.execute(
+                        "UPDATE usuarios SET contrasena = contrasena_temporal, contrasena_temporal = NULL, "
+                        "contrasena_temporal_expira = NULL, requiere_cambio_clave = 1 WHERE id = ?",
+                        (user["id"],)
+                    )
+                    conn.commit()
+                    user["requiere_cambio_clave"] = 1
                 
                 if not user["activo"]:
                     flash("Su usuario se encuentra deshabilitado. Por favor contacte al administrador.", "error")
@@ -88,13 +135,18 @@ def register_routes(app):
                             conn.close()
                             return render_template("login.html")
             else:
+                # Mismo mensaje y mismo costo que una clave incorrecta: no revela si la identificacion existe
+                check_password_hash(generate_password_hash("x"), contrasena)
                 _registrar_fallo_login(clave_intentos)
-                flash("Usuario no registrado. Comuníquese con el administrador para registrarse.", "error")
+                _limite_login_ident.registrar(identificacion)
+                flash(_MSG_CREDENCIALES, "error")
                 conn.close()
                 return render_template("login.html")
 
             conn.close()
             _limpiar_fallos_login(clave_intentos)
+            _limite_login_ident.limpiar(identificacion)
+            session.clear()
 
             try:
                 formularios_acceso_raw = user["formularios_acceso"]
@@ -158,7 +210,7 @@ def register_routes(app):
                 "formularios_acceso": formularios_acceso_list,
                 "permiso_ths_sga": user.get("permiso_ths_sga"),
                 "permiso_programacion_operativa": user.get("permiso_programacion_operativa"),
-                "permiso_verificacion_pagos": user.get("permiso_verificacion_pagos")
+                "permiso_verificacion_pagos": 1 if ('pagos' in formularios_acceso_list or user.get("permiso_verificacion_pagos")) else 0
             }
             session.permanent = True
             
@@ -214,7 +266,7 @@ def register_routes(app):
                 "formularios_acceso": formularios_acceso_list,
                 "permiso_ths_sga": pendiente.get("permiso_ths_sga"),
                 "permiso_programacion_operativa": pendiente.get("permiso_programacion_operativa"),
-                "permiso_verificacion_pagos": pendiente.get("permiso_verificacion_pagos"),
+                "permiso_verificacion_pagos": 1 if ('pagos' in formularios_acceso_list or pendiente.get("permiso_verificacion_pagos")) else 0,
             }
             session.permanent = True
             # Clean up temp data
@@ -347,11 +399,16 @@ def register_routes(app):
             return redirect(url_for("login"))
             
         if request.method == "POST":
-            nueva_clave = request.form["nueva_clave"].strip()
-            confirmacion = request.form["confirmacion"].strip()
+            clave_actual = request.form.get("clave_actual", "").strip()
+            nueva_clave = request.form.get("nueva_clave", "").strip()
+            confirmacion = request.form.get("confirmacion", "").strip()
 
-            if not nueva_clave or not confirmacion:
+            if not clave_actual or not nueva_clave or not confirmacion:
                 flash("Todos los campos son obligatorios.", "error")
+                return render_template("cambiar_contrasena.html")
+
+            if len(nueva_clave) < _LONGITUD_MINIMA_CLAVE:
+                flash(f"La nueva contraseña debe tener al menos {_LONGITUD_MINIMA_CLAVE} caracteres.", "error")
                 return render_template("cambiar_contrasena.html")
 
             if nueva_clave != confirmacion:
@@ -367,7 +424,17 @@ def register_routes(app):
                 flash("La contraseña debe tener al menos 8 caracteres e incluir letras y números.", "error")
                 return render_template("cambiar_contrasena.html")
 
+            if nueva_clave == clave_actual:
+                flash("La nueva contraseña debe ser diferente a la actual.", "error")
+                return render_template("cambiar_contrasena.html")
+
             conn = get_db()
+            actual = conn.execute("SELECT contrasena FROM usuarios WHERE identificacion = ?", (identificacion,)).fetchone()
+            if not actual or not check_password_hash(actual["contrasena"], clave_actual):
+                conn.close()
+                flash("La contraseña actual no es correcta.", "error")
+                return render_template("cambiar_contrasena.html")
+
             hashed_clave = generate_password_hash(nueva_clave)
             conn.execute(
                 "UPDATE usuarios SET contrasena = ?, requiere_cambio_clave = 0 WHERE identificacion = ?",
@@ -377,6 +444,7 @@ def register_routes(app):
             conn.close()
 
             session["usuario"]["requiere_cambio_clave"] = 0
+            session.modified = True
             flash("Contraseña actualizada exitosamente.", "success")
             return redirect(url_for("dashboard"))
 
@@ -387,29 +455,39 @@ def register_routes(app):
     def recuperar_contrasena():
         if request.method == "POST":
             identificacion = request.form.get("identificacion", "").strip()
+            msg_generico = "Si la identificación existe en nuestro sistema, se han enviado las instrucciones al correo registrado."
+            ip = request.remote_addr or "?"
             if not identificacion:
                 flash("Debe ingresar su identificación.", "error")
+            elif _limite_recuperar_ip.bloqueado(ip) or _limite_recuperar_ident.bloqueado(identificacion):
+                # Demasiadas solicitudes: se responde igual, sin generar ni enviar nada
+                flash(msg_generico, "success")
             else:
+                _limite_recuperar_ip.registrar(ip)
+                _limite_recuperar_ident.registrar(identificacion)
                 conn = get_db()
                 user = conn.execute("SELECT * FROM usuarios WHERE identificacion = ?", (identificacion,)).fetchone()
                 
-                if user and user.get("correo"):
-                    import secrets
-                    temp_password = secrets.token_urlsafe(16)
-                    
+                if user and user.get("correo") and user.get("activo"):
+                    from datetime import timedelta
+                    temp_password = _generar_clave_temporal()
                     hashed_temp = generate_password_hash(temp_password)
-                    conn.execute("UPDATE usuarios SET contrasena = ?, requiere_cambio_clave = 1 WHERE id = ?", (hashed_temp, user["id"]))
+                    expira = (datetime.now() + timedelta(minutes=_TEMP_CLAVE_MINUTOS)).strftime("%Y-%m-%d %H:%M:%S")
+                    # La clave temporal se guarda aparte: la contrasena actual sigue siendo valida,
+                    # asi nadie puede bloquear a otro usuario pidiendo la recuperacion.
+                    _asegurar_columnas_clave_temporal(conn)
+                    conn.execute(
+                        "UPDATE usuarios SET contrasena_temporal = ?, contrasena_temporal_expira = ? WHERE id = ?",
+                        (hashed_temp, expira, user["id"])
+                    )
                     conn.commit()
                     
                     from utils import send_recovery_email
                     success = send_recovery_email(user["correo"], temp_password)
-                    if success:
-                        flash("Si la identificación existe en nuestro sistema, se han enviado las instrucciones al correo registrado.", "success")
-                    else:
-                        flash("Ocurrió un error al enviar el correo. Por favor contacte al administrador.", "error")
-                else:
-                    # Prevent user enumeration by flashing the same message
-                    flash("Si la identificación existe en nuestro sistema, se han enviado las instrucciones al correo registrado.", "success")
+                    if not success:
+                        app.logger.error("No se pudo enviar el correo de recuperacion (usuario id %s).", user["id"])
+                # Siempre el mismo mensaje: no revela si la identificacion existe
+                flash(msg_generico, "success")
                 conn.close()
             return redirect(url_for("login"))
         return render_template("recuperar_contrasena.html")
@@ -534,7 +612,7 @@ def register_routes(app):
                 def normalizar(s):
                     return unicodedata.normalize('NFKD', s).encode('ascii', 'ignore').decode().strip().lower()
 
-                perfiles_canon = {"Médico", "Enfermero", "APH", "Auxiliar en Enfermeria", "Socorrista", "Conductor", "Gestion Humana"}
+                perfiles_canon = {"Médico", "Enfermero", "APH", "Auxiliar en Enfermeria", "Socorrista", "Conductor", "Gestion Humana", "Administrador"}
                 mapa_norm = {normalizar(p): p for p in perfiles_canon}
                 perfiles_list = []
                 invalidos = []
@@ -571,7 +649,9 @@ def register_routes(app):
                 for p in perfiles_list:
                     formularios_acceso_default[p] = []
                 formularios_acceso_json = json.dumps(formularios_acceso_default, ensure_ascii=False)
-                hashed_pw = generate_password_hash(identificacion)
+                # Sin clave conocida: el usuario la define con "Recuperar contraseña"
+                # o el administrador se la restablece (clave temporal aleatoria).
+                hashed_pw = generate_password_hash(secrets.token_urlsafe(32))
 
                 conn.execute("""
                     INSERT INTO usuarios (nombre, identificacion, registro_medico, rol, perfil, activo, firma, contrasena, requiere_cambio_clave, formularios_acceso, correo)
@@ -583,7 +663,8 @@ def register_routes(app):
             conn.commit()
         except Exception as e:
             conn.close()
-            flash(f"Error al procesar el archivo: {e}", "error")
+            print("ERROR:", repr(e))
+            flash(f"Error al procesar el archivo.", "error")
             return redirect(url_for("usuarios"))
 
         conn.close()
@@ -596,7 +677,9 @@ def register_routes(app):
         }
         if creados > 0:
             plural = "" if creados == 1 else "s"
-            flash(f"✅ {creados} usuario{plural} creado{plural} exitosamente.", "success")
+            flash(f"✅ {creados} usuario{plural} creado{plural} exitosamente. Por seguridad no tienen una clave "
+                  "conocida: cada uno debe usar \"Recuperar contraseña\" (si tiene correo) o usted puede "
+                  "restablecerle la clave para obtener una temporal.", "success")
         return redirect(url_for("usuarios"))
 
 
@@ -630,12 +713,14 @@ def register_routes(app):
                 permiso_programacion_operativa = 0
             
             can_assign_pagos = session.get("usuario") and (session["usuario"].get("rol") == "admin" or session["usuario"].get("rol_real") == "admin" or str(session["usuario"].get("id")) == "1")
-            permiso_verificacion_pagos = 1 if (can_assign_pagos and request.form.get("permiso_verificacion_pagos") == "on") else 0
             
             formularios_acceso_dict = {}
             for p in perfiles_list:
                 formularios_acceso_dict[p] = request.form.getlist(f"formularios_acceso_{p}")
             formularios_acceso = json.dumps(formularios_acceso_dict, ensure_ascii=False)
+
+            has_pagos = any('pagos' in forms for forms in formularios_acceso_dict.values()) or (request.form.get("permiso_verificacion_pagos") == "on")
+            permiso_verificacion_pagos = 1 if (can_assign_pagos and has_pagos) else 0
 
             perfiles_requieren_rm = {"Médico", "Enfermero", "APH", "Auxiliar en Enfermeria"}
             tiene_perfil_requerido = any(p in perfiles_requieren_rm for p in perfiles_list)
@@ -653,15 +738,17 @@ def register_routes(app):
                 if existing:
                     flash("Ya existe un usuario con esa Identificación.", "error")
                 else:
-                    # Password defaults to identification and requires change (requiere_cambio_clave = 1)
-                    hashed_identificacion = generate_password_hash(identificacion)
+                    # Clave temporal aleatoria (ya no es la identificación); cambio obligatorio al ingresar
+                    clave_temporal = _generar_clave_temporal()
+                    hashed_identificacion = generate_password_hash(clave_temporal)
                     fecha_validez = request.form.get("fecha_validez", "").strip() or None
                     conn.execute("""
                         INSERT INTO usuarios (nombre, identificacion, registro_medico, rol, perfil, activo, firma, contrasena, requiere_cambio_clave, formularios_acceso, correo, fecha_validez, permiso_programacion_operativa, permiso_verificacion_pagos)
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?, ?)
                     """, (nombre, identificacion, registro_medico, rol, perfil, activo, firma, hashed_identificacion, formularios_acceso, correo, fecha_validez, permiso_programacion_operativa, permiso_verificacion_pagos))
                     conn.commit()
-                    flash("Usuario creado exitosamente. La contraseña inicial es su número de identificación.", "success")
+                    flash(f"Usuario creado exitosamente. Contraseña temporal: {clave_temporal} — "
+                          "anótela y entréguela al usuario; no se volverá a mostrar.", "success")
                     conn.close()
                     return redirect(url_for("usuarios"))
 
@@ -699,10 +786,6 @@ def register_routes(app):
                 permiso_programacion_operativa = user.get("permiso_programacion_operativa", 0)
             
             can_assign_pagos = session.get("usuario") and (session["usuario"].get("rol") == "admin" or session["usuario"].get("rol_real") == "admin" or str(session["usuario"].get("id")) == "1")
-            if can_assign_pagos:
-                permiso_verificacion_pagos = 1 if request.form.get("permiso_verificacion_pagos") == "on" else 0
-            else:
-                permiso_verificacion_pagos = user.get("permiso_verificacion_pagos", 0)
             
             # Recuperar permisos antiguos por si el usuario que edita no es admin real
             old_acc_dict = {}
@@ -715,14 +798,20 @@ def register_routes(app):
             formularios_acceso_dict = {}
             for p in perfiles_list:
                 current_forms = request.form.getlist(f"formularios_acceso_{p}")
-                # Si no es admin real, preservar los permisos 'nomina' si ya los tenía
-                if session['usuario'].get('rol_real') != 'admin':
+                # Si no es admin, preservar los permisos 'nomina' y 'pagos' si ya los tenía
+                if not can_assign_pagos:
                     old_forms = old_acc_dict.get(p, []) if isinstance(old_acc_dict, dict) else []
-                    for _perm_pres in ('nomina',):
+                    for _perm_pres in ('nomina', 'pagos', 'nomina_empleados', 'pagos_varios'):
                         if _perm_pres in old_forms and _perm_pres not in current_forms:
                             current_forms.append(_perm_pres)
                 formularios_acceso_dict[p] = current_forms
             formularios_acceso = json.dumps(formularios_acceso_dict, ensure_ascii=False)
+
+            has_pagos = any('pagos' in forms for forms in formularios_acceso_dict.values()) or (request.form.get("permiso_verificacion_pagos") == "on")
+            if can_assign_pagos:
+                permiso_verificacion_pagos = 1 if has_pagos else 0
+            else:
+                permiso_verificacion_pagos = user.get("permiso_verificacion_pagos", 0)
 
             perfiles_requieren_rm = {"Médico", "Enfermero", "APH", "Auxiliar en Enfermeria"}
             tiene_perfil_requerido = any(p in perfiles_requieren_rm for p in perfiles_list)
@@ -785,14 +874,16 @@ def register_routes(app):
         conn = get_db()
         user = conn.execute("SELECT * FROM usuarios WHERE id = ?", (user_id,)).fetchone()
         if user:
-                # Reset password to identification and force change
-                hashed_id = generate_password_hash(user["identificacion"])
+                # Clave temporal aleatoria (ya no es la identificación) y cambio obligatorio
+                clave_temporal = _generar_clave_temporal()
+                hashed_id = generate_password_hash(clave_temporal)
                 conn.execute(
                     "UPDATE usuarios SET contrasena = ?, requiere_cambio_clave = 1 WHERE id = ?",
                     (hashed_id, user_id)
                 )
                 conn.commit()
-                flash(f"Contraseña de {user['nombre']} restablecida. La nueva clave es su identificación.", "success")
+                flash(f"Contraseña de {user['nombre']} restablecida. Clave temporal: {clave_temporal} — "
+                      "anótela y entréguela al usuario; no se volverá a mostrar.", "success")
         else:
             flash("Usuario no encontrado.", "error")
         conn.close()

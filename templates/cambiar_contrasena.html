@@ -8,12 +8,16 @@
     <legend>Actualizar Contraseña</legend>
     <form method="POST">
         <div>
+            <label>Contraseña Actual</label>
+            <input type="password" name="clave_actual" required autocomplete="current-password" placeholder="Ingrese su contraseña actual" style="margin-bottom: 15px;">
+        </div>
+        <div>
             <label>Nueva Contraseña</label>
-            <input type="password" name="nueva_clave" required placeholder="Ingrese su nueva contraseña" style="margin-bottom: 15px;">
+            <input type="password" name="nueva_clave" required minlength="8" autocomplete="new-password" placeholder="Mínimo 8 caracteres" style="margin-bottom: 15px;">
         </div>
         <div>
             <label>Confirmar Contraseña</label>
-            <input type="password" name="confirmacion" required placeholder="Confirme su nueva contraseña" style="margin-bottom: 15px;">
+            <input type="password" name="confirmacion" required minlength="8" autocomplete="new-password" placeholder="Confirme su nueva contraseña" style="margin-bottom: 15px;">
         </div>
         <div style="display: flex; gap: 10px; margin-top: 10px;">
             <a href="javascript:history.back()" style="background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px; display: inline-flex; align-items: center; justify-content: center; width: 50%;">← Volver</a>

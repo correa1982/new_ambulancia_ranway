@@ -883,7 +883,8 @@ def inventarios_scan_process_ingreso():
         
         return jsonify({"status": "success", "message": message})
     except Exception as e:
-        return jsonify({"status": "error", "message": f"Error interno: {str(e)}"})
+        print("ERROR:", repr(e))
+        return jsonify({"status": "error", "message": "Error interno. Intente nuevamente."})
 
 @bp_inventarios.route('/manual_update', methods=['POST'])
 def inventarios_manual_update():
@@ -1080,7 +1081,8 @@ def inventarios_movimientos():
         return render_template('inventarios_movimientos.html', movimientos=movimientos, page=page, total_pages=total_pages)
     except Exception as e:
         import traceback
-        return f"<h3>Error in /movimientos:</h3><pre>{traceback.format_exc()}</pre>", 500
+        print("ERROR en /inventarios/movimientos:", traceback.format_exc())
+        return "<h3>Ocurrió un error al cargar los movimientos.</h3><p>Intente nuevamente o contacte al administrador.</p>", 500
 
 @bp_inventarios.route('/movimientos/exportar', methods=['GET'])
 def inventarios_movimientos_exportar():

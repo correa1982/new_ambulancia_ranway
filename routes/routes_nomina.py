@@ -4,7 +4,9 @@ from datetime import datetime, date
 from flask import Blueprint, request, jsonify, render_template, current_app, send_from_directory, flash, redirect, url_for
 from werkzeug.utils import secure_filename
 from db import get_db
-from utils import login_required, get_user_info, validar_upload_excel, ahora
+from utils import login_required, get_user_info, LimitadorIntentos, validar_upload_excel, ahora
+
+_limite_consulta_nomina = LimitadorIntentos(5, 900)
 
 def register_routes(app):
     nomina_bp = Blueprint('nomina', __name__)
@@ -20,12 +22,32 @@ def register_routes(app):
         return '.' in filename and \
                filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+    def _tiene_acceso_nomina():
+        from flask import session
+        u = session.get('usuario') or {}
+        acceso = u.get('formularios_acceso', [])
+        if isinstance(acceso, dict):
+            acceso = [x for v in acceso.values() if isinstance(v, list) for x in v]
+        return u.get('rol_real') == 'admin' or u.get('rol') == 'admin' or 'nomina' in (acceso or [])
+
+    def _denegar_nomina():
+        flash('Acceso no autorizado al módulo de honorarios.', 'error')
+        return redirect(url_for('dashboard'))
+
+    # Los archivos de nomina viven bajo /static: se bloquea el acceso directo sin permiso
+    @app.route('/static/uploads/nomina/<path:filename>')
+    @login_required
+    def nomina_static_protegido(filename):
+        if not _tiene_acceso_nomina():
+            return _denegar_nomina()
+        return send_from_directory(UPLOAD_FOLDER, filename, as_attachment=True)
+
     @nomina_bp.route('/nomina', methods=['GET'])
     @login_required
     def nomina_index():
         from flask import session
         user_info = session['usuario']
-        if user_info.get('rol_real') != 'admin' and 'nomina' not in user_info.get('formularios_acceso', []):
+        if user_info.get('rol_real') != 'admin' and user_info.get('rol') != 'admin' and 'nomina' not in user_info.get('formularios_acceso', []):
             flash('Acceso no autorizado al módulo de honorarios.', 'error')
             return redirect(url_for('dashboard'))
         conn = get_db()
@@ -45,7 +67,7 @@ def register_routes(app):
     def nomina_upload():
         from flask import session
         user_info = session['usuario']
-        if user_info.get('rol_real') != 'admin' and 'nomina' not in user_info.get('formularios_acceso', []):
+        if user_info.get('rol_real') != 'admin' and user_info.get('rol') != 'admin' and 'nomina' not in user_info.get('formularios_acceso', []):
             flash('Acceso no autorizado al módulo de honorarios.', 'error')
             return redirect(url_for('dashboard'))
 
@@ -242,18 +264,22 @@ def register_routes(app):
     @nomina_bp.route('/nomina/download/<filename>')
     @login_required
     def download_nomina(filename):
+        if not _tiene_acceso_nomina():
+            return _denegar_nomina()
         return send_from_directory(UPLOAD_FOLDER, filename, as_attachment=True)
 
     @nomina_bp.route('/nomina/delete/<int:id>', methods=['POST'])
     @login_required
     def delete_nomina(id):
+        if not _tiene_acceso_nomina():
+            return _denegar_nomina()
         conn = get_db()
         try:
             cursor = conn.execute("SELECT archivo_url FROM nomina WHERE id = ?", (id,))
             record = cursor.fetchone()
             if record:
-                file_path = os.path.join(UPLOAD_FOLDER, record['archivo_url'])
-                if os.path.exists(file_path):
+                file_path = os.path.join(UPLOAD_FOLDER, os.path.basename(record['archivo_url'] or ''))
+                if os.path.isfile(file_path):
                     os.remove(file_path)
                     
                 conn.execute("DELETE FROM nomina WHERE id = ?", (id,))
@@ -278,6 +304,11 @@ def register_routes(app):
             
             if not cedula or not codigo:
                 flash('Debe ingresar la cédula y el código.', 'error')
+                return render_template('nomina_consulta.html', resultado=None)
+
+            clave_ip = request.remote_addr or '?'
+            if _limite_consulta_nomina.bloqueado(clave_ip) or _limite_consulta_nomina.bloqueado('c:' + cedula):
+                flash('Demasiados intentos. Espere unos minutos e intente de nuevo.', 'error')
                 return render_template('nomina_consulta.html', resultado=None)
                 
             conn = get_db()
@@ -320,6 +351,8 @@ def register_routes(app):
                         
                     return render_template('nomina_consulta.html', resultado=empleado, fecha_nomina=latest_nomina['fecha_subida'], periodo_nomina=latest_nomina.get('periodo', ''))
                 else:
+                    _limite_consulta_nomina.registrar(clave_ip)
+                    _limite_consulta_nomina.registrar('c:' + cedula)
                     flash('Cédula o código incorrectos, o no se encontró en los honorarios actuales.', 'error')
             except Exception as e:
                 current_app.logger.error(f"Error querying nomina: {e}")
@@ -709,5 +742,651 @@ def register_routes(app):
             conn.close()
 
         return redirect(url_for('nomina.nomina_pagos', nomina_id=nomina_id, cedula=identificacion))
+
+    # --- NÓMINA EMPLEADOS Y PAGOS VARIOS ---
+
+    def _tiene_acceso_nomina_empleados():
+        from flask import session
+        u = session.get('usuario') or {}
+        acceso = u.get('formularios_acceso', [])
+        if isinstance(acceso, str):
+            try:
+                import json
+                acceso = json.loads(acceso)
+            except Exception:
+                acceso = []
+        if isinstance(acceso, dict):
+            acceso = [x for v in acceso.values() if isinstance(v, list) for x in v]
+        return str(u.get('id')) == '1' or 'nomina_empleados' in (acceso or [])
+
+    def _tiene_acceso_pagos_varios():
+        from flask import session
+        u = session.get('usuario') or {}
+        acceso = u.get('formularios_acceso', [])
+        if isinstance(acceso, str):
+            try:
+                import json
+                acceso = json.loads(acceso)
+            except Exception:
+                acceso = []
+        if isinstance(acceso, dict):
+            acceso = [x for v in acceso.values() if isinstance(v, list) for x in v]
+        return str(u.get('id')) == '1' or 'pagos_varios' in (acceso or [])
+
+    def _generar_periodos_disponibles(periodo_actual):
+        meses_nombres = {
+            1: "Enero", 2: "Febrero", 3: "Marzo", 4: "Abril",
+            5: "Mayo", 6: "Junio", 7: "Julio", 8: "Agosto",
+            9: "Septiembre", 10: "Octubre", 11: "Noviembre", 12: "Diciembre"
+        }
+        today = date.today()
+        periodos = []
+        y = today.year
+        m = today.month
+        for i in range(-2, 13):
+            mes_offset = m - i
+            anio_offset = y
+            while mes_offset <= 0:
+                mes_offset += 12
+                anio_offset -= 1
+            while mes_offset > 12:
+                mes_offset -= 12
+                anio_offset += 1
+            cod = f"{anio_offset:04d}-{mes_offset:02d}"
+            if not any(p['codigo'] == cod for p in periodos):
+                periodos.append({
+                    'codigo': cod,
+                    'etiqueta': f"{meses_nombres.get(mes_offset, mes_offset)} {anio_offset}"
+                })
+        if periodo_actual and not any(p['codigo'] == periodo_actual for p in periodos):
+            try:
+                parts = periodo_actual.split('-')
+                y_p, m_p = int(parts[0]), int(parts[1])
+                nom_m = meses_nombres.get(m_p, f"Mes {m_p}")
+                periodos.insert(0, {'codigo': periodo_actual, 'etiqueta': f"{nom_m} {y_p}"})
+            except Exception:
+                periodos.insert(0, {'codigo': periodo_actual, 'etiqueta': periodo_actual})
+        return periodos
+
+    def _formato_moneda(valor):
+        try:
+            val_float = float(valor or 0)
+            formatted = f"{val_float:,.0f}".replace(",", ".")
+            return f"$ {formatted}"
+        except (ValueError, TypeError):
+            return f"$ {valor}"
+
+    def _formato_fecha_hora(valor):
+        if not valor:
+            return ''
+        if isinstance(valor, (datetime, date)):
+            return valor.strftime('%d/%m/%Y %H:%M') if isinstance(valor, datetime) else valor.strftime('%d/%m/%Y')
+        val_str = str(valor)
+        try:
+            val_str_clean = val_str.replace('T', ' ')
+            dt = datetime.fromisoformat(val_str_clean)
+            return dt.strftime('%d/%m/%Y %H:%M')
+        except Exception:
+            return val_str
+
+    @nomina_bp.route('/nomina-empleados', methods=['GET'])
+    @login_required
+    def nomina_empleados():
+        from flask import session
+        if not _tiene_acceso_nomina_empleados():
+            flash('Acceso no autorizado al módulo de Nómina Empleados.', 'error')
+            return redirect(url_for('dashboard'))
+
+        periodo = request.args.get('periodo', '').strip()
+        if not periodo:
+            periodo = datetime.now().strftime('%Y-%m')
+
+        periodos_disponibles = _generar_periodos_disponibles(periodo)
+
+        conn = get_db()
+        empleados = []
+        kpis = {
+            'total_empleados': 0,
+            'valor_total_fmt': '$ 0',
+            'total_pagados': 0,
+            'valor_pagado_fmt': '$ 0',
+            'total_pendientes': 0,
+            'valor_pendiente_fmt': '$ 0'
+        }
+        try:
+            cursor = conn.execute("""
+                SELECT i.id, i.documento_identidad, i.nombre_completo,
+                       COALESCE(r.valor_pago, i.valor_pago) AS valor_pago,
+                       i.valor_pago AS valor_base, i.activo,
+                       r.id AS pago_id, r.pago_realizado, r.fecha_pago, r.documento_soporte,
+                       r.observaciones, r.registrado_por
+                FROM items_nomina_empleados i
+                LEFT JOIN registro_pagos_nomina_empleados r
+                  ON i.id = r.item_id AND r.periodo = ?
+                WHERE i.activo = 1 OR r.id IS NOT NULL
+                ORDER BY i.nombre_completo ASC
+            """, (periodo,))
+            rows = cursor.fetchall() or []
+
+            total_empleados = 0
+            valor_total = 0.0
+            total_pagados = 0
+            valor_pagado = 0.0
+            total_pendientes = 0
+            valor_pendiente = 0.0
+
+            for r in rows:
+                total_empleados += 1
+                try:
+                    val = float(r['valor_pago'] or 0)
+                except (ValueError, TypeError):
+                    val = 0.0
+                valor_total += val
+
+                is_paid = bool(r['pago_realizado'])
+                if is_paid:
+                    total_pagados += 1
+                    valor_pagado += val
+                else:
+                    total_pendientes += 1
+                    valor_pendiente += val
+
+                empleados.append({
+                    'id': r['id'],
+                    'documento_identidad': r['documento_identidad'] or '',
+                    'nombre_completo': r['nombre_completo'] or '',
+                    'valor_pago': val,
+                    'valor_pago_fmt': _formato_moneda(val),
+                    'pago_realizado': 1 if is_paid else 0,
+                    'pago_id': r['pago_id'],
+                    'fecha_pago': _formato_fecha_hora(r['fecha_pago']),
+                    'documento_soporte': r['documento_soporte'] or '',
+                    'observaciones': r['observaciones'] or '',
+                    'registrado_por': r['registrado_por'] or ''
+                })
+
+            kpis = {
+                'total_empleados': total_empleados,
+                'valor_total_fmt': _formato_moneda(valor_total),
+                'total_pagados': total_pagados,
+                'valor_pagado_fmt': _formato_moneda(valor_pagado),
+                'total_pendientes': total_pendientes,
+                'valor_pendiente_fmt': _formato_moneda(valor_pendiente)
+            }
+        except Exception as e:
+            current_app.logger.error(f"Error al listar nómina empleados: {e}")
+            flash('Error al cargar la información de Nómina Empleados.', 'error')
+        finally:
+            conn.close()
+
+        return render_template(
+            'nomina_empleados.html',
+            periodos_disponibles=periodos_disponibles,
+            periodo_seleccionado=periodo,
+            items=empleados,
+            empleados=empleados,
+            kpis=kpis
+        )
+
+    @nomina_bp.route('/nomina-empleados/actualizar-valor', methods=['POST'])
+    @login_required
+    def nomina_empleados_actualizar_valor():
+        from flask import session
+        if not _tiene_acceso_nomina_empleados():
+            flash('Acceso no autorizado al módulo de Nómina Empleados.', 'error')
+            return redirect(url_for('dashboard'))
+
+        item_id = request.form.get('item_id', type=int)
+        periodo = request.form.get('periodo', '').strip()
+        valor_raw = request.form.get('valor_pago', '').strip().replace('$', '').replace('.', '').replace(',', '.')
+        actualizar_base = request.form.get('actualizar_base', '0') == '1'
+
+        if not item_id or not periodo:
+            flash('Datos incompletos para actualizar el valor.', 'error')
+            return redirect(url_for('nomina.nomina_empleados', periodo=periodo))
+
+        try:
+            nuevo_valor = float(valor_raw)
+            if nuevo_valor < 0:
+                nuevo_valor = 0.0
+        except ValueError:
+            flash('El valor de pago ingresado no es válido.', 'error')
+            return redirect(url_for('nomina.nomina_empleados', periodo=periodo))
+
+        user_info = session.get('usuario') or {}
+        usuario_nombre = user_info.get('nombre', 'Usuario')
+        usuario_id = user_info.get('identificacion', '')
+        now_naive = ahora().replace(tzinfo=None)
+
+        conn = get_db()
+        try:
+            cur = conn.execute("SELECT * FROM items_nomina_empleados WHERE id = ?", (item_id,))
+            item = cur.fetchone()
+            if not item:
+                flash('Empleado no encontrado.', 'error')
+                return redirect(url_for('nomina.nomina_empleados', periodo=periodo))
+
+            doc = item['documento_identidad']
+            nombre = item['nombre_completo']
+
+            cur = conn.execute("SELECT id FROM registro_pagos_nomina_empleados WHERE item_id = ? AND periodo = ?", (item_id, periodo))
+            reg = cur.fetchone()
+
+            if reg:
+                conn.execute("""
+                    UPDATE registro_pagos_nomina_empleados
+                    SET valor_pago = ?, fecha_actualizacion = ?
+                    WHERE id = ?
+                """, (nuevo_valor, now_naive, reg['id']))
+            else:
+                conn.execute("""
+                    INSERT INTO registro_pagos_nomina_empleados (
+                        item_id, periodo, documento_identidad, nombre_completo, valor_pago,
+                        pago_realizado, fecha_actualizacion, registrado_por, registrado_por_identificacion
+                    ) VALUES (?, ?, ?, ?, ?, 0, ?, ?, ?)
+                """, (item_id, periodo, doc, nombre, nuevo_valor, now_naive, usuario_nombre, usuario_id))
+
+            if actualizar_base:
+                conn.execute("UPDATE items_nomina_empleados SET valor_pago = ? WHERE id = ?", (nuevo_valor, item_id))
+
+            conn.commit()
+            flash('¡Valor de pago actualizado exitosamente!', 'success')
+        except Exception as e:
+            current_app.logger.error(f"Error al actualizar valor de nómina empleado: {e}")
+            flash('Error al actualizar el valor de pago.', 'error')
+        finally:
+            conn.close()
+
+        return redirect(url_for('nomina.nomina_empleados', periodo=periodo))
+
+    @nomina_bp.route('/nomina-empleados/guardar-pago', methods=['POST'])
+    @login_required
+    def nomina_empleados_guardar_pago():
+        from flask import session
+        if not _tiene_acceso_nomina_empleados():
+            flash('Acceso no autorizado al módulo de Nómina Empleados.', 'error')
+            return redirect(url_for('dashboard'))
+
+        item_id = request.form.get('item_id', type=int)
+        periodo = request.form.get('periodo', '').strip()
+        fecha_pago_raw = request.form.get('fecha_pago', '').strip()
+        soporte = request.form.get('documento_soporte', '').strip()
+        observaciones = request.form.get('observaciones', '').strip()
+        valor_raw = request.form.get('valor_pago', '').strip().replace('$', '').replace('.', '').replace(',', '.')
+
+        if not item_id or not periodo:
+            flash('Datos de pago incompletos.', 'error')
+            return redirect(url_for('nomina.nomina_empleados', periodo=periodo))
+
+        user_info = session.get('usuario') or {}
+        usuario_nombre = user_info.get('nombre', 'Usuario')
+        usuario_id = user_info.get('identificacion', '')
+
+        if fecha_pago_raw:
+            try:
+                clean_dt = fecha_pago_raw.replace('T', ' ')
+                if len(clean_dt) == 16:
+                    clean_dt += ':00'
+                fecha_pago_val = datetime.fromisoformat(clean_dt)
+            except Exception:
+                fecha_pago_val = ahora().replace(tzinfo=None)
+        else:
+            fecha_pago_val = ahora().replace(tzinfo=None)
+
+        now_naive = ahora().replace(tzinfo=None)
+
+        conn = get_db()
+        try:
+            cur = conn.execute("SELECT * FROM items_nomina_empleados WHERE id = ?", (item_id,))
+            item = cur.fetchone()
+            if not item:
+                flash('Empleado no encontrado.', 'error')
+                return redirect(url_for('nomina.nomina_empleados', periodo=periodo))
+
+            doc = item['documento_identidad']
+            nombre = item['nombre_completo']
+            if valor_raw:
+                try:
+                    val = float(valor_raw)
+                except ValueError:
+                    val = float(item['valor_pago'] or 0)
+            else:
+                val = float(item['valor_pago'] or 0)
+
+            cur = conn.execute("SELECT id FROM registro_pagos_nomina_empleados WHERE item_id = ? AND periodo = ?", (item_id, periodo))
+            reg = cur.fetchone()
+
+            if reg:
+                conn.execute("""
+                    UPDATE registro_pagos_nomina_empleados
+                    SET documento_identidad = ?, nombre_completo = ?, valor_pago = ?,
+                        pago_realizado = 1, fecha_pago = ?, documento_soporte = ?, observaciones = ?,
+                        registrado_por = ?, registrado_por_identificacion = ?, fecha_actualizacion = ?
+                    WHERE id = ?
+                """, (doc, nombre, val, fecha_pago_val, soporte, observaciones, usuario_nombre, usuario_id, now_naive, reg['id']))
+            else:
+                conn.execute("""
+                    INSERT INTO registro_pagos_nomina_empleados (
+                        item_id, periodo, documento_identidad, nombre_completo, valor_pago,
+                        pago_realizado, fecha_pago, documento_soporte, observaciones,
+                        registrado_por, registrado_por_identificacion, fecha_actualizacion
+                    ) VALUES (?, ?, ?, ?, ?, 1, ?, ?, ?, ?, ?, ?)
+                """, (item_id, periodo, doc, nombre, val, fecha_pago_val, soporte, observaciones, usuario_nombre, usuario_id, now_naive))
+
+            conn.commit()
+            flash('¡Pago registrado exitosamente!', 'success')
+        except Exception as e:
+            current_app.logger.error(f"Error al registrar pago de nómina empleado: {e}")
+            flash('Error al registrar el pago.', 'error')
+        finally:
+            conn.close()
+
+        return redirect(url_for('nomina.nomina_empleados', periodo=periodo))
+
+    @nomina_bp.route('/nomina-empleados/anular-pago/<int:pago_id>', methods=['POST'])
+    @login_required
+    def nomina_empleados_anular_pago(pago_id):
+        from flask import session
+        if not _tiene_acceso_nomina_empleados():
+            flash('Acceso no autorizado al módulo de Nómina Empleados.', 'error')
+            return redirect(url_for('dashboard'))
+
+        periodo = request.form.get('periodo', '').strip()
+        conn = get_db()
+        try:
+            conn.execute("""
+                UPDATE registro_pagos_nomina_empleados
+                SET pago_realizado = 0, fecha_pago = NULL, documento_soporte = NULL, observaciones = NULL
+                WHERE id = ?
+            """, (pago_id,))
+            conn.commit()
+            flash('El pago ha sido anulado y el estado ha vuelto a Pendiente.', 'info')
+        except Exception as e:
+            current_app.logger.error(f"Error al anular pago de nómina empleado: {e}")
+            flash('Error al anular el pago.', 'error')
+        finally:
+            conn.close()
+
+        return redirect(url_for('nomina.nomina_empleados', periodo=periodo))
+
+    @nomina_bp.route('/pagos-varios', methods=['GET'])
+    @login_required
+    def pagos_varios():
+        from flask import session
+        if not _tiene_acceso_pagos_varios():
+            flash('Acceso no autorizado al módulo de Pagos Varios.', 'error')
+            return redirect(url_for('dashboard'))
+
+        periodo = request.args.get('periodo', '').strip()
+        if not periodo:
+            periodo = datetime.now().strftime('%Y-%m')
+
+        periodos_disponibles = _generar_periodos_disponibles(periodo)
+
+        conn = get_db()
+        empleados = []
+        kpis = {
+            'total_empleados': 0,
+            'valor_total_fmt': '$ 0',
+            'total_pagados': 0,
+            'valor_pagado_fmt': '$ 0',
+            'total_pendientes': 0,
+            'valor_pendiente_fmt': '$ 0'
+        }
+        try:
+            cursor = conn.execute("""
+                SELECT i.id, i.documento_identidad, i.nombre_completo,
+                       COALESCE(r.valor_pago, i.valor_pago) AS valor_pago,
+                       i.valor_pago AS valor_base, i.activo,
+                       r.id AS pago_id, r.pago_realizado, r.fecha_pago, r.documento_soporte,
+                       r.observaciones, r.registrado_por
+                FROM items_pagos_varios i
+                LEFT JOIN registro_pagos_varios r
+                  ON i.id = r.item_id AND r.periodo = ?
+                WHERE i.activo = 1 OR r.id IS NOT NULL
+                ORDER BY i.nombre_completo ASC
+            """, (periodo,))
+            rows = cursor.fetchall() or []
+
+            total_empleados = 0
+            valor_total = 0.0
+            total_pagados = 0
+            valor_pagado = 0.0
+            total_pendientes = 0
+            valor_pendiente = 0.0
+
+            for r in rows:
+                total_empleados += 1
+                try:
+                    val = float(r['valor_pago'] or 0)
+                except (ValueError, TypeError):
+                    val = 0.0
+                valor_total += val
+
+                is_paid = bool(r['pago_realizado'])
+                if is_paid:
+                    total_pagados += 1
+                    valor_pagado += val
+                else:
+                    total_pendientes += 1
+                    valor_pendiente += val
+
+                empleados.append({
+                    'id': r['id'],
+                    'documento_identidad': r['documento_identidad'] or '',
+                    'nombre_completo': r['nombre_completo'] or '',
+                    'valor_pago': val,
+                    'valor_pago_fmt': _formato_moneda(val),
+                    'pago_realizado': 1 if is_paid else 0,
+                    'pago_id': r['pago_id'],
+                    'fecha_pago': _formato_fecha_hora(r['fecha_pago']),
+                    'documento_soporte': r['documento_soporte'] or '',
+                    'observaciones': r['observaciones'] or '',
+                    'registrado_por': r['registrado_por'] or ''
+                })
+
+            kpis = {
+                'total_empleados': total_empleados,
+                'valor_total_fmt': _formato_moneda(valor_total),
+                'total_pagados': total_pagados,
+                'valor_pagado_fmt': _formato_moneda(valor_pagado),
+                'total_pendientes': total_pendientes,
+                'valor_pendiente_fmt': _formato_moneda(valor_pendiente)
+            }
+        except Exception as e:
+            current_app.logger.error(f"Error al listar pagos varios: {e}")
+            flash('Error al cargar la información de Pagos Varios.', 'error')
+        finally:
+            conn.close()
+
+        return render_template(
+            'pagos_varios.html',
+            periodos_disponibles=periodos_disponibles,
+            periodo_seleccionado=periodo,
+            items=empleados,
+            empleados=empleados,
+            kpis=kpis
+        )
+
+    @nomina_bp.route('/pagos-varios/actualizar-valor', methods=['POST'])
+    @login_required
+    def pagos_varios_actualizar_valor():
+        from flask import session
+        if not _tiene_acceso_pagos_varios():
+            flash('Acceso no autorizado al módulo de Pagos Varios.', 'error')
+            return redirect(url_for('dashboard'))
+
+        item_id = request.form.get('item_id', type=int)
+        periodo = request.form.get('periodo', '').strip()
+        valor_raw = request.form.get('valor_pago', '').strip().replace('$', '').replace('.', '').replace(',', '.')
+        actualizar_base = request.form.get('actualizar_base', '0') == '1'
+
+        if not item_id or not periodo:
+            flash('Datos incompletos para actualizar el valor.', 'error')
+            return redirect(url_for('nomina.pagos_varios', periodo=periodo))
+
+        try:
+            nuevo_valor = float(valor_raw)
+            if nuevo_valor < 0:
+                nuevo_valor = 0.0
+        except ValueError:
+            flash('El valor de pago ingresado no es válido.', 'error')
+            return redirect(url_for('nomina.pagos_varios', periodo=periodo))
+
+        user_info = session.get('usuario') or {}
+        usuario_nombre = user_info.get('nombre', 'Usuario')
+        usuario_id = user_info.get('identificacion', '')
+        now_naive = ahora().replace(tzinfo=None)
+
+        conn = get_db()
+        try:
+            cur = conn.execute("SELECT * FROM items_pagos_varios WHERE id = ?", (item_id,))
+            item = cur.fetchone()
+            if not item:
+                flash('Registro no encontrado.', 'error')
+                return redirect(url_for('nomina.pagos_varios', periodo=periodo))
+
+            doc = item['documento_identidad']
+            nombre = item['nombre_completo']
+
+            cur = conn.execute("SELECT id FROM registro_pagos_varios WHERE item_id = ? AND periodo = ?", (item_id, periodo))
+            reg = cur.fetchone()
+
+            if reg:
+                conn.execute("""
+                    UPDATE registro_pagos_varios
+                    SET valor_pago = ?, fecha_actualizacion = ?
+                    WHERE id = ?
+                """, (nuevo_valor, now_naive, reg['id']))
+            else:
+                conn.execute("""
+                    INSERT INTO registro_pagos_varios (
+                        item_id, periodo, documento_identidad, nombre_completo, valor_pago,
+                        pago_realizado, fecha_actualizacion, registrado_por, registrado_por_identificacion
+                    ) VALUES (?, ?, ?, ?, ?, 0, ?, ?, ?)
+                """, (item_id, periodo, doc, nombre, nuevo_valor, now_naive, usuario_nombre, usuario_id))
+
+            if actualizar_base:
+                conn.execute("UPDATE items_pagos_varios SET valor_pago = ? WHERE id = ?", (nuevo_valor, item_id))
+
+            conn.commit()
+            flash('¡Valor de pago actualizado exitosamente!', 'success')
+        except Exception as e:
+            current_app.logger.error(f"Error al actualizar valor de pago vario: {e}")
+            flash('Error al actualizar el valor de pago.', 'error')
+        finally:
+            conn.close()
+
+        return redirect(url_for('nomina.pagos_varios', periodo=periodo))
+
+    @nomina_bp.route('/pagos-varios/guardar-pago', methods=['POST'])
+    @login_required
+    def pagos_varios_guardar_pago():
+        from flask import session
+        if not _tiene_acceso_pagos_varios():
+            flash('Acceso no autorizado al módulo de Pagos Varios.', 'error')
+            return redirect(url_for('dashboard'))
+
+        item_id = request.form.get('item_id', type=int)
+        periodo = request.form.get('periodo', '').strip()
+        fecha_pago_raw = request.form.get('fecha_pago', '').strip()
+        soporte = request.form.get('documento_soporte', '').strip()
+        observaciones = request.form.get('observaciones', '').strip()
+        valor_raw = request.form.get('valor_pago', '').strip().replace('$', '').replace('.', '').replace(',', '.')
+
+        if not item_id or not periodo:
+            flash('Datos de pago incompletos.', 'error')
+            return redirect(url_for('nomina.pagos_varios', periodo=periodo))
+
+        user_info = session.get('usuario') or {}
+        usuario_nombre = user_info.get('nombre', 'Usuario')
+        usuario_id = user_info.get('identificacion', '')
+
+        if fecha_pago_raw:
+            try:
+                clean_dt = fecha_pago_raw.replace('T', ' ')
+                if len(clean_dt) == 16:
+                    clean_dt += ':00'
+                fecha_pago_val = datetime.fromisoformat(clean_dt)
+            except Exception:
+                fecha_pago_val = ahora().replace(tzinfo=None)
+        else:
+            fecha_pago_val = ahora().replace(tzinfo=None)
+
+        now_naive = ahora().replace(tzinfo=None)
+
+        conn = get_db()
+        try:
+            cur = conn.execute("SELECT * FROM items_pagos_varios WHERE id = ?", (item_id,))
+            item = cur.fetchone()
+            if not item:
+                flash('Registro no encontrado.', 'error')
+                return redirect(url_for('nomina.pagos_varios', periodo=periodo))
+
+            doc = item['documento_identidad']
+            nombre = item['nombre_completo']
+            if valor_raw:
+                try:
+                    val = float(valor_raw)
+                except ValueError:
+                    val = float(item['valor_pago'] or 0)
+            else:
+                val = float(item['valor_pago'] or 0)
+
+            cur = conn.execute("SELECT id FROM registro_pagos_varios WHERE item_id = ? AND periodo = ?", (item_id, periodo))
+            reg = cur.fetchone()
+
+            if reg:
+                conn.execute("""
+                    UPDATE registro_pagos_varios
+                    SET documento_identidad = ?, nombre_completo = ?, valor_pago = ?,
+                        pago_realizado = 1, fecha_pago = ?, documento_soporte = ?, observaciones = ?,
+                        registrado_por = ?, registrado_por_identificacion = ?, fecha_actualizacion = ?
+                    WHERE id = ?
+                """, (doc, nombre, val, fecha_pago_val, soporte, observaciones, usuario_nombre, usuario_id, now_naive, reg['id']))
+            else:
+                conn.execute("""
+                    INSERT INTO registro_pagos_varios (
+                        item_id, periodo, documento_identidad, nombre_completo, valor_pago,
+                        pago_realizado, fecha_pago, documento_soporte, observaciones,
+                        registrado_por, registrado_por_identificacion, fecha_actualizacion
+                    ) VALUES (?, ?, ?, ?, ?, 1, ?, ?, ?, ?, ?, ?)
+                """, (item_id, periodo, doc, nombre, val, fecha_pago_val, soporte, observaciones, usuario_nombre, usuario_id, now_naive))
+
+            conn.commit()
+            flash('¡Pago registrado exitosamente!', 'success')
+        except Exception as e:
+            current_app.logger.error(f"Error al registrar pago vario: {e}")
+            flash('Error al registrar el pago.', 'error')
+        finally:
+            conn.close()
+
+        return redirect(url_for('nomina.pagos_varios', periodo=periodo))
+
+    @nomina_bp.route('/pagos-varios/anular-pago/<int:pago_id>', methods=['POST'])
+    @login_required
+    def pagos_varios_anular_pago(pago_id):
+        from flask import session
+        if not _tiene_acceso_pagos_varios():
+            flash('Acceso no autorizado al módulo de Pagos Varios.', 'error')
+            return redirect(url_for('dashboard'))
+
+        periodo = request.form.get('periodo', '').strip()
+        conn = get_db()
+        try:
+            conn.execute("""
+                UPDATE registro_pagos_varios
+                SET pago_realizado = 0, fecha_pago = NULL, documento_soporte = NULL, observaciones = NULL
+                WHERE id = ?
+            """, (pago_id,))
+            conn.commit()
+            flash('El pago ha sido anulado y el estado ha vuelto a Pendiente.', 'info')
+        except Exception as e:
+            current_app.logger.error(f"Error al anular pago vario: {e}")
+            flash('Error al anular el pago.', 'error')
+        finally:
+            conn.close()
+
+        return redirect(url_for('nomina.pagos_varios', periodo=periodo))
 
     app.register_blueprint(nomina_bp)
