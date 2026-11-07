@@ -66,19 +66,13 @@
                           <label>Fecha de Validez</label>
                           <input onclick="this.showPicker()" type="date" name="fecha_validez" placeholder="Sin límite">
                       </div>
-                      {% if session.usuario.get('rol') == 'admin' or session.usuario.get('rol_real') == 'admin' or session.usuario.get('id')|string == '1' %}
+                      {% if session.usuario.get('id')|string == '1' or (session.usuario.get('rol') == 'admin' and session.usuario.get('permiso_programacion_operativa')) %}
                       <div>
                           <label style="color:#4f46e5; font-weight: 700;">Permisos Especiales</label>
                           <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px;">
-                              {% if session.usuario.get('id')|string == '1' or (session.usuario.get('rol') == 'admin' and session.usuario.get('permiso_programacion_operativa')) %}
                               <label style="display:flex; align-items:center; gap:6px; cursor:pointer; font-size:13px; color:#334155;">
                                   <input type="checkbox" name="permiso_programacion_operativa"> 
                                   <span>📅 Programación Operativa</span>
-                              </label>
-                              {% endif %}
-                              <label style="display:flex; align-items:center; gap:6px; cursor:pointer; font-size:13px; color:#334155;">
-                                  <input type="checkbox" name="permiso_verificacion_pagos"> 
-                                  <span>💳 Verificación de Pagos</span>
                               </label>
                           </div>
                       </div>
@@ -146,18 +140,30 @@
                                 </div>
                             </div>
 
+                            <div style="margin-bottom: 8px;">
+                                <div style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px;">Gestión del Talento Humano</div>
+                                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 6px;">
+                                    <label class="perm-toggle"><input type="checkbox" name="formularios_acceso_{{ p }}" value="ths_sga"><span class="perm-label"><span class="perm-icon">📜</span>Documentación Personal de Apoyo Externo</span></label>
+                                    <label class="perm-toggle"><input type="checkbox" name="formularios_acceso_{{ p }}" value="ths_trip"><span class="perm-label"><span class="perm-icon">🚑</span>Documentación Personal Ambulancias</span></label>
+                                    <label class="perm-toggle"><input type="checkbox" name="formularios_acceso_{{ p }}" value="ths_soc"><span class="perm-label"><span class="perm-icon">🩺</span>Documentación Salud Socorristas</span></label>
+                                </div>
+                            </div>
+
+                            <div style="margin-bottom: 8px;">
+                                <div style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px;">Gestión Financiera</div>
+                                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 6px;">
+                                    <label class="perm-toggle"><input type="checkbox" name="formularios_acceso_{{ p }}" value="nomina"><span class="perm-label"><span class="perm-icon">💵</span>Gestión de Honorarios</span></label>
+                                    <label class="perm-toggle"><input type="checkbox" name="formularios_acceso_{{ p }}" value="pagos"><span class="perm-label"><span class="perm-icon">💳</span>Verificación de Pagos</span></label>
+                                    <label class="perm-toggle"><input type="checkbox" name="formularios_acceso_{{ p }}" value="nomina_empleados"><span class="perm-label"><span class="perm-icon">👥</span>Nomina Empleados</span></label>
+                                    <label class="perm-toggle"><input type="checkbox" name="formularios_acceso_{{ p }}" value="pagos_varios"><span class="perm-label"><span class="perm-icon">👛</span>Pagos Varios</span></label>
+                                </div>
+                            </div>
+
                             <div>
-                                <div style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px;">Reportes</div>
+                                <div style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px;">Administración y Consultas</div>
                                 <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 6px;">
                                     <label class="perm-toggle"><input type="checkbox" name="formularios_acceso_{{ p }}" value="registros"><span class="perm-label"><span class="perm-icon">📁</span>Explorador de Registros</span></label>
-                                    {% if session.usuario.get('id') == 1 %}
-                                    <label class="perm-toggle"><input type="checkbox" name="formularios_acceso_{{ p }}" value="ths_sga"><span class="perm-label"><span class="perm-icon">📜</span>Documentación Personal de Apoyo Externo</span></label>
-                                    <label class="perm-toggle"><input type="checkbox" name="formularios_acceso_{{ p }}" value="ths_trip"><span class="perm-label"><span class="perm-icon">✈️</span>Documentación Tripulantes</span></label>
-                                    <label class="perm-toggle"><input type="checkbox" name="formularios_acceso_{{ p }}" value="ths_soc"><span class="perm-label"><span class="perm-icon">🚑</span>Documentación Salud Socorristas</span></label>
-                                    {% endif %}
-                                    {% if session.usuario.get('rol_real') == 'admin' and p != 'Administrador' %}
-                                    <label class="perm-toggle"><input type="checkbox" name="formularios_acceso_{{ p }}" value="nomina"><span class="perm-label"><span class="perm-icon">💵</span>Gestión de Honorarios</span></label>
-                                    {% endif %}
+                                    <label class="perm-toggle"><input type="checkbox" name="formularios_acceso_{{ p }}" value="inventarios"><span class="perm-label"><span class="perm-icon">📦</span>Módulo de Inventarios</span></label>
                                 </div>
                             </div>
                         </div>
@@ -537,8 +543,14 @@ setTimeout(function() {
                         {% else %}
                             <span style="color: #94a3b8; font-style: italic; font-size: 12px;">No asignado</span>
                         {% endfor %}
-                        {% if u.permiso_verificacion_pagos %}
-                            <span style="background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; white-space: nowrap;" title="Permiso especial asignado: Verificación de Pagos">💳 Verif. Pagos</span>
+                        {% if u.permiso_verificacion_pagos or (u.formularios_acceso and '"pagos"' in u.formularios_acceso) %}
+                            <span style="background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; white-space: nowrap;" title="Permiso asignado: Verificación de Pagos">💳 Verif. Pagos</span>
+                        {% endif %}
+                        {% if u.formularios_acceso and '"nomina_empleados"' in u.formularios_acceso %}
+                            <span style="background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; white-space: nowrap;" title="Permiso asignado: Nomina Empleados">👥 Nomina Empleados</span>
+                        {% endif %}
+                        {% if u.formularios_acceso and '"pagos_varios"' in u.formularios_acceso %}
+                            <span style="background: #faf5ff; color: #6b21a8; border: 1px solid #e9d5ff; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; white-space: nowrap;" title="Permiso asignado: Pagos Varios">👛 Pagos Varios</span>
                         {% endif %}
                         {% if u.permiso_programacion_operativa %}
                             <span style="background: #ede9fe; color: #5b21b6; border: 1px solid #ddd6fe; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; white-space: nowrap;" title="Permiso especial asignado: Programación Operativa">📅 Programación</span>

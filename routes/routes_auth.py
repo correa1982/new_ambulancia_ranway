@@ -210,7 +210,7 @@ def register_routes(app):
                 "formularios_acceso": formularios_acceso_list,
                 "permiso_ths_sga": user.get("permiso_ths_sga"),
                 "permiso_programacion_operativa": user.get("permiso_programacion_operativa"),
-                "permiso_verificacion_pagos": user.get("permiso_verificacion_pagos")
+                "permiso_verificacion_pagos": 1 if ('pagos' in formularios_acceso_list or user.get("permiso_verificacion_pagos")) else 0
             }
             session.permanent = True
             
@@ -266,7 +266,7 @@ def register_routes(app):
                 "formularios_acceso": formularios_acceso_list,
                 "permiso_ths_sga": pendiente.get("permiso_ths_sga"),
                 "permiso_programacion_operativa": pendiente.get("permiso_programacion_operativa"),
-                "permiso_verificacion_pagos": pendiente.get("permiso_verificacion_pagos"),
+                "permiso_verificacion_pagos": 1 if ('pagos' in formularios_acceso_list or pendiente.get("permiso_verificacion_pagos")) else 0,
             }
             session.permanent = True
             # Clean up temp data
@@ -612,7 +612,7 @@ def register_routes(app):
                 def normalizar(s):
                     return unicodedata.normalize('NFKD', s).encode('ascii', 'ignore').decode().strip().lower()
 
-                perfiles_canon = {"Médico", "Enfermero", "APH", "Auxiliar en Enfermeria", "Socorrista", "Conductor", "Gestion Humana"}
+                perfiles_canon = {"Médico", "Enfermero", "APH", "Auxiliar en Enfermeria", "Socorrista", "Conductor", "Gestion Humana", "Administrador"}
                 mapa_norm = {normalizar(p): p for p in perfiles_canon}
                 perfiles_list = []
                 invalidos = []
@@ -713,12 +713,14 @@ def register_routes(app):
                 permiso_programacion_operativa = 0
             
             can_assign_pagos = session.get("usuario") and (session["usuario"].get("rol") == "admin" or session["usuario"].get("rol_real") == "admin" or str(session["usuario"].get("id")) == "1")
-            permiso_verificacion_pagos = 1 if (can_assign_pagos and request.form.get("permiso_verificacion_pagos") == "on") else 0
             
             formularios_acceso_dict = {}
             for p in perfiles_list:
                 formularios_acceso_dict[p] = request.form.getlist(f"formularios_acceso_{p}")
             formularios_acceso = json.dumps(formularios_acceso_dict, ensure_ascii=False)
+
+            has_pagos = any('pagos' in forms for forms in formularios_acceso_dict.values()) or (request.form.get("permiso_verificacion_pagos") == "on")
+            permiso_verificacion_pagos = 1 if (can_assign_pagos and has_pagos) else 0
 
             perfiles_requieren_rm = {"Médico", "Enfermero", "APH", "Auxiliar en Enfermeria"}
             tiene_perfil_requerido = any(p in perfiles_requieren_rm for p in perfiles_list)
@@ -784,10 +786,6 @@ def register_routes(app):
                 permiso_programacion_operativa = user.get("permiso_programacion_operativa", 0)
             
             can_assign_pagos = session.get("usuario") and (session["usuario"].get("rol") == "admin" or session["usuario"].get("rol_real") == "admin" or str(session["usuario"].get("id")) == "1")
-            if can_assign_pagos:
-                permiso_verificacion_pagos = 1 if request.form.get("permiso_verificacion_pagos") == "on" else 0
-            else:
-                permiso_verificacion_pagos = user.get("permiso_verificacion_pagos", 0)
             
             # Recuperar permisos antiguos por si el usuario que edita no es admin real
             old_acc_dict = {}
@@ -800,14 +798,20 @@ def register_routes(app):
             formularios_acceso_dict = {}
             for p in perfiles_list:
                 current_forms = request.form.getlist(f"formularios_acceso_{p}")
-                # Si no es admin real, preservar los permisos 'nomina' si ya los tenía
-                if session['usuario'].get('rol_real') != 'admin':
+                # Si no es admin, preservar los permisos 'nomina' y 'pagos' si ya los tenía
+                if not can_assign_pagos:
                     old_forms = old_acc_dict.get(p, []) if isinstance(old_acc_dict, dict) else []
-                    for _perm_pres in ('nomina',):
+                    for _perm_pres in ('nomina', 'pagos', 'nomina_empleados', 'pagos_varios'):
                         if _perm_pres in old_forms and _perm_pres not in current_forms:
                             current_forms.append(_perm_pres)
                 formularios_acceso_dict[p] = current_forms
             formularios_acceso = json.dumps(formularios_acceso_dict, ensure_ascii=False)
+
+            has_pagos = any('pagos' in forms for forms in formularios_acceso_dict.values()) or (request.form.get("permiso_verificacion_pagos") == "on")
+            if can_assign_pagos:
+                permiso_verificacion_pagos = 1 if has_pagos else 0
+            else:
+                permiso_verificacion_pagos = user.get("permiso_verificacion_pagos", 0)
 
             perfiles_requieren_rm = {"Médico", "Enfermero", "APH", "Auxiliar en Enfermeria"}
             tiene_perfil_requerido = any(p in perfiles_requieren_rm for p in perfiles_list)

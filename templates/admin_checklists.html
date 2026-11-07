@@ -237,6 +237,14 @@
         <div class="tab-icon-wrapper"><i class="ph ph-scan"></i></div>
         <span class="tab-label">Archivador</span>
     </a>
+    <a href="{{ url_for('admin_checklists', tipo='nomina_empleados') }}" class="tab-btn {{ 'active' if tipo == 'nomina_empleados' }}">
+        <div class="tab-icon-wrapper"><i class="ph ph-identification-badge"></i></div>
+        <span class="tab-label">Nómina Empleados</span>
+    </a>
+    <a href="{{ url_for('admin_checklists', tipo='pagos_varios') }}" class="tab-btn {{ 'active' if tipo == 'pagos_varios' }}">
+        <div class="tab-icon-wrapper"><i class="ph ph-wallet"></i></div>
+        <span class="tab-label">Pagos Varios</span>
+    </a>
 </div>
 
 {% if tipo == 'vehiculos' %}
@@ -693,7 +701,199 @@
 {% endfor %}
 {% endif %}
 
+{% elif tipo == 'nomina_empleados' %}
+<!-- ══════════ GESTIÓN DE NÓMINA EMPLEADOS ══════════ -->
+<div class="add-form" style="margin-bottom: 24px; border-color: #93c5fd; background: #eff6ff;">
+    <h3 style="color: #1e40af; display: flex; align-items: center; gap: 8px;">
+        <i class="ph ph-identification-badge" style="font-size: 22px;"></i> Parametrizar Empleado para Nómina
+    </h3>
+    <p style="font-size: 13px; color: #64748b; margin-top: -4px; margin-bottom: 14px;">
+        Registre los empleados con su documento de identidad, nombre completo y valor de pago mensual fijado.
+    </p>
+    <form method="POST" action="{{ url_for('admin_nomina_empleados_agregar') }}" id="form-add-nomina-empleado">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)) auto; gap: 12px; align-items: end;">
+            <div class="field">
+                <label style="color: #1e40af; font-weight: 700;">Documento de Identidad <span style="color:#ef4444;">*</span></label>
+                <input type="text" name="documento_identidad" required placeholder="Ej. 1020304050" style="border: 1px solid #bfdbfe; border-radius: 8px; padding: 9px 12px;">
+            </div>
+            <div class="field">
+                <label style="color: #1e40af; font-weight: 700;">Nombre Completo <span style="color:#ef4444;">*</span></label>
+                <input type="text" name="nombre_completo" required placeholder="Ej. Juan Carlos Pérez Gómez" style="border: 1px solid #bfdbfe; border-radius: 8px; padding: 9px 12px;">
+            </div>
+            <div class="field">
+                <label style="color: #1e40af; font-weight: 700;">Valor de Pago ($) <span style="color:#ef4444;">*</span></label>
+                <input type="number" step="any" min="0" name="valor_pago" required placeholder="Ej. 1800000" style="border: 1px solid #bfdbfe; border-radius: 8px; padding: 9px 12px;">
+            </div>
+            <div>
+                <button type="submit" class="btn-add" style="background: linear-gradient(135deg, #2563eb, #1d4ed8); box-shadow: 0 4px 10px rgba(37,99,235,0.25); white-space: nowrap; height: 42px;">
+                    ➕ Registrar Empleado
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<div style="display: flex; justify-content: space-between; align-items: center; margin: 20px 0 10px; flex-wrap: wrap; gap: 10px;">
+    <h2 style="font-size: 14px; text-transform: uppercase; letter-spacing: 0.6px; color: #64748b; margin: 0; display: flex; align-items: center; gap: 8px;">
+        👥 Empleados Parametrizados
+        <span style="font-size: 11px; background: #dbeafe; padding: 2px 8px; border-radius: 10px; color: #1e40af; font-weight: 700;">{{ nomina_empleados_todos|length }}</span>
+    </h2>
+    <a href="{{ url_for('nomina.nomina_empleados') }}" class="action-btn" style="background: #2563eb; color: white; border: none; font-size: 12px; padding: 6px 14px; font-weight: 600; text-decoration: none;">
+        <i class="ph ph-arrow-square-out"></i> Ir a Módulo Nómina Empleados
+    </a>
+</div>
+
+{% if nomina_empleados_todos|length > 0 %}
+<div class="table-responsive">
+<table class="items-table">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Documento de Identidad</th>
+            <th>Nombre Completo</th>
+            <th>Valor de Pago</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for e in nomina_empleados_todos %}
+        <tr style="{{ 'opacity: 0.55;' if e.activo != 1 }}">
+            <td style="color: #94a3b8; font-weight: 600;">{{ loop.index }}</td>
+            <td style="font-weight: 700; color: #1e3a5f;">{{ e.documento_identidad }}</td>
+            <td style="font-weight: 600; color: #1e3a5f;">{{ e.nombre_completo }}</td>
+            <td style="font-weight: 700; color: #059669; font-family: monospace;">
+                ${{ "{:,.0f}".format(e.valor_pago|float).replace(',', '.') }}
+            </td>
+            <td style="text-align: center;">
+                {% if e.activo == 1 %}
+                <span class="status-active">✓ Activo</span>
+                {% else %}
+                <span class="status-inactive">✗ Inactivo</span>
+                {% endif %}
+            </td>
+            <td style="text-align: center;">
+                <div style="display: flex; gap: 6px; justify-content: center; align-items: center;">
+                    <button type="button" class="action-btn" style="background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; cursor: pointer;" onclick="editarNominaEmpleado({{ e.id }}, '{{ e.documento_identidad|e }}', '{{ e.nombre_completo|e }}', {{ e.valor_pago|float }})">
+                        ✏️ Editar
+                    </button>
+                    <a href="{{ url_for('admin_nomina_empleados_toggle', item_id=e.id) }}" class="action-btn btn-toggle">
+                        {{ '⏸ Desactivar' if e.activo == 1 else '▶ Activar' }}
+                    </a>
+                    <a href="{{ url_for('admin_nomina_empleados_eliminar', item_id=e.id) }}" class="action-btn btn-delete"
+                       onclick="return confirm('¿Está seguro de eliminar permanentemente a «{{ e.nombre_completo }}»?')">
+                        🗑 Eliminar
+                    </a>
+                </div>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+</div>
 {% else %}
+<div class="empty-state" style="text-align: center; padding: 40px 20px; background: white; border-radius: 12px; border: 1px dashed #cbd5e1; margin-top: 10px;">
+    <div style="font-size: 36px; margin-bottom: 8px;">👥</div>
+    <p style="color: #64748b; font-size: 14px; margin: 0;">No hay empleados parametrizados todavía. Agregue el primero usando el formulario de arriba.</p>
+</div>
+{% endif %}
+
+{% elif tipo == 'pagos_varios' %}
+<!-- ══════════ GESTIÓN DE PAGOS VARIOS ══════════ -->
+<div class="add-form" style="margin-bottom: 24px; border-color: #d8b4fe; background: #faf5ff;">
+    <h3 style="color: #6b21a8; display: flex; align-items: center; gap: 8px;">
+        <i class="ph ph-wallet" style="font-size: 22px;"></i> Parametrizar Pagos Varios
+    </h3>
+    <p style="font-size: 13px; color: #64748b; margin-top: -4px; margin-bottom: 14px;">
+        Registre los beneficiarios, proveedores o conceptos varios con su documento de identidad, nombre completo y valor de pago.
+    </p>
+    <form method="POST" action="{{ url_for('admin_pagos_varios_agregar') }}" id="form-add-pagos-varios">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)) auto; gap: 12px; align-items: end;">
+            <div class="field">
+                <label style="color: #6b21a8; font-weight: 700;">Documento de Identidad <span style="color:#ef4444;">*</span></label>
+                <input type="text" name="documento_identidad" required placeholder="Ej. NIT o Cédula" style="border: 1px solid #e9d5ff; border-radius: 8px; padding: 9px 12px;">
+            </div>
+            <div class="field">
+                <label style="color: #6b21a8; font-weight: 700;">Nombre Completo / Razón Social <span style="color:#ef4444;">*</span></label>
+                <input type="text" name="nombre_completo" required placeholder="Ej. Proveedor de Insumos SAS" style="border: 1px solid #e9d5ff; border-radius: 8px; padding: 9px 12px;">
+            </div>
+            <div class="field">
+                <label style="color: #6b21a8; font-weight: 700;">Valor de Pago ($) <span style="color:#ef4444;">*</span></label>
+                <input type="number" step="any" min="0" name="valor_pago" required placeholder="Ej. 650000" style="border: 1px solid #e9d5ff; border-radius: 8px; padding: 9px 12px;">
+            </div>
+            <div>
+                <button type="submit" class="btn-add" style="background: linear-gradient(135deg, #9333ea, #7e22ce); box-shadow: 0 4px 10px rgba(147,51,234,0.25); white-space: nowrap; height: 42px;">
+                    ➕ Registrar Pago Vario
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<div style="display: flex; justify-content: space-between; align-items: center; margin: 20px 0 10px; flex-wrap: wrap; gap: 10px;">
+    <h2 style="font-size: 14px; text-transform: uppercase; letter-spacing: 0.6px; color: #64748b; margin: 0; display: flex; align-items: center; gap: 8px;">
+        💳 Pagos Varios Parametrizados
+        <span style="font-size: 11px; background: #f3e8ff; padding: 2px 8px; border-radius: 10px; color: #6b21a8; font-weight: 700;">{{ pagos_varios_todos|length }}</span>
+    </h2>
+    <a href="{{ url_for('nomina.pagos_varios') }}" class="action-btn" style="background: #9333ea; color: white; border: none; font-size: 12px; padding: 6px 14px; font-weight: 600; text-decoration: none;">
+        <i class="ph ph-arrow-square-out"></i> Ir a Módulo Pagos Varios
+    </a>
+</div>
+
+{% if pagos_varios_todos|length > 0 %}
+<div class="table-responsive">
+<table class="items-table">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Documento de Identidad</th>
+            <th>Nombre Completo</th>
+            <th>Valor de Pago</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for pv in pagos_varios_todos %}
+        <tr style="{{ 'opacity: 0.55;' if pv.activo != 1 }}">
+            <td style="color: #94a3b8; font-weight: 600;">{{ loop.index }}</td>
+            <td style="font-weight: 700; color: #1e3a5f;">{{ pv.documento_identidad }}</td>
+            <td style="font-weight: 600; color: #1e3a5f;">{{ pv.nombre_completo }}</td>
+            <td style="font-weight: 700; color: #059669; font-family: monospace;">
+                ${{ "{:,.0f}".format(pv.valor_pago|float).replace(',', '.') }}
+            </td>
+            <td style="text-align: center;">
+                {% if pv.activo == 1 %}
+                <span class="status-active">✓ Activo</span>
+                {% else %}
+                <span class="status-inactive">✗ Inactivo</span>
+                {% endif %}
+            </td>
+            <td style="text-align: center;">
+                <div style="display: flex; gap: 6px; justify-content: center; align-items: center;">
+                    <button type="button" class="action-btn" style="background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; cursor: pointer;" onclick="editarPagoVario({{ pv.id }}, '{{ pv.documento_identidad|e }}', '{{ pv.nombre_completo|e }}', {{ pv.valor_pago|float }})">
+                        ✏️ Editar
+                    </button>
+                    <a href="{{ url_for('admin_pagos_varios_toggle', item_id=pv.id) }}" class="action-btn btn-toggle">
+                        {{ '⏸ Desactivar' if pv.activo == 1 else '▶ Activar' }}
+                    </a>
+                    <a href="{{ url_for('admin_pagos_varios_eliminar', item_id=pv.id) }}" class="action-btn btn-delete"
+                       onclick="return confirm('¿Está seguro de eliminar permanentemente a «{{ pv.nombre_completo }}»?')">
+                        🗑 Eliminar
+                    </a>
+                </div>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+</div>
+{% else %}
+<div class="empty-state" style="text-align: center; padding: 40px 20px; background: white; border-radius: 12px; border: 1px dashed #cbd5e1; margin-top: 10px;">
+    <div style="font-size: 36px; margin-bottom: 8px;">💳</div>
+    <p style="color: #64748b; font-size: 14px; margin: 0;">No hay pagos varios parametrizados todavía. Agregue el primero usando el formulario de arriba.</p>
+</div>
+{% endif %}
 <!-- ══════════ GESTIÓN DE ÍTEMS DE CHECKLISTS ══════════ -->
 <!-- Formulario y Tabla de Categorías -->
 <div class="add-form" style="margin-bottom: 24px; border-color: #fcd34d; background: #fffbeb;">
@@ -1310,6 +1510,107 @@
         modalEditarItem.addEventListener('click', function(e) {
             if (e.target === this) {
                 closeEditItemModal();
+            }
+        });
+    }
+    function editarNominaEmpleado(id, doc, nombre, valor) {
+        Swal.fire({
+            title: 'Editar Empleado de Nómina',
+            html: `
+                <div style="text-align: left; display: flex; flex-direction: column; gap: 10px; font-family: inherit;">
+                    <div>
+                        <label style="font-size: 12px; font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">Documento de Identidad</label>
+                        <input id="swal-doc" class="swal2-input" style="width: 100%; margin: 0; box-sizing: border-box;" value="${doc}">
+                    </div>
+                    <div>
+                        <label style="font-size: 12px; font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">Nombre Completo</label>
+                        <input id="swal-nombre" class="swal2-input" style="width: 100%; margin: 0; box-sizing: border-box;" value="${nombre}">
+                    </div>
+                    <div>
+                        <label style="font-size: 12px; font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">Valor de Pago ($)</label>
+                        <input id="swal-valor" type="number" step="any" class="swal2-input" style="width: 100%; margin: 0; box-sizing: border-box;" value="${valor}">
+                    </div>
+                </div>
+            `,
+            showCancelButton: true,
+            confirmButtonText: 'Guardar Cambios',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#2563eb',
+            preConfirm: () => {
+                const newDoc = document.getElementById('swal-doc').value.trim();
+                const newNombre = document.getElementById('swal-nombre').value.trim();
+                const newValor = document.getElementById('swal-valor').value.trim();
+                if (!newDoc || !newNombre || !newValor) {
+                    Swal.showValidationMessage('Todos los campos son obligatorios');
+                    return false;
+                }
+                return { doc: newDoc, nombre: newNombre, valor: newValor };
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = `/admin/nomina-empleados/editar/${id}`;
+                for (const [k, v] of Object.entries(result.value)) {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = k === 'doc' ? 'documento_identidad' : (k === 'nombre' ? 'nombre_completo' : 'valor_pago');
+                    input.value = v;
+                    form.appendChild(input);
+                }
+                document.body.appendChild(form);
+                form.submit();
+            }
+        });
+    }
+
+    function editarPagoVario(id, doc, nombre, valor) {
+        Swal.fire({
+            title: 'Editar Pago Vario',
+            html: `
+                <div style="text-align: left; display: flex; flex-direction: column; gap: 10px; font-family: inherit;">
+                    <div>
+                        <label style="font-size: 12px; font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">Documento de Identidad</label>
+                        <input id="swal-pv-doc" class="swal2-input" style="width: 100%; margin: 0; box-sizing: border-box;" value="${doc}">
+                    </div>
+                    <div>
+                        <label style="font-size: 12px; font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">Nombre Completo / Razón Social</label>
+                        <input id="swal-pv-nombre" class="swal2-input" style="width: 100%; margin: 0; box-sizing: border-box;" value="${nombre}">
+                    </div>
+                    <div>
+                        <label style="font-size: 12px; font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">Valor de Pago ($)</label>
+                        <input id="swal-pv-valor" type="number" step="any" class="swal2-input" style="width: 100%; margin: 0; box-sizing: border-box;" value="${valor}">
+                    </div>
+                </div>
+            `,
+            showCancelButton: true,
+            confirmButtonText: 'Guardar Cambios',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#9333ea',
+            preConfirm: () => {
+                const newDoc = document.getElementById('swal-pv-doc').value.trim();
+                const newNombre = document.getElementById('swal-pv-nombre').value.trim();
+                const newValor = document.getElementById('swal-pv-valor').value.trim();
+                if (!newDoc || !newNombre || !newValor) {
+                    Swal.showValidationMessage('Todos los campos son obligatorios');
+                    return false;
+                }
+                return { doc: newDoc, nombre: newNombre, valor: newValor };
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = `/admin/pagos-varios/editar/${id}`;
+                for (const [k, v] of Object.entries(result.value)) {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = k === 'doc' ? 'documento_identidad' : (k === 'nombre' ? 'nombre_completo' : 'valor_pago');
+                    input.value = v;
+                    form.appendChild(input);
+                }
+                document.body.appendChild(form);
+                form.submit();
             }
         });
     }

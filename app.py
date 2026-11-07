@@ -322,6 +322,7 @@ def revalidar_sesion():
         usuario["formularios_acceso"] = acceso
         usuario["permiso_ths_sga"] = fila.get("permiso_ths_sga")
         usuario["permiso_programacion_operativa"] = fila.get("permiso_programacion_operativa")
+        usuario["permiso_verificacion_pagos"] = 1 if ('pagos' in acceso or fila.get("permiso_verificacion_pagos")) else 0
         session["usuario"] = usuario
     except Exception:
         app.logger.exception("No se pudieron refrescar los permisos de la sesion")
