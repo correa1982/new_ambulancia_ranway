@@ -780,10 +780,9 @@
                     <a href="{{ url_for('admin_nomina_empleados_toggle', item_id=e.id) }}" class="action-btn btn-toggle">
                         {{ '⏸ Desactivar' if e.activo == 1 else '▶ Activar' }}
                     </a>
-                    <a href="{{ url_for('admin_nomina_empleados_eliminar', item_id=e.id) }}" class="action-btn btn-delete"
-                       onclick="return confirm('¿Está seguro de eliminar permanentemente a «{{ e.nombre_completo }}»?')">
+                    <button type="button" class="action-btn btn-delete" style="cursor: pointer; border: none;" onclick="confirmarEliminarNominaEmpleado({{ e.id }}, '{{ e.nombre_completo|e }}')">
                         🗑 Eliminar
-                    </a>
+                    </button>
                 </div>
             </td>
         </tr>
@@ -877,10 +876,9 @@
                     <a href="{{ url_for('admin_pagos_varios_toggle', item_id=pv.id) }}" class="action-btn btn-toggle">
                         {{ '⏸ Desactivar' if pv.activo == 1 else '▶ Activar' }}
                     </a>
-                    <a href="{{ url_for('admin_pagos_varios_eliminar', item_id=pv.id) }}" class="action-btn btn-delete"
-                       onclick="return confirm('¿Está seguro de eliminar permanentemente a «{{ pv.nombre_completo }}»?')">
+                    <button type="button" class="action-btn btn-delete" style="cursor: pointer; border: none;" onclick="confirmarEliminarPagoVario({{ pv.id }}, '{{ pv.nombre_completo|e }}')">
                         🗑 Eliminar
-                    </a>
+                    </button>
                 </div>
             </td>
         </tr>
@@ -894,6 +892,8 @@
     <p style="color: #64748b; font-size: 14px; margin: 0;">No hay pagos varios parametrizados todavía. Agregue el primero usando el formulario de arriba.</p>
 </div>
 {% endif %}
+
+{% else %}
 <!-- ══════════ GESTIÓN DE ÍTEMS DE CHECKLISTS ══════════ -->
 <!-- Formulario y Tabla de Categorías -->
 <div class="add-form" style="margin-bottom: 24px; border-color: #fcd34d; background: #fffbeb;">
@@ -1551,6 +1551,13 @@
                 const form = document.createElement('form');
                 form.method = 'POST';
                 form.action = `/admin/nomina-empleados/editar/${id}`;
+                
+                const csrfInput = document.createElement('input');
+                csrfInput.type = 'hidden';
+                csrfInput.name = 'csrf_token';
+                csrfInput.value = '{{ csrf_token() }}';
+                form.appendChild(csrfInput);
+
                 for (const [k, v] of Object.entries(result.value)) {
                     const input = document.createElement('input');
                     input.type = 'hidden';
@@ -1560,6 +1567,25 @@
                 }
                 document.body.appendChild(form);
                 form.submit();
+            }
+        });
+    }
+
+    function confirmarEliminarNominaEmpleado(id, nombre) {
+        Swal.fire({
+            title: '¿Eliminar Empleado?',
+            html: `¿Está seguro de eliminar permanentemente a <strong>«${nombre}»</strong>?<br><small style="color: #64748b; margin-top: 6px; display: block;">Esta acción no se puede deshacer.</small>`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#94a3b8',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar',
+            reverseButtons: true,
+            focusCancel: true
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = `/admin/nomina-empleados/eliminar/${id}`;
             }
         });
     }
@@ -1602,6 +1628,13 @@
                 const form = document.createElement('form');
                 form.method = 'POST';
                 form.action = `/admin/pagos-varios/editar/${id}`;
+                
+                const csrfInput = document.createElement('input');
+                csrfInput.type = 'hidden';
+                csrfInput.name = 'csrf_token';
+                csrfInput.value = '{{ csrf_token() }}';
+                form.appendChild(csrfInput);
+
                 for (const [k, v] of Object.entries(result.value)) {
                     const input = document.createElement('input');
                     input.type = 'hidden';
@@ -1611,6 +1644,25 @@
                 }
                 document.body.appendChild(form);
                 form.submit();
+            }
+        });
+    }
+
+    function confirmarEliminarPagoVario(id, nombre) {
+        Swal.fire({
+            title: '¿Eliminar Pago Vario?',
+            html: `¿Está seguro de eliminar permanentemente a <strong>«${nombre}»</strong>?<br><small style="color: #64748b; margin-top: 6px; display: block;">Esta acción no se puede deshacer.</small>`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#94a3b8',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar',
+            reverseButtons: true,
+            focusCancel: true
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = `/admin/pagos-varios/eliminar/${id}`;
             }
         });
     }

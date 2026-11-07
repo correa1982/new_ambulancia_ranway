@@ -21,6 +21,37 @@
         });
     }
 
+    // Interceptar llamadas directas a form.submit()
+    if (HTMLFormElement && HTMLFormElement.prototype) {
+        var _submit = HTMLFormElement.prototype.submit;
+        HTMLFormElement.prototype.submit = function () {
+            var metodo = (this.getAttribute('method') || 'GET').toUpperCase();
+            if (metodo === 'POST' && token && !this.querySelector('input[name="csrf_token"]')) {
+                var h = document.createElement('input');
+                h.type = 'hidden';
+                h.name = 'csrf_token';
+                h.value = token;
+                this.appendChild(h);
+            }
+            return _submit.apply(this, arguments);
+        };
+    }
+
+    // Interceptar envíos de formulario por botón/enter
+    document.addEventListener('submit', function (e) {
+        var f = e.target;
+        if (f && f.tagName === 'FORM') {
+            var metodo = (f.getAttribute('method') || 'GET').toUpperCase();
+            if (metodo === 'POST' && token && !f.querySelector('input[name="csrf_token"]')) {
+                var h = document.createElement('input');
+                h.type = 'hidden';
+                h.name = 'csrf_token';
+                h.value = token;
+                f.appendChild(h);
+            }
+        }
+    }, true);
+
     // Cabecera X-CSRFToken en fetch() para peticiones no-GET
     if (window.fetch) {
         var _fetch = window.fetch;
