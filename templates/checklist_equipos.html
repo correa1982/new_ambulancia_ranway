@@ -258,7 +258,7 @@ tr.item-error .row-error-badge { display: inline; }
     <div class="progress-bar-fill" id="progressFill" style="width:33%;"></div>
 </div>
 
-<form method="POST" id="wizardForm" novalidate>
+<form method="POST" id="wizardForm" class="pwa-offline-form" novalidate>
 {% if record %}<input type="hidden" name="id" value="{{ record.id }}">{% endif %}
 
 <!-- ══════════════════════════════════

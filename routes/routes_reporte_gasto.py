@@ -45,6 +45,9 @@ def register_routes(app):
 
         if request.method == "POST":
             data = request.form
+            # Envío desde la sincronización offline: espera JSON, no una redirección.
+            # Sin esto el reporte se guardaba pero el dispositivo lo volvía a enviar (duplicados).
+            es_offline = data.get("_offline_sync") == "1"
             accion = data.get("accion", "finalizar").strip().lower()
             finalizado = 0 if accion == "borrador" else 1
 
@@ -79,6 +82,8 @@ def register_routes(app):
 
                 if finalizado == 1 and cant <= 0:
                     conn.close()
+                    if es_offline:
+                        return jsonify({"status": "error", "message": f"La cantidad utilizada para '{nom}' debe ser mayor a 0."}), 400
                     flash(f"La cantidad utilizada para '{nom}' debe ser mayor a 0.", "error")
                     return redirect(url_for("form_reporte_gasto"))
 
@@ -103,11 +108,15 @@ def register_routes(app):
 
                 if faltantes:
                     conn.close()
+                    if es_offline:
+                        return jsonify({"status": "error", "message": f"Campos obligatorios: {', '.join(faltantes)}."}), 400
                     flash(f"Los siguientes campos son obligatorios para finalizar: {', '.join(faltantes)}.", "error")
                     return redirect(url_for("form_reporte_gasto"))
 
                 if not articulos:
                     conn.close()
+                    if es_offline:
+                        return jsonify({"status": "error", "message": "Debe registrar al menos un artículo utilizado con cantidad mayor a 0."}), 400
                     flash("Debe registrar al menos un artículo utilizado con cantidad mayor a 0.", "error")
                     return redirect(url_for("form_reporte_gasto"))
             else:
@@ -159,6 +168,8 @@ def register_routes(app):
 
                 conn.commit()
                 conn.close()
+                if es_offline:
+                    return jsonify({"status": "success", "id": reporte_id})
                 flash(f"Reporte de Gasto #{reporte_id} finalizado y guardado exitosamente.", "success")
                 return redirect(url_for("ver_reporte_gasto", reporte_id=reporte_id))
 
@@ -193,6 +204,8 @@ def register_routes(app):
 
                 conn.commit()
                 conn.close()
+                if es_offline:
+                    return jsonify({"status": "success"})
                 flash("💾 Borrador de Reporte de Gasto guardado correctamente.", "success")
                 return redirect(url_for("form_reporte_gasto"))
 

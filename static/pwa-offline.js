@@ -294,8 +294,36 @@ const PWA = (() => {
       .finally(() => clearTimeout(id));
   }
 
+  // ── Token CSRF vigente ───────────────────────────────────
+  // El token guardado con el registro puede ser de una página vieja (por
+  // ejemplo, abierta desde la copia offline) y no coincidir con la cookie.
+  // Se pide al servidor el token actual; si no responde, se usa el de la página.
+  async function obtenerTokenCSRF() {
+    try {
+      const resp = await fetchConTimeout('/api/csrf', { credentials: 'same-origin', cache: 'no-store' }, 10000);
+      if (resp.ok) {
+        const data = await resp.json();
+        if (data && data.token) return data.token;
+      }
+    } catch (e) { /* se usa el de la página */ }
+    const meta = document.querySelector('meta[name="csrf-token"]');
+    return (meta && meta.getAttribute('content')) || null;
+  }
+
   // ── Sincronizar con el servidor (con retry + dedup) ──────
+  // Usa un candado compartido con el service worker para no enviar el
+  // mismo registro dos veces al mismo tiempo.
   async function sincronizar() {
+    if (navigator.locks) {
+      return navigator.locks.request('sync-registros', { ifAvailable: true }, lock => {
+        if (!lock) return { ok: 0, errores: 0, omitidos: 0, ocupado: true };
+        return sincronizarSinCandado();
+      });
+    }
+    return sincronizarSinCandado();
+  }
+
+  async function sincronizarSinCandado() {
     if (isSyncing) return { ok: 0, errores: 0, omitidos: 0 };
     isSyncing = true;
 
@@ -307,6 +335,7 @@ const PWA = (() => {
 
       let ok = 0, errores = 0, omitidos = 0;
       const seenDedupe = new Set();
+      const tokenActual = await obtenerTokenCSRF();
 
       for (const registro of pendientes) {
         if (registro.dedupe_key && seenDedupe.has(registro.dedupe_key)
@@ -332,6 +361,7 @@ const PWA = (() => {
             formData.append('_offline_dedupe_key', registro.dedupe_key || '');
 
             for (const [key, val] of Object.entries(registro.datos)) {
+              if (key === 'csrf_token') continue;
               if (val !== null && val !== undefined && val !== '') {
                 if (Array.isArray(val)) {
                   val.forEach(v => formData.append(key, v));
@@ -341,14 +371,9 @@ const PWA = (() => {
               }
             }
 
-            // Token CSRF: si el registro no lo guardo (creado antes del despliegue),
-            // se toma del meta de la pagina actual.
-            if (!formData.has('csrf_token')) {
-              const meta = document.querySelector('meta[name="csrf-token"]');
-              if (meta && meta.getAttribute('content')) {
-                formData.append('csrf_token', meta.getAttribute('content'));
-              }
-            }
+            // Token CSRF vigente; el del registro solo si el servidor no respondió.
+            const tokenEnvio = tokenActual || registro.datos.csrf_token;
+            if (tokenEnvio) formData.append('csrf_token', tokenEnvio);
 
             let urlPost = registro.datos._offline_post_url || '/formulario';
             const acId = registro.datos.atencion_colectiva_id;
@@ -499,7 +524,7 @@ const PWA = (() => {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', async () => {
     try {
-      const reg = await navigator.serviceWorker.register('/sw.js?v=60', { scope: '/' });
+      const reg = await navigator.serviceWorker.register('/sw.js?v=61', { scope: '/' });
       console.log('[PWA] Service Worker registrado:', reg.scope);
 
       reg.addEventListener('updatefound', () => {
@@ -513,22 +538,35 @@ if ('serviceWorker' in navigator) {
         }
       });
 
+      // Con la sesión iniciada se guardan las páginas para usarlas sin conexión.
+      // (Al instalarse desde el login no se pueden guardar: el servidor redirige.)
       const avisarOfflineListo = async () => {
         if (sessionStorage.getItem('pwa_offline_avisado')) return;
+        if (!document.getElementById('usuario-datos') || !navigator.onLine) return;
         sessionStorage.setItem('pwa_offline_avisado', '1');
-        const cacheOk = await verificarPrecache();
+        const fallidos = await pedirPrecachePaginas();
+        if (fallidos === null) {
+          sessionStorage.removeItem('pwa_offline_avisado');
+          return;
+        }
+        if (fallidos.length) console.warn('[PWA] Páginas no guardadas para uso offline:', fallidos);
         mostrarToast(
-          cacheOk
+          fallidos.length === 0
             ? 'Sistema Offline preparado y activo.'
-            : 'Modo Offline preparado con advertencias. Revisa la consola.',
-          cacheOk ? 'success' : 'warning'
+            : `Modo Offline preparado, pero ${fallidos.length} página(s) no se guardaron. Revisa la consola.`,
+          fallidos.length === 0 ? 'success' : 'warning'
         );
       };
 
+      // Cuando entra una versión nueva del service worker su caché empieza
+      // sin las páginas: se vuelven a guardar con la sesión actual.
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        sessionStorage.removeItem('pwa_offline_avisado');
+        avisarOfflineListo();
+      });
       if (navigator.serviceWorker.controller) {
         await avisarOfflineListo();
       } else {
-        navigator.serviceWorker.addEventListener('controllerchange', avisarOfflineListo, { once: true });
         setTimeout(async () => {
           if (navigator.serviceWorker.controller) await avisarOfflineListo();
         }, 8000);
@@ -546,23 +584,40 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-async function verificarPrecache() {
-  try {
-    const cacheKeys = await caches.keys();
-    const esenciales = ['/', '/static/pwa-offline.js?v=59', '/static/offline.html?v=3'];
-    for (const url of esenciales) {
-      let encontrado = false;
-      for (const key of cacheKeys) {
-        const cache = await caches.open(key);
-        if (await cache.match(url)) { encontrado = true; break; }
-      }
-      if (!encontrado) return false;
-    }
-    return true;
-  } catch (e) {
-    console.warn('[PWA] No se pudo verificar el precache:', e);
-    return false;
+// Pide al service worker que guarde las páginas con la sesión actual.
+// Devuelve la lista de páginas que no se pudieron guardar, o null si no hubo respuesta.
+function pedirPrecachePaginas() {
+  return new Promise(resolve => {
+    const sw = navigator.serviceWorker.controller;
+    if (!sw) return resolve(null);
+    const canal = new MessageChannel();
+    const limite = setTimeout(() => resolve(null), 120000);
+    canal.port1.onmessage = ev => {
+      clearTimeout(limite);
+      resolve((ev.data && ev.data.fallidos) || []);
+    };
+    sw.postMessage({ type: 'PRECACHE_PAGINAS' }, [canal.port2]);
+  });
+}
+
+// Pide sincronizar: en segundo plano si el navegador lo permite; si no, desde la página.
+async function solicitarSincronizacion() {
+  if ('serviceWorker' in navigator && 'SyncManager' in window) {
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      await reg.sync.register('sync-registros');
+      return 'fondo';
+    } catch (e) { /* se sincroniza desde la página */ }
   }
+  const r = await PWA.sincronizar();
+  if (r.ok > 0) {
+    let msg = `${r.ok} registro(s) sincronizado(s) correctamente.`;
+    if (r.omitidos > 0) msg += ` (${r.omitidos} duplicado(s) omitido(s))`;
+    mostrarToast(msg, 'success');
+  }
+  if (r.errores > 0) mostrarToast(`${r.errores} registro(s) no pudieron sincronizarse.`, 'warning');
+  actualizarBadgePendientes();
+  return 'pagina';
 }
 
 
@@ -593,7 +648,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (navigator.onLine) {
         try {
-            const resp = await fetch('/static/manifest.json?_sw_bypass=1&t=' + Date.now(), { method: 'HEAD', cache: 'no-store' });
+            // Con señal débil esta consulta podía quedarse esperando sin fin: se limita a 5 s.
+            const ctrl = new AbortController();
+            const limite = setTimeout(() => ctrl.abort(), 5000);
+            let resp;
+            try {
+              resp = await fetch('/static/manifest.json?_sw_bypass=1&t=' + Date.now(), { method: 'HEAD', cache: 'no-store', signal: ctrl.signal });
+            } finally {
+              clearTimeout(limite);
+            }
             if (!resp.ok) throw new Error('Servidor inaccesible (status ' + resp.status + ')');
 
             if (e.submitter && e.submitter.name) {
@@ -761,24 +824,10 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   window.addEventListener('online', async () => {
-    if ('serviceWorker' in navigator && 'SyncManager' in window) {
-      mostrarToast('Conexion restaurada. Sincronizando en segundo plano...', 'info');
-      return;
-    }
-
     mostrarToast('Conexion restaurada. Sincronizando...', 'info');
     await new Promise(r => setTimeout(r, 1500));
     try {
-      const { ok, errores, omitidos } = await PWA.sincronizar();
-      if (ok > 0) {
-        let msg = `${ok} registro(s) sincronizado(s) correctamente.`;
-        if (omitidos > 0) msg += ` (${omitidos} duplicado(s) omitido(s))`;
-        mostrarToast(msg, 'success');
-      }
-      if (errores > 0) {
-        mostrarToast(`${errores} registro(s) no pudieron sincronizarse.`, 'warning');
-      }
-      actualizarBadgePendientes();
+      await solicitarSincronizacion();
     } catch (err) {
       console.error('[PWA] Error en sync automatico:', err);
     }
@@ -799,7 +848,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   try {
     const meta = document.querySelector('meta[name="csrf-token"]');
     if (meta && meta.getAttribute('content')) {
-      const db = await abrirDB();
+      const db = await PWA.abrirDB();
       await new Promise((resolve, reject) => {
         const tx = db.transaction('sesion', 'readwrite');
         tx.objectStore('sesion').put({ key: 'csrf_token', fecha_guardado: Date.now(), token: meta.getAttribute('content') });
@@ -872,8 +921,13 @@ function mostrarToast(mensaje, tipo = 'info') {
   toast._timeout = setTimeout(() => { toast.style.opacity = '0'; }, 5000);
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   actualizarBadgePendientes();
+  try {
+    if (navigator.onLine && document.getElementById('usuario-datos') && (await PWA.contarPendientes()) > 0) {
+      setTimeout(() => { solicitarSincronizacion().catch(() => {}); }, 3000);
+    }
+  } catch (e) { /* silencioso */ }
   const offlineToast = sessionStorage.getItem('offline_toast_success');
   if (offlineToast) {
       sessionStorage.removeItem('offline_toast_success');

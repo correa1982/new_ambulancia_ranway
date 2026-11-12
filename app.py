@@ -480,6 +480,16 @@ def serve_sw():
     return response
 
 
+@app.route("/api/csrf")
+def api_csrf():
+    """Token CSRF vigente para este dispositivo (el de su cookie).
+    Lo usa la sincronización offline: el token guardado con un registro
+    puede ser de una página vieja y ya no coincidir con la cookie."""
+    response = jsonify({"token": _csrf_token()})
+    response.headers["Cache-Control"] = "no-store"
+    return response
+
+
 
 
 def get_cie10_data():
