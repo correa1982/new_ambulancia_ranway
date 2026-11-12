@@ -43,6 +43,7 @@ def register_routes(app):
                     })
             integrantes_json = json.dumps(integrantes_list) if integrantes_list else "[]"
 
+            guardado = False
             try:
                 conn.execute("""
                     INSERT INTO atencion_vehiculo (
@@ -79,6 +80,7 @@ def register_routes(app):
                     ahora().strftime("%Y-%m-%d %H:%M:%S")
                 ))
                 conn.commit()
+                guardado = True
                 if finalizado == 1:
                     flash("Formulario Atención Vehículo de Intervención finalizado y guardado con éxito.", "success")
                 else:
@@ -89,6 +91,9 @@ def register_routes(app):
             finally:
                 conn.close()
             if request.form.get("_offline_sync") == "1":
+                # Si no se guardó, el dispositivo debe conservar el registro y reintentar.
+                if not guardado:
+                    return jsonify({"status": "error", "message": "No se pudo guardar el registro."}), 500
                 return jsonify({"status": "success"})
             return redirect(url_for("registros_atencion_vehiculo"))
 
@@ -211,6 +216,7 @@ def register_routes(app):
                     })
             integrantes_json = json.dumps(integrantes_list) if integrantes_list else "[]"
 
+            guardado = False
             try:
                 conn.execute("""
                     UPDATE atencion_vehiculo SET
@@ -240,6 +246,7 @@ def register_routes(app):
                     id
                 ))
                 conn.commit()
+                guardado = True
                 if finalizado == 1:
                     flash("Formulario Atención Vehículo de Intervención finalizado y guardado con éxito.", "success")
                 else:
@@ -250,6 +257,9 @@ def register_routes(app):
             finally:
                 conn.close()
             if request.form.get("_offline_sync") == "1":
+                # Si no se guardó, el dispositivo debe conservar el registro y reintentar.
+                if not guardado:
+                    return jsonify({"status": "error", "message": "No se pudo guardar el registro."}), 500
                 return jsonify({"status": "success"})
             return redirect(url_for("registros_atencion_vehiculo"))
             

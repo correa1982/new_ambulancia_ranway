@@ -490,7 +490,9 @@ def exportar_excel_voluntariado():
 @routes_voluntariado.route('/voluntariado/imprimir/<int:record_id>')
 def imprimir_voluntariado(record_id):
     if not check_permission():
-        return "Acceso denegado"
+        if 'usuario' not in session:
+            return redirect(url_for('login'))
+        return "Acceso denegado", 403
         
     conn = get_db()
     cursor = conn.cursor()

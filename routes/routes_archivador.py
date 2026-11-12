@@ -359,7 +359,7 @@ def register_routes(app):
     def archivador_gestion():
         conn = get_db()
         categorias = get_categorias(conn)
-        formularios = get_nombres_formulario(conn)
+        formularios = get_formularios(conn)
         conn.close()
         return render_template(
             "archivador_gestion.html",

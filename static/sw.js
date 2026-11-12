@@ -52,6 +52,7 @@ const ESTATICOS = [
 // Formularios que todavía no pueden guardarse sin conexión (su envío se
 // perdería). Sin conexión se muestra la página de aviso en lugar del formulario.
 const SIN_OFFLINE = new Set([
+  '/preoperacional',
   '/checklist/preoperacional',
   '/formularios/atencion-colectiva'
 ]);

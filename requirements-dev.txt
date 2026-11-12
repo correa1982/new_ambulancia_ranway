@@ -1,0 +1,2 @@
+# Dependencias solo para correr las pruebas (además de requirements.txt)
+pytest>=8,<10
