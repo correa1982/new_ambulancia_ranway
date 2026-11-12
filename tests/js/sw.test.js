@@ -40,8 +40,18 @@ function ok(cond, nombre) { console.log((cond ? 'PASA ' : 'FALLA') + '  ' + nomb
 
 (async () => {
   // Instalación desde el login (sin sesión): las páginas redirigen al login
-  fetchImpl = async (req) => { const u = req.url || req; return /\/static\//.test(u) ? mkResp('archivo') : mkResp('LOGIN', {redirected: true}); };
+  let sinCerrar = 0, cerradas = 0;
+  fetchImpl = async (req) => {
+    const u = req.url || req;
+    if (/\/static\//.test(u)) return mkResp('archivo');
+    const r = mkResp('LOGIN', {redirected: true});
+    sinCerrar++;
+    r.body = { cancel: () => { cerradas++; return Promise.resolve(); } };
+    return r;
+  };
   let instalado; listeners.install({ waitUntil: p => instalado = p }); await instalado;
+  ok(sinCerrar > 0 && cerradas === sinCerrar,
+     `Instalación sin sesión: cierra las respuestas descartadas (${cerradas} de ${sinCerrar}); si no, el navegador se queda sin conexiones`);
   ok(!store[ORIGIN + '/formulario'], 'Instalación sin sesión: no guarda el login como si fuera /formulario');
   ok(!store[ORIGIN + '/api/cie10_full'], 'Instalación sin sesión: no guarda el login como si fuera CIE-10');
   ok(!!store[ORIGIN + '/static/offline.html?v=3'], 'Instalación: guarda la página offline');

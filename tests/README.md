@@ -12,6 +12,7 @@ Las pruebas recorren toda la aplicación como lo haría una persona: inician ses
 | `test_04_recorrido.py` | **Todas las páginas** de la aplicación (la lista sale de la aplicación misma) con administrador, usuario operativo y sin sesión: que no haya errores, que el operativo no vea páginas de administrador y que sin sesión no se vea nada privado |
 | `test_05_seguridad.py` | Todos los envíos sin sesión son rechazados, token CSRF, enlaces desde otros sitios, descarga de archivos del servidor, contraseñas con hash |
 | `test_06_offline.py` | Modo sin conexión: service worker simulado, versiones de archivos y token para sincronizar |
+| `test_07_navegador.py` | **Recorrido en un navegador real (Chromium):** inicia sesión en la pantalla de login, abre todas las páginas revisando que no tengan errores de JavaScript y, para cada formulario que funciona sin conexión, corta el internet, lo guarda en el dispositivo, devuelve el internet y comprueba que llegue a la base una sola vez. También prueba la "señal falsa" y el aviso del preoperacional |
 
 ## Antes de la primera vez
 
@@ -19,8 +20,11 @@ Las pruebas recorren toda la aplicación como lo haría una persona: inician ses
 2. **Instalar las dependencias**, desde la carpeta del proyecto:
 
    ```
-   pip install -r requirements.txt -r requirements-dev.txt
+   python -m pip install -r requirements.txt -r requirements-dev.txt
+   python -m playwright install chromium
    ```
+
+   La segunda línea descarga el navegador de pruebas (unos 150 MB, una sola vez).
 
 3. **Configurar la base de pruebas:** copia `tests/bd_pruebas.ejemplo` como `tests/bd_pruebas.local` y escribe el usuario y la contraseña de tu MySQL local. `bd_pruebas.local` no se sube a git.
 

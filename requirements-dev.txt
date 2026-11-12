@@ -1,2 +1,4 @@
 # Dependencias solo para correr las pruebas (además de requirements.txt)
 pytest>=8,<10
+playwright>=1.45
+# Después de instalar, una sola vez: python -m playwright install chromium

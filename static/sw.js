@@ -3,7 +3,7 @@
 //  Versión: 1.1.0
 // ═══════════════════════════════════════════════════════════
 
-const CACHE_NAME = 'sga-v89';
+const CACHE_NAME = 'sga-v91';
 const OFFLINE_DB  = 'ambulacia-offline';
 const SW_FETCH_TIMEOUT = 30000;
 // Con señal débil la red puede tardar minutos en fallar. Pasado este tiempo
@@ -42,7 +42,7 @@ const ESTATICOS = [
   '/static/icon-maskable-512.png',
   '/static/manifest.json',
   PAGINA_OFFLINE,
-  '/static/pwa-offline.js?v=60',
+  '/static/pwa-offline.js?v=61',
   '/static/js/dictation.js',
   '/static/data/Departamentos_Municipios.json',
   '/static/data/barrios_medellin.json',
@@ -73,6 +73,10 @@ async function precachear(urls) {
       if (esGuardable(resp)) {
         await cache.put(url, resp);
       } else {
+        // Cerrar la respuesta descartada. Si no se lee ni se cierra, el navegador deja
+        // la conexión ocupada; con 6 así (su límite por servidor) las demás peticiones
+        // quedan en espera para siempre y el service worker nunca termina de instalarse.
+        if (resp.body) resp.body.cancel().catch(() => {});
         fallidos.push(url);
       }
     } catch (err) {

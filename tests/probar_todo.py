@@ -31,7 +31,7 @@ LIBRERIAS = {
     "flask": "Flask", "pymysql": "PyMySQL", "dotenv": "python-dotenv", "werkzeug": "Werkzeug",
     "itsdangerous": "itsdangerous", "openpyxl": "openpyxl", "pandas": "pandas",
     "dateutil": "python-dateutil", "flask_apscheduler": "Flask-APScheduler",
-    "flask_compress": "Flask-Compress", "pytest": "pytest",
+    "flask_compress": "Flask-Compress", "pytest": "pytest", "playwright": "playwright",
 }
 
 VERDE, ROJO, AMARILLO, NEGRITA, FIN = "\033[92m", "\033[91m", "\033[93m", "\033[1m", "\033[0m"
@@ -91,9 +91,26 @@ def revisar_entorno():
     if faltantes:
         problemas.append("Faltan librerías: " + ", ".join(faltantes))
         mal(problemas[-1])
-        print("        Instálalas con: pip install -r requirements.txt -r requirements-dev.txt")
+        print("        Instálalas con: python -m pip install -r requirements.txt -r requirements-dev.txt")
+        if "playwright" in faltantes:
+            print("        y después, una sola vez: python -m playwright install chromium")
     else:
         bien("Librerías de requirements.txt y pytest instaladas")
+
+    if "playwright" not in faltantes:
+        try:
+            from playwright.sync_api import sync_playwright
+            with sync_playwright() as p:
+                ruta = Path(p.chromium.executable_path)
+            if ruta.exists():
+                bien("Navegador de pruebas (Chromium) instalado")
+            else:
+                problemas.append("Falta el navegador de pruebas")
+                mal(problemas[-1])
+                print("        Instálalo una sola vez con: python -m playwright install chromium")
+        except Exception as error:
+            problemas.append(f"No se pudo revisar el navegador de pruebas: {error}")
+            mal(problemas[-1])
 
     if shutil.which("node"):
         bien("Node.js instalado (prueba del modo sin conexión)")

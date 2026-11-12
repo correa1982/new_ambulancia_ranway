@@ -524,7 +524,7 @@ const PWA = (() => {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', async () => {
     try {
-      const reg = await navigator.serviceWorker.register('/sw.js?v=61', { scope: '/' });
+      const reg = await navigator.serviceWorker.register('/sw.js?v=62', { scope: '/' });
       console.log('[PWA] Service Worker registrado:', reg.scope);
 
       reg.addEventListener('updatefound', () => {
@@ -600,16 +600,23 @@ function pedirPrecachePaginas() {
   });
 }
 
-// Pide sincronizar: en segundo plano si el navegador lo permite; si no, desde la página.
+// Sincroniza los pendientes. Deja pedida la sincronización en segundo plano
+// (por si la persona cierra la app) y además sincroniza ya desde la página: el
+// navegador puede demorar varios minutos en reintentar por su cuenta, por
+// ejemplo si con señal débil el primer intento falló. El candado compartido
+// evita que la página y el service worker envíen el mismo registro a la vez.
 async function solicitarSincronizacion() {
   if ('serviceWorker' in navigator && 'SyncManager' in window) {
     try {
-      const reg = await navigator.serviceWorker.ready;
+      const reg = await Promise.race([
+        navigator.serviceWorker.ready,
+        new Promise((_, rechazar) => setTimeout(() => rechazar(new Error('sin service worker')), 3000)),
+      ]);
       await reg.sync.register('sync-registros');
-      return 'fondo';
-    } catch (e) { /* se sincroniza desde la página */ }
+    } catch (e) { /* se sincroniza solo desde la página */ }
   }
   const r = await PWA.sincronizar();
+  if (r.ocupado) return 'fondo'; // el service worker ya está enviando; avisará con SYNC_SUCCESS
   if (r.ok > 0) {
     let msg = `${r.ok} registro(s) sincronizado(s) correctamente.`;
     if (r.omitidos > 0) msg += ` (${r.omitidos} duplicado(s) omitido(s))`;
@@ -786,9 +793,16 @@ document.addEventListener('DOMContentLoaded', () => {
       actualizarBadgePendientes();
       if (window.cargarRegistrosOfflinePanel) window.cargarRegistrosOfflinePanel();
 
+      // Pedir la sincronización en segundo plano. Si el navegador la tiene
+      // desactivada, falla: el registro YA quedó guardado, así que no se debe
+      // mostrar "Error al guardar" (la persona lo guardaría otra vez, duplicado).
       if ('serviceWorker' in navigator && 'SyncManager' in window) {
-        const sw = await navigator.serviceWorker.ready;
-        await sw.sync.register('sync-registros');
+        try {
+          const sw = await navigator.serviceWorker.ready;
+          await sw.sync.register('sync-registros');
+        } catch (errSync) {
+          console.warn('[PWA] Sincronización en segundo plano no disponible; se sincronizará al abrir la app o al volver internet.', errSync);
+        }
       }
 
       if (accionValue === 'finalizar') {
@@ -823,19 +837,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  window.addEventListener('online', async () => {
-    mostrarToast('Conexion restaurada. Sincronizando...', 'info');
-    await new Promise(r => setTimeout(r, 1500));
-    try {
-      await solicitarSincronizacion();
-    } catch (err) {
-      console.error('[PWA] Error en sync automatico:', err);
-    }
-  });
+});
 
-  window.addEventListener('offline', () => {
-    mostrarToast('Sin conexion. Los registros se guardaran en el dispositivo.', 'warning');
-  });
+// ── Avisos de conexión: en TODAS las páginas (antes solo en las de formulario,
+//    así que si el internet volvía estando en el dashboard no se sincronizaba) ──
+window.addEventListener('online', async () => {
+  mostrarToast('Conexion restaurada. Sincronizando...', 'info');
+  await new Promise(r => setTimeout(r, 1500));
+  try {
+    await solicitarSincronizacion();
+  } catch (err) {
+    console.error('[PWA] Error en sync automatico:', err);
+  }
+});
+
+window.addEventListener('offline', () => {
+  mostrarToast('Sin conexion. Los registros se guardaran en el dispositivo.', 'warning');
 });
 
 

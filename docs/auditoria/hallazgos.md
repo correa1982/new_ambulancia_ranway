@@ -614,6 +614,7 @@ Solo se listan los hallazgos propios de cada tabla; los generales de 3.1 aplican
 | SQL-09 | `routes_registros_global.py`, `routes_admin.py`, `routes_archivador.py`, `routes_patients.py` | Listados sin `LIMIT` (ej. `SELECT * FROM archivador WHERE ... ORDER BY id DESC`) | Paginar |
 | SQL-08 | Todas las rutas | `registrado_por`, `fecha_registro`, etc. se asignan en cada ruta, con `ahora().strftime(...)` repetido | Una función común que asigne las columnas de auditoría |
 | SQL-03 | Todas las rutas | Cumple: las conexiones se cierran de forma explícita y `app.py` tiene un cierre de respaldo al final de cada solicitud (`close_all()`), que revierte lo no confirmado | — |
+| SQL-03 | `db.py` (`ConnectionPool`, máximo 10 conexiones) y todas las rutas | Cada petición abre varias conexiones con `get_db()` (la de la ruta, la de la configuración, la del usuario) y las retiene hasta terminar. Con 6 peticiones al mismo tiempo cada una espera una conexión más y el grupo de 10 se agota: todas quedan bloqueadas 15 s y luego fallan. Lo detectó la prueba del navegador al iniciar sesión (el service worker pide unas 30 páginas a la vez). Hoy no ocurre en producción porque gunicorn atiende una petición a la vez por proceso; ocurriría al activar hilos (`--threads`) o con más carga en el servidor de desarrollo | Reutilizar una sola conexión por petición (guardarla en `flask.g` y cerrarla al final de la petición) en lugar de abrir una por cada `get_db()` |
 
 ---
 
